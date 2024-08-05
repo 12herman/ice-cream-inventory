@@ -7,6 +7,7 @@ import Production from '../pages/Production'
 import Delivery from '../pages/Delivery'
 import SupplierList from '../pages/SupplierList'
 import CustomerList from '../pages/CustomerList'
+import Employee from '../pages/Employee'
 
 export default function Pages({navPages,datas,projectUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt}) {
     const PageLists = [
@@ -18,6 +19,7 @@ export default function Pages({navPages,datas,projectUpdateMt,supplierUpdateMt,c
         <Delivery datas={datas} deliveryUpdateMt={deliveryUpdateMt}/>,
         <SupplierList datas={datas} supplierUpdateMt={supplierUpdateMt}/>,
         <CustomerList datas={datas} customerUpdateMt={customerUpdateMt}/>,
+        <Employee datas={datas} employeeUpdateMt={employeeUpdateMt}/>
     ];
   return (
     <div className="col-span-6 lg:col-span-10 p-2 overflow-y-hidden" style={{height: '100vh'}}>

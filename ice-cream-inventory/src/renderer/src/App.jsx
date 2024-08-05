@@ -25,8 +25,8 @@ const App =() =>{
   
   // nav state
   const [navPages, setNavPages] = useState({
-    pages: ['Home', 'Product', 'Raw Material', 'Storage', 'Production', 'Delivery', 'Supplier List', 'Customer List'],
-    icons:[<GoHome size={19}/>, <FiInbox size={17}/>,<FiShoppingBag size={17}/>,<MdOutlineStorage size={17}/>,<MdOutlineWater size={17}/>,<TbTruckDelivery size={17}/>,<FaRegRectangleList size={17}/>,<FaRegRectangleList size={17}/>],
+    pages: ['Home', 'Product', 'Raw Material', 'Storage', 'Production', 'Delivery', 'Supplier List', 'Customer List','Employee List'],
+    icons:[<GoHome size={19}/>, <FiInbox size={17}/>,<FiShoppingBag size={17}/>,<MdOutlineStorage size={17}/>,<MdOutlineWater size={17}/>,<TbTruckDelivery size={17}/>,<FaRegRectangleList size={17}/>,<FaRegRectangleList size={17}/>,<FaRegRectangleList size={17}/>],
     currentpage: 'Home',
     pagecount:0
   });

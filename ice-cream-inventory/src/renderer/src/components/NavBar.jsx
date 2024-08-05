@@ -2,7 +2,7 @@
 import React from 'react';
 import IceCreamLogo from '../assets/img/33456902_6600_7_04.jpg'
 import { LiaHandHoldingUsdSolid } from "react-icons/lia";
-
+import { TbIceCream } from "react-icons/tb";
 export default function NavBar({ navPages,setNavPages }) {
   return (
     <nav className='border-r-2 h-screen col-span-2 relative'>
@@ -15,7 +15,8 @@ export default function NavBar({ navPages,setNavPages }) {
             </li>
         ))}
       </ul>
-      <span className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400'><LiaHandHoldingUsdSolid size={25}/><span>Quick Sale</span></span>
+      <span className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400'><TbIceCream size={25}/><span>Quick Sale</span></span>
+      <span className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400'><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></span>
     </nav>
   );
 }
