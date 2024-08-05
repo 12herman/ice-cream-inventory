@@ -1,8 +1,42 @@
 import React from 'react';
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Statistic } from 'antd';
+import { Card, Col, Row, Statistic, Table } from 'antd';
 
 export default function Home() {
+
+  const dataSource = [
+    {
+      key: '1',
+      name: 'Mike',
+      age: 32,
+      address: '10 Downing Street',
+    },
+    {
+      key: '2',
+      name: 'John',
+      age: 42,
+      address: '10 Downing Street',
+    },
+  ];
+  
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Age',
+      dataIndex: 'age',
+      key: 'age',
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      key: 'address',
+    },
+  ];
+
   return (
     <div><Row gutter={16}>
     <Col span={12}>
@@ -33,6 +67,8 @@ export default function Home() {
         />
       </Card>
     </Col>
-  </Row></div>
+  </Row>
+  <Table dataSource={dataSource} columns={columns} />;
+  </div>
   )
 }
