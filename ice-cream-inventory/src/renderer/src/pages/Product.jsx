@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select } from 'antd';
+import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select } from 'antd';
 import { PiExport } from "react-icons/pi";
 import { IoMdAdd } from "react-icons/io";
 import { MdOutlineModeEditOutline } from "react-icons/md";
@@ -8,21 +8,21 @@ import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
 import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
+import jsonToExcel from '../js-files/json-to-excel';
 const { Search } = Input;
 
 export default function Product({ datas, projectUpdateMt }) {
   
-  //states
+  // states
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingKey, setEditingKey] = useState('');
+  const [editingKeys, setEditingKeys] = useState([]);
   const [data, setData] = useState([]);
 
   // side effect
   useEffect(() => {
     setData(datas.projects.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
-
 
   // search
   const [searchText, setSearchText] = useState('');
@@ -39,9 +39,7 @@ export default function Product({ datas, projectUpdateMt }) {
   const createNewProject = async (values) => {
     await createProjects({ 
       ...values, 
-      // createdby: 'admin', 
       createddate: TimestampJs(), 
-      // updatedby: '', 
       updateddate: '', 
       isdeleted: false 
     });
@@ -49,7 +47,6 @@ export default function Product({ datas, projectUpdateMt }) {
     projectUpdateMt();
     setIsModalOpen(false);
   };
-
 
   const columns = [
     {
@@ -75,18 +72,15 @@ export default function Product({ datas, projectUpdateMt }) {
       key: 'productname',
       editable: true,
     },
-    // {
-    //   title: 'Date',
-    //   dataIndex: 'createddate',
-    //   key: 'createddate',
-    //   editable: true,
-    // },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      width: 120,
+      width: 180,
+      render: (_, record) => {
+        return record.quantity + record.unit
+      }
     },
     {
       title: 'Flavour',
@@ -132,14 +126,14 @@ export default function Product({ datas, projectUpdateMt }) {
           </Popconfirm>
         </span>
         ) : (
-<span className='flex gap-x-3 justify-center items-center'>
-<Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-  <MdOutlineModeEditOutline size={20} />
-   </Typography.Link>
-   <Popconfirm className={`${editingKey !== '' ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => deleteProduct(record)} disabled={editingKey !== ''}>
-    <AiOutlineDelete className={`${editingKey !== ''  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
-   </Popconfirm>
-</span>
+        <span className='flex gap-x-3 justify-center items-center'>
+        <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
+          <MdOutlineModeEditOutline size={20} />
+          </Typography.Link>
+          <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => deleteProduct(record)} >
+            <AiOutlineDelete className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
+          </Popconfirm>
+        </span>
         );
       },
     },
@@ -159,28 +153,60 @@ export default function Product({ datas, projectUpdateMt }) {
     return (
       <td {...restProps}>
         {editing ? (
-          <Form.Item
-            name={dataIndex}
-            style={{
-              margin: 0,
-            }}
-            rules={[
-              {
-                required: true,
-                message: false,
-              },
-            ]}
-          >
-            {inputNode}
-          </Form.Item>
+          <>
+            {dataIndex === 'quantity' ? 
+              <span className='flex gap-x-1'>
+                <Form.Item
+                  name="quantity"
+                  style={{ margin: 0 }}
+                  rules={[{ required: true, message: false }]}
+                >
+                  <InputNumber className='w-full' />
+                </Form.Item>
+                <Form.Item
+                  name="unit"
+                  style={{ margin: 0 }}
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={[
+                      { value: 'gm', label: 'GM' },
+                      { value: 'mm', label: 'MM' },
+                      { value: 'kg', label: 'KG' }
+                    ]}
+                  />
+                </Form.Item>
+              </span>
+            : 
+              <Form.Item
+                name={dataIndex}
+                style={{ margin: 0 }}
+                rules={[{ required: true, message: false }]}
+              >
+                {inputNode}
+              </Form.Item>
+            }
+          </>
         ) : (
           children
         )}
       </td>
     );
   };
-  const isEditing = (record) => record.key === editingKey;
-  const edit = (record) => { form.setFieldsValue({ ...record,});setEditingKey(record.key);};
+
+  const isEditing = (record) => editingKeys.includes(record.key);
+
+  const edit = (record) => { 
+    form.setFieldsValue({ ...record });
+    setEditingKeys([record.key]);
+  };
+
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
       return col;
@@ -196,9 +222,11 @@ export default function Product({ datas, projectUpdateMt }) {
       }),
     };
   });
-  const cancel = () => {setEditingKey('')};
 
-  //update method
+  const cancel = () => {
+    setEditingKeys([]);
+  };
+
   const save = async (key) => {
     try {
       const row = await form.validateFields();
@@ -209,36 +237,30 @@ export default function Product({ datas, projectUpdateMt }) {
         row.productname === key.productname && 
         row.quantity === key.quantity && 
         row.productperpack === key.productperpack && 
-        row.price === key.price) {
+        row.price === key.price &&
+        row.unit === key.unit) {
         message.open({type: 'info',content: 'No changes made',});
-        setEditingKey('');
+        setEditingKeys([]);
       } else {
         await updateProjects(key.id,{...row,updateddate: TimestampJs()},);
         projectUpdateMt();
         message.open({type: 'success',content: 'Updated Successfully',});
-        setEditingKey('');
+        setEditingKeys([]);
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
     }
   };
 
-
-
-
   // selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const onSelectChange = (newSelectedRowKeys) => {
-      newSelectedRowKeys.length === 0 ? setEditingKey('') :setEditingKey('hi');
-    if (newSelectedRowKeys.length > 0 ) {
-      const selectTableData = data.filter(item => newSelectedRowKeys.includes(item.key));
-      console.log(selectTableData);
-    }
     setSelectedRowKeys(newSelectedRowKeys);
   };
+
   const rowSelection = {
     selectedRowKeys,
-    columnWidth:50,
+    columnWidth: 50,
     onChange: onSelectChange,
     selections: [
       Table.SELECTION_ALL,
@@ -264,10 +286,10 @@ export default function Product({ datas, projectUpdateMt }) {
         onSelect: (changeableRowKeys) => {
           let newSelectedRowKeys = [];
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
-            if (index % 2 !== 0) {
-              return true;
+            if (index % 2 === 0) {
+              return false;
             }
-            return false;
+            return true;
           });
           setSelectedRowKeys(newSelectedRowKeys);
         },
@@ -275,35 +297,42 @@ export default function Product({ datas, projectUpdateMt }) {
     ],
   };
 
-
-    // Table Hight Auto Adjustment (***Do not tounch this code*** ) //
-    const [tableHeight, setTableHeight] = useState(window.innerHeight - 200); // Initial height adjustment
-    useEffect(() => {
-      // Function to calculate and update table height
-      const updateTableHeight = () => {
-        const newHeight = window.innerHeight - 100; // Adjust this value based on your layout needs
-        setTableHeight(newHeight);
-      };
-      // Set initial height
-      updateTableHeight();
-      // Update height on resize and fullscreen change
-      window.addEventListener('resize', updateTableHeight);
-      document.addEventListener('fullscreenchange', updateTableHeight);
-      // Cleanup event listeners on component unmount
-      return () => {
-        window.removeEventListener('resize', updateTableHeight);
-        document.removeEventListener('fullscreenchange', updateTableHeight);
-      };
-    }, []);
-
-    // delete
-    const deleteProduct = async (data) => {
-      //await deleteProjects(data.id);
-      const {id,...newData} = data;
-      await updateProjects(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
-      projectUpdateMt();
-      message.open({type: 'success',content: 'Deleted Successfully',});
+  // Table Height Auto Adjustment (***Do not touch this code***)
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200); // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 100; // Adjust this value based on your layout needs
+      setTableHeight(newHeight);
     };
+    // Set initial height
+    updateTableHeight();
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight);
+    document.addEventListener('fullscreenchange', updateTableHeight);
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight);
+      document.removeEventListener('fullscreenchange', updateTableHeight);
+    };
+  }, []);
+
+  // delete
+  const deleteProduct = async (data) => {
+    // await deleteProjects(data.id);
+    const {id,...newData} = data;
+    await updateProjects(id,{isdeleted: true,
+      // deletedby: 'admin',
+      deleteddate: TimestampJs()});
+    projectUpdateMt();
+    message.open({type: 'success',content: 'Deleted Successfully',});
+  };
+
+  // export
+  const exportExcel = async () => {
+    const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
+    jsonToExcel(exportDatas,`Product-List-${TimestampJs()}`);
+  }
 
   return (
     <div>
@@ -311,14 +340,14 @@ export default function Product({ datas, projectUpdateMt }) {
         <li className='flex gap-x-3 justify-between items-center'>
           <Search  allowClear className='w-[50%]' placeholder="input search text" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
-            <Button>Export <PiExport /></Button>
-            <Button type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
+            <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={exportExcel}>Export <PiExport /></Button>
+            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
               New Product <IoMdAdd />
             </Button>
           </span>
         </li>
 
-        <li  className='mt-2'>
+        <li className='mt-2'>
           <Form form={form} component={false}>
             <Table
               virtual
@@ -362,10 +391,9 @@ export default function Product({ datas, projectUpdateMt }) {
             <InputNumber className='w-full' />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='mesurment' label="Mesurment" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
           <Select
             showSearch
-            
             placeholder="Search to Select"
             optionFilterProp="label"
             filterSort={(optionA, optionB) =>

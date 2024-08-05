@@ -1,0 +1,57 @@
+import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+
+// Get all customer
+export const getCustomer = async () => {
+    try {
+      const collectionRef = collection(db, "customer");
+      const querySnapshot = await getDocs(collectionRef);
+      const customer = querySnapshot.docs.map(doc => ({
+        id: doc.id, 
+        ...doc.data(),
+      }));
+      return { customer, status: 200 };
+    } catch (err) {
+      console.error("Error fetching documents: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
+  // Create a new customer
+export const createCustomer = async (task) => {
+  try {
+    const collectionRef = collection(db, "customer");
+    const res = await addDoc(collectionRef, task);
+    return { res, status: 200 };
+  } catch (err) {
+    console.error("Error adding document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
+// Update an existing customer
+export const updateCustomer = async (customerId, updatedData) => {
+  try {
+    const docRef = doc(db, "customer", customerId);
+    await updateDoc(docRef, updatedData);
+    return { status: 200 };
+  } catch (err) {
+    console.error("Error updating document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
+
+// Delete an customer
+export const deleteCustomer = async (customerId) => {
+  try {
+    const docRef = doc(db, "customer", customerId);
+    await deleteDoc(docRef);
+    return { status: 200 };
+  } catch (err) {
+    console.error("Error deleting document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
+
