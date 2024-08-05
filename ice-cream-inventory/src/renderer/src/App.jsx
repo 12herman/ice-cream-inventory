@@ -16,6 +16,10 @@ import Pages from "./components/Pages";
 import { getProjects } from "./firebase/data-tables/products";
 import { getSupplier } from "./firebase/data-tables/supplier";
 import { getCustomer } from "./firebase/data-tables/customer";
+import { getRawmaterial } from "./firebase/data-tables/rawmaterial";
+import { getDelivery } from "./firebase/data-tables/delivery";
+import { getEmployee } from "./firebase/data-tables/employee";
+import { getProduction } from "./firebase/data-tables/production";
 
 const App =() =>{
   
@@ -38,12 +42,24 @@ const App =() =>{
     suppliers:[],
     supplierupdatestaus:false,
     customers:[],
-    customerupdatestaus:false
+    customerupdatestaus:false,
+    rawmaterials:[],
+    rawmaterialupdatestaus:false,
+    delivery:[],
+    deliveryupdatestaus:false,
+    employees:[],
+    employeeupdatestaus:false,
+    productions:[],
+    productionupdatestaus:false,
   });
 
   const projectUpdateMt =()=> setDatas(pre => ({...pre, projectupdatestaus:!pre.projectupdatestaus}));
   const supplierUpdateMt =()=> setDatas(pre => ({...pre, supplierupdatestaus:!pre.supplierupdatestaus}));
-  
+  const customerUpdateMt =()=> setDatas(pre => ({...pre, customerupdatestaus:!pre.customerupdatestaus}));
+  const rawmaterialUpdateMt =()=> setDatas(pre => ({...pre, rawmaterialupdatestaus:!pre.rawmaterialupdatestaus}));
+  const deliveryUpdateMt =()=> setDatas(pre => ({...pre, deliveryupdatestaus:!pre.deliveryupdatestaus}));
+  const employeeUpdateMt =()=> setDatas(pre => ({...pre, employeeupdatestaus:!pre.employeeupdatestaus}));
+  const productionUpdateMt =()=> setDatas(pre => ({...pre, productionupdatestaus:!pre.productionupdatestaus}));
   // get table datas 'project list'
   useEffect(()=>{
     const fetchData = async()=>{
@@ -75,17 +91,65 @@ const App =() =>{
       setDatas(pre => ({...pre, customer}));
     }
   }
- },[])
+  fetchData();
+ },[datas.customerupdatestaus])
 
+ // get table datas 'raw material list'
+ useEffect(()=>{
+  const fetchData = async()=>{
+    const {status,rawmaterial} = await getRawmaterial();
+    if(status){
+      setDatas(pre => ({...pre, rawmaterial}));
+    }
+  }
+  fetchData();
+ },[datas.rawmaterialupdatestaus])
+
+ // get table datas 'delivery list'
+ useEffect(()=>{
+    const fetchData = async()=>{
+      const {status,delivery} = await getDelivery();
+      if(status){
+        setDatas(pre => ({...pre, delivery}));
+      }
+    }
+    fetchData();
+  },[datas.deliveryupdatestaus]);
+
+  // get table datas 'employee list'
+  useEffect(()=>{
+    const fetchData= async()=>{
+      const {status,employee} = await getEmployee();
+      if(status){
+        setDatas(pre => ({...pre, employee}));
+      }
+    }
+    fetchData();
+  },[datas.employeeupdatestaus])
+
+  // get table datas 'production list'
+  useEffect(()=>{
+    const fetchData = async ()=>{
+      const {status,production} = await getProduction();
+      if(status){
+        setDatas(pre => ({...pre, production}));
+      }
+    }
+    fetchData();
+  },[datas.productionupdatestaus])
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
     {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
       <NavBar navPages={navPages} setNavPages={setNavPages} />
-      <Pages
-      newdata={'Hi'} 
-      datas={datas}  
+      <Pages 
+      datas={datas} 
       projectUpdateMt={projectUpdateMt} 
       supplierUpdateMt={supplierUpdateMt}
+      customerUpdateMt={customerUpdateMt}
+      rawmaterialUpdateMt={rawmaterialUpdateMt}
+      deliveryUpdateMt={deliveryUpdateMt}
+      employeeUpdateMt={employeeUpdateMt}
+      productionUpdateMt={productionUpdateMt}
       navPages={navPages}
       />
     </main>
