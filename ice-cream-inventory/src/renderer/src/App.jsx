@@ -81,8 +81,9 @@ const App =() =>{
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
     {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
       <NavBar navPages={navPages} setNavPages={setNavPages} />
-      <Pages 
-      datas={datas} 
+      <Pages
+      newdata={'Hi'} 
+      datas={datas}  
       projectUpdateMt={projectUpdateMt} 
       supplierUpdateMt={supplierUpdateMt}
       navPages={navPages}
