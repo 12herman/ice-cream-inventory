@@ -23,7 +23,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
 
   // side effect
   useEffect(() => {
-    setData(datas.supplier.length > 0 ?  datas.supplier.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })):[]);
+    setData(datas.suppliers.length > 0 ?  datas.suppliers.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })):[]);
   }, [datas]);
 
   // search
@@ -346,7 +346,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length <= 0 ? true : false}
+              loading={data.length >= 0 ? false : true}
               rowClassName="editable-row"
               scroll={{x:900,y: tableHeight}}
               rowSelection={rowSelection}

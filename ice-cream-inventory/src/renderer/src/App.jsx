@@ -77,7 +77,7 @@ const App =() =>{
     const fetchData = async()=>{
       const {supplier,status} = await getSupplier();
       if(status){
-        setDatas(pre => ({...pre, supplier}));
+        setDatas(pre => ({...pre, suppliers:supplier}));
       }
     };
     fetchData();
@@ -88,7 +88,7 @@ const App =() =>{
   const fetchData = async()=>{
     const {customer,status} = await getCustomer();
     if(status){
-      setDatas(pre => ({...pre, customer}));
+      setDatas(pre => ({...pre,customers:customer}));
     }
   }
   fetchData();
@@ -99,7 +99,7 @@ const App =() =>{
   const fetchData = async()=>{
     const {status,rawmaterial} = await getRawmaterial();
     if(status){
-      setDatas(pre => ({...pre, rawmaterial}));
+      setDatas(pre => ({...pre, rawmaterials:rawmaterial}));
     }
   }
   fetchData();
@@ -121,7 +121,7 @@ const App =() =>{
     const fetchData= async()=>{
       const {status,employee} = await getEmployee();
       if(status){
-        setDatas(pre => ({...pre, employee}));
+        setDatas(pre => ({...pre, employees:employee}));
       }
     }
     fetchData();
@@ -132,7 +132,7 @@ const App =() =>{
     const fetchData = async ()=>{
       const {status,production} = await getProduction();
       if(status){
-        setDatas(pre => ({...pre, production}));
+        setDatas(pre => ({...pre, productions:production}));
       }
     }
     fetchData();
