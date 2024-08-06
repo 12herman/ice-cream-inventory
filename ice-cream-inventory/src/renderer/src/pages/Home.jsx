@@ -1,29 +1,109 @@
 import React from 'react';
-import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Statistic } from 'antd';
+import { ArrowDownOutlined, ArrowUpOutlined, NotificationOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Statistic, DatePicker, Badge, Table } from 'antd';
+const { RangePicker } = DatePicker;
 
 export default function Home() {
+
+  const dataSource = [
+    {
+      key: '1',
+      name: 'Mike',
+      age: 32,
+      address: '10 Downing Street',
+    },
+    {
+      key: '2',
+      name: 'John',
+      age: 42,
+      address: '10 Downing Street',
+    },
+  ];
+  
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Age',
+      dataIndex: 'age',
+      key: 'age',
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      key: 'address',
+    },
+  ];
+
   return (
-    <div><Row gutter={16}>
-    <Col span={12}>
+    <div>
+      <ul>
+        <li className='flex gap-x-3 justify-between items-center'>
+          <h1>Dashboard</h1>
+          <span className='flex gap-x-3 justify-center items-center'>
+          <RangePicker />
+          <Badge dot>
+      <NotificationOutlined
+        style={{
+          fontSize: 16,
+        }}
+      />
+    </Badge>
+          </span>
+        </li>
+
+        <li className='mt-2'>
+      <Row gutter={16}>
+    <Col span={6}>
       <Card bordered={false}>
         <Statistic
-          title="Active"
-          value={11.28}
+          title="Total Sales"
+          value={8042}
           precision={2}
           valueStyle={{
             color: '#3f8600',
           }}
           prefix={<ArrowUpOutlined />}
-          suffix="%"
+          suffix="Rs"
         />
       </Card>
     </Col>
-    <Col span={12}>
+    <Col span={6}>
       <Card bordered={false}>
         <Statistic
-          title="Idle"
-          value={9.3}
+          title="Total Spending"
+          value={2980}
+          precision={2}
+          valueStyle={{
+            color: '#cf1322',
+          }}
+          prefix={<ArrowDownOutlined />}
+          suffix="Rs"
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card bordered={false}>
+        <Statistic
+          title="Total Profit"
+          value={5062}
+          precision={2}
+          valueStyle={{
+            color: '#3f8600',
+          }}
+          prefix={<ArrowUpOutlined />}
+          suffix="Rs"
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card bordered={false}>
+        <Statistic
+          title="Total Customer"
+          value={25}
           precision={2}
           valueStyle={{
             color: '#cf1322',
@@ -33,6 +113,14 @@ export default function Home() {
         />
       </Card>
     </Col>
-  </Row></div>
+  </Row>
+  </li>
+
+  <li className='mt-2'>
+  <Table dataSource={dataSource} columns={columns} />;
+  </li>
+
+  </ul>
+  </div>
   )
 }
