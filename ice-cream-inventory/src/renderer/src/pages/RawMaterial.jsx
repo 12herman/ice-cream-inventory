@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker } from 'antd';
+import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker, Radio } from 'antd';
 import { PiExport } from "react-icons/pi";
 import { IoMdAdd } from "react-icons/io";
 import { MdOutlineModeEditOutline } from "react-icons/md";
@@ -7,6 +7,8 @@ import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
 import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
+
+import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -344,7 +346,7 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
       </ul>
 
       <Modal
-        title="Products"
+        title="Add Material"
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => { 
@@ -357,7 +359,11 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
           form={form}
           layout='vertical'
         >
-          <Form.Item className='mb-0' name='productname' label="Product Name" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='productname' label="Material Name" rules={[{ required: true, message: false }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item className='mb-0' name='flavour' label="Supplier Name" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
 
@@ -393,17 +399,21 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
           </Form.Item>
           </span>
 
-          <Form.Item className='mb-0' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
-            <Input />
-          </Form.Item>
-
-          <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
+          {/* <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
             <InputNumber className='w-full' />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item className='mb-0' name='price' label="Price" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
             <InputNumber className='w-full' />
           </Form.Item>
+
+          <Form.Item className='mb-1' name='gender' label="Gender" rules={[{ required: true, message: false }]}>
+          <Radio.Group>
+            <Radio value={'male'}>Paid</Radio>
+            <Radio value={'female'}>Unpaid</Radio>
+          </Radio.Group>
+          </Form.Item>
+
         </Form>
       </Modal>
 

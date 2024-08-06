@@ -1,6 +1,8 @@
 import React from 'react';
 import { ArrowDownOutlined, ArrowUpOutlined, NotificationOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, DatePicker, Badge, Table } from 'antd';
+import { FaRupeeSign } from "react-icons/fa";
+import { IoPerson } from "react-icons/io5";
 const { RangePicker } = DatePicker;
 
 export default function Home() {
@@ -66,8 +68,7 @@ export default function Home() {
           valueStyle={{
             color: '#3f8600',
           }}
-          prefix={<ArrowUpOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign  />}
         />
       </Card>
     </Col>
@@ -80,8 +81,7 @@ export default function Home() {
           valueStyle={{
             color: '#cf1322',
           }}
-          prefix={<ArrowDownOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
@@ -94,8 +94,7 @@ export default function Home() {
           valueStyle={{
             color: '#3f8600',
           }}
-          prefix={<ArrowUpOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
@@ -104,12 +103,10 @@ export default function Home() {
         <Statistic
           title="Total Customer"
           value={25}
-          precision={2}
           valueStyle={{
-            color: '#cf1322',
+            color: '#3f8600',
           }}
-          prefix={<ArrowDownOutlined />}
-          suffix="%"
+          prefix={<IoPerson />}
         />
       </Card>
     </Col>
