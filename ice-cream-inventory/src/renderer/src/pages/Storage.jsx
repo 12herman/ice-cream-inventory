@@ -51,7 +51,7 @@ export default function Storage() {
         </span>
         </li>
         <li className='mt-2'>
-        <Table dataSource={dataSource} columns={columns} />;
+        <Table dataSource={dataSource} columns={columns} pagination={false}/>;
         </li>
       </ul>
     </div>

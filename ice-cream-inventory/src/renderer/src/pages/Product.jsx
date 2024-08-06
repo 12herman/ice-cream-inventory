@@ -6,7 +6,7 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
+import { createProjects, updateProjects } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 const { Search } = Input;

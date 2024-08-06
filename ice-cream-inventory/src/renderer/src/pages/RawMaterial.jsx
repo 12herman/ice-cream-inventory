@@ -6,14 +6,12 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
-
 import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
-export default function RawMaterial({ datas, projectUpdateMt }) {
+export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
 
    //states
    const [form] = Form.useForm();
@@ -23,7 +21,7 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
  
    // side effect
    useEffect(() => {
-     setData(datas.projects.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+     setData(datas.rawmaterials.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
    }, [datas]);
 
    // search
@@ -37,17 +35,15 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
      }
    }
 
-   const createNewProject = async (values) => {
-    await createProjects({ 
-      ...values, 
-      // createdby: 'admin', 
-      createddate: TimestampJs(), 
-      // updatedby: '', 
-      updateddate: '', 
+   const createAddMaterial = async (values) => {
+    await createRawmaterial({ 
+      ...values,
+      createddate: TimestampJs(),
       isdeleted: false 
     });
+    console.log(values);
     form.resetFields();
-    projectUpdateMt();
+    rawmaterialUpdateMt();
     setIsModalOpen(false);
   };
 
@@ -77,28 +73,31 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
     },
     {
       title: 'Material',
-      dataIndex: 'productname',
-      key: 'productname',
+      dataIndex: 'materialname',
+      key: 'materialname',
       editable: true,
     },
     {
       title: 'Supplier',
-      dataIndex: 'productname',
-      key: 'productname',
+      dataIndex: 'suppliername',
+      key: 'suppliername',
       editable: true,
     },
-    {
-      title: 'Location',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: true,
-    },
+    // {
+    //   title: 'Location',
+    //   dataIndex: 'location',
+    //   key: 'location',
+    //   editable: true,
+    // },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
       width: 120,
+      render: (_, record) => {
+        return record.quantity + record.unit
+      }
     },
     {
       title: 'Price',
@@ -109,8 +108,8 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
     },
     {
       title: 'Status',
-      dataIndex: 'productperpack',
-      key: 'productperpack',
+      dataIndex: 'paymentstatus',
+      key: 'paymentstatus',
       editable: true,
       width: 160,
     },
@@ -165,20 +164,46 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
     return (
       <td {...restProps}>
         {editing ? (
-          <Form.Item
-            name={dataIndex}
-            style={{
-              margin: 0,
-            }}
-            rules={[
-              {
-                required: true,
-                message: false,
-              },
-            ]}
-          >
-            {inputNode}
-          </Form.Item>
+          <>
+          {dataIndex === 'quantity' ? 
+            <span className='flex gap-x-1'>
+              <Form.Item
+                name="quantity"
+                style={{ margin: 0 }}
+                rules={[{ required: true, message: false }]}
+              >
+                <InputNumber className='w-full' />
+              </Form.Item>
+              <Form.Item
+                name="unit"
+                style={{ margin: 0 }}
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Select"
+                  optionFilterProp="label"
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                  }
+                  options={[
+                    { value: 'gm', label: 'GM' },
+                    { value: 'mm', label: 'MM' },
+                    { value: 'kg', label: 'KG' }
+                  ]}
+                />
+              </Form.Item>
+            </span>
+          : 
+            <Form.Item
+              name={dataIndex}
+              style={{ margin: 0 }}
+              rules={[{ required: true, message: false }]}
+            >
+              {inputNode}
+            </Form.Item>
+          }
+        </>
         ) : (
           children
         )}
@@ -219,8 +244,8 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
         message.open({type: 'info',content: 'No changes made',});
         setEditingKey('');
       } else {
-        await updateProjects(key.id,{...row,updateddate: TimestampJs()},);
-        projectUpdateMt();
+        await updateRawmaterial(key.id,{...row,updateddate: TimestampJs()},);
+        rawmaterialUpdateMt();
         message.open({type: 'success',content: 'Updated Successfully',});
         setEditingKey('');
       }
@@ -306,8 +331,8 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
     const deleteProduct = async (data) => {
       //await deleteProjects(data.id);
       const {id,...newData} = data;
-      await updateProjects(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
-      projectUpdateMt();
+      await updateRawmaterial(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
+      rawmaterialUpdateMt();
       message.open({type: 'success',content: 'Deleted Successfully',});
     };
 
@@ -355,15 +380,15 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
         }}
       >
       <Form
-          onFinish={createNewProject}
+          onFinish={createAddMaterial}
           form={form}
           layout='vertical'
         >
-          <Form.Item className='mb-0' name='productname' label="Material Name" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='materialname' label="Material Name" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='flavour' label="Supplier Name" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='suppliername' label="Supplier Name" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
 
@@ -372,11 +397,11 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
             <InputNumber className='w-full' />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='mesurment' label="Mesurment" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
           <Select
             showSearch
             
-            placeholder="Search to Select"
+            placeholder="Select"
             optionFilterProp="label"
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -407,10 +432,10 @@ export default function RawMaterial({ datas, projectUpdateMt }) {
             <InputNumber className='w-full' />
           </Form.Item>
 
-          <Form.Item className='mb-1' name='gender' label="Gender" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-1' name='paymentstatus' label="Status" rules={[{ required: true, message: false }]}>
           <Radio.Group>
-            <Radio value={'male'}>Paid</Radio>
-            <Radio value={'female'}>Unpaid</Radio>
+            <Radio value={'Paid'}>Paid</Radio>
+            <Radio value={'Unpaid'}>Unpaid</Radio>
           </Radio.Group>
           </Form.Item>
 
