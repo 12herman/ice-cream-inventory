@@ -165,8 +165,8 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
                       (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
-                      { value: 'Male', label: 'male' },
-                      { value: 'FeMale', label: 'female' },
+                      { value: 'Male', label: 'Male' },
+                      { value: 'Female', label: 'Female' },
                     ]}
                   />
                 </Form.Item>
@@ -328,7 +328,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
           <Search  allowClear className='w-[50%]' placeholder="input search text" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
             <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={payMt}>Pay <MdOutlinePayments /></Button>
-            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields(); form.setFieldsValue({gender: 'male'});}}>
+            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields(); form.setFieldsValue({gender: 'Male'});}}>
               New Supplier <IoMdAdd />
             </Button>
           </span>
@@ -365,7 +365,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
         }}
       >
         <Form
-          initialValues={{ gender: 'male' }} 
+          initialValues={{ gender: 'Male' }} 
           onFinish={createNewProject}
           form={form}
           layout='vertical'
@@ -381,8 +381,8 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
 
           <Form.Item className='mb-1' name='gender' label="Gender" rules={[{ required: true, message: false }]}>
           <Radio.Group>
-            <Radio value={'male'}>Male</Radio>
-            <Radio value={'female'}>Female</Radio>
+            <Radio value={'Male'}>Male</Radio>
+            <Radio value={'Female'}>Female</Radio>
           </Radio.Group>
           </Form.Item>
   

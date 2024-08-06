@@ -24,8 +24,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
 
   // side effect
   useEffect(() => {
-    console.log(datas.customers);
-    
     setData(datas.customers.length > 0 ?  datas.customers.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })):[]);
   }, [datas]);
 
@@ -314,7 +312,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const deleteProduct = async (data) => {
     // await deleteProjects(data.id);
     const {id,...newData} = data;
-    await updateSupplier(id,{isdeleted: true,
+    await updateCustomer(id,{isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()});
     //customerUpdateMt();
