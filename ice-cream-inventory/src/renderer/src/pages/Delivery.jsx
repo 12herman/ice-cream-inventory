@@ -380,8 +380,7 @@ export default function Delivery({ datas, deliveryUpdateMt }) {
           <Form.Item className='mb-0' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
           <Select
             showSearch
-            
-            placeholder="Search to Select"
+            placeholder="Select"
             optionFilterProp="label"
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())

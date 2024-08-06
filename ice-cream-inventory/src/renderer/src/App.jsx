@@ -1,17 +1,15 @@
 // src/App.js
-import { Button } from "antd";
 import NavBar from "./components/NavBar";
 import { useEffect, useState } from "react";
-
 // react icons
 import { GoHome } from "react-icons/go";
-import { FiInbox } from "react-icons/fi";
-import { FiShoppingBag } from "react-icons/fi";
-import { MdOutlineStorage } from "react-icons/md";
-import { MdOutlineWater } from "react-icons/md";
 import { TbTruckDelivery } from "react-icons/tb";
-import { FaRegRectangleList } from "react-icons/fa6";
-import { MdOutlineSettings } from "react-icons/md";
+import { LuIceCream } from "react-icons/lu";
+import { PiGarageBold  } from "react-icons/pi";
+import { LuBoxes } from "react-icons/lu";
+import { PiUserListBold  } from "react-icons/pi";
+import { GrUserWorker } from "react-icons/gr";
+import { LuMilk } from "react-icons/lu";
 import Pages from "./components/Pages";
 import { getProjects } from "./firebase/data-tables/products";
 import { getSupplier } from "./firebase/data-tables/supplier";
@@ -25,8 +23,8 @@ const App =() =>{
   
   // nav state
   const [navPages, setNavPages] = useState({
-    pages: ['Home', 'Product', 'Raw Material', 'Storage', 'Production', 'Delivery', 'Supplier List', 'Customer List','Employee List'],
-    icons:[<GoHome size={19}/>, <FiInbox size={17}/>,<FiShoppingBag size={17}/>,<MdOutlineStorage size={17}/>,<MdOutlineWater size={17}/>,<TbTruckDelivery size={17}/>,<FaRegRectangleList size={17}/>,<FaRegRectangleList size={17}/>,<FaRegRectangleList size={17}/>],
+    pages: ['Home', 'Raw Material', 'Production', 'Delivery', 'Storage','Product List', 'Supplier List', 'Customer List','Employee List'],
+    icons:[<GoHome size={19}/>,<LuMilk size={17}/>,<LuBoxes size={17}/>,<TbTruckDelivery size={17}/>,<PiGarageBold size={17}/>, <LuIceCream size={17}/>,<PiUserListBold size={17}/>,<PiUserListBold size={17}/>,<GrUserWorker  size={17}/>],
     currentpage: 'Home',
     pagecount:0
   });

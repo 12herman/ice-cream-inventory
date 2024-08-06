@@ -12,11 +12,11 @@ import Employee from '../pages/Employee'
 export default function Pages({navPages,datas,projectUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt}) {
     const PageLists = [
         <Home datas={datas}/>,
-        <Product datas={datas} projectUpdateMt={projectUpdateMt}/>,
         <RawMaterial datas={datas} rawmaterialUpdateMt={rawmaterialUpdateMt}/>,
-        <Storage datas={datas}/>,
         <Production datas={datas} productionUpdateMt={productionUpdateMt}/>,
         <Delivery datas={datas} deliveryUpdateMt={deliveryUpdateMt}/>,
+        <Storage datas={datas}/>,
+        <Product datas={datas} projectUpdateMt={projectUpdateMt}/>,
         <SupplierList datas={datas} supplierUpdateMt={supplierUpdateMt}/>,
         <CustomerList datas={datas} customerUpdateMt={customerUpdateMt}/>,
         <Employee datas={datas} employeeUpdateMt={employeeUpdateMt}/>

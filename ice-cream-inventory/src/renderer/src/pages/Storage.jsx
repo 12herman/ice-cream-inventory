@@ -10,31 +10,36 @@ export default function Storage() {
   const dataSource = [
     {
       key: '1',
-      name: 'Mike',
-      age: 32,
-      address: '10 Downing Street',
+      name: 'Milk',
+      age: 320,
+      address: 'alert',
     },
     {
       key: '2',
-      name: 'John',
-      age: 42,
-      address: '10 Downing Street',
+      name: 'Sugar',
+      age: 45,
+      address: 'alert',
     },
   ];
   
   const columns = [
     {
-      title: 'Name',
+      title: 'S.No',
+      dataIndex: 'key',
+      key: 'key',
+    },
+    {
+      title: 'Material',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Age',
+      title: 'Quantity',
       dataIndex: 'age',
       key: 'age',
     },
     {
-      title: 'Address',
+      title: 'Action',
       dataIndex: 'address',
       key: 'address',
     },
