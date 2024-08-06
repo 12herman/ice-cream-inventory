@@ -7,6 +7,7 @@ import { TbTruckDelivery } from "react-icons/tb";
 import { LuIceCream } from "react-icons/lu";
 import { PiGarageBold  } from "react-icons/pi";
 import { LuBoxes } from "react-icons/lu";
+import { MdOutlinePeopleAlt } from "react-icons/md";
 import { PiUserListBold  } from "react-icons/pi";
 import { GrUserWorker } from "react-icons/gr";
 import { LuMilk } from "react-icons/lu";
@@ -24,7 +25,7 @@ const App =() =>{
   // nav state
   const [navPages, setNavPages] = useState({
     pages: ['Home', 'Raw Material', 'Production', 'Delivery', 'Storage','Product List', 'Supplier List', 'Customer List','Employee List'],
-    icons:[<GoHome size={19}/>,<LuMilk size={17}/>,<LuBoxes size={17}/>,<TbTruckDelivery size={17}/>,<PiGarageBold size={17}/>, <LuIceCream size={17}/>,<PiUserListBold size={17}/>,<PiUserListBold size={17}/>,<GrUserWorker  size={17}/>],
+    icons:[<GoHome size={19}/>,<LuMilk size={17}/>,<LuBoxes size={17}/>,<TbTruckDelivery size={17}/>,<PiGarageBold size={17}/>, <LuIceCream size={17}/>,<MdOutlinePeopleAlt size={17}/>,<PiUserListBold size={17}/>,<GrUserWorker  size={17}/>],
     currentpage: 'Home',
     pagecount:0
   });

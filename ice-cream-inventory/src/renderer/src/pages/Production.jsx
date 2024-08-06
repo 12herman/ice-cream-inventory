@@ -38,9 +38,7 @@ export default function Production({ datas, projectUpdateMt }) {
   const createNewProject = async (values) => {
    await createProjects({ 
      ...values, 
-     // createdby: 'admin', 
      createddate: TimestampJs(), 
-     // updatedby: '', 
      updateddate: '', 
      isdeleted: false 
    });
@@ -341,7 +339,7 @@ export default function Production({ datas, projectUpdateMt }) {
       </ul>
 
       <Modal
-        title="Products"
+        title="Add Product"
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => { 
