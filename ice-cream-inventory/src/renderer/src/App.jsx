@@ -13,7 +13,7 @@ import { TbTruckDelivery } from "react-icons/tb";
 import { FaRegRectangleList } from "react-icons/fa6";
 import { MdOutlineSettings } from "react-icons/md";
 import Pages from "./components/Pages";
-import { getProjects } from "./firebase/data-tables/products";
+import { getproduct } from "./firebase/data-tables/products";
 import { getSupplier } from "./firebase/data-tables/supplier";
 import { getCustomer } from "./firebase/data-tables/customer";
 import { getRawmaterial } from "./firebase/data-tables/rawmaterial";
@@ -37,7 +37,7 @@ const App =() =>{
   };
 
   const [datas,setDatas] = useState({
-    projects:[],
+    product:[],
     projectupdatestaus:false,
     suppliers:[],
     supplierupdatestaus:false,
@@ -63,10 +63,10 @@ const App =() =>{
   // get table datas 'project list'
   useEffect(()=>{
     const fetchData = async()=>{
-      const {projects,status} = await getProjects();
+      const {product,status} = await getproduct();
 
       if(status){
-        setDatas(pre => ({...pre, projects}));
+        setDatas(pre => ({...pre, product}));
       } 
     };
     fetchData();

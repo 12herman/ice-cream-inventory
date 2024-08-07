@@ -6,22 +6,24 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
+import dayjs from 'dayjs';
 
 export default function Production({ datas, projectUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
+  const [form2] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [data, setData] = useState([]);
 
   // side effect
   useEffect(() => {
-    setData(datas.projects.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+    setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
 
   // search
@@ -36,7 +38,7 @@ export default function Production({ datas, projectUpdateMt }) {
   }
 
   const createNewProject = async (values) => {
-   await createProjects({ 
+   await createproduct({ 
      ...values, 
      // createdby: 'admin', 
      createddate: TimestampJs(), 
@@ -211,7 +213,7 @@ export default function Production({ datas, projectUpdateMt }) {
        message.open({type: 'info',content: 'No changes made',});
        setEditingKey('');
      } else {
-       await updateProjects(key.id,{...row,updateddate: TimestampJs()},);
+       await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
        projectUpdateMt();
        message.open({type: 'success',content: 'Updated Successfully',});
        setEditingKey('');
@@ -296,13 +298,143 @@ export default function Production({ datas, projectUpdateMt }) {
 
    // delete
    const deleteProduct = async (data) => {
-     //await deleteProjects(data.id);
+     //await deleteproduct(data.id);
      const {id,...newData} = data;
-     await updateProjects(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
+     await updateproduct(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
      projectUpdateMt();
      message.open({type: 'success',content: 'Deleted Successfully',});
    };
+   
+   const columns2 = [
+    // {
+    //   title: 'S.No',
+    //   dataIndex: 'sno',
+    //   key: 'sno',
+    //   width: 70,
+    // },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 150,
+      editable: false,
+    },
+    {
+      title: 'Product',
+      dataIndex: 'productname',
+      key: 'productname',
+      editable: true,
+    },
+    {
+      title: 'Flavor',
+      dataIndex: 'flavour',
+      key: 'flavour',
+      editable: true,
+    },
+    {
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: true,
+      width: 120,
+    },
+    {
+      title: 'Packs',
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
+      editable: true,
+      width: 120,
+    },
+    {
+      title: 'Action',
+      dataIndex: 'operation',
+      fixed:'right',
+      width:110,
+      render: (_, record) => {
+       return (<Popconfirm className={`${editingKey !== '' ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => removeTemProduct(record)} disabled={editingKey !== ''}>
+       <AiOutlineDelete className={`${editingKey !== ''  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
+      </Popconfirm>);
+      },
+    },
+  ];
 
+  const [option,setOption] = useState({
+    flavour:[],
+    flavourstatus:true,
+    product:[],
+    productvalue:'',
+    quantity:[],
+    quantitystatus:true,
+    tempproduct:[],
+   });
+
+  //product initial value
+  useEffect(()=>{
+    const productOp = datas.product.filter((item,i,s) => item.isdeleted === false && s.findIndex(item2 => item2.productname === item.productname) === i).map(data => ({lable:data.productname,value:data.productname}));
+    setOption(pre => ({...pre,product:productOp}));
+  },[])
+  
+  //product onchange value
+  const productOnchange = async (value, i) => {
+    form2.resetFields(['flavour']);
+    form2.resetFields(['quantity']);
+    form2.resetFields(['numberofpacks']);
+    const flavourOp = await Array.from(
+      new Set(datas.product
+          .filter(item => item.isdeleted === false && item.productname === value)
+          .map(data => data.flavour))
+    ).map(flavour => ({ label: flavour, value: flavour }));
+    await setOption(pre => ({ ...pre, flavourstatus: false, flavour: flavourOp, productvalue: value,quantitystatus:true }));
+  };
+
+  //flavour onchange value
+  const flavourOnchange = async (value, i) => {
+    form2.resetFields(['quantity']);
+    form2.resetFields(['numberofpacks']);
+    const quantityOp = await Array.from(new Set(datas.product.filter(item => item.isdeleted === false && item.flavour === value && item.productname === option.productvalue))).map(q => ({ label: q.quantity +' ' + q.unit, value: q.quantity +' ' + q.unit}));
+    await setOption(pre => ({ ...pre, quantitystatus: false, quantity: quantityOp }));
+  };
+  
+  // add tem product
+  const [count,setCount] = useState(0);
+   const createTemProduction = async (values) => {
+    setCount(count+1);
+    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+    const newProduct = { ...values,key:count, date: formattedDate, createddate: TimestampJs() };
+    const checkExsit = option.tempproduct.some(item => item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.quantity === newProduct.quantity && item.numberofpacks === newProduct.numberofpacks && item.date === newProduct.date);
+    if(checkExsit){
+      message.open({type: 'warning',content: 'Product is already added',});
+      return;
+    }
+    else{
+      setOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newProduct]}));
+      //form2.resetFields();
+    }
+  };
+
+  // remove temp product
+  const removeTemProduct = (key) => {
+    console.log(key);
+    const newTempProduct = option.tempproduct.filter(item => item.key !== key.key);
+    setOption(pre => ({...pre,tempproduct:newTempProduct}));
+  };
+
+  const addNewProduction = async()=> {
+  const checkExsit = await datas.production.some(item => item.date === option.tempproduct[0].date && item.productname === option.tempproduct[0].productname && item.flavour === option.tempproduct[0].flavour && item.quantity === option.tempproduct[0].quantity && item.numberofpacks === option.tempproduct[0].numberofpacks);
+   console.log(option.tempproduct);
+    // if(option.tempproduct.length === 0){
+    //   message.open({type: 'warning',content: 'Please add product',});
+    // }
+    // else{
+    //   console.log(option.tempproduct);
+    // }
+  };
+  const modelCancel =()=> { 
+      setIsModalOpen(false); 
+      form2.resetFields();
+      setOption(pre => ({...pre,tempproduct:[], flavour:[], flavourstatus:true,quantity:[],quantitystatus:true,}));
+      setCount(0);
+    }
 
   return (
     <div>
@@ -341,69 +473,86 @@ export default function Production({ datas, projectUpdateMt }) {
       </ul>
 
       <Modal
-        title="Products"
+        className='relative'
+        title={<div className='flex  justify-center py-3'> <h2>Add Products</h2> </div>}
+        width={1000}
         open={isModalOpen}
-        onOk={() => form.submit()}
-        onCancel={() => { 
-          setIsModalOpen(false); 
-          form.resetFields(); 
-        }}
+        onOk={addNewProduction}
+        onCancel={modelCancel}
+        okButtonProps={{ disabled: true }}
+        footer={null}
       >
+      <div className='grid grid-cols-3 gap-x-3'>
+      <span className='col-span-1'>
       <Form
-          onFinish={createNewProject}
-          form={form}
+          onFinish={createTemProduction}
+          form={form2}
           layout='vertical'
+          initialValues={{ date: dayjs() }}
         >
-          <Form.Item className='mb-0' name='productname' label="Product Name" rules={[{ required: true, message: false }]}>
-            <Input />
-          </Form.Item>
-
-          <span className='flex gap-x-2'>
-          <Form.Item className='mb-0 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
-          </Form.Item>
-
-          <Form.Item className='mb-0' name='mesurment' label="Mesurment" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-1' name='productname' label="Product Name" rules={[{ required: true, message: false }]}>
           <Select
             showSearch
-            
             placeholder="Search to Select"
             optionFilterProp="label"
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
             }
-            options={[
-              {
-                value: 'gm',
-                label: 'GM',
-              },
-              {
-                value: 'mm',
-                label: 'MM',
-              },
-              {
-                value: 'kg',
-                label: 'KG',
-              }
-            ]}
+            options={option.product}
+            onChange={(value,i) => productOnchange(value,i)}
           />
           </Form.Item>
-          </span>
-
-          <Form.Item className='mb-0' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
-            <Input />
+          <Form.Item className='mb-1' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
+          <Select
+          disabled={option.flavourstatus}
+          onChange={(value,i) => flavourOnchange(value,i)}
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={option.flavour}
+          />
+          </Form.Item>
+          <Form.Item className='mb-1 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }]}>
+          <Select
+            disabled={option.quantitystatus}
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={option.quantity}
+          />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
+          <Form.Item className='mb-3' name='numberofpacks' label="Number of Packs" rules={[{ required: true, message: false }]}>
+          <InputNumber className='w-full' />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='price' label="Price" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
+          <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
           </Form.Item>
+
+          <Form.Item className='mb-3 w-full'>
+           <Button className='w-full' type="primary" htmlType="submit">Add To List</Button>
+         </Form.Item>
+
+        <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button>
         </Form>
-      </Modal>
+      </span>
+      <span className='col-span-2'>
+        <Table 
+        columns={columns2}
+        dataSource={option.tempproduct}
+        pagination={{pageSize:4}}
+        />
+      </span>
+      </div>
 
+      </Modal>
     </div>
   )
 }

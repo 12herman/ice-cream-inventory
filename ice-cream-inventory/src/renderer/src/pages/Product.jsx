@@ -6,7 +6,7 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 const { Search } = Input;
@@ -21,7 +21,7 @@ export default function Product({ datas, projectUpdateMt }) {
 
   // side effect
   useEffect(() => {
-    setData(datas.projects.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+    setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
 
   // search
@@ -37,7 +37,7 @@ export default function Product({ datas, projectUpdateMt }) {
 
   // create new project 
   const createNewProject = async (values) => {
-    await createProjects({ 
+    await createproduct({ 
       ...values, 
       createddate: TimestampJs(), 
       updateddate: '', 
@@ -73,6 +73,12 @@ export default function Product({ datas, projectUpdateMt }) {
       editable: true,
     },
     {
+      title: 'Flavour',
+      dataIndex: 'flavour',
+      key: 'flavour',
+      editable: true,
+    },
+    {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
@@ -82,12 +88,7 @@ export default function Product({ datas, projectUpdateMt }) {
         return record.quantity + record.unit
       }
     },
-    {
-      title: 'Flavour',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: true,
-    },
+    
     {
       title: 'Product Per Pack',
       dataIndex: 'productperpack',
@@ -112,9 +113,7 @@ export default function Product({ datas, projectUpdateMt }) {
         return editable ? (
           <span className='flex gap-x-1 justify-center items-center'>
           <Typography.Link 
-            onClick={() => save(
-             record
-              )}
+            onClick={() => save(record) }
             style={{
               marginRight: 8,
             }}
@@ -242,10 +241,10 @@ export default function Product({ datas, projectUpdateMt }) {
         message.open({type: 'info',content: 'No changes made',});
         setEditingKeys([]);
       } else {
-        await updateProjects(key.id,{...row,updateddate: TimestampJs()},);
+        setEditingKeys([]);
+        await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
         projectUpdateMt();
         message.open({type: 'success',content: 'Updated Successfully',});
-        setEditingKeys([]);
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -319,9 +318,9 @@ export default function Product({ datas, projectUpdateMt }) {
 
   // delete
   const deleteProduct = async (data) => {
-    // await deleteProjects(data.id);
+    // await deleteproduct(data.id);
     const {id,...newData} = data;
-    await updateProjects(id,{isdeleted: true,
+    await updateproduct(id,{isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()});
     projectUpdateMt();
@@ -386,6 +385,10 @@ export default function Product({ datas, projectUpdateMt }) {
             <Input />
           </Form.Item>
 
+          <Form.Item className='mb-0' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
+            <Input />
+          </Form.Item>
+
           <span className='flex gap-x-2'>
           <Form.Item className='mb-0 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
             <InputNumber className='w-full' />
@@ -417,9 +420,7 @@ export default function Product({ datas, projectUpdateMt }) {
           </Form.Item>
           </span>
 
-          <Form.Item className='mb-0' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
-            <Input />
-          </Form.Item>
+         
 
           <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
             <InputNumber className='w-full' />

@@ -6,7 +6,7 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createProjects, deleteProjects, updateProjects } from '../firebase/data-tables/products';
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -21,7 +21,7 @@ export default function Delivery({ datas, projectUpdateMt }) {
 
   // side effect
   useEffect(() => {
-    setData(datas.projects.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+    setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
 
   // search
@@ -36,7 +36,7 @@ export default function Delivery({ datas, projectUpdateMt }) {
   }
 
   const createNewProject = async (values) => {
-   await createProjects({ 
+   await createproduct({ 
      ...values, 
      // createdby: 'admin', 
      createddate: TimestampJs(), 
@@ -217,7 +217,7 @@ export default function Delivery({ datas, projectUpdateMt }) {
        message.open({type: 'info',content: 'No changes made',});
        setEditingKey('');
      } else {
-       await updateProjects(key.id,{...row,updateddate: TimestampJs()},);
+       await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
        projectUpdateMt();
        message.open({type: 'success',content: 'Updated Successfully',});
        setEditingKey('');
@@ -302,9 +302,9 @@ export default function Delivery({ datas, projectUpdateMt }) {
 
    // delete
    const deleteProduct = async (data) => {
-     //await deleteProjects(data.id);
+     //await deleteproduct(data.id);
      const {id,...newData} = data;
-     await updateProjects(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
+     await updateproduct(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
      projectUpdateMt();
      message.open({type: 'success',content: 'Deleted Successfully',});
    };
