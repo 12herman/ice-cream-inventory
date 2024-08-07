@@ -52,7 +52,7 @@ const App =() =>{
     productionupdatestaus:false,
   });
 
-  const projectUpdateMt =()=> setDatas(pre => ({...pre, projectupdatestaus:!pre.projectupdatestaus}));
+  const productUpdateMt =()=> setDatas(pre => ({...pre, projectupdatestaus:!pre.projectupdatestaus}));
   const supplierUpdateMt =()=> setDatas(pre => ({...pre, supplierupdatestaus:!pre.supplierupdatestaus}));
   const customerUpdateMt =()=> setDatas(pre => ({...pre, customerupdatestaus:!pre.customerupdatestaus}));
   const rawmaterialUpdateMt =()=> setDatas(pre => ({...pre, rawmaterialupdatestaus:!pre.rawmaterialupdatestaus}));
@@ -142,7 +142,7 @@ const App =() =>{
       <NavBar navPages={navPages} setNavPages={setNavPages} />
       <Pages 
       datas={datas} 
-      projectUpdateMt={projectUpdateMt} 
+      productUpdateMt={productUpdateMt} 
       supplierUpdateMt={supplierUpdateMt}
       customerUpdateMt={customerUpdateMt}
       rawmaterialUpdateMt={rawmaterialUpdateMt}

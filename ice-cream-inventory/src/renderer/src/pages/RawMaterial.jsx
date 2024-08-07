@@ -6,11 +6,7 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-<<<<<<< HEAD
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
-=======
 import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
->>>>>>> 9efcafe254ed4c5e52ee184502523ee94460584e
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -25,11 +21,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
  
    // side effect
    useEffect(() => {
-<<<<<<< HEAD
-     setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
-=======
      setData(datas.rawmaterials.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
->>>>>>> 9efcafe254ed4c5e52ee184502523ee94460584e
    }, [datas]);
 
    // search
@@ -43,20 +35,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
      }
    }
 
-<<<<<<< HEAD
-   const createNewProject = async (values) => {
-    await createproduct({ 
-      ...values, 
-      // createdby: 'admin', 
-      createddate: TimestampJs(), 
-      // updatedby: '', 
-      updateddate: '', 
-=======
    const createAddMaterial = async (values) => {
     await createRawmaterial({ 
       ...values,
       createddate: TimestampJs(),
->>>>>>> 9efcafe254ed4c5e52ee184502523ee94460584e
       isdeleted: false 
     });
     console.log(values);
@@ -262,13 +244,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
         message.open({type: 'info',content: 'No changes made',});
         setEditingKey('');
       } else {
-<<<<<<< HEAD
-        await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
-        projectUpdateMt();
-=======
         await updateRawmaterial(key.id,{...row,updateddate: TimestampJs()},);
         rawmaterialUpdateMt();
->>>>>>> 9efcafe254ed4c5e52ee184502523ee94460584e
         message.open({type: 'success',content: 'Updated Successfully',});
         setEditingKey('');
       }
@@ -354,13 +331,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
     const deleteProduct = async (data) => {
       //await deleteproduct(data.id);
       const {id,...newData} = data;
-<<<<<<< HEAD
-      await updateproduct(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
-      projectUpdateMt();
-=======
       await updateRawmaterial(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
       rawmaterialUpdateMt();
->>>>>>> 9efcafe254ed4c5e52ee184502523ee94460584e
       message.open({type: 'success',content: 'Deleted Successfully',});
     };
 

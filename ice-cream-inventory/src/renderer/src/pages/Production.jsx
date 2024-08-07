@@ -11,19 +11,23 @@ import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
+import { createProduction, updateProduction } from '../firebase/data-tables/production';
+import jsonToExcel from '../js-files/json-to-excel';
 
-export default function Production({ datas, projectUpdateMt }) {
+export default function Production({ datas, productionUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [data, setData] = useState([]);
+ 
 
   // side effect
   useEffect(() => {
-    setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+    setData(datas.productions.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
 
   // search
@@ -45,7 +49,7 @@ export default function Production({ datas, projectUpdateMt }) {
      isdeleted: false 
    });
    form.resetFields();
-   projectUpdateMt();
+   productionUpdateMt();
    setIsModalOpen(false);
  };
 
@@ -69,43 +73,36 @@ export default function Production({ datas, projectUpdateMt }) {
    },
    {
      title: 'Date',
-     dataIndex: 'createddate',
-     key: 'createddate',
+     dataIndex: 'date',
+     key: 'date',
      editable: false,
    },
    {
      title: 'Product',
      dataIndex: 'productname',
      key: 'productname',
-     editable: true,
+     editable: false,
    },
    {
      title: 'Flavor',
      dataIndex: 'flavour',
      key: 'flavour',
-     editable: true,
+     editable: false,
    },
    {
      title: 'Quantity',
      dataIndex: 'quantity',
      key: 'quantity',
-     editable: true,
+     editable: false,
      width: 120,
    },
    {
     title: 'Packs',
-    dataIndex: 'productperpack',
-    key: 'productperpack',
+    dataIndex: 'numberofpacks',
+    key: 'numberofpacks',
     editable: true,
     width: 160,
   },
-   {
-     title: 'Status',
-     dataIndex: 'productperpack',
-     key: 'productperpack',
-     editable: true,
-     width: 160,
-   },
    {
      title: 'Action',
      dataIndex: 'operation',
@@ -187,7 +184,7 @@ export default function Production({ datas, projectUpdateMt }) {
      ...col,
      onCell: (record) => ({
        record,
-       inputType: col.dataIndex === 'quantity' || col.dataIndex === 'productperpack' || col.dataIndex === 'price' ? 'number' : 'text',
+       inputType: col.dataIndex === 'numberofpacks' ? 'number' : 'text',
        dataIndex: col.dataIndex,
        title: col.title,
        editing: isEditing(record),
@@ -203,16 +200,13 @@ export default function Production({ datas, projectUpdateMt }) {
      const newData = [...data];
      const index = newData.findIndex((item) => key.id === item.key);
      if (index != null &&
-       row.flavour === key.flavour && 
-       row.productname === key.productname && 
-       row.quantity === key.quantity && 
-       row.productperpack === key.productperpack && 
-       row.price === key.price) {
+       row.numberofpacks === key.numberofpacks  
+       ) {
        message.open({type: 'info',content: 'No changes made',});
        setEditingKey('');
      } else {
-       await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
-       projectUpdateMt();
+       await updateProduction(key.id,{numberofpacks:row.numberofpacks,updateddate: TimestampJs()},);
+       await productionUpdateMt();
        message.open({type: 'success',content: 'Updated Successfully',});
        setEditingKey('');
      }
@@ -222,15 +216,12 @@ export default function Production({ datas, projectUpdateMt }) {
  };
 
 
-
-
  // selection
  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
  const onSelectChange = (newSelectedRowKeys) => {
      newSelectedRowKeys.length === 0 ? setEditingKey('') :setEditingKey('hi');
    if (newSelectedRowKeys.length > 0 ) {
      const selectTableData = data.filter(item => newSelectedRowKeys.includes(item.key));
-     console.log(selectTableData);
    }
    setSelectedRowKeys(newSelectedRowKeys);
  };
@@ -297,9 +288,10 @@ export default function Production({ datas, projectUpdateMt }) {
    // delete
    const deleteProduct = async (data) => {
      //await deleteproduct(data.id);
+     console.log(data);
      const {id,...newData} = data;
-     await updateproduct(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
-     projectUpdateMt();
+     await updateProduction(id,{isdeleted: true,deleteddate: TimestampJs()});
+     productionUpdateMt();
      message.open({type: 'success',content: 'Deleted Successfully',});
    };
    
@@ -393,19 +385,60 @@ export default function Production({ datas, projectUpdateMt }) {
     await setOption(pre => ({ ...pre, quantitystatus: false, quantity: quantityOp }));
   };
   
-  // add tem product
+  // create add tem product
   const [count,setCount] = useState(0);
    const createTemProduction = async (values) => {
     setCount(count+1);
     const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
     const newProduct = { ...values,key:count, date: formattedDate, createddate: TimestampJs() };
     const checkExsit = option.tempproduct.some(item => item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.quantity === newProduct.quantity && item.numberofpacks === newProduct.numberofpacks && item.date === newProduct.date);
+    const checkSamePacks = option.tempproduct.some(item => item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.quantity === newProduct.quantity && item.numberofpacks !== newProduct.numberofpacks && item.date === newProduct.date && item.key !== newProduct.key);
+    const temVales = {...values,date:formattedDate};
+    const dbCheck = datas.productions.some(item => item.productname === temVales.productname && item.flavour === temVales.flavour && item.quantity === temVales.quantity && item.date === temVales.date);
     if(checkExsit){
       message.open({type: 'warning',content: 'Product is already added',});
       return;
     }
+     else if (checkSamePacks) {
+      message.open({type: 'warning',content: 'Product is already added',});
+      return;
+     }
+     else if(dbCheck){
+      message.open({type: 'warning',content: 'Product is already added',});
+      return;
+     }
+    //   // Filter items that need updating
+    //   let filterDub = option.tempproduct.filter(item => 
+    //     item.productname === newProduct.productname &&
+    //     item.flavour === newProduct.flavour &&
+    //     item.quantity === newProduct.quantity &&
+    //     item.numberofpacks !== newProduct.numberofpacks &&
+    //     item.date === newProduct.date &&
+    //     item.key !== newProduct.key
+    //   );
+    //   // Create new items with updated numberofpacks
+    //   let addDb = filterDub.map(item => ({
+    //     ...item,
+    //     numberofpacks: item.numberofpacks + newProduct.numberofpacks
+    //   }));
+    //   // Update the state
+    //   setOption(prev => ({
+    //     ...prev,
+    //     tempproduct: [
+    //       ...prev.tempproduct.filter(item =>
+    //         !(item.productname === newProduct.productname &&
+    //           item.flavour === newProduct.flavour &&
+    //           item.quantity === newProduct.quantity &&
+    //           item.date === newProduct.date &&
+    //           item.key !== newProduct.key)
+    //       ),
+    //       ...addDb
+    //     ]
+    //   }));
+    // }
     else{
       setOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newProduct]}));
+      productionUpdateMt();
       //form2.resetFields();
     }
   };
@@ -417,22 +450,110 @@ export default function Production({ datas, projectUpdateMt }) {
     setOption(pre => ({...pre,tempproduct:newTempProduct}));
   };
 
+  // add new production
   const addNewProduction = async()=> {
-  const checkExsit = await datas.production.some(item => item.date === option.tempproduct[0].date && item.productname === option.tempproduct[0].productname && item.flavour === option.tempproduct[0].flavour && item.quantity === option.tempproduct[0].quantity && item.numberofpacks === option.tempproduct[0].numberofpacks);
-   console.log(option.tempproduct);
-    // if(option.tempproduct.length === 0){
-    //   message.open({type: 'warning',content: 'Please add product',});
-    // }
-    // else{
-    //   console.log(option.tempproduct);
-    // }
+    await option.tempproduct.map(async (item,i)=>{
+      let {key,...newProduction} = item;
+      await createProduction({...newProduction,isdeleted:false});
+    });
+    await productionUpdateMt();
+    message.open({type: 'success',content: 'Production added successfully',});
+    await modelCancel();
   };
+
   const modelCancel =()=> { 
-      setIsModalOpen(false); 
-      form2.resetFields();
-      setOption(pre => ({...pre,tempproduct:[], flavour:[], flavourstatus:true,quantity:[],quantitystatus:true,}));
-      setCount(0);
-    }
+    setIsModalOpen(false); 
+    form2.resetFields();
+    setOption(pre => ({...pre,tempproduct:[], flavour:[], flavourstatus:true,quantity:[],quantitystatus:true,}));
+    setCount(0);
+    };
+
+    // export
+    const exportExcel = async () => {
+      const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
+      jsonToExcel(exportDatas,`Production-List-${TimestampJs()}`);
+      setSelectedRowKeys([]);
+      setEditingKey('');
+    };
+
+    // material used
+    const columns3 = [
+      // {
+      //   title: 'S.No',
+      //   dataIndex: 'sno',
+      //   key: 'sno',
+      //   width: 70,
+      // },
+      {
+        title: 'Date',
+        dataIndex: 'date',
+        key: 'date',
+        width: 150,
+        editable: false,
+      },
+      {
+        title: 'Material',
+        dataIndex: 'material',
+        key: 'material',
+        editable: true,
+      },
+      {
+        title: 'Quantity',
+        dataIndex: 'quantity',
+        key: 'quantity',
+        editable: true,
+      },
+      {
+        title: 'Action',
+        dataIndex: 'operation',
+        fixed:'right',
+        width:110,
+        render: (_, record) => {
+         return (<Popconfirm className={`${editingKey !== '' ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => removeTemMaterial(record)} disabled={editingKey !== ''}>
+         <AiOutlineDelete className={`${editingKey !== ''  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
+        </Popconfirm>);
+        },
+      },
+    ];
+    const [form3] = Form.useForm();
+    const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+    const [mtOption,setMtOption] = useState({
+      material:[],
+      tempproduct:[],
+      count:0
+    });
+
+    // create material
+    const createTemMaterial = async (values)=>{
+      setMtOption(pre => ({...pre,count:pre.count+1}));
+      const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+      const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
+      const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
+      if(checkExsit){
+        message.open({type: 'warning',content: 'Product is already added',});
+        return;
+      }
+      setMtOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newMaterial]}));
+    };
+
+    // remove tem material
+    const removeTemMaterial = (key) => {
+      const newTempProduct = mtOption.tempproduct.filter(item => item.key !== key.key);
+      setMtOption(pre => ({...pre,tempproduct:newTempProduct}));
+    };
+
+    // add new material to data base
+    const addNewTemMaterial = async()=> {
+     console.log(mtOption.tempproduct);
+     //materialModelCancel();
+    };
+
+    // model cancel
+    const materialModelCancel =()=> {
+      setIsMaterialModalOpen(false);
+      form3.resetFields();
+      setMtOption(pre => ({...pre,tempproduct:[],count:0}));
+      };
 
   return (
     <div>
@@ -442,9 +563,9 @@ export default function Production({ datas, projectUpdateMt }) {
       
       <span className='flex gap-x-3 justify-center items-center'>
       <RangePicker />
-          <Button>Export <PiExport /></Button>
-          <Button type="primary">Material Used <IoMdRemove /></Button>
-          <Button type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
+          <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>Export <PiExport /></Button>
+          <Button onClick={()=>setIsMaterialModalOpen(true)} type="primary" disabled={editingKey !== ''}>Material Used <IoMdRemove /></Button>
+          <Button disabled={editingKey !== ''} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
               Add Product <IoMdAdd />
             </Button>
             </span>
@@ -469,7 +590,7 @@ export default function Production({ datas, projectUpdateMt }) {
             </Form>
       </li>
       </ul>
-
+      
       <Modal
         className='relative'
         title={<div className='flex  justify-center py-3'> <h2>Add Products</h2> </div>}
@@ -478,7 +599,7 @@ export default function Production({ datas, projectUpdateMt }) {
         onOk={addNewProduction}
         onCancel={modelCancel}
         okButtonProps={{ disabled: true }}
-        footer={null}
+        footer={<Button type='primary' disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-fit'>Add</Button>}
       >
       <div className='grid grid-cols-3 gap-x-3'>
       <span className='col-span-1'>
@@ -537,8 +658,7 @@ export default function Production({ datas, projectUpdateMt }) {
           <Form.Item className='mb-3 w-full'>
            <Button className='w-full' type="primary" htmlType="submit">Add To List</Button>
          </Form.Item>
-
-        <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button>
+        {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button> */}
         </Form>
       </span>
       <span className='col-span-2'>
@@ -549,7 +669,77 @@ export default function Production({ datas, projectUpdateMt }) {
         />
       </span>
       </div>
+      </Modal>
+      
+      {/* material used model */}
+      <Modal
+        className='relative'
+        title={<div className='flex  justify-center py-3'> <h2>Add Products</h2> </div>}
+        width={1000}
+        open={isMaterialModalOpen}
+        onCancel={materialModelCancel}
+        okButtonProps={{ disabled: true }}
+        footer={<Button type='primary' disabled={mtOption.tempproduct.length > 0 ? false:true} onClick={addNewTemMaterial} className=' w-fit'>Add</Button>}
+      >
+      <div className='grid grid-cols-3 gap-x-3'>
+      
+      <span className='col-span-1 '>
+      <Form
+          onFinish={createTemMaterial}
+          form={form3}
+          layout='vertical'
+          initialValues={{ date: dayjs() }}
+        >
+          <Form.Item name='material' label="Material Name" rules={[{ required: true, message: false }]}>
+          <Select
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={[{label:'Milk',value:'Milk'}]}
+            onChange={(value,i) => productOnchange(value,i)}
+          />
+          </Form.Item>
+                  
+         <span className='flex gap-x-2 '>
+         <Form.Item className='mb-1 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }]}>
+          <InputNumber className='w-full'/>
+          </Form.Item>
 
+          <Form.Item className='' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
+          <Select
+          onChange={(value,i) => flavourOnchange(value,i)}
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={[{label:'Ltr',value:'Ltr',},{label:'Kg',value:'Kg'}]}
+          />
+          </Form.Item>
+         </span>
+
+          <Form.Item className=' absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
+          </Form.Item>
+
+          <Form.Item className=' w-full'>
+           <Button className='w-full' type="primary" htmlType="submit">Add To List</Button>
+         </Form.Item>
+        {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button> */}
+        </Form>
+      </span>
+      <span className='col-span-2'>
+        <Table 
+        columns={columns3}
+        dataSource={mtOption.tempproduct}
+        pagination={{pageSize:4}}
+        />
+      </span>
+      </div>
       </Modal>
     </div>
   )
