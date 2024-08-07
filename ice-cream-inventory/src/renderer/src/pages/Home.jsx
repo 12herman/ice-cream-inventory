@@ -1,6 +1,8 @@
 import React from 'react';
-import { ArrowDownOutlined, ArrowUpOutlined, NotificationOutlined } from '@ant-design/icons';
+import { NotificationOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, DatePicker, Badge, Table } from 'antd';
+import { FaRupeeSign } from "react-icons/fa";
+import { IoPerson } from "react-icons/io5";
 const { RangePicker } = DatePicker;
 
 export default function Home() {
@@ -8,34 +10,48 @@ export default function Home() {
   const dataSource = [
     {
       key: '1',
+      date: '30/05/2024',
+      product: 'Milk',
       name: 'Mike',
-      age: 32,
-      address: '10 Downing Street',
+      amount: 3200,
+      action: 'print',
     },
     {
       key: '2',
+      date: '03/06/2024',
+      product: 'Sugar',
       name: 'John',
-      age: 42,
-      address: '10 Downing Street',
+      amount: 420,
+      action: 'print',
     },
   ];
   
   const columns = [
     {
-      title: 'Name',
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+    },
+    {
+      title: 'Customer',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Age',
-      dataIndex: 'age',
-      key: 'age',
+      title: 'Product',
+      dataIndex: 'product',
+      key: 'product',
     },
     {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
     },
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+    }
   ];
 
   return (
@@ -66,8 +82,7 @@ export default function Home() {
           valueStyle={{
             color: '#3f8600',
           }}
-          prefix={<ArrowUpOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign  />}
         />
       </Card>
     </Col>
@@ -80,8 +95,7 @@ export default function Home() {
           valueStyle={{
             color: '#cf1322',
           }}
-          prefix={<ArrowDownOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
@@ -94,8 +108,7 @@ export default function Home() {
           valueStyle={{
             color: '#3f8600',
           }}
-          prefix={<ArrowUpOutlined />}
-          suffix="Rs"
+          prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
@@ -104,12 +117,10 @@ export default function Home() {
         <Statistic
           title="Total Customer"
           value={25}
-          precision={2}
           valueStyle={{
-            color: '#cf1322',
+            color: '#3f8600',
           }}
-          prefix={<ArrowDownOutlined />}
-          suffix="%"
+          prefix={<IoPerson />}
         />
       </Card>
     </Col>
@@ -117,7 +128,7 @@ export default function Home() {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={dataSource} columns={columns} />;
+  <Table dataSource={dataSource} columns={columns} pagination={false} />;
   </li>
 
   </ul>

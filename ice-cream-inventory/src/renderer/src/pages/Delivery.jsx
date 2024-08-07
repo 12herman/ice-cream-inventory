@@ -1,17 +1,17 @@
 import React, {useEffect, useState} from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker } from 'antd';
+import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker, Radio } from 'antd';
 import { PiExport } from "react-icons/pi";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
+import { createDelivery, updateDelivery } from '../firebase/data-tables/delivery';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
-export default function Delivery({ datas, projectUpdateMt }) {
+export default function Delivery({ datas, deliveryUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
@@ -21,7 +21,7 @@ export default function Delivery({ datas, projectUpdateMt }) {
 
   // side effect
   useEffect(() => {
-    setData(datas.product.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
+    setData(datas.delivery.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
   }, [datas]);
 
   // search
@@ -35,17 +35,16 @@ export default function Delivery({ datas, projectUpdateMt }) {
     }
   }
 
-  const createNewProject = async (values) => {
-   await createproduct({ 
+  const createSendDelivery = async (values) => {
+   await createDelivery({ 
      ...values, 
-     // createdby: 'admin', 
      createddate: TimestampJs(), 
-     // updatedby: '', 
      updateddate: '', 
      isdeleted: false 
    });
+   console.log(values);
    form.resetFields();
-   projectUpdateMt();
+   deliveryUpdateMt();
    setIsModalOpen(false);
  };
 
@@ -81,14 +80,14 @@ export default function Delivery({ datas, projectUpdateMt }) {
    },
    {
      title: 'Customer',
-     dataIndex: 'productname',
-     key: 'productname',
+     dataIndex: 'customername',
+     key: 'customername',
      editable: true,
    },
    {
      title: 'Mode',
-     dataIndex: 'flavour',
-     key: 'flavour',
+     dataIndex: 'deliverymode',
+     key: 'deliverymode',
      editable: true,
    },
    {
@@ -97,6 +96,9 @@ export default function Delivery({ datas, projectUpdateMt }) {
      key: 'quantity',
      editable: true,
      width: 120,
+     render: (_, record) => {
+      return record.quantity + record.unit
+    }
    },
    {
      title: 'Price',
@@ -107,8 +109,8 @@ export default function Delivery({ datas, projectUpdateMt }) {
    },
    {
      title: 'Status',
-     dataIndex: 'productperpack',
-     key: 'productperpack',
+     dataIndex: 'paymentstatus',
+     key: 'paymentstatus',
      editable: true,
      width: 160,
    },
@@ -217,8 +219,8 @@ export default function Delivery({ datas, projectUpdateMt }) {
        message.open({type: 'info',content: 'No changes made',});
        setEditingKey('');
      } else {
-       await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
-       projectUpdateMt();
+       await updateDelivery(key.id,{...row,updateddate: TimestampJs()},);
+       deliveryUpdateMt();
        message.open({type: 'success',content: 'Updated Successfully',});
        setEditingKey('');
      }
@@ -304,8 +306,8 @@ export default function Delivery({ datas, projectUpdateMt }) {
    const deleteProduct = async (data) => {
      //await deleteproduct(data.id);
      const {id,...newData} = data;
-     await updateproduct(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
-     projectUpdateMt();
+     await updateDelivery(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
+     deliveryUpdateMt();
      message.open({type: 'success',content: 'Deleted Successfully',});
    };
 
@@ -345,7 +347,7 @@ export default function Delivery({ datas, projectUpdateMt }) {
       </ul>
 
       <Modal
-        title="Products"
+        title="Send Delivery"
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => { 
@@ -354,10 +356,18 @@ export default function Delivery({ datas, projectUpdateMt }) {
         }}
       >
       <Form
-          onFinish={createNewProject}
+          onFinish={createSendDelivery}
           form={form}
           layout='vertical'
         >
+          <Form.Item className='mb-0' name='customername' label="Customer Name" rules={[{ required: true, message: false }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item className='mb-0' name='deliverymode' label="Select Mode" rules={[{ required: true, message: false }]}>
+            <Input />
+          </Form.Item>
+
           <Form.Item className='mb-0' name='productname' label="Product Name" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
@@ -367,11 +377,10 @@ export default function Delivery({ datas, projectUpdateMt }) {
             <InputNumber className='w-full' />
           </Form.Item>
 
-          <Form.Item className='mb-0' name='mesurment' label="Mesurment" rules={[{ required: true, message: false }]}>
+          <Form.Item className='mb-0' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
           <Select
             showSearch
-            
-            placeholder="Search to Select"
+            placeholder="Select"
             optionFilterProp="label"
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -394,17 +403,21 @@ export default function Delivery({ datas, projectUpdateMt }) {
           </Form.Item>
           </span>
 
-          <Form.Item className='mb-0' name='flavour' label="Flavour" rules={[{ required: true, message: false }]}>
-            <Input />
-          </Form.Item>
-
-          <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
-          </Form.Item>
-
           <Form.Item className='mb-0' name='price' label="Price" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
             <InputNumber className='w-full' />
           </Form.Item>
+
+          <Form.Item className='mb-0' name='margin' label="Margin" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
+            <InputNumber className='w-full' />
+          </Form.Item>
+
+          <Form.Item className='mb-1' name='paymentstatus' label="Status" rules={[{ required: true, message: false }]}>
+          <Radio.Group>
+            <Radio value={'Paid'}>Paid</Radio>
+            <Radio value={'Unpaid'}>Unpaid</Radio>
+          </Radio.Group>
+          </Form.Item>
+
         </Form>
       </Modal>
 

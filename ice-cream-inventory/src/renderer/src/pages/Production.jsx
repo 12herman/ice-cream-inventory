@@ -40,9 +40,7 @@ export default function Production({ datas, projectUpdateMt }) {
   const createNewProject = async (values) => {
    await createproduct({ 
      ...values, 
-     // createdby: 'admin', 
      createddate: TimestampJs(), 
-     // updatedby: '', 
      updateddate: '', 
      isdeleted: false 
    });

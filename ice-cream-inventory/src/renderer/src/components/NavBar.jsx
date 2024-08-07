@@ -1,9 +1,31 @@
 // src/components/NavBar.js
-import React from 'react';
+import React, {useState} from 'react';
 import IceCreamLogo from '../assets/img/33456902_6600_7_04.jpg'
 import { LiaHandHoldingUsdSolid } from "react-icons/lia";
 import { TbIceCream } from "react-icons/tb";
+import { Modal, Button, Input, Form, InputNumber, Select } from 'antd';
+const { TextArea } = Input;
+
 export default function NavBar({ navPages,setNavPages }) {
+
+  const [isQuickSaleModalOpen, setIsQuickSaleModalOpen] = useState(false);
+  const [isSpendingModalOpen, setIsSpendingModalOpen] = useState(false);
+  const [quickSaleForm] = Form.useForm();
+  const [spendingForm] = Form.useForm();
+  const [form] = Form.useForm();
+
+  const handleQuickSaleFinish = (values) => {
+    console.log('Quick Sale Data:', values);
+    setIsQuickSaleModalOpen(false);
+    quickSaleForm.resetFields();
+  };
+
+  const handleSpendingFinish = (values) => {
+    console.log('Spending Data:', values);
+    setIsSpendingModalOpen(false);
+    spendingForm.resetFields();
+  };
+
   return (
     <nav className='border-r-2 h-screen col-span-2 relative'>
       <ul>
@@ -15,8 +37,132 @@ export default function NavBar({ navPages,setNavPages }) {
             </li>
         ))}
       </ul>
-      <span className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400'><TbIceCream size={25}/><span>Quick Sale</span></span>
-      <span className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400'><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></span>
+      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => {setIsQuickSaleModalOpen(true); quickSaleForm.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
+      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(true); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
+    
+      <Modal
+        title="Quick Sale"
+        open={isQuickSaleModalOpen}
+        onOk={() => quickSaleForm.submit()}
+        onCancel={() => { 
+          setIsQuickSaleModalOpen(false); 
+          quickSaleForm.resetFields(); 
+        }}>
+
+        <Form
+          form={quickSaleForm}
+          layout="vertical"
+          onFinish={handleQuickSaleFinish}
+        >
+          <Form.Item
+            name="productName"
+            label="Product"
+            rules={[{ required: true, message: 'Please input the product name!' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="productName"
+            label="Flavour"
+            rules={[{ required: true, message: 'Please input the product name!' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="quantity"
+            label="Quantity"
+            rules={[{ required: true, message: 'Please input the quantity!' }]}
+          >
+            <InputNumber min={1} className="w-full" />
+          </Form.Item>
+
+          {/* <Form.Item
+            name="unit"
+            label="Unit"
+            rules={[{ required: true, message: 'Please select the unit!' }]}
+          >
+            <Select>
+              <Select.Option value="pcs">Pieces</Select.Option>
+              <Select.Option value="kg">Kilograms</Select.Option>
+              <Select.Option value="ltr">Liters</Select.Option>
+            </Select>
+          </Form.Item> */}
+
+          <Form.Item
+            name="price"
+            label="Count"
+            rules={[{ required: true, message: 'Please input the price!' }]}
+          >
+            <InputNumber min={0} className="w-full" />
+          </Form.Item>
+
+          <Form.Item
+            name="price"
+            label="Price"
+            rules={[{ required: true, message: 'Please input the price!' }]}
+          >
+            <InputNumber min={0} className="w-full" />
+          </Form.Item>
+
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Spending"
+        open={isSpendingModalOpen}
+        onOk={() => spendingForm.submit()}
+        onCancel={() => { 
+          setIsSpendingModalOpen(false); 
+          spendingForm.resetFields(); 
+        }}
+      >
+        <Form
+          form={spendingForm}
+          layout="vertical"
+          onFinish={handleSpendingFinish}
+        >
+   
+          <Form.Item
+            name="date"
+            label="Date"
+            rules={[{ required: true, message: 'Please select the date!' }]}
+          >
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item
+            name="category"
+            label="Person"
+            rules={[{ required: true, message: 'Please select the category!' }]}
+          >
+            <Select>
+              <Select.Option value="Owner">Owner</Select.Option>
+              <Select.Option value="Employee">Employee</Select.Option>
+              <Select.Option value="Other">Other</Select.Option>
+            </Select>
+          </Form.Item>
+
+          
+          <Form.Item
+            name="amount"
+            label="Amount"
+            rules={[{ required: true, message: 'Please input the amount!' }]}
+          >
+            <InputNumber min={0} className="w-full" />
+          </Form.Item>
+
+          <Form.Item
+            name="expenseName"
+            label="Description"
+            rules={[{ required: true, message: 'Please input the expense name!' }]}
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+
+        </Form>
+      </Modal>
     </nav>
   );
 }
