@@ -1,24 +1,24 @@
 import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
-// Get all projects
-export const getProjects = async () => {
+// Get all product
+export const getproduct = async () => {
     try {
       const collectionRef = collection(db, "projects");
       const querySnapshot = await getDocs(collectionRef);
-      const projects = querySnapshot.docs.map(doc => ({
+      const product = querySnapshot.docs.map(doc => ({
         id: doc.id, 
         ...doc.data(),
       }));
-      return { projects, status: 200 };
+      return { product, status: 200 };
     } catch (err) {
       console.error("Error fetching documents: ", err);
       return { status: 500, message: err.message };
     }
   };
 
-  // Create a new projects
-export const createProjects = async (task) => {
+  // Create a new product
+export const createproduct = async (task) => {
   try {
     const collectionRef = collection(db, "projects");
     const res = await addDoc(collectionRef, task);
@@ -29,10 +29,10 @@ export const createProjects = async (task) => {
   }
 };
 
-// Update an existing projects
-export const updateProjects = async (projectsId, updatedData) => {
+// Update an existing product
+export const updateproduct = async (productId, updatedData) => {
   try {
-    const docRef = doc(db, "projects", projectsId);
+    const docRef = doc(db, "projects", productId);
     await updateDoc(docRef, updatedData);
     return { status: 200 };
   } catch (err) {
@@ -42,10 +42,10 @@ export const updateProjects = async (projectsId, updatedData) => {
 };
 
 
-// Delete an projects
-export const deleteProjects = async (projectsId) => {
+// Delete an product
+export const deleteproduct = async (productId) => {
   try {
-    const docRef = doc(db, "projects", projectsId);
+    const docRef = doc(db, "projects", productId);
     await deleteDoc(docRef);
     return { status: 200 };
   } catch (err) {

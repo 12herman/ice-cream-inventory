@@ -304,7 +304,7 @@ export default function Delivery({ datas, deliveryUpdateMt }) {
 
    // delete
    const deleteProduct = async (data) => {
-     //await deleteProjects(data.id);
+     //await deleteproduct(data.id);
      const {id,...newData} = data;
      await updateDelivery(id,{isdeleted: true,deletedby: 'admin',deleteddate: TimestampJs()});
      deliveryUpdateMt();

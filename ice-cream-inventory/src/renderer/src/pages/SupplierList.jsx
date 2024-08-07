@@ -7,6 +7,7 @@ import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
 import { MdOutlinePayments } from "react-icons/md";
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier';
@@ -305,7 +306,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
 
   // delete
   const deleteProduct = async (data) => {
-    // await deleteProjects(data.id);
+    // await deleteproduct(data.id);
     const {id,...newData} = data;
     await updateSupplier(id,{isdeleted: true,
       // deletedby: 'admin',
