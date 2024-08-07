@@ -11,7 +11,7 @@ import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 const { Search } = Input;
 
-export default function Product({ datas, projectUpdateMt }) {
+export default function Product({ datas, productUpdateMt }) {
   
   // states
   const [form] = Form.useForm();
@@ -44,7 +44,7 @@ export default function Product({ datas, projectUpdateMt }) {
       isdeleted: false 
     });
     form.resetFields();
-    projectUpdateMt();
+    productUpdateMt();
     setIsModalOpen(false);
   };
 
@@ -243,7 +243,7 @@ export default function Product({ datas, projectUpdateMt }) {
       } else {
         setEditingKeys([]);
         await updateproduct(key.id,{...row,updateddate: TimestampJs()},);
-        projectUpdateMt();
+        productUpdateMt();
         message.open({type: 'success',content: 'Updated Successfully',});
       }
     } catch (errInfo) {
@@ -323,7 +323,7 @@ export default function Product({ datas, projectUpdateMt }) {
     await updateproduct(id,{isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()});
-    projectUpdateMt();
+    productUpdateMt();
     message.open({type: 'success',content: 'Deleted Successfully',});
   };
 
@@ -331,6 +331,8 @@ export default function Product({ datas, projectUpdateMt }) {
   const exportExcel = async () => {
     const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
     jsonToExcel(exportDatas,`Product-List-${TimestampJs()}`);
+    setSelectedRowKeys([]);
+    setEditingKey('');
   }
 
   return (

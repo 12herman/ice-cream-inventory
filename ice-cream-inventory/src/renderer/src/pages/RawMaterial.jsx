@@ -1,32 +1,15 @@
-import React, { useEffect, useState } from 'react'
-import {
-  Button,
-  Input,
-  Table,
-  Modal,
-  Form,
-  InputNumber,
-  Typography,
-  Popconfirm,
-  message,
-  Select,
-  DatePicker,
-  Radio
-} from 'antd'
-import { PiExport } from 'react-icons/pi'
-import { IoMdAdd } from 'react-icons/io'
-import { MdOutlineModeEditOutline } from 'react-icons/md'
-import { LuSave } from 'react-icons/lu'
-import { TiCancel } from 'react-icons/ti'
-import { AiOutlineDelete } from 'react-icons/ai'
-import {
-  createRawmaterial,
-  updateRawmaterial,
-  deleteRawmaterial
-} from '../firebase/data-tables/rawmaterial'
-import { TimestampJs } from '../js-files/time-stamp'
-const { Search } = Input
-const { RangePicker } = DatePicker
+import React, {useEffect, useState} from 'react';
+import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker, Radio } from 'antd';
+import { PiExport } from "react-icons/pi";
+import { IoMdAdd } from "react-icons/io";
+import { MdOutlineModeEditOutline } from "react-icons/md";
+import { LuSave } from "react-icons/lu";
+import { TiCancel } from "react-icons/ti";
+import { AiOutlineDelete } from "react-icons/ai";
+import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
+import { TimestampJs } from '../js-files/time-stamp';
+const { Search } = Input;
+const { RangePicker } = DatePicker;
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
   //states
@@ -74,17 +57,17 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
     }
   }
 
-  const createAddMaterial = async (values) => {
-    await createRawmaterial({
+   const createAddMaterial = async (values) => {
+    await createRawmaterial({ 
       ...values,
       createddate: TimestampJs(),
-      isdeleted: false
-    })
-    console.log(values)
-    form.resetFields()
-    rawmaterialUpdateMt()
-    setIsModalOpen(false)
-  }
+      isdeleted: false 
+    });
+    console.log(values);
+    form.resetFields();
+    rawmaterialUpdateMt();
+    setIsModalOpen(false);
+  };
 
   const columns = [
     {
