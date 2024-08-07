@@ -370,11 +370,18 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
           form={form}
           layout='vertical'
         >
+          <Form.Item className='mb-1' name='suppliername' label="Supplier Name" rules={[{ required: true, message: false }]}>
+            <Input className='w-full' />
+          </Form.Item>
+          
+          <Form.Item className='mb-1' name='location' label="location" rules={[{ required: true, message: false }]}>
+            <Input />
+          </Form.Item>
+
           <Form.Item className='mb-1' name='materialname' label="Material Name" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
 
-        
           <Form.Item className='mb-1 w-full' name='mobilenumber' label="Mobile Number" rules={[{ required: true, message: false },{ type: 'number', message: false }]}>
             <InputNumber className='w-full' />
           </Form.Item>
@@ -386,14 +393,6 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
           </Radio.Group>
           </Form.Item>
   
-          <Form.Item className='mb-1' name='suppliername' label="Supplier Name" rules={[{ required: true, message: false }]}>
-            <Input className='w-full' />
-          </Form.Item>
-
-          <Form.Item className='mb-1' name='location' label="location" rules={[{ required: true, message: false }]}>
-            <Input />
-          </Form.Item>
-         
         </Form>
       </Modal>
     </div>

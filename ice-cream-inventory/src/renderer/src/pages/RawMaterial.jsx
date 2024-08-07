@@ -53,7 +53,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
         .filter((supplier) => supplier.suppliername === selectedSupplierName)
         .map((supplier) => ({
           value: supplier.materialname,
-          label: supplier.suppliername,
+          label: supplier.materialname,
+          key: supplier.id,
         }));
         console.log(filteredMaterials);
       setMaterials(filteredMaterials);
@@ -464,9 +465,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
                   .toLowerCase()
                   .localeCompare((optionB?.label ?? '').toLowerCase())
               }
-              options={datas.suppliers.map((supplier) => ({
-                value: supplier.suppliername,
-                label: supplier.suppliername
+              options={Array.from(new Set(datas.suppliers.map(supplier => supplier.suppliername))).map((suppliername, index) => ({
+                value: suppliername,
+                label: suppliername,
+                key: index,
               }))}
               onChange={(value) => setSelectedSupplierName(value)}
             />
@@ -525,12 +527,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
                     label: 'GM'
                   },
                   {
-                    value: 'mm',
-                    label: 'MM'
+                    value: 'ml',
+                    label: 'Ml'
                   },
                   {
                     value: 'kg',
                     label: 'KG'
+                  },
+                  {
+                    value: 'lt',
+                    label: 'LT'
                   }
                 ]}
               />
