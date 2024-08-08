@@ -19,6 +19,7 @@ import { getRawmaterial } from "./firebase/data-tables/rawmaterial";
 import { getDelivery } from "./firebase/data-tables/delivery";
 import { getEmployee } from "./firebase/data-tables/employee";
 import { getProduction } from "./firebase/data-tables/production";
+import { getUsedmaterial } from "./firebase/data-tables/usedmaterial";
 
 const App =() =>{
   
@@ -50,6 +51,8 @@ const App =() =>{
     employeeupdatestaus:false,
     productions:[],
     productionupdatestaus:false,
+    usedmaterials:[],
+    usedmaterialupdatestaus:false,
   });
 
   const productUpdateMt =()=> setDatas(pre => ({...pre, projectupdatestaus:!pre.projectupdatestaus}));
@@ -59,6 +62,8 @@ const App =() =>{
   const deliveryUpdateMt =()=> setDatas(pre => ({...pre, deliveryupdatestaus:!pre.deliveryupdatestaus}));
   const employeeUpdateMt =()=> setDatas(pre => ({...pre, employeeupdatestaus:!pre.employeeupdatestaus}));
   const productionUpdateMt =()=> setDatas(pre => ({...pre, productionupdatestaus:!pre.productionupdatestaus}));
+  const usedmaterialUpdateMt =()=> setDatas(pre => ({...pre, usedmaterialupdatestaus:!pre.usedmaterialupdatestaus}));
+  
   // get table datas 'project list'
   useEffect(()=>{
     const fetchData = async()=>{
@@ -136,6 +141,17 @@ const App =() =>{
     }
     fetchData();
   },[datas.productionupdatestaus])
+
+  // get table datas 'used material list'
+  useEffect(()=>{
+    const fetchData = async ()=>{
+      const {status,usedmaterial} = await getUsedmaterial();
+      if(status){
+        setDatas(pre => ({...pre, usedmaterials:usedmaterial}));
+      }
+    }
+    fetchData();
+  },[datas.usedmaterialupdatestaus])
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
     {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
@@ -149,6 +165,7 @@ const App =() =>{
       deliveryUpdateMt={deliveryUpdateMt}
       employeeUpdateMt={employeeUpdateMt}
       productionUpdateMt={productionUpdateMt}
+      usedmaterialUpdateMt={usedmaterialUpdateMt}
       navPages={navPages}
       />
     </main>
