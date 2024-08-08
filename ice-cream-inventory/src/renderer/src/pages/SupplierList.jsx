@@ -14,7 +14,6 @@ import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier
 const { Search } = Input;
 
 export default function SupplierList({ datas, supplierUpdateMt }) {
-  
   // states
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,13 +52,12 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
   const columns = [
     {
       title: 'S.No',
-      dataIndex: 'sno',
       key: 'sno',
       width: 70,
+      render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return(
-          String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
@@ -73,18 +71,24 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       dataIndex: 'suppliername',
       key: 'suppliername',
       editable: true,
+      sorter: (a, b) => a.suppliername.localeCompare(b.suppliername),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Material Name',
       dataIndex: 'materialname',
       key: 'materialname',
       editable: true,
+      sorter: (a, b) => a.materialname.localeCompare(b.materialname),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Location',
       dataIndex: 'location',
       key: 'location',
       editable: true,
+      sorter: (a, b) => a.location.localeCompare(b.location),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Mobile Number',
@@ -100,7 +104,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       editable: true,
     },
     {
-      title: 'Operation',
+      title: 'Action',
       dataIndex: 'operation',
       fixed:'right',
       width:110,
@@ -325,7 +329,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
     <div>
       <ul>
         <li className='flex gap-x-3 justify-between items-center'>
-          <Search  allowClear className='w-[50%]' placeholder="input search text" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
+          <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
             <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={payMt}>Pay <MdOutlinePayments /></Button>
             <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields(); form.setFieldsValue({gender: 'Male'});}}>

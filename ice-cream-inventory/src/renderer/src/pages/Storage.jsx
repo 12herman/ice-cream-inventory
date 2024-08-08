@@ -58,12 +58,12 @@ export default function Storage({ datas }) {
   const materialColumns = [
     {
       title: 'S.No',
-      dataIndex: 'sno',
       key: 'sno',
+      width: 70,
+      render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
-          String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase())
         )
@@ -72,7 +72,9 @@ export default function Storage({ datas }) {
     {
       title: 'Material',
       dataIndex: 'materialname',
-      key: 'materialname'
+      key: 'materialname',
+      sorter: (a, b) => a.materialname.localeCompare(b.materialname),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Quantity',
@@ -84,8 +86,9 @@ export default function Storage({ datas }) {
     },
     {
       title: 'Action',
-      dataIndex: 'address',
-      key: 'address',
+      dataIndex: 'operation',
+      fixed:'right',
+      width:110,
       render: (_, record) => (
         <Button onClick={() => showModal(record)}>
           <IoMdAlarm />
@@ -97,26 +100,32 @@ export default function Storage({ datas }) {
   const productColumns = [
     {
       title: 'S.No',
-      dataIndex: 'sno',
       key: 'sno',
+      width: 70,
+      render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
-          String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.quantity).toLowerCase().includes(value.toLowerCase())
+          String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.numberofpacks).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
     {
       title: 'Product',
       dataIndex: 'productname',
-      key: 'productname'
+      key: 'productname',
+      sorter: (a, b) => a.productname.localeCompare(b.productname),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Flavor',
       dataIndex: 'flavour',
-      key: 'flavour'
+      key: 'flavour',
+      sorter: (a, b) => a.flavour.localeCompare(b.flavour),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Quantity',
@@ -126,12 +135,15 @@ export default function Storage({ datas }) {
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
-      key: 'numberofpacks'
+      key: 'numberofpacks',
+      sorter: (a, b) => (Number(a.numberofpacks) || 0) - (Number(b.numberofpacks) || 0),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Action',
-      dataIndex: 'address',
-      key: 'address',
+      dataIndex: 'operation',
+      fixed:'right',
+      width:110,
       render: (_, record) => (
         <Button onClick={() => showModal(record)}>
           <IoMdAlarm />

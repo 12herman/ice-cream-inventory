@@ -54,13 +54,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const columns = [
     {
       title: 'S.No',
-      dataIndex: 'sno',
       key: 'sno',
       width: 70,
+      render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return(
-          String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
@@ -74,18 +73,24 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'customername',
       key: 'customername',
       editable: true,
+      sorter: (a, b) => a.customername.localeCompare(b.customername),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
       editable: true,
+      sorter: (a, b) => a.transport.localeCompare(b.transport),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Location',
       dataIndex: 'location',
       key: 'location',
       editable: true,
+      sorter: (a, b) => a.location.localeCompare(b.location),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Mobile Number ',
@@ -102,7 +107,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 180,
     },
     {
-      title: 'Operation',
+      title: 'Action',
       dataIndex: 'operation',
       fixed:'right',
       width:110,
@@ -329,7 +334,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     <div>
       <ul>
         <li className='flex gap-x-3 justify-between items-center'>
-          <Search  allowClear className='w-[50%]' placeholder="input search text" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
+          <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
             <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={pay}>Pay <MdOutlinePayments /></Button>
             <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields();form.setFieldsValue({transport: 'Company'});}}>

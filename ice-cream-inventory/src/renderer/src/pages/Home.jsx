@@ -1,29 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NotificationOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Statistic, DatePicker, Badge, Table } from 'antd';
+import { Card, Col, Row, Statistic, DatePicker, Badge, Table, Button } from 'antd';
 import { FaRupeeSign } from "react-icons/fa";
 import { IoPerson } from "react-icons/io5";
 const { RangePicker } = DatePicker;
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export default function Home({ datas }) {
   const [dateRange, setDateRange] = useState([null, null]);
+  const [filteredDelivery, setFilteredDelivery] = useState([]);
+  const [filteredRawmaterials, setFilteredRawmaterials] = useState([]);
+
+  useEffect(() => {
+    const isWithinRange = (date) => {
+      if (!dateRange[0] || !dateRange[1]) {
+        return true;
+      }
+      const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+      return dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]));
+    };
+
+    const newFilteredDelivery = datas.delivery.filter((product) => isWithinRange(product.createddate));
+    setFilteredDelivery(newFilteredDelivery);
+
+    const newFilteredRawmaterials = datas.rawmaterials.filter((material) => isWithinRange(material.createddate));
+    setFilteredRawmaterials(newFilteredRawmaterials);
+  }, [dateRange, datas.delivery, datas.rawmaterials]);
 
   const handleDateChange = (dates) => {
     setDateRange(dates);
-    console.log(dateRange,dates);
   };
-
-  const isWithinRange = (date) => {
-    if (!dateRange[0] || !dateRange[1]) {
-      return true;
-    }
-    const momentDate = moment(date, 'DD/MM/YYYY');
-    return momentDate.isBetween(dateRange[0], dateRange[1], 'days', '[]');
-  };
-
-  const filteredDelivery = datas.delivery.filter((product) => isWithinRange(product.date));
-  const filteredRawmaterials = datas.rawmaterials.filter((material) => isWithinRange(material.date));
 
   const totalSales = filteredDelivery.reduce((total, product) => total + product.price, 0);
   const totalSpend = filteredRawmaterials.reduce((total, material) => total + material.price, 0);
@@ -84,6 +90,7 @@ export default function Home({ datas }) {
           <h1>Dashboard</h1>
           <span className='flex gap-x-3 justify-center items-center'>
           <RangePicker onChange={handleDateChange} />
+          <Button>
           <Badge dot>
       <NotificationOutlined
         style={{
@@ -91,6 +98,7 @@ export default function Home({ datas }) {
         }}
       />
     </Badge>
+    </Button>
           </span>
         </li>
 

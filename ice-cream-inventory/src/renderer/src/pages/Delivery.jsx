@@ -51,13 +51,12 @@ export default function Delivery({ datas, deliveryUpdateMt }) {
  const columns = [
    {
      title: 'S.No',
-     dataIndex: 'sno',
      key: 'sno',
      width: 70,
+     render: (_, __, index) => index + 1,
      filteredValue: [searchText],
      onFilter: (value, record) => {
        return(
-         String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
          String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
          String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
@@ -113,6 +112,8 @@ export default function Delivery({ datas, deliveryUpdateMt }) {
      key: 'paymentstatus',
      editable: true,
      width: 160,
+     sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
+     showSorterTooltip: {target: 'sorter-icon'},
    },
    {
      title: 'Action',

@@ -108,7 +108,7 @@ export default function Product({ datas, productUpdateMt }) {
       showSorterTooltip: {target: 'sorter-icon'},
     },
     {
-      title: 'Operation',
+      title: 'Action',
       dataIndex: 'operation',
       fixed:'right',
       width:110,
@@ -343,7 +343,7 @@ export default function Product({ datas, productUpdateMt }) {
     <div>
       <ul>
         <li className='flex gap-x-3 justify-between items-center'>
-          <Search  allowClear className='w-[50%]' placeholder="input search text" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
+          <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
             <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={exportExcel}>Export <PiExport /></Button>
             <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
