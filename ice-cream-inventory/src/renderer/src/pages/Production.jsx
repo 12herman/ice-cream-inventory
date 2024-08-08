@@ -13,8 +13,9 @@ const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
 import { createProduction, updateProduction } from '../firebase/data-tables/production';
 import jsonToExcel from '../js-files/json-to-excel';
+import { createUsedmaterial } from '../firebase/data-tables/usedmaterial';
 
-export default function Production({ datas, productionUpdateMt }) {
+export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
@@ -407,35 +408,6 @@ export default function Production({ datas, productionUpdateMt }) {
       message.open({type: 'warning',content: 'Product is already added',});
       return;
      }
-    //   // Filter items that need updating
-    //   let filterDub = option.tempproduct.filter(item => 
-    //     item.productname === newProduct.productname &&
-    //     item.flavour === newProduct.flavour &&
-    //     item.quantity === newProduct.quantity &&
-    //     item.numberofpacks !== newProduct.numberofpacks &&
-    //     item.date === newProduct.date &&
-    //     item.key !== newProduct.key
-    //   );
-    //   // Create new items with updated numberofpacks
-    //   let addDb = filterDub.map(item => ({
-    //     ...item,
-    //     numberofpacks: item.numberofpacks + newProduct.numberofpacks
-    //   }));
-    //   // Update the state
-    //   setOption(prev => ({
-    //     ...prev,
-    //     tempproduct: [
-    //       ...prev.tempproduct.filter(item =>
-    //         !(item.productname === newProduct.productname &&
-    //           item.flavour === newProduct.flavour &&
-    //           item.quantity === newProduct.quantity &&
-    //           item.date === newProduct.date &&
-    //           item.key !== newProduct.key)
-    //       ),
-    //       ...addDb
-    //     ]
-    //   }));
-    // }
     else{
       setOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newProduct]}));
       productionUpdateMt();
@@ -522,6 +494,10 @@ export default function Production({ datas, productionUpdateMt }) {
       tempproduct:[],
       count:0
     });
+    useEffect(()=>{
+       const optionsuppliers = datas.suppliers.filter((item,i,self)=> item.isdeleted ===false && i === self.findIndex(d => d.materialname === item.materialname)).map(item => ({label:item.materialname,value:item.materialname}));
+       setMtOption(pre => ({...pre,material:optionsuppliers}));
+    },[])
 
     // create material
     const createTemMaterial = async (values)=>{
@@ -529,11 +505,19 @@ export default function Production({ datas, productionUpdateMt }) {
       const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
       const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
       const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
+      const dbcheckExsit = datas.usedmaterials.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
       if(checkExsit){
         message.open({type: 'warning',content: 'Product is already added',});
         return;
       }
-      setMtOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newMaterial]}));
+      else if(dbcheckExsit){
+        message.open({type: 'warning',content: 'Product is already added',});
+        return;
+      }
+      else{
+        setMtOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newMaterial]}));
+      }
+      
     };
 
     // remove tem material
@@ -544,8 +528,13 @@ export default function Production({ datas, productionUpdateMt }) {
 
     // add new material to data base
     const addNewTemMaterial = async()=> {
-     console.log(mtOption.tempproduct);
-     //materialModelCancel();
+      mtOption.tempproduct.map(async (item,i)=>{
+        let {key,quantity,...newMaterial} = item;
+        let quntity = Number(quantity.split(' ')[0]);
+        await createUsedmaterial({...newMaterial,quantity:quntity});
+      });
+     usedmaterialUpdateMt();
+     materialModelCancel();
     };
 
     // model cancel
@@ -698,7 +687,7 @@ export default function Production({ datas, productionUpdateMt }) {
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
             }
-            options={[{label:'Milk',value:'Milk'}]}
+            options={mtOption.material}
             onChange={(value,i) => productOnchange(value,i)}
           />
           </Form.Item>
@@ -717,7 +706,7 @@ export default function Production({ datas, productionUpdateMt }) {
             filterSort={(optionA, optionB) =>
               (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
             }
-            options={[{label:'Ltr',value:'Ltr',},{label:'Kg',value:'Kg'}]}
+            options={[{label:'Liter',value:'Liter',},{label:'MM',value:'MM'},{label:'GM',value:'GM'},{label:'KG',value:'KG'}]}
           />
           </Form.Item>
          </span>

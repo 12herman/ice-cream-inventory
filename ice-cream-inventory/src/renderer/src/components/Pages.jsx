@@ -9,11 +9,11 @@ import SupplierList from '../pages/SupplierList'
 import CustomerList from '../pages/CustomerList'
 import Employee from '../pages/Employee'
 
-export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt}) {
+export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt,usedmaterialUpdateMt}) {
     const PageLists = [
         <Home datas={datas}/>,
         <RawMaterial datas={datas} rawmaterialUpdateMt={rawmaterialUpdateMt}/>,
-        <Production datas={datas} productionUpdateMt={productionUpdateMt}/>,
+        <Production datas={datas} productionUpdateMt={productionUpdateMt} usedmaterialUpdateMt={usedmaterialUpdateMt}/>,
         <Delivery datas={datas} deliveryUpdateMt={deliveryUpdateMt}/>,
         <Storage datas={datas}/>,
         <Product datas={datas} productUpdateMt={productUpdateMt}/>,
