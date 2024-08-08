@@ -45,7 +45,7 @@ export default function Storage({ datas }) {
       productname: record.productname || 'N/A',
       flavour: record.flavour || 'N/A',
       quantity: record.quantity || 'N/A',
-      alertcount: undefined,
+      alertcount: record.alertcount || undefined,
     });
     setIsModalVisible(true)
   }

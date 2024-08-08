@@ -3,8 +3,9 @@ import React, {useState} from 'react';
 import IceCreamLogo from '../assets/img/33456902_6600_7_04.jpg'
 import { LiaHandHoldingUsdSolid } from "react-icons/lia";
 import { TbIceCream } from "react-icons/tb";
-import { Modal, Button, Input, Form, InputNumber, Select } from 'antd';
+import { Modal, Button, Input, Form, InputNumber, Select, DatePicker } from 'antd';
 const { TextArea } = Input;
+import dayjs from 'dayjs';
 
 export default function NavBar({ navPages,setNavPages }) {
 
@@ -41,18 +42,20 @@ export default function NavBar({ navPages,setNavPages }) {
       <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(true); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
     
       <Modal
-        title="Quick Sale"
+        title={<div className='flex  justify-center py-3'> <h1>QUICK SALE</h1> </div>}
         open={isQuickSaleModalOpen}
         onOk={() => quickSaleForm.submit()}
         onCancel={() => { 
           setIsQuickSaleModalOpen(false); 
           quickSaleForm.resetFields(); 
-        }}>
+        }}
+        >
 
         <Form
           form={quickSaleForm}
           layout="vertical"
           onFinish={handleQuickSaleFinish}
+          initialValues={{ date: dayjs() }}
         >
           <Form.Item
             name="productName"
@@ -98,6 +101,10 @@ export default function NavBar({ navPages,setNavPages }) {
             <InputNumber min={0} className="w-full" />
           </Form.Item>
 
+          <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
+          </Form.Item>
+
           <Form.Item
             name="price"
             label="Price"
@@ -110,7 +117,7 @@ export default function NavBar({ navPages,setNavPages }) {
       </Modal>
 
       <Modal
-        title="Spending"
+        title={<div className='flex  justify-center py-3'> <h1>SPENDING</h1> </div>}
         open={isSpendingModalOpen}
         onOk={() => spendingForm.submit()}
         onCancel={() => { 
@@ -122,14 +129,11 @@ export default function NavBar({ navPages,setNavPages }) {
           form={spendingForm}
           layout="vertical"
           onFinish={handleSpendingFinish}
+          initialValues={{ date: dayjs() }}
         >
    
-          <Form.Item
-            name="date"
-            label="Date"
-            rules={[{ required: true, message: 'Please select the date!' }]}
-          >
-            <Input type="date" />
+         <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
           </Form.Item>
 
           <Form.Item

@@ -51,13 +51,12 @@ export default function Product({ datas, productUpdateMt }) {
   const columns = [
     {
       title: 'S.No',
-      dataIndex: 'sno',
       key: 'sno',
       width: 70,
+      render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return(
-          String(record.sno).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
@@ -71,12 +70,16 @@ export default function Product({ datas, productUpdateMt }) {
       dataIndex: 'productname',
       key: 'productname',
       editable: true,
+      sorter: (a, b) => a.productname.localeCompare(b.productname),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Flavour',
       dataIndex: 'flavour',
       key: 'flavour',
       editable: true,
+      sorter: (a, b) => a.flavour.localeCompare(b.flavour),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Quantity',
@@ -85,10 +88,9 @@ export default function Product({ datas, productUpdateMt }) {
       editable: true,
       width: 180,
       render: (_, record) => {
-        return record.quantity + record.unit
+        return record.quantity +" "+ record.unit
       }
     },
-    
     {
       title: 'Product Per Pack',
       dataIndex: 'productperpack',
@@ -102,6 +104,8 @@ export default function Product({ datas, productUpdateMt }) {
       key: 'price',
       editable: true,
       width: 100,
+      sorter: (a, b) => (Number(a.price) || 0) - (Number(b.price) || 0),
+      showSorterTooltip: {target: 'sorter-icon'},
     },
     {
       title: 'Operation',

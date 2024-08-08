@@ -1,11 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NotificationOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, DatePicker, Badge, Table } from 'antd';
 import { FaRupeeSign } from "react-icons/fa";
 import { IoPerson } from "react-icons/io5";
 const { RangePicker } = DatePicker;
+import moment from 'moment';
 
-export default function Home() {
+export default function Home({ datas }) {
+  const [dateRange, setDateRange] = useState([null, null]);
+
+  const handleDateChange = (dates) => {
+    setDateRange(dates);
+    console.log(dateRange,dates);
+  };
+
+  const isWithinRange = (date) => {
+    if (!dateRange[0] || !dateRange[1]) {
+      return true;
+    }
+    const momentDate = moment(date, 'DD/MM/YYYY');
+    return momentDate.isBetween(dateRange[0], dateRange[1], 'days', '[]');
+  };
+
+  const filteredDelivery = datas.delivery.filter((product) => isWithinRange(product.date));
+  const filteredRawmaterials = datas.rawmaterials.filter((material) => isWithinRange(material.date));
+
+  const totalSales = filteredDelivery.reduce((total, product) => total + product.price, 0);
+  const totalSpend = filteredRawmaterials.reduce((total, material) => total + material.price, 0);
+  const totalProfit = totalSales - totalSpend;
+  const totalCustomers = filteredDelivery.length;
 
   const dataSource = [
     {
@@ -60,7 +83,7 @@ export default function Home() {
         <li className='flex gap-x-3 justify-between items-center'>
           <h1>Dashboard</h1>
           <span className='flex gap-x-3 justify-center items-center'>
-          <RangePicker />
+          <RangePicker onChange={handleDateChange} />
           <Badge dot>
       <NotificationOutlined
         style={{
@@ -77,7 +100,7 @@ export default function Home() {
       <Card bordered={false}>
         <Statistic
           title="Total Sales"
-          value={8042}
+          value={totalSales}
           precision={2}
           valueStyle={{
             color: '#3f8600',
@@ -90,7 +113,7 @@ export default function Home() {
       <Card bordered={false}>
         <Statistic
           title="Total Spending"
-          value={2980}
+          value={totalSpend}
           precision={2}
           valueStyle={{
             color: '#cf1322',
@@ -103,10 +126,10 @@ export default function Home() {
       <Card bordered={false}>
         <Statistic
           title="Total Profit"
-          value={5062}
+          value={totalProfit}
           precision={2}
           valueStyle={{
-            color: '#3f8600',
+            color: totalProfit > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign />}
         />
@@ -116,7 +139,7 @@ export default function Home() {
       <Card bordered={false}>
         <Statistic
           title="Total Customer"
-          value={25}
+          value={totalCustomers}
           valueStyle={{
             color: '#3f8600',
           }}
