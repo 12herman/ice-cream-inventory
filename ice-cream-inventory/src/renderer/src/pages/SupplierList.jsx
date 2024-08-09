@@ -11,6 +11,7 @@ import { createproduct, deleteproduct, updateproduct } from '../firebase/data-ta
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier';
+import { createStorage, updateStorage } from '../firebase/data-tables/storage';
 const { Search } = Input;
 
 export default function SupplierList({ datas, supplierUpdateMt }) {

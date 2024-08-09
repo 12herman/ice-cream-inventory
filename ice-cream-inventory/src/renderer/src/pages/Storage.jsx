@@ -2,20 +2,39 @@ import React, { useState, useEffect } from 'react'
 import { Input, Button, Table, Segmented, Modal, Form, InputNumber } from 'antd'
 import { IoMdAlarm } from 'react-icons/io'
 import { LuMilk, LuIceCream } from 'react-icons/lu'
+import { TimestampJs } from '../js-files/time-stamp';
+import { createStorage, updateStorage } from '../firebase/data-tables/storage';
 const { Search } = Input
 
-export default function Storage({ datas }) {
+export default function Storage({ datas, storageUpdateMt }) {
   const [form] = Form.useForm()
   const [data, setData] = useState([])
   const [selectedSegment, setSelectedSegment] = useState('Material List')
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [editingRecordId, setEditingRecordId] = useState(null)
+  const [aggregatedData, setAggregatedData] = useState([]);
 
   useEffect(() => {
     const rawData = selectedSegment === 'Material List' 
-      ? datas.rawmaterials.filter(data => !data.isdeleted).map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-      : datas.productions.filter(data => !data.isdeleted).map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    setData(rawData)
+      ? datas.rawmaterials.filter(data => !data.isdeleted)
+      : datas.productions.filter(data => !data.isdeleted)
+    setData(rawData);
+    calculateTotals(rawData);
   }, [datas, selectedSegment])
+
+  const calculateTotals = (data) => {
+    const totals = data.reduce((acc, item) => {
+      const key = selectedSegment === 'Material List' ? item.materialname : item.productname;
+      const quantity = selectedSegment === 'Material List' ? item.quantity : item.quantity;
+
+      if (!acc[key]) {
+        acc[key] = 0;
+      }
+      acc[key] += quantity;
+      return acc;
+    }, {});
+    setAggregatedData(Object.entries(totals).map(([name, total]) => ({ name, total })));
+  }
 
   // search
   const [searchText, setSearchText] = useState('')
@@ -28,15 +47,26 @@ export default function Storage({ datas }) {
     }
   }
 
-  const setAlert = (values) => {
-    // await createRawmaterial({
-    //   ...values,
-    //   createddate: TimestampJs(),
-    //   isdeleted: false
-    // })
-    console.log(values)
-    form.resetFields()
-    setIsModalVisible(false)
+  const setAlert = async (values) => {
+    if(editingRecordId){
+    await updateStorage(editingRecordId, {
+      ...values,
+      category: selectedSegment,
+      updateddate: TimestampJs()
+    });
+  }else{
+    await createStorage({
+      ...values,
+      category: selectedSegment,
+      createddate: TimestampJs(),
+      isdeleted: false
+    });
+  }
+  console.log(values);
+  form.resetFields();
+  storageUpdateMt();
+  setEditingRecordId(null);
+  setIsModalVisible(false);
   }
 
   const showModal = (record) => {
@@ -47,7 +77,9 @@ export default function Storage({ datas }) {
       quantity: record.quantity || 'N/A',
       alertcount: record.alertcount || undefined,
     });
+    setEditingRecordId(record.id)
     setIsModalVisible(true)
+    console.log(record.id);
   }
 
   const onSegmentChange = (value) => {
@@ -81,7 +113,7 @@ export default function Storage({ datas }) {
       dataIndex: 'quantity',
       key: 'quantity',
       render: (_, record) => {
-        return record.quantity + record.unit
+        return record.quantity +" "+ record.unit
       }
     },
     {

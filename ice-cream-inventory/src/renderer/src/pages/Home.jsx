@@ -1,15 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationOutlined } from '@ant-design/icons';
+import { NotificationOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, DatePicker, Badge, Table, Button } from 'antd';
 import { FaRupeeSign } from "react-icons/fa";
 import { IoPerson } from "react-icons/io5";
+import { DatestampJs } from '../js-files/date-stamp';
 const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
 
 export default function Home({ datas }) {
-  const [dateRange, setDateRange] = useState([null, null]);
+  const today = dayjs(DatestampJs(), 'DD-MM-YYYY');
+  const [data, setData] = useState([]);
+  const [dateRange, setDateRange] = useState([today, today]);
   const [filteredDelivery, setFilteredDelivery] = useState([]);
   const [filteredRawmaterials, setFilteredRawmaterials] = useState([]);
+
+  useEffect(() => {
+    setData(
+      datas.delivery
+        .filter((data) => data.isdeleted === false)
+        .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    )
+  }, [datas])
 
   useEffect(() => {
     const isWithinRange = (date) => {
@@ -17,13 +28,17 @@ export default function Home({ datas }) {
         return true;
       }
       const dayjsDate = dayjs(date, 'DD/MM/YYYY');
-      return dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]));
+      return (
+        dayjsDate.isSame(dateRange[0], 'day') ||
+        dayjsDate.isSame(dateRange[1], 'day') ||
+        dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]))
+      );
     };
 
-    const newFilteredDelivery = datas.delivery.filter((product) => isWithinRange(product.createddate));
+    const newFilteredDelivery = datas.delivery.filter((product) => isWithinRange(product.date));
     setFilteredDelivery(newFilteredDelivery);
 
-    const newFilteredRawmaterials = datas.rawmaterials.filter((material) => isWithinRange(material.createddate));
+    const newFilteredRawmaterials = datas.rawmaterials.filter((material) => isWithinRange(material.date));
     setFilteredRawmaterials(newFilteredRawmaterials);
   }, [dateRange, datas.delivery, datas.rawmaterials]);
 
@@ -35,25 +50,6 @@ export default function Home({ datas }) {
   const totalSpend = filteredRawmaterials.reduce((total, material) => total + material.price, 0);
   const totalProfit = totalSales - totalSpend;
   const totalCustomers = filteredDelivery.length;
-
-  const dataSource = [
-    {
-      key: '1',
-      date: '30/05/2024',
-      product: 'Milk',
-      name: 'Mike',
-      amount: 3200,
-      action: 'print',
-    },
-    {
-      key: '2',
-      date: '03/06/2024',
-      product: 'Sugar',
-      name: 'John',
-      amount: 420,
-      action: 'print',
-    },
-  ];
   
   const columns = [
     {
@@ -63,24 +59,30 @@ export default function Home({ datas }) {
     },
     {
       title: 'Customer',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'customername',
+      key: 'customername',
     },
     {
       title: 'Product',
-      dataIndex: 'product',
-      key: 'product',
+      dataIndex: 'productname',
+      key: 'productname',
     },
     {
       title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
       title: 'Action',
       dataIndex: 'action',
-      key: 'action',
-    }
+      width: 120,
+      render: (_, record) => (
+        <span>
+          <Button icon={<DownloadOutlined />} style={{ marginRight: 8 }} />
+          <Button icon={<PrinterOutlined />} />
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -89,7 +91,7 @@ export default function Home({ datas }) {
         <li className='flex gap-x-3 justify-between items-center'>
           <h1>Dashboard</h1>
           <span className='flex gap-x-3 justify-center items-center'>
-          <RangePicker onChange={handleDateChange} />
+          <RangePicker onChange={handleDateChange}  defaultValue={[ today , today]} format='DD-MM-YYYY' />
           <Button>
           <Badge dot>
       <NotificationOutlined
@@ -159,7 +161,7 @@ export default function Home({ datas }) {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={dataSource} columns={columns} pagination={false} />;
+  <Table dataSource={data} columns={columns} pagination={false} />;
   </li>
 
   </ul>

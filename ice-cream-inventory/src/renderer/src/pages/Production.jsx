@@ -24,12 +24,27 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [data, setData] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
  
-
   // side effect
   useEffect(() => {
-    setData(datas.productions.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })));
-  }, [datas]);
+    const filteredProductions = datas.productions
+      .filter((data) => !data.isdeleted && isWithinRange(data.date))
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }));
+    setData(filteredProductions);
+  }, [datas.productions, dateRange]);
+
+  const isWithinRange = (date) => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return true;
+    }
+    const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+    return (
+      dayjsDate.isSame(dateRange[0], 'day') ||
+      dayjsDate.isSame(dateRange[1], 'day') ||
+      dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]))
+    );
+  };
 
   // search
   const [searchText, setSearchText] = useState('');
@@ -550,7 +565,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
       
       <span className='flex gap-x-3 justify-center items-center'>
-      <RangePicker />
+      <RangePicker onChange={(dates) => setDateRange(dates)} />
           <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>Export <PiExport /></Button>
           <Button onClick={()=>setIsMaterialModalOpen(true)} type="primary" disabled={editingKey !== ''}>Material Used <IoMdRemove /></Button>
           <Button disabled={editingKey !== ''} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>

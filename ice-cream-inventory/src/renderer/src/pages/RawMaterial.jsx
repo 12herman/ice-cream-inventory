@@ -8,6 +8,7 @@ import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
 import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { TimestampJs } from '../js-files/time-stamp';
+import dayjs from 'dayjs';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
@@ -19,15 +20,27 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
   const [data, setData] = useState([])
   const [selectedSupplierName, setSelectedSupplierName] = useState(null);
   const [materials, setMaterials] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.rawmaterials
-        .filter((data) => data.isdeleted === false)
-        .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    )
-  }, [datas])
+    const filteredMaterials = datas.rawmaterials
+      .filter((data) => !data.isdeleted && isWithinRange(data.date))
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }));
+    setData(filteredMaterials);
+  }, [datas.rawmaterials, dateRange]);
+
+  const isWithinRange = (date) => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return true;
+    }
+    const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+    return (
+      dayjsDate.isSame(dateRange[0], 'day') ||
+      dayjsDate.isSame(dateRange[1], 'day') ||
+      dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]))
+    );
+  };
 
   // Dropdown select
   useEffect(() => {
@@ -58,8 +71,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
   }
 
    const createAddMaterial = async (values) => {
+    const { date, ...otherValues } = values;
+    const formattedDate =  date ? dayjs(date).format('DD/MM/YYYY') : null;
     await createRawmaterial({ 
-      ...values,
+      ...otherValues,
+      date: formattedDate,
       createddate: TimestampJs(),
       isdeleted: false 
     });
@@ -78,7 +94,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
-          String(record.createddate).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(record.suppliername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
@@ -88,8 +104,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
     },
     {
       title: 'Date',
-      dataIndex: 'createddate',
-      key: 'createddate',
+      dataIndex: 'date',
+      key: 'date',
       editable: false
     },
     {
@@ -117,7 +133,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       editable: true,
       width: 120,
       render: (_, record) => {
-        return record.quantity + record.unit
+        return record.quantity +" "+ record.unit
       }
     },
     {
@@ -388,7 +404,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker />
+            <RangePicker  onChange={(dates) => setDateRange(dates)} />
             <Button>
               Export <PiExport />
             </Button>
@@ -425,7 +441,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       </ul>
 
       <Modal
-        title="Add Material"
+        title={<div className='flex  justify-center py-3'> <h1>ADD MATERIAL</h1> </div>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
@@ -433,7 +449,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
           form.resetFields()
         }}
       >
-        <Form onFinish={createAddMaterial} form={form} layout="vertical">
+        <Form onFinish={createAddMaterial} form={form} layout="vertical" initialValues={{ date: dayjs() }}>
           <Form.Item
             className="mb-0"
             name="suppliername"
@@ -456,6 +472,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
               }))}
               onChange={(value) => setSelectedSupplierName(value)}
             />
+          </Form.Item>
+
+          <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
           </Form.Item>
 
           <Form.Item
