@@ -11,7 +11,8 @@ import {
   message,
   Select,
   DatePicker,
-  Radio
+  Radio,
+  Tag
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
@@ -28,6 +29,7 @@ import { createProduction, updateProduction } from '../firebase/data-tables/prod
 import jsonToExcel from '../js-files/json-to-excel'
 import { createUsedmaterial } from '../firebase/data-tables/usedmaterial'
 import { createDelivery } from '../firebase/data-tables/delivery'
+import {formatToRupee} from '../js-files/formate-to-rupee'
 
 export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt }) {
   //states
@@ -92,7 +94,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      editable: false
+      editable: false,
+      render: text => dayjs(text).format('DD-MM-YY'),
+      width: 100
     },
     {
       title: 'Customer',
@@ -119,10 +123,22 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       editable: false
     },
     {
+      title: 'Peice Price',
+      dataIndex: 'productprice',
+      key: 'productprice',
+    },
+    {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true
+      // editable: true
+    },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
+      // editable: true,
+      render: text =>  <span>{formatToRupee(text,true)}</span>
     },
     {
       title: 'Payment Status',
@@ -130,13 +146,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       key: 'paymentstatus',
       editable: true,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
-      showSorterTooltip: { target: 'sorter-icon' }
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-      editable: true
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: text => text === 'Paid' ? <Tag color='green'>Paid</Tag> : <Tag color='red'>Unpaid</Tag>
     },
     {
       title: 'Action',
@@ -195,7 +206,27 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     return (
       <td {...restProps}>
         {editing ? (
-          <Form.Item
+          <>
+            {
+            dataIndex === 'paymentstatus' 
+            ? <Form.Item
+                  name="paymentstatus"
+                  style={{ margin: 0 }}
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    placeholder="Select Payment Status"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={[
+                      { value: 'Unpaid', label: 'Unpaid' },
+                      { value: 'Paid', label: 'Paid' },
+                    ]}
+                  />
+                </Form.Item> 
+            : <Form.Item
             name={dataIndex}
             style={{
               margin: 0
@@ -209,6 +240,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           >
             {inputNode}
           </Form.Item>
+            }
+          </>
         ) : (
           children
         )}
@@ -226,7 +259,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     }
     return {
       ...col,
-      onCell: (record) => ({
+        onCell: (record) => ({
         record,
         inputType: col.dataIndex === 'numberofpacks' ? 'number' : 'text',
         dataIndex: col.dataIndex,
@@ -347,51 +380,63 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     //   key: 'sno',
     //   width: 70,
     // },
+    // {
+    //   title: 'Date',
+    //   dataIndex: 'date',
+    //   key: 'date',
+    //   width: 300,
+    //   editable: false
+    // },
     {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      width: 800,
-      editable: false
-    },
-    {
-      title: 'Product',
+      title: <span className='text-[0.7rem]'>Product</span>,
       dataIndex: 'productname',
       key: 'productname',
-      editable: true
+      editable: true,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>
     },
     {
-      title: 'Flavor',
+      title: <span className='text-[0.7rem]'>Flavor</span>,
       dataIndex: 'flavour',
       key: 'flavour',
-      editable: true
+      editable: true,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>
     },
     {
-      title: 'Quantity',
+      title: <span className='text-[0.7rem]'>Quantity</span>,
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      width: 120
+      width: 80,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>
     },
     {
-      title: 'Packs',
+      title: <span className='text-[0.7rem]'>Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      width: 120
+      width: 80,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>
     },
     {
-      title: 'Price',
+      title: <span className='text-[0.7rem]'>Piece Price</span>,
+      dataIndex: 'productprice',
+      key: 'productprice',
+      width: 100,
+      render:(text) => <span className='text-[0.7rem]'>{text }</span>
+    },
+    {
+      title: <span className='text-[0.7rem]'>Price</span>,
       dataIndex: 'price',
       key: 'price',
-      width: 200,
-      editable: false
+      width: 80,
+      editable: false,
+      render:(text) => <span className='text-[0.7rem]'>{formatToRupee(text,true)}</span>
     },
     {
-      title: 'Action',
+      title: <span className='text-[0.7rem]'>Action</span>,
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
+      width: 50,
       render: (_, record) => {
         return (
           <Popconfirm
@@ -438,8 +483,22 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     setOption((pre) => ({ ...pre, customer: optionscustomers }))
   }, [])
 
+  const sendDeliveryDateOnchange =(value, i)=>{
+    form2.resetFields(['customername'])
+    form2.resetFields(['productname'])
+    form2.resetFields(['flavour'])
+    form2.resetFields(['quantity'])
+    form2.resetFields(['numberofpacks'])
+    setOption((pre) => ({ ...pre, customerstatus: false,tempproduct:[]}));
+    setTotalAmount(0)
+  };
   const customerOnchange = async (value, i) => {
-    setOption((pre) => ({ ...pre, customerstatus: false }))
+    form2.resetFields(['productname'])
+    form2.resetFields(['flavour'])
+    form2.resetFields(['quantity'])
+    form2.resetFields(['numberofpacks'])
+    setOption((pre) => ({ ...pre, customerstatus: false,tempproduct:[]}));
+    setTotalAmount(0)
   }
 
   //product onchange value
@@ -481,11 +540,18 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   }
 
   // create add tem product
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const [totalamount, setTotalAmount] = useState(0);
   const createTemDeliveryMt = async (values) => {
     setCount(count + 1)
-    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : ''
-    const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs() }
+    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+    let [quantityvalue,units] = values.quantity.split(' ');
+    
+    const findPrice = await datas.product.find(item => item.isdeleted === false && item.productname === values.productname && item.flavour === values.flavour && item.quantity === Number(quantityvalue) && item.unit === units).price;
+    const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs(),price:findPrice * values.numberofpacks,productprice:findPrice };
+    
+     
+
     const checkExsit = option.tempproduct.some(
       (item) =>
         item.customername === newProduct.customername &&
@@ -506,9 +572,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         item.date === newProduct.date &&
         item.key !== newProduct.key
     )
+  
+    //const dbCheck = datas.delivery.some(item => item.isdeleted === false && item.customername ===newProduct.customername && item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.date === newProduct.date && newProduct.quantity === item.quantity );
 
-    const temVales = { ...values, date: formattedDate }
-    //const dbCheck = datas.productions.some(item => item.productname === temVales.productname && item.flavour === temVales.flavour && item.quantity === temVales.quantity && item.date === temVales.date);
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
       return
@@ -516,12 +582,13 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       message.open({ type: 'warning', content: 'Product is already added' })
       return
     }
-    //  else if(dbCheck){
-    //   message.open({type: 'warning',content: 'Product is already added',});
-    //   return;
-    //  }
+    // else if (dbCheck){
+    //   message.open({ type: 'warning', content: 'Product is already added' })
+    //   return
+    // }
     else {
-      setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
+      setTotalAmount( pre => pre + (findPrice * values.numberofpacks));
+      setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }));
       deliveryUpdateMt()
       //form2.resetFields();
     }
@@ -529,13 +596,16 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
 
   // remove temp product
   const removeTemProduct = (key) => {
-    console.log(key)
-    const newTempProduct = option.tempproduct.filter((item) => item.key !== key.key)
+    const newTempProduct = option.tempproduct.filter((item) => item.key !== key.key);
+    newTempProduct.length <= 0 ? setTotalAmount(0) : setTotalAmount(pre => pre - key.price)
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
   }
 
   // add new production
   const addNewDelivery = async (newvalue) => {
+
+    const dbCheck = datas.delivery.filter(item => item.isdeleted === false && item.date === newvalue.date && item.customername === newvalue.customername && item.productname === newvalue.productname && item.flavour === newvalue.flavour && item.quantity === newvalue.quantity && item.numberofpacks === newvalue.numberofpacks).length;
+
     await option.tempproduct.map(async (item, i) => {
       let { key, ...newProduction } = item
       await createDelivery({ ...newProduction, isdeleted: false, ...newvalue })
@@ -558,7 +628,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       customerstatus: true
     }))
     setCount(0)
-  }
+    setTotalAmount(0)
+  };
 
   // export
   const exportExcel = async () => {
@@ -566,7 +637,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     jsonToExcel(exportDatas, `Production-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKey('')
-  }
+  };
 
   // material used
   const columns3 = [
@@ -646,13 +717,12 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       createddate: TimestampJs(),
       isdeleted: false,
       quantity: values.quantity + ' ' + values.unit
-    }
-    const checkExsit = mtOption.tempproduct.find(
-      (item) => item.material === newMaterial.material && item.date === newMaterial.date
-    )
-    const dbcheckExsit = datas.usedmaterials.find(
-      (item) => item.material === newMaterial.material && item.date === newMaterial.date
-    )
+    };
+
+    const checkExsit = mtOption.tempproduct.find((item) => item.material === newMaterial.material && item.date === newMaterial.date);
+
+    const dbcheckExsit = datas.usedmaterials.find((item) => item.material === newMaterial.material && item.date === newMaterial.date);
+
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
       return
@@ -758,7 +828,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
             <h2>Send Delivery</h2>{' '}
           </div>
         }
-        width={1000}
+        width={1100}
         open={isModalOpen}
         // onOk={addNewDelivery}
         onCancel={modelCancel}
@@ -773,7 +843,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
          </Form.Item> */}
             <section className="flex gap-x-3 justify-between ">
               <span>
-                <p>Total:</p>
+                <p>Total: {formatToRupee(totalamount)}</p>
               </span>
 
               <span>
@@ -916,8 +986,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
                 name="date"
                 label=""
                 rules={[{ required: true, message: false }]}
+                
               >
-                <DatePicker format={'DD/MM/YY'} />
+                <DatePicker onChange={(value, i) => sendDeliveryDateOnchange(value, i)} format={'DD/MM/YY'} />
               </Form.Item>
 
               <Form.Item className="mb-3 w-full">
