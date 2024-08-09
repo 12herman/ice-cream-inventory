@@ -491,6 +491,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     form2.resetFields(['numberofpacks'])
     setOption((pre) => ({ ...pre, customerstatus: false,tempproduct:[]}));
     setTotalAmount(0)
+    setMarginValue({amount:0,discount:0,percentage:0})
+    form5.resetFields(['marginvalue'])
   };
   const customerOnchange = async (value, i) => {
     form2.resetFields(['productname'])
@@ -499,6 +501,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     form2.resetFields(['numberofpacks'])
     setOption((pre) => ({ ...pre, customerstatus: false,tempproduct:[]}));
     setTotalAmount(0)
+    form5.resetFields(['marginvalue'])
+    setMarginValue({amount:0,discount:0,percentage:0})
   }
 
   //product onchange value
@@ -506,6 +510,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
+    form5.resetFields(['marginvalue'])
+    setMarginValue({amount:0,discount:0,percentage:0})
     const flavourOp = await Array.from(
       new Set(
         datas.product
@@ -526,6 +532,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   const flavourOnchange = async (value, i) => {
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
+    form5.resetFields(['marginvalue'])
+    setMarginValue({amount:0,discount:0,percentage:0})
     const quantityOp = await Array.from(
       new Set(
         datas.product.filter(
@@ -598,7 +606,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   const removeTemProduct = (key) => {
     const newTempProduct = option.tempproduct.filter((item) => item.key !== key.key);
     newTempProduct.length <= 0 ? setTotalAmount(0) : setTotalAmount(pre => pre - key.price)
-    setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
+    setOption((pre) => ({ ...pre, tempproduct: newTempProduct }));
+    setMarginValue({amount:0,discount:0,percentage:0})
   }
 
   // add new production
@@ -618,6 +627,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   const modelCancel = () => {
     setIsModalOpen(false)
     form2.resetFields()
+    form5.resetFields(['marginvalue'])
     setOption((pre) => ({
       ...pre,
       tempproduct: [],
@@ -629,6 +639,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     }))
     setCount(0)
     setTotalAmount(0)
+    setMarginValue({amount:0,discount:0,percentage:0})
   };
 
   // export
@@ -758,14 +769,24 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
   }
 
+  const [form5] = Form.useForm();
+  const [marginValue,setMarginValue] = useState({amount:0,discount:0,percentage:0})
   const onPriceChange = (value) => {
-    console.log(value)
+   let marginamount = totalamount * (value.marginvalue / 100);
+    let finalamounts = totalamount - marginamount
+    setMarginValue(pre =>({...pre,amount:finalamounts,percentage:value.marginvalue,discount:marginamount}));
+    //form5.resetFields(['marginvalue'])
+  }
+
+  const radioOnchange =(e)=>{
+    console.log(e.target.value);
   }
 
   return (
     <div>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
+        
           <Search
             allowClear
             className="w-[40%]"
@@ -774,6 +795,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
             onChange={onSearchChange}
             enterButton
           />
+          
 
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker />
@@ -795,7 +817,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
                 form.resetFields()
               }}
             >
-              Send Delivery <IoMdAdd />
+              Place Order <IoMdAdd />
             </Button>
           </span>
         </li>
@@ -825,7 +847,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         title={
           <div className="flex justify-center py-3">
             {' '}
-            <h2>Send Delivery</h2>{' '}
+            <h2>PLACE ORDER</h2>{' '}
           </div>
         }
         width={1100}
@@ -842,41 +864,55 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           </Radio.Group>
          </Form.Item> */}
             <section className="flex gap-x-3 justify-between ">
-              <span>
-                <p>Total: {formatToRupee(totalamount)}</p>
-              </span>
+              
 
               <span>
-                <Search
-                  placeholder="Margin Amount"
+                {/* <Search
+                disabled={option.tempproduct.length > 0 ? false : true}
+                  placeholder="Margin"
                   allowClear
                   enterButton={<>Enter</>}
                   onSearch={onPriceChange}
                   style={{ width: 200 }}
-                />
+                /> */}
+              <Form className='flex gap-x-1' disabled={option.tempproduct.length > 0 ? false : true} form={form5} onFinish={onPriceChange}>
+            <Form.Item name='marginvalue' rules={[{ required: true, message: false }]}>
+            <InputNumber min={0} max={100} className='w-full' prefix={<span>Margin(%)</span>} />
+            </Form.Item>
+            <Form.Item>
+              <Button type='primary' htmlType="submit">Enter</Button>
+            </Form.Item>
+          </Form>
+              </span>
+
+              <span className={`${marginValue.amount === 0 ? 'hidden' :'block' }`}>
+                <Tag color='blue'>MRP Amount: {formatToRupee(totalamount)}</Tag>
+                {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
+                <Tag color='orange'>Margin: {marginValue.percentage}%</Tag>
+                <Tag color='green'>Net Amount: <span className='text-sm'>{formatToRupee(marginValue.amount)}</span></Tag>
               </span>
 
               <Form
-                disabled={option.tempproduct.length > 0 ? false : true}
+                disabled={marginValue.amount === 0 ? true : false}
                 form={form4}
                 initialValues={{ price: 'Price', paymentstatus: 'Unpaid' }}
                 onFinish={addNewDelivery}
               >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
-                    <Radio.Group buttonStyle="solid">
+                    <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
                       <Radio.Button value="Paid">PAID</Radio.Button>
                       <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+                      <Radio.Button value="Partial">PARTIAL</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
                   <Form.Item>
                     <Button
                       htmlType="submit"
                       type="primary"
-                      disabled={option.tempproduct.length > 0 ? false : true}
                       className=" w-fit"
                     >
-                      Send
+                      ORDER
                     </Button>
                   </Form.Item>
                 </span>
