@@ -20,6 +20,7 @@ import { getDelivery } from "./firebase/data-tables/delivery";
 import { getEmployee } from "./firebase/data-tables/employee";
 import { getProduction } from "./firebase/data-tables/production";
 import { getUsedmaterial } from "./firebase/data-tables/usedmaterial";
+import { getStorage } from "./firebase/data-tables/storage";
 
 const App =() =>{
   
@@ -53,6 +54,8 @@ const App =() =>{
     productionupdatestaus:false,
     usedmaterials:[],
     usedmaterialupdatestaus:false,
+    storage:[],
+    storageupdatestaus:false,
   });
 
   const productUpdateMt =()=> setDatas(pre => ({...pre, projectupdatestaus:!pre.projectupdatestaus}));
@@ -63,6 +66,7 @@ const App =() =>{
   const employeeUpdateMt =()=> setDatas(pre => ({...pre, employeeupdatestaus:!pre.employeeupdatestaus}));
   const productionUpdateMt =()=> setDatas(pre => ({...pre, productionupdatestaus:!pre.productionupdatestaus}));
   const usedmaterialUpdateMt =()=> setDatas(pre => ({...pre, usedmaterialupdatestaus:!pre.usedmaterialupdatestaus}));
+  const storageUpdateMt =()=> setDatas(pre => ({...pre, storageupdatestaus:!pre.storageupdatestaus}));
   
   // get table datas 'project list'
   useEffect(()=>{
@@ -151,7 +155,19 @@ const App =() =>{
       }
     }
     fetchData();
-  },[datas.usedmaterialupdatestaus])
+  },[datas.usedmaterialupdatestaus]);
+
+  // get table datas 'storage list'
+  useEffect(()=>{
+    const fetchData = async()=>{
+      const {status,storage} = await getStorage();
+      if(status){
+        setDatas(pre => ({...pre, storage}));
+      }
+    }
+    fetchData();
+  },[datas.storageupdatestaus]);
+
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
     {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
@@ -166,6 +182,7 @@ const App =() =>{
       employeeUpdateMt={employeeUpdateMt}
       productionUpdateMt={productionUpdateMt}
       usedmaterialUpdateMt={usedmaterialUpdateMt}
+      storageUpdateMt={storageUpdateMt}
       navPages={navPages}
       />
     </main>
