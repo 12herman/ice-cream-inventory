@@ -17,6 +17,19 @@ export const getDelivery = async () => {
     }
   };
 
+  // get items for delivery
+  export const fetchItemsForDelivery = async (deliveryId) => {
+    try {
+      const itemsCollectionRef = collection(db, 'delivery', deliveryId, 'items');
+      const querySnapshot = await getDocs(itemsCollectionRef);
+      const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return { items, status: 200 };
+    } catch (err) {
+      console.error("Error fetching items: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
   // Create a new delivery
 export const createDelivery = async (task) => {
   try {

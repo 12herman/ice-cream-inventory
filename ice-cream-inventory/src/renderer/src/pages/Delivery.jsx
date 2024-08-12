@@ -20,7 +20,7 @@ import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products'
+import { createproduct, deleteproduct, getproduct, updateproduct } from '../firebase/data-tables/products'
 import { TimestampJs } from '../js-files/time-stamp'
 const { Search } = Input
 const { RangePicker } = DatePicker
@@ -28,8 +28,12 @@ import dayjs from 'dayjs'
 import { createProduction, updateProduction } from '../firebase/data-tables/production'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createUsedmaterial } from '../firebase/data-tables/usedmaterial'
-import { createDelivery } from '../firebase/data-tables/delivery'
+import { createDelivery, fetchItemsForDelivery } from '../firebase/data-tables/delivery'
 import {formatToRupee} from '../js-files/formate-to-rupee'
+import { addDoc, collection, Firestore } from 'firebase/firestore'
+import { db } from '../firebase/firebase'
+import { FaClipboardList } from "react-icons/fa";
+import Item from 'antd/es/list/Item'
 
 export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt }) {
   //states
@@ -85,6 +89,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     setIsModalOpen(false)
   }
 
+
+
   const columns = [
     {
       title: 'S.No',
@@ -118,39 +124,39 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       key: 'customername',
       editable: false
     },
+    // {
+    //   title: 'Product',
+    //   dataIndex: 'productname',
+    //   key: 'productname',
+    //   editable: false
+    // },
+    // {
+    //   title: 'Flavor',
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false
+    // },
+    // {
+    //   title: 'Peice Price',
+    //   dataIndex: 'productprice',
+    //   key: 'productprice',
+    // },
+    // {
+    //   title: 'Packs',
+    //   dataIndex: 'numberofpacks',
+    //   key: 'numberofpacks',
+    //   // editable: true
+    // },
     {
-      title: 'Product',
-      dataIndex: 'productname',
-      key: 'productname',
-      editable: false
-    },
-    {
-      title: 'Flavor',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false
-    },
-    {
-      title: 'Peice Price',
-      dataIndex: 'productprice',
-      key: 'productprice',
-    },
-    {
-      title: 'Packs',
-      dataIndex: 'numberofpacks',
-      key: 'numberofpacks',
-      // editable: true
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
+      title: 'Price ₹',
+      dataIndex: 'billamount',
+      key: 'billamount',
       // editable: true,
       // render: text =>  <span>{formatToRupee(text,true)}</span>
     },
@@ -186,6 +192,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
+          
+           <FaClipboardList onClick={()=>onOpenDeliveryBill(record)} size={17} className='cursor-pointer text-green-500'/>
+          
             <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
@@ -200,6 +209,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
                 size={19}
               />
             </Popconfirm>
+           
           </span>
         )
       }
@@ -571,8 +581,6 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     
     const findPrice = await datas.product.find(item => item.isdeleted === false && item.productname === values.productname && item.flavour === values.flavour && item.quantity === Number(quantityvalue) && item.unit === units).price;
     const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs(),price:findPrice * values.numberofpacks,productprice:findPrice };
-    
-     
 
     const checkExsit = option.tempproduct.some(
       (item) =>
@@ -611,7 +619,16 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     else {
       setTotalAmount( pre => pre + (findPrice * values.numberofpacks));
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }));
-      deliveryUpdateMt()
+      deliveryUpdateMt();
+      setMarginValue(
+        {amount:0,
+        discount:0,
+        percentage:0,
+        paymentstaus:'Unpaid'
+      });
+      form5.resetFields(['marginvalue']);
+      form4.resetFields(['partialamount']);
+      form4.setFieldsValue({paymentstatus:'Unpaid'})
       //form2.resetFields();
     }
   }
@@ -621,23 +638,139 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     const newTempProduct = option.tempproduct.filter((item) => item.key !== key.key);
     newTempProduct.length <= 0 ? setTotalAmount(0) : setTotalAmount(pre => pre - key.price)
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }));
-    setMarginValue({amount:0,discount:0,percentage:0})
+    setMarginValue({amount:0,discount:0,percentage:0});
+    form4.setFieldsValue({paymentstatus:'Unpaid'})
   }
 
+  /*
   // add new production
-  const addNewDelivery = async (newvalue) => {
-
-    const dbCheck = datas.delivery.filter(item => item.isdeleted === false && item.date === newvalue.date && item.customername === newvalue.customername && item.productname === newvalue.productname && item.flavour === newvalue.flavour && item.quantity === newvalue.quantity && item.numberofpacks === newvalue.numberofpacks).length;
-
-    await option.tempproduct.map(async (item, i) => {
-      let { key, ...newProduction } = item
-      await createDelivery({ ...newProduction, isdeleted: false, ...newvalue })
-    })
-    await deliveryUpdateMt()
-    message.open({ type: 'success', content: 'Production added successfully' })
-    await modelCancel()
+  const addNewDelivery = async () => {
+// filter product datas
+let findPr = datas.product.filter(pr =>
+  option.tempproduct.find(temp =>
+    temp.productname === pr.productname &&
+    temp.flavour === pr.flavour &&
+    pr.quantity == temp.quantity.split(' ')[0] &&
+    pr.unit === temp.quantity.split(' ')[1]
+  )
+);
+// list
+let productItems = findPr.map(pr => {
+  let matchingTempProduct = option.tempproduct.find(temp =>
+    temp.productname === pr.productname &&
+    temp.flavour === pr.flavour &&
+    pr.quantity == temp.quantity.split(' ')[0] &&
+    pr.unit === temp.quantity.split(' ')[1]
+  );
+  return {
+    id: pr.id,
+    numberofpacks: matchingTempProduct.numberofpacks
+  };
+});
+    //partial amount (value)
+    let {partialamount} = form4.getFieldsValue()
+    //create delivery new
+    const newDelivery =await createDelivery({
+                 customername:option.tempproduct[0].customername,
+                 date:option.tempproduct[0].date,
+                 total:totalamount,
+                 billamount:marginValue.amount,
+                 paymentstatus:marginValue.paymentstaus,
+                 margin:marginValue.percentage,
+                 partialamount:partialamount,
+                 //items:productItems,
+                 isdeleted:false,
+                 createddate:TimestampJs(),
+                });
+                try {
+                  // Create new delivery document
+                  const deliveryRef = await createDelivery(newDelivery);
+                  // Add items to the `items` subcollection within the new delivery document
+                  const itemsRef = Firestore.Firestore().collection('delivery').doc (deliveryRef.id).collection('items');
+                  for (const item of productItems) {
+                    await itemsRef.add(item);
+                  }
+                  // Notify success
+                  message.open({ type: 'success', content: 'Production added successfully' });
+              
+                  // Optionally: update delivery status or perform other operations
+                  await deliveryUpdateMt();
+                  
+                  // Cancel the modal or close the form
+                  await modelCancel();
+                } catch (error) {
+                  // Handle errors
+                  console.error('Error adding delivery: ', error);
+                  message.open({ type: 'error', content: 'Error adding production' });
+                }
   }
-
+                */
+  const addNewDelivery = async () => {
+    // Filter product datas
+    let findPr = datas.product.filter(pr =>
+      option.tempproduct.find(temp =>
+        temp.productname === pr.productname &&
+        temp.flavour === pr.flavour &&
+        pr.quantity == temp.quantity.split(' ')[0] &&
+        pr.unit === temp.quantity.split(' ')[1]
+      )
+    );
+  
+    // List
+    let productItems = findPr.map(pr => {
+      let matchingTempProduct = option.tempproduct.find(temp =>
+        temp.productname === pr.productname &&
+        temp.flavour === pr.flavour &&
+        pr.quantity == temp.quantity.split(' ')[0] &&
+        pr.unit === temp.quantity.split(' ')[1]
+      );
+      return {
+        id: pr.id,
+        numberofpacks: matchingTempProduct.numberofpacks
+      };
+    });
+  
+    // Partial amount (value)
+    let { partialamount } = form4.getFieldsValue();
+  
+    // Create delivery new
+    const newDelivery = {
+      customername: option.tempproduct[0].customername,
+      date: option.tempproduct[0].date,
+      total: totalamount,
+      billamount: marginValue.amount,
+      paymentstatus: marginValue.paymentstaus,
+      margin: marginValue.percentage,
+      partialamount: partialamount,
+      isdeleted: false,
+      createddate: TimestampJs(),
+    };
+  
+    try {
+      // Create new delivery document
+      const deliveryCollectionRef = collection(db, 'delivery');
+      const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery);
+  
+      // Add items to the `items` subcollection within the new delivery document
+      const itemsCollectionRef = collection(deliveryDocRef, 'items');
+      for (const item of productItems) {
+        await addDoc(itemsCollectionRef, item);
+      }
+  
+      // Notify success
+      message.open({ type: 'success', content: 'Production added successfully' });
+  
+      // Optionally: update delivery status or perform other operations
+      await deliveryUpdateMt();
+  
+      // Cancel the modal or close the form
+      await modelCancel();
+    } catch (error) {
+      // Handle errors
+      console.error('Error adding delivery: ', error);
+      message.open({ type: 'error', content: 'Error adding production' });
+    }
+  };
   const modelCancel = () => {
     setIsModalOpen(false)
     form2.resetFields()
@@ -653,7 +786,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     }))
     setCount(0)
     setTotalAmount(0)
-    setMarginValue({amount:0,discount:0,percentage:0})
+    setMarginValue({amount:0,discount:0,percentage:0});
+    form4.setFieldsValue({paymentstatus:'Unpaid'})
   };
 
   // export
@@ -755,7 +889,10 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       message.open({ type: 'warning', content: 'Product is already added' })
       return
     } else {
-      setMtOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newMaterial] }))
+      setMtOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newMaterial] }));
+      // form5.resetFields();
+      // form4.resetFields(['partialamount']);
+      // setMarginValue({amount:0,discount:0,percentage:0, paymentstaus:''})
     }
   }
 
@@ -772,8 +909,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       let quntity = Number(quantity.split(' ')[0])
       await createUsedmaterial({ ...newMaterial, quantity: quntity })
     })
-    usedmaterialUpdateMt()
-    materialModelCancel()
+    usedmaterialUpdateMt();
+    materialModelCancel();
   }
 
   // model cancel
@@ -784,7 +921,13 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   }
 
   const [form5] = Form.useForm();
-  const [marginValue,setMarginValue] = useState({amount:0,discount:0,percentage:0})
+  const [marginValue,setMarginValue] = useState(
+                            {amount:0,
+                            discount:0,
+                            percentage:0,
+                            paymentstaus:'',
+                            particalAmount:0,
+                          });
   const onPriceChange = (value) => {
    let marginamount = totalamount * (value.marginvalue / 100);
     let finalamounts = totalamount - marginamount
@@ -793,8 +936,87 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   }
 
   const radioOnchange =(e)=>{
-    console.log(e.target.value);
+    setMarginValue(pre => ({...pre,paymentstaus:e.target.value}));
+    form4.resetFields(['partialamount']);
   }
+
+  // Ref for get items collections
+
+
+  
+  const deliveryColumns=[
+    {
+    title: 'S.No',
+    key: 'sno',
+    dataIndex: 'sno',
+    width: 20,
+    },
+    {
+      title: 'Product Name',
+      key: 'productname',
+      dataIndex: 'productname',
+      width: 70,
+      },
+      {
+        title: 'Flavour',
+        key: 'flavour',
+        dataIndex: 'flavour',
+        width: 70,
+        },
+        {
+          title: 'Quantity',
+          key: 'quantity',
+          dataIndex: 'quantity',
+          width: 70,
+          },
+          {
+            title: 'Number of Packs',
+            key: 'numberofpacks',
+            dataIndex: 'numberofpacks',
+            width: 70,
+            },
+  ]
+  const [deliveryBill,setDeliveryBill] = useState({
+    model:false,
+    loading:false,
+    state:false,
+    data:[],
+    prdata: {
+      id:'',
+      supplierid:'',
+      supplier:'',
+      date:''
+    },
+    open:false
+  });
+
+  useEffect(() => {
+    const getItems = async () => {
+      if(deliveryBill.prdata.id !== ''){
+      setDeliveryBill(pre => ({...pre,loading:true}));
+      const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id);
+      if (status === 200) {
+        let prData = datas.product.filter((item,i) => items.find((item2) => item.id === item2.id))
+        let prItems = prData.map((pr,i) =>{
+          let matchingData = items.find((item,i) => item.id === pr.id);
+          return {
+            sno:i+1,
+            ...pr,
+            quantity: pr.quantity + ' ' + pr.unit ,
+            numberofpacks: matchingData.numberofpacks,
+          }
+        });
+      setDeliveryBill(pre => ({...pre,data:{items:prItems,...deliveryBill.prdata}}));
+      }
+      setDeliveryBill(pre => ({...pre,loading:false}));
+    };
+  }
+    getItems();
+  }, [deliveryBill.open]);
+
+  const onOpenDeliveryBill=(data)=>{
+    setDeliveryBill(pre => ({...pre,model:true,prdata:data,open:!deliveryBill.open}));
+  };
 
   return (
     <div>
@@ -857,11 +1079,14 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       </ul>
 
       <Modal
+      centered
         className="relative"
         title={
           <div className="flex justify-center py-3">
-            {' '}
-            <h2>PLACE ORDER</h2>{' '}
+            
+            <h2>PLACE ORDER</h2>
+
+           
           </div>
         }
         width={1100}
@@ -899,26 +1124,22 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           </Form>
               </span>
 
-              <span className={`${marginValue.amount === 0 ? 'hidden' :'block' }`}>
-                <Tag color='blue'>MRP Amount: {formatToRupee(totalamount)}</Tag>
-                {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
-                <Tag color='orange'>Margin: {marginValue.percentage}%</Tag>
-                <Tag color='green'>Net Amount: <span className='text-sm'>{formatToRupee(marginValue.amount)}</span></Tag>
-              </span>
-
               <Form
                 disabled={marginValue.amount === 0 ? true : false}
                 form={form4}
-                initialValues={{ price: 'Price', paymentstatus: 'Unpaid' }}
+                initialValues={{partialamount:0, price: 'Price', paymentstatus: 'Unpaid' }}
                 onFinish={addNewDelivery}
               >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
-                    <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
+                    <Radio.Group disabled={marginValue.amount === 0 ? true : false} buttonStyle="solid" onChange={radioOnchange}>
                       <Radio.Button value="Paid">PAID</Radio.Button>
                       <Radio.Button value="Unpaid">UNPAID</Radio.Button>
                       <Radio.Button value="Partial">PARTIAL</Radio.Button>
                     </Radio.Group>
+                  </Form.Item>
+                  <Form.Item name="partialamount">
+                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false :true}/>
                   </Form.Item>
                   <Form.Item>
                     <Button
@@ -1057,6 +1278,13 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
             />
           </span>
         </div>
+
+        <span className={`absolute top-8 right-10 ${marginValue.amount === 0 ? 'hidden' :'block' }`}>
+          <Tag color='blue'>MRP Amount: {formatToRupee(totalamount)}</Tag>
+          {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
+          <Tag color='orange'>Margin: {marginValue.percentage}%</Tag>
+          <Tag color='green'>Net Amount: <span className='text-sm'>{formatToRupee(marginValue.amount)}</span></Tag>
+        </span>
       </Modal>
 
       {/* material used model */}
@@ -1171,6 +1399,21 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
             />
           </span>
         </div>
+      </Modal>
+      
+      {/* Delivery bill model */}
+      <Modal className='relative' width={1000} title={<span className='w-full flex justify-center items-center text-sm py-2'>DELIVERED ON {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date} </span>}  footer={false} open={deliveryBill.model} onCancel={() => setDeliveryBill(pre => ({...pre, model: false }))}>
+        <Table
+        columns={deliveryColumns}
+       
+        dataSource={deliveryBill.data.items}
+        loading={deliveryBill.loading}
+        />
+        
+        {/* <span>Partialamount Amount: <Tag className='text-[1.1rem]' color='orange'>{formatToRupee(deliveryBill.data.partialamount === undefined ? 0 : deliveryBill.data.partialamount)}</Tag></span> */}
+        <span>Total Amount: <Tag className='text-[1.1rem]' color='yellow'>{formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.total)}</Tag></span>
+        <span>Margin: <Tag className='text-[1.1rem]' color='blue'>{deliveryBill.data.margin === undefined ? 0 : deliveryBill.data.margin}%</Tag></span>
+        <span>Billing Amount: <Tag className='text-[1.1rem]' color='green'>{formatToRupee(deliveryBill.data.billamount === undefined ? 0 : deliveryBill.data.billamount )}</Tag></span>
       </Modal>
     </div>
   )
