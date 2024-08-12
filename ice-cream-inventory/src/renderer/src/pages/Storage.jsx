@@ -12,29 +12,11 @@ export default function Storage({ datas, storageUpdateMt }) {
   const [selectedSegment, setSelectedSegment] = useState('Material List')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState(null)
-  const [aggregatedData, setAggregatedData] = useState([]);
 
   useEffect(() => {
-    const rawData = selectedSegment === 'Material List' 
-      ? datas.rawmaterials.filter(data => !data.isdeleted)
-      : datas.productions.filter(data => !data.isdeleted)
+    const rawData = datas.storage.filter(data => data.category === selectedSegment);
     setData(rawData);
-    calculateTotals(rawData);
   }, [datas, selectedSegment])
-
-  const calculateTotals = (data) => {
-    const totals = data.reduce((acc, item) => {
-      const key = selectedSegment === 'Material List' ? item.materialname : item.productname;
-      const quantity = selectedSegment === 'Material List' ? item.quantity : item.quantity;
-
-      if (!acc[key]) {
-        acc[key] = 0;
-      }
-      acc[key] += quantity;
-      return acc;
-    }, {});
-    setAggregatedData(Object.entries(totals).map(([name, total]) => ({ name, total })));
-  }
 
   // search
   const [searchText, setSearchText] = useState('')
@@ -50,16 +32,8 @@ export default function Storage({ datas, storageUpdateMt }) {
   const setAlert = async (values) => {
     if(editingRecordId){
     await updateStorage(editingRecordId, {
-      ...values,
-      category: selectedSegment,
+      alertcount: values.alertcount,
       updateddate: TimestampJs()
-    });
-  }else{
-    await createStorage({
-      ...values,
-      category: selectedSegment,
-      createddate: TimestampJs(),
-      isdeleted: false
     });
   }
   console.log(values);
@@ -112,9 +86,6 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      render: (_, record) => {
-        return record.quantity +" "+ record.unit
-      }
     },
     {
       title: 'Action',
@@ -122,7 +93,7 @@ export default function Storage({ datas, storageUpdateMt }) {
       fixed:'right',
       width:110,
       render: (_, record) => (
-        <Button onClick={() => showModal(record)}>
+        <Button onClick={() => showModal(record)} style={{ color: record.quantity < record.alertcount ? 'red' : 'default' }}>
           <IoMdAlarm />
         </Button>
       ),
@@ -177,7 +148,7 @@ export default function Storage({ datas, storageUpdateMt }) {
       fixed:'right',
       width:110,
       render: (_, record) => (
-        <Button onClick={() => showModal(record)}>
+        <Button onClick={() => showModal(record)} style={{ color: record.numberofpacks < record.alertcount ? 'red' : 'default' }}>
           <IoMdAlarm />
         </Button>
       ),
@@ -191,7 +162,7 @@ export default function Storage({ datas, storageUpdateMt }) {
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
           <Search placeholder="Search" className="w-[40%]" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
-          <span className="flex gap-x-3 justify-center items-center">
+          
             <Segmented
               options={[
                 {
@@ -220,7 +191,7 @@ export default function Storage({ datas, storageUpdateMt }) {
                       }}
                     >
                       <LuIceCream />
-                      <span>Material List</span>
+                      <span>Product List</span>
                     </div>),
                   value: 'Product List',
                 }
@@ -228,7 +199,7 @@ export default function Storage({ datas, storageUpdateMt }) {
               onChange={onSegmentChange}
               value={selectedSegment}
             />
-          </span>
+
         </li>
         <li className="mt-2">
           <Table dataSource={data} columns={columns} loading={data.length === 0} pagination={false} />;

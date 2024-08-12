@@ -63,14 +63,19 @@ export default function Home({ datas }) {
       key: 'customername',
     },
     {
-      title: 'Product',
-      dataIndex: 'productname',
-      key: 'productname',
+      title: 'Gross Amount',
+      dataIndex: 'total',
+      key: 'total',
     },
     {
-      title: 'Amount',
-      dataIndex: 'price',
-      key: 'price',
+      title: 'Margin(%)',
+      dataIndex: 'margin',
+      key: 'margin',
+    },
+    {
+      title: 'Net Amount',
+      dataIndex: 'billamount',
+      key: 'billamount',
     },
     {
       title: 'Action',
@@ -161,7 +166,16 @@ export default function Home({ datas }) {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={data} columns={columns} pagination={false} />;
+  <Table dataSource={data} columns={columns} pagination={false}  
+      expandable={{
+        expandedRowRender: (record) => (
+          <p>
+            {record.billamount}
+          </p>
+        ),
+          defaultExpandedRowKeys: ['0'],
+        }}
+        />;
   </li>
 
   </ul>

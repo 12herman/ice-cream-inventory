@@ -8,6 +8,7 @@ import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
 import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { TimestampJs } from '../js-files/time-stamp';
+import { updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
@@ -79,6 +80,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       createddate: TimestampJs(),
       isdeleted: false 
     });
+    const existingMaterial = datas.storage.find(
+      (storageItem) => storageItem.materialname === materialname && storageItem.category === "Material List"
+    );
+    if( existingMaterial ){
+    await updateStorage(existingMaterial.id, {
+      quantity: existingMaterial.quantity + values.quantity
+    });
+  }
     console.log(values);
     form.resetFields();
     rawmaterialUpdateMt();
