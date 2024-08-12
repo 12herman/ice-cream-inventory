@@ -12,21 +12,18 @@ import {
   Select,
   Radio
 } from 'antd'
-import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products'
 import { TimestampJs } from '../js-files/time-stamp'
-import jsonToExcel from '../js-files/json-to-excel'
 import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
 import { createStorage } from '../firebase/data-tables/storage'
 const { Search } = Input
 
-export default function SupplierList({ datas, supplierUpdateMt }) {
+export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}) {
   // states
   const [form] = Form.useForm()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -74,6 +71,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
         category: "Material List",
         createddate: TimestampJs()
       });
+      storageUpdateMt();
     }
     form.resetFields();
     supplierUpdateMt();

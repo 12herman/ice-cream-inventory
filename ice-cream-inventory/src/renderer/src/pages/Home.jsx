@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Statistic, DatePicker, Badge, Table, Button } from 'antd';
+import { NotificationOutlined, PrinterOutlined, DownloadOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Statistic, DatePicker, Badge, Table, Button, Modal } from 'antd';
 import { FaRupeeSign } from "react-icons/fa";
 import { IoPerson } from "react-icons/io5";
 import { DatestampJs } from '../js-files/date-stamp';
+import { fetchItemsForDelivery } from '../firebase/data-tables/delivery'
 const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
 
@@ -13,6 +14,8 @@ export default function Home({ datas }) {
   const [dateRange, setDateRange] = useState([today, today]);
   const [filteredDelivery, setFilteredDelivery] = useState([]);
   const [filteredRawmaterials, setFilteredRawmaterials] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   useEffect(() => {
     setData(
@@ -46,7 +49,22 @@ export default function Home({ datas }) {
     setDateRange(dates);
   };
 
-  const totalSales = filteredDelivery.reduce((total, product) => total + product.price, 0);
+  const showModal = async (record) => {
+    const { items, status } = await fetchItemsForDelivery(record.id);
+    if (status === 200) {
+      const itemsWithProductNames = items.map(item => {
+        const product = datas.product.find(product => product.id === item.id);
+        return {
+          ...item,
+          productname: product ? product.productname : 'Deleted',
+        };
+      });
+    setSelectedRecord({ ...record, items: itemsWithProductNames});
+    }
+    setIsModalVisible(true);
+  }
+
+  const totalSales = filteredDelivery.reduce((total, product) => total + product.billamount, 0);
   const totalSpend = filteredRawmaterials.reduce((total, material) => total + material.price, 0);
   const totalProfit = totalSales - totalSpend;
   const totalCustomers = filteredDelivery.length;
@@ -80,13 +98,27 @@ export default function Home({ datas }) {
     {
       title: 'Action',
       dataIndex: 'action',
-      width: 120,
+      width: 150,
       render: (_, record) => (
         <span>
+          <Button icon={<UnorderedListOutlined />} style={{ marginRight: 8 }} onClick={()=> showModal(record)} />
           <Button icon={<DownloadOutlined />} style={{ marginRight: 8 }} />
           <Button icon={<PrinterOutlined />} />
         </span>
       ),
+    },
+  ];
+
+  const itemColumns = [
+    {
+      title: 'Item Name',
+      dataIndex: 'productname',
+      key: 'productname',
+    },
+    {
+      title: 'Packs',
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
     },
   ];
 
@@ -166,19 +198,25 @@ export default function Home({ datas }) {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={data} columns={columns} pagination={false}  
-      expandable={{
-        expandedRowRender: (record) => (
-          <p>
-            {record.billamount}
-          </p>
-        ),
-          defaultExpandedRowKeys: ['0'],
-        }}
-        />;
+  <Table dataSource={data} columns={columns} pagination={false} />;
   </li>
-
   </ul>
+
+  <Modal title="Items" open={isModalVisible} onOk={() => setIsModalVisible(false)} onCancel={() => setIsModalVisible(false)}>
+  {selectedRecord && (
+          <div>
+            <p>Customer: {selectedRecord.customername}</p>
+            <p>Date: {selectedRecord.date}</p>
+            <p>Gross Amount: {selectedRecord.total}</p>
+            <p>Margin: {selectedRecord.margin}</p>
+            <p>Net Amount: {selectedRecord.billamount}</p>
+            <div>
+            <Table dataSource={selectedRecord.items} columns={itemColumns} pagination={false} rowKey="id" />
+          </div>
+          </div>
+        )}
+  </Modal>
+
   </div>
   )
 }

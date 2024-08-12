@@ -12,7 +12,7 @@ import jsonToExcel from '../js-files/json-to-excel';
 import { createStorage } from '../firebase/data-tables/storage'
 const { Search } = Input;
 
-export default function Product({ datas, productUpdateMt }) {
+export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   
   // states
   const [form] = Form.useForm();
@@ -58,6 +58,7 @@ export default function Product({ datas, productUpdateMt }) {
         category: "Product List",
         createddate: TimestampJs()
       });
+      storageUpdateMt();
     }
     form.resetFields();
     productUpdateMt();

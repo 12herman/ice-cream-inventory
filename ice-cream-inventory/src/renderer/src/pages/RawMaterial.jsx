@@ -1,47 +1,64 @@
-import React, {useEffect, useState} from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message,Select, DatePicker, Radio } from 'antd';
-import { PiExport } from "react-icons/pi";
-import { IoMdAdd } from "react-icons/io";
-import { MdOutlineModeEditOutline } from "react-icons/md";
-import { LuSave } from "react-icons/lu";
-import { TiCancel } from "react-icons/ti";
-import { AiOutlineDelete } from "react-icons/ai";
-import { createRawmaterial, updateRawmaterial, deleteRawmaterial } from '../firebase/data-tables/rawmaterial';
-import { TimestampJs } from '../js-files/time-stamp';
+import React, { useEffect, useState } from 'react'
+import {
+  Button,
+  Input,
+  Table,
+  Modal,
+  Form,
+  InputNumber,
+  Typography,
+  Popconfirm,
+  message,
+  Select,
+  DatePicker,
+  Radio
+} from 'antd'
+import { PiExport } from 'react-icons/pi'
+import { IoMdAdd } from 'react-icons/io'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { LuSave } from 'react-icons/lu'
+import { TiCancel } from 'react-icons/ti'
+import { AiOutlineDelete } from 'react-icons/ai'
+import {
+  createRawmaterial,
+  updateRawmaterial,
+  deleteRawmaterial
+} from '../firebase/data-tables/rawmaterial'
+import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
-import dayjs from 'dayjs';
-const { Search } = Input;
-const { RangePicker } = DatePicker;
+import dayjs from 'dayjs'
+const { Search } = Input
+const { RangePicker } = DatePicker
 
-export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
+export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
   const [form] = Form.useForm()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
-  const [selectedSupplierName, setSelectedSupplierName] = useState(null);
-  const [materials, setMaterials] = useState([]);
-  const [dateRange, setDateRange] = useState([null, null]);
+  const [selectedSupplierName, setSelectedSupplierName] = useState(null)
+  const [materials, setMaterials] = useState([])
+  const [dateRange, setDateRange] = useState([null, null])
 
   // side effect
   useEffect(() => {
     const filteredMaterials = datas.rawmaterials
       .filter((data) => !data.isdeleted && isWithinRange(data.date))
-      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }));
-    setData(filteredMaterials);
-  }, [datas.rawmaterials, dateRange]);
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    setData(filteredMaterials)
+  }, [datas.rawmaterials, dateRange])
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      return true;
+      return true
     }
-    const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+    const dayjsDate = dayjs(date, 'DD/MM/YYYY')
     return (
       dayjsDate.isSame(dateRange[0], 'day') ||
       dayjsDate.isSame(dateRange[1], 'day') ||
-      dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]))
-    );
-  };
+      (dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1])))
+    )
+  }
 
   // Dropdown select
   useEffect(() => {
@@ -51,14 +68,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
         .map((supplier) => ({
           value: supplier.materialname,
           label: supplier.materialname,
-          key: supplier.id,
-        }));
-        console.log(filteredMaterials);
-      setMaterials(filteredMaterials);
+          key: supplier.id
+        }))
+      console.log(filteredMaterials)
+      setMaterials(filteredMaterials)
     } else {
-      setMaterials([]);
+      setMaterials([])
     }
-  }, [selectedSupplierName, datas.suppliers]);
+  }, [selectedSupplierName, datas.suppliers])
 
   // search
   const [searchText, setSearchText] = useState('')
@@ -71,28 +88,29 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
     }
   }
 
-   const createAddMaterial = async (values) => {
-    const { date, ...otherValues } = values;
-    const formattedDate =  date ? dayjs(date).format('DD/MM/YYYY') : null;
-    await createRawmaterial({ 
+  const createAddMaterial = async (values) => {
+    const { date, ...otherValues } = values
+    const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
+    await createRawmaterial({
       ...otherValues,
       date: formattedDate,
       createddate: TimestampJs(),
-      isdeleted: false 
-    });
+      isdeleted: false
+    })
     const existingMaterial = datas.storage.find(
-      (storageItem) => storageItem.materialname === materialname && storageItem.category === "Material List"
-    );
-    if( existingMaterial ){
-    await updateStorage(existingMaterial.id, {
-      quantity: existingMaterial.quantity + values.quantity
-    });
+      (storageItem) =>
+        storageItem.materialname === otherValues.materialname && storageItem.category === 'Material List'
+    )
+    if (existingMaterial) {
+      await updateStorage(existingMaterial.id, {
+        quantity: existingMaterial.quantity + otherValues.quantity
+      })
+      storageUpdateMt();
+    }
+    form.resetFields()
+    rawmaterialUpdateMt()
+    setIsModalOpen(false)
   }
-    console.log(values);
-    form.resetFields();
-    rawmaterialUpdateMt();
-    setIsModalOpen(false);
-  };
 
   const columns = [
     {
@@ -142,7 +160,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       editable: true,
       width: 120,
       render: (_, record) => {
-        return record.quantity +" "+ record.unit
+        return record.quantity + ' ' + record.unit
       }
     },
     {
@@ -159,7 +177,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       editable: true,
       width: 160,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Action',
@@ -413,7 +431,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker  onChange={(dates) => setDateRange(dates)} />
+            <RangePicker onChange={(dates) => setDateRange(dates)} />
             <Button>
               Export <PiExport />
             </Button>
@@ -450,7 +468,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
       </ul>
 
       <Modal
-        title={<div className='flex  justify-center py-3'> <h1>ADD MATERIAL</h1> </div>}
+        title={
+          <div className="flex  justify-center py-3">
+            {' '}
+            <h1>ADD MATERIAL</h1>{' '}
+          </div>
+        }
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
@@ -458,7 +481,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
           form.resetFields()
         }}
       >
-        <Form onFinish={createAddMaterial} form={form} layout="vertical" initialValues={{ date: dayjs() }}>
+        <Form
+          onFinish={createAddMaterial}
+          form={form}
+          layout="vertical"
+          initialValues={{ date: dayjs() }}
+        >
           <Form.Item
             className="mb-0"
             name="suppliername"
@@ -474,17 +502,24 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
                   .toLowerCase()
                   .localeCompare((optionB?.label ?? '').toLowerCase())
               }
-              options={Array.from(new Set(datas.suppliers.map(supplier => supplier.suppliername))).map((suppliername, index) => ({
+              options={Array.from(
+                new Set(datas.suppliers.map((supplier) => supplier.suppliername))
+              ).map((suppliername, index) => ({
                 value: suppliername,
                 label: suppliername,
-                key: index,
+                key: index
               }))}
               onChange={(value) => setSelectedSupplierName(value)}
             />
           </Form.Item>
 
-          <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
-          <DatePicker  format={"DD/MM/YY"} />
+          <Form.Item
+            className="mb-3 absolute top-8"
+            name="date"
+            label=""
+            rules={[{ required: true, message: false }]}
+          >
+            <DatePicker format={'DD/MM/YY'} />
           </Form.Item>
 
           <Form.Item
@@ -493,7 +528,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt }) {
             label="Material Name"
             rules={[{ required: true, message: false }]}
           >
-           <Select
+            <Select
               showSearch
               placeholder="Select"
               optionFilterProp="label"
