@@ -41,7 +41,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [form4] = Form.useForm()
-
+  const [dateRange, setDateRange] = useState([null, null]);
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
@@ -53,7 +53,19 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         .filter((data) => data.isdeleted === false && data.type === 'order')
         .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
     )
-  }, [datas])
+  }, [datas, dateRange]);
+
+  const isWithinRange = (date) => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return true;
+    }
+    const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+    return (
+      dayjsDate.isSame(dateRange[0], 'day') ||
+      dayjsDate.isSame(dateRange[1], 'day') ||
+      dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1]))
+    );
+  };
 
   // search
   const [searchText, setSearchText] = useState('')
@@ -66,7 +78,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     }
   }
 
-  const createNewProject = async (values) => {
+  const createNewOrder = async (values) => {
     await createproduct({
       ...values,
       createddate: TimestampJs(),
@@ -89,10 +101,12 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
+          String(record.date).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.paymentstatus).toLowerCase().includes(value.toLowerCase()) ||
           String(record.price).toLowerCase().includes(value.toLowerCase())
         )
       }
@@ -145,7 +159,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       dataIndex: 'billamount',
       key: 'billamount',
       // editable: true,
-      render: text =>  <span>{formatToRupee(text,true)}</span>
+      // render: text =>  <span>{formatToRupee(text,true)}</span>
     },
     {
       title: 'Payment Status',

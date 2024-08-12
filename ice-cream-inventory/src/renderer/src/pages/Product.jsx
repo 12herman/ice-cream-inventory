@@ -9,6 +9,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
+import { createStorage } from '../firebase/data-tables/storage'
 const { Search } = Input;
 
 export default function Product({ datas, productUpdateMt }) {
@@ -37,12 +38,27 @@ export default function Product({ datas, productUpdateMt }) {
 
   // create new project 
   const createNewProject = async (values) => {
+    const productExists = datas.product.find(
+      (storageItem) => storageItem.productname === values.productname && storageItem.flavour === values.flavour && storageItem.quantity === values.quantity
+    )
     await createproduct({ 
       ...values, 
       createddate: TimestampJs(), 
       updateddate: '', 
       isdeleted: false 
     });
+    if (!productExists) {
+      await createStorage({
+        productname: values.productname,
+        flavour: values.flavour,
+        quantity: values.quantity,
+        unit: values.unit,
+        alertcount: 0,
+        numberofpacks: 0,
+        category: "Product List",
+        createddate: TimestampJs()
+      });
+    }
     form.resetFields();
     productUpdateMt();
     setIsModalOpen(false);

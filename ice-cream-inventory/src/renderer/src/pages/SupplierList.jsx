@@ -1,54 +1,84 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select, Radio } from 'antd';
-import { PiExport } from "react-icons/pi";
-import { IoMdAdd } from "react-icons/io";
-import { MdOutlineModeEditOutline } from "react-icons/md";
-import { LuSave } from "react-icons/lu";
-import { TiCancel } from "react-icons/ti";
-import { AiOutlineDelete } from "react-icons/ai";
-import { MdOutlinePayments } from "react-icons/md";
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
-import { TimestampJs } from '../js-files/time-stamp';
-import jsonToExcel from '../js-files/json-to-excel';
-import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier';
-import { createStorage, updateStorage } from '../firebase/data-tables/storage';
-const { Search } = Input;
+import React, { useEffect, useState } from 'react'
+import {
+  Button,
+  Input,
+  Table,
+  Modal,
+  Form,
+  InputNumber,
+  Typography,
+  Popconfirm,
+  message,
+  Select,
+  Radio
+} from 'antd'
+import { PiExport } from 'react-icons/pi'
+import { IoMdAdd } from 'react-icons/io'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { LuSave } from 'react-icons/lu'
+import { TiCancel } from 'react-icons/ti'
+import { AiOutlineDelete } from 'react-icons/ai'
+import { MdOutlinePayments } from 'react-icons/md'
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products'
+import { TimestampJs } from '../js-files/time-stamp'
+import jsonToExcel from '../js-files/json-to-excel'
+import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
+import { createStorage } from '../firebase/data-tables/storage'
+const { Search } = Input
 
 export default function SupplierList({ datas, supplierUpdateMt }) {
   // states
-  const [form] = Form.useForm();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingKeys, setEditingKeys] = useState([]);
-  const [data, setData] = useState([]);
+  const [form] = Form.useForm()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingKeys, setEditingKeys] = useState([])
+  const [data, setData] = useState([])
 
   // side effect
   useEffect(() => {
-    setData(datas.suppliers.length > 0 ?  datas.suppliers.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })):[]);
-  }, [datas]);
+    setData(
+      datas.suppliers.length > 0
+        ? datas.suppliers
+            .filter((data) => data.isdeleted === false)
+            .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+        : []
+    )
+  }, [datas])
 
   // search
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value);
+    setSearchText(value)
   }
   const onSearchChange = (e) => {
-    if(e.target.value === ''){
-      setSearchText('');
+    if (e.target.value === '') {
+      setSearchText('')
     }
   }
 
-  // create new project 
+  // create new project
   const createNewSupplier = async (values) => {
-    await createSupplier({ 
-      ...values, 
-      createddate: TimestampJs(), 
-      updateddate: '', 
-      isdeleted: false 
+    const materialExists = datas.storage.find(
+      (storageItem) => storageItem.materialname === values.materialname
+    )
+    await createSupplier({
+      ...values,
+      createddate: TimestampJs(),
+      updateddate: '',
+      isdeleted: false
     });
+    if (!materialExists) {
+      await createStorage({
+        materialname: values.materialname,
+        alertcount: 0,
+        quantity: 0,
+        category: "Material List",
+        createddate: TimestampJs()
+      });
+    }
     form.resetFields();
     supplierUpdateMt();
     setIsModalOpen(false);
-  };
+  }
 
   const columns = [
     {
@@ -58,14 +88,14 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
-        return(
+        return (
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase()) 
+          String(record.price).toLowerCase().includes(value.toLowerCase())
         )
-      },
+      }
     },
     {
       title: 'Supplier Name',
@@ -73,7 +103,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       key: 'suppliername',
       editable: true,
       sorter: (a, b) => a.suppliername.localeCompare(b.suppliername),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Material Name',
@@ -81,7 +111,7 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       key: 'materialname',
       editable: true,
       sorter: (a, b) => a.materialname.localeCompare(b.materialname),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Location',
@@ -89,57 +119,66 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
       key: 'location',
       editable: true,
       sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Mobile Number',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
-      width: 180,
+      width: 180
     },
     {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
-      editable: true,
+      editable: true
     },
     {
       title: 'Action',
       dataIndex: 'operation',
-      fixed:'right',
-      width:110,
+      fixed: 'right',
+      width: 110,
       render: (_, record) => {
-        const editable = isEditing(record);
+        const editable = isEditing(record)
         return editable ? (
-          <span className='flex gap-x-1 justify-center items-center'>
-          <Typography.Link 
-            onClick={() => save(
-             record
-              )}
-            style={{
-              marginRight: 8,
-            }}
-          >
-            <LuSave size={17}/>
-          </Typography.Link>
-          <Popconfirm  title="Sure to cancel?" onConfirm={cancel}>
-          <TiCancel size={20} className='text-red-500 cursor-pointer hover:text-red-400' />
-          </Popconfirm>
-        </span>
+          <span className="flex gap-x-1 justify-center items-center">
+            <Typography.Link
+              onClick={() => save(record)}
+              style={{
+                marginRight: 8
+              }}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
         ) : (
-        <span className='flex gap-x-3 justify-center items-center'>
-        <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
-          <MdOutlineModeEditOutline size={20} />
-          </Typography.Link>
-          <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => deleteProduct(record)} >
-            <AiOutlineDelete className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
-          </Popconfirm>
-        </span>
-        );
-      },
-    },
-  ];
+          <span className="flex gap-x-3 justify-center items-center">
+            <Typography.Link
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              onClick={() => edit(record)}
+            >
+              <MdOutlineModeEditOutline size={20} />
+            </Typography.Link>
+            <Popconfirm
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => deleteProduct(record)}
+            >
+              <AiOutlineDelete
+                className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
+  ]
 
   const EditableCell = ({
     editing,
@@ -151,13 +190,13 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
     children,
     ...restProps
   }) => {
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />;
+    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
           <>
-            { dataIndex === 'gender' ? 
-              <span className='flex gap-x-1'>
+            {dataIndex === 'gender' ? (
+              <span className="flex gap-x-1">
                 <Form.Item
                   name="gender"
                   style={{ margin: 0 }}
@@ -167,16 +206,18 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
                     placeholder="Select Gender"
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
-                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
                       { value: 'Male', label: 'Male' },
-                      { value: 'Female', label: 'Female' },
+                      { value: 'Female', label: 'Female' }
                     ]}
                   />
                 </Form.Item>
               </span>
-            : 
+            ) : (
               <Form.Item
                 name={dataIndex}
                 style={{ margin: 0 }}
@@ -184,25 +225,25 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
               >
                 {inputNode}
               </Form.Item>
-            }
+            )}
           </>
         ) : (
           children
         )}
       </td>
-    );
-  };
+    )
+  }
 
-  const isEditing = (record) => editingKeys.includes(record.key);
+  const isEditing = (record) => editingKeys.includes(record.key)
 
-  const edit = (record) => { 
-    form.setFieldsValue({ ...record });
-    setEditingKeys([record.key]);
-  };
+  const edit = (record) => {
+    form.setFieldsValue({ ...record })
+    setEditingKeys([record.key])
+  }
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
-      return col;
+      return col
     }
     return {
       ...col,
@@ -211,44 +252,46 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
         inputType: col.dataIndex === 'mobilenumber' ? 'number' : 'text',
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
+        editing: isEditing(record)
+      })
+    }
+  })
 
   const cancel = () => {
-    setEditingKeys([]);
-  };
+    setEditingKeys([])
+  }
 
   const save = async (key) => {
     try {
-      const row = await form.validateFields();
-      const newData = [...data];
-      const index = newData.findIndex((item) => key.id === item.key);
-      if (index != null &&
-        row.suppliername === key.suppliername && 
-        row.materialname === key.materialname && 
-        row.location === key.location && 
-        row.mobilenumber === key.mobilenumber && 
-        row.gender === key.gender) {
-        message.open({type: 'info',content: 'No changes made',});
-        setEditingKeys([]);
+      const row = await form.validateFields()
+      const newData = [...data]
+      const index = newData.findIndex((item) => key.id === item.key)
+      if (
+        index != null &&
+        row.suppliername === key.suppliername &&
+        row.materialname === key.materialname &&
+        row.location === key.location &&
+        row.mobilenumber === key.mobilenumber &&
+        row.gender === key.gender
+      ) {
+        message.open({ type: 'info', content: 'No changes made' })
+        setEditingKeys([])
       } else {
-        await updateSupplier(key.id,{...row,updateddate: TimestampJs()},);
-        supplierUpdateMt();
-        message.open({type: 'success',content: 'Updated Successfully',});
-        setEditingKeys([]);
+        await updateSupplier(key.id, { ...row, updateddate: TimestampJs() })
+        supplierUpdateMt()
+        message.open({ type: 'success', content: 'Updated Successfully' })
+        setEditingKeys([])
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      console.log('Validate Failed:', errInfo)
     }
-  };
+  }
 
   // selection
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const onSelectChange = (newSelectedRowKeys) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
+    setSelectedRowKeys(newSelectedRowKeys)
+  }
 
   const rowSelection = {
     selectedRowKeys,
@@ -262,63 +305,65 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
         key: 'odd',
         text: 'Select Odd Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
+          let newSelectedRowKeys = []
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
-              return false;
+              return false
             }
-            return true;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
+            return true
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
       },
       {
         key: 'even',
         text: 'Select Even Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
+          let newSelectedRowKeys = []
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 === 0) {
-              return false;
+              return false
             }
-            return true;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
-      },
-    ],
-  };
+            return true
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
+      }
+    ]
+  }
 
   // Table Height Auto Adjustment (***Do not touch this code***)
-  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200); // Initial height adjustment
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
   useEffect(() => {
     // Function to calculate and update table height
     const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 100; // Adjust this value based on your layout needs
-      setTableHeight(newHeight);
-    };
+      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+      setTableHeight(newHeight)
+    }
     // Set initial height
-    updateTableHeight();
+    updateTableHeight()
     // Update height on resize and fullscreen change
-    window.addEventListener('resize', updateTableHeight);
-    document.addEventListener('fullscreenchange', updateTableHeight);
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
     // Cleanup event listeners on component unmount
     return () => {
-      window.removeEventListener('resize', updateTableHeight);
-      document.removeEventListener('fullscreenchange', updateTableHeight);
-    };
-  }, []);
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
 
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
-    const {id,...newData} = data;
-    await updateSupplier(id,{isdeleted: true,
+    const { id, ...newData } = data
+    await updateSupplier(id, {
+      isdeleted: true,
       // deletedby: 'admin',
-      deleteddate: TimestampJs()});
+      deleteddate: TimestampJs()
+    })
     //supplierUpdateMt();
-    message.open({type: 'success',content: 'Deleted Successfully',});
-  };
+    message.open({ type: 'success', content: 'Deleted Successfully' })
+  }
 
   // export
   const payMt = async () => {
@@ -329,31 +374,51 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
   return (
     <div>
       <ul>
-        <li className='flex gap-x-3 justify-between items-center'>
-          <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
-          <span className='flex gap-x-3 justify-center items-center'>
-            <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={payMt}>Pay <MdOutlinePayments /></Button>
-            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields(); form.setFieldsValue({gender: 'Male'});}}>
+        <li className="flex gap-x-3 justify-between items-center">
+          <Search
+            allowClear
+            className="w-[40%]"
+            placeholder="Search"
+            onSearch={onSearchEnter}
+            onChange={onSearchChange}
+            enterButton
+          />
+          <span className="flex gap-x-3 justify-center items-center">
+            <Button
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
+              onClick={payMt}
+            >
+              Pay <MdOutlinePayments />
+            </Button>
+            <Button
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              type="primary"
+              onClick={() => {
+                setIsModalOpen(true)
+                form.resetFields()
+                form.setFieldsValue({ gender: 'Male' })
+              }}
+            >
               New Supplier <IoMdAdd />
             </Button>
           </span>
         </li>
 
-        <li className='mt-2'>
+        <li className="mt-2">
           <Form form={form} component={false}>
             <Table
               virtual
               components={{
                 body: {
-                  cell: EditableCell,
-                },
-              }} 
+                  cell: EditableCell
+                }
+              }}
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
               loading={data.length >= 0 ? false : true}
               rowClassName="editable-row"
-              scroll={{x:900,y: tableHeight}}
+              scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
             />
           </Form>
@@ -364,43 +429,69 @@ export default function SupplierList({ datas, supplierUpdateMt }) {
         title="New Supplier"
         open={isModalOpen}
         onOk={() => form.submit()}
-        onCancel={() => { 
-          setIsModalOpen(false); 
-          form.resetFields(); 
+        onCancel={() => {
+          setIsModalOpen(false)
+          form.resetFields()
         }}
       >
         <Form
-          initialValues={{ gender: 'Male' }} 
+          initialValues={{ gender: 'Male' }}
           onFinish={createNewSupplier}
           form={form}
-          layout='vertical'
+          layout="vertical"
         >
-          <Form.Item className='mb-1' name='suppliername' label="Supplier Name" rules={[{ required: true, message: false }]}>
-            <Input className='w-full' />
+          <Form.Item
+            className="mb-1"
+            name="suppliername"
+            label="Supplier Name"
+            rules={[{ required: true, message: false }]}
+          >
+            <Input className="w-full" />
           </Form.Item>
-          
-          <Form.Item className='mb-1' name='location' label="location" rules={[{ required: true, message: false }]}>
+
+          <Form.Item
+            className="mb-1"
+            name="location"
+            label="location"
+            rules={[{ required: true, message: false }]}
+          >
             <Input />
           </Form.Item>
 
-          <Form.Item className='mb-1' name='materialname' label="Material Name" rules={[{ required: true, message: false }]}>
+          <Form.Item
+            className="mb-1"
+            name="materialname"
+            label="Material Name"
+            rules={[{ required: true, message: false }]}
+          >
             <Input />
           </Form.Item>
 
-          <Form.Item className='mb-1 w-full' name='mobilenumber' label="Mobile Number" rules={[{ required: true, message: false },{ type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
+          <Form.Item
+            className="mb-1 w-full"
+            name="mobilenumber"
+            label="Mobile Number"
+            rules={[
+              { required: true, message: false },
+              { type: 'number', message: false }
+            ]}
+          >
+            <InputNumber className="w-full" />
           </Form.Item>
 
-          <Form.Item className='mb-1' name='gender' label="Gender" rules={[{ required: true, message: false }]}>
-          <Radio.Group>
-            <Radio value={'Male'}>Male</Radio>
-            <Radio value={'Female'}>Female</Radio>
-          </Radio.Group>
+          <Form.Item
+            className="mb-1"
+            name="gender"
+            label="Gender"
+            rules={[{ required: true, message: false }]}
+          >
+            <Radio.Group>
+              <Radio value={'Male'}>Male</Radio>
+              <Radio value={'Female'}>Female</Radio>
+            </Radio.Group>
           </Form.Item>
-  
         </Form>
       </Modal>
     </div>
-  );
+  )
 }
-
