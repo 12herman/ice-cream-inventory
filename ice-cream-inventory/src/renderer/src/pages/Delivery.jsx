@@ -34,6 +34,7 @@ import { addDoc, collection, Firestore } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { FaClipboardList } from "react-icons/fa";
 import Item from 'antd/es/list/Item'
+import { TbFileDownload } from "react-icons/tb";
 
 export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt }) {
   //states
@@ -49,7 +50,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   useEffect(() => {
     setData(
       datas.delivery
-        .filter((data) => data.isdeleted === false)
+        .filter((data) => data.isdeleted === false && data.type === 'order')
         .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
     )
   }, [datas])
@@ -153,7 +154,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       editable: true,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: text => text === 'Paid' ? <Tag color='green'>Paid</Tag> : <Tag color='red'>Unpaid</Tag>
+      render: text => text === 'Paid' ? <Tag color='green'>Paid</Tag> : text === 'Partial' ?   <Tag color='yellow'>Partial</Tag> : <Tag color='red'>Unpaid</Tag>
     },
     {
       title: 'Action',
@@ -180,10 +181,10 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           <span className="flex gap-x-3 justify-center items-center">
           
            <FaClipboardList onClick={()=>onOpenDeliveryBill(record)} size={17} className='cursor-pointer text-green-500'/>
-          
-            <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
+            {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
               <MdOutlineModeEditOutline size={20} />
-            </Typography.Link>
+            </Typography.Link> */}
+            <TbFileDownload size={19} className='text-blue-500 cursor-pointer hover:text-blue-400' />
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -491,8 +492,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       .filter((item) => item.isdeleted === false)
       .map((item) => ({ label: item.customername, value: item.customername }))
     setOption((pre) => ({ ...pre, customer: optionscustomers }))
-  }, [])
+  }, []);
 
+   // deliver date onchange
   const sendDeliveryDateOnchange =(value, i)=>{
     form2.resetFields(['customername'])
     form2.resetFields(['productname'])
@@ -504,6 +506,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     setMarginValue({amount:0,discount:0,percentage:0})
     form5.resetFields(['marginvalue'])
   };
+  // customer onchange value
   const customerOnchange = async (value, i) => {
     form2.resetFields(['productname'])
     form2.resetFields(['flavour'])
@@ -564,10 +567,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
     let [quantityvalue,units] = values.quantity.split(' ');
-    
     const findPrice = await datas.product.find(item => item.isdeleted === false && item.productname === values.productname && item.flavour === values.flavour && item.quantity === Number(quantityvalue) && item.unit === units).price;
     const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs(),price:findPrice * values.numberofpacks,productprice:findPrice };
-
     const checkExsit = option.tempproduct.some(
       (item) =>
         item.customername === newProduct.customername &&
@@ -577,7 +578,6 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         item.numberofpacks === newProduct.numberofpacks &&
         item.date === newProduct.date
     )
-
     const checkSamePacks = option.tempproduct.some(
       (item) =>
         item.customername === newProduct.customername &&
@@ -588,9 +588,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         item.date === newProduct.date &&
         item.key !== newProduct.key
     )
-  
     //const dbCheck = datas.delivery.some(item => item.isdeleted === false && item.customername ===newProduct.customername && item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.date === newProduct.date && newProduct.quantity === item.quantity );
-
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
       return
@@ -628,69 +626,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     form4.setFieldsValue({paymentstatus:'Unpaid'})
   }
 
-  /*
-  // add new production
-  const addNewDelivery = async () => {
-// filter product datas
-let findPr = datas.product.filter(pr =>
-  option.tempproduct.find(temp =>
-    temp.productname === pr.productname &&
-    temp.flavour === pr.flavour &&
-    pr.quantity == temp.quantity.split(' ')[0] &&
-    pr.unit === temp.quantity.split(' ')[1]
-  )
-);
-// list
-let productItems = findPr.map(pr => {
-  let matchingTempProduct = option.tempproduct.find(temp =>
-    temp.productname === pr.productname &&
-    temp.flavour === pr.flavour &&
-    pr.quantity == temp.quantity.split(' ')[0] &&
-    pr.unit === temp.quantity.split(' ')[1]
-  );
-  return {
-    id: pr.id,
-    numberofpacks: matchingTempProduct.numberofpacks
-  };
-});
-    //partial amount (value)
-    let {partialamount} = form4.getFieldsValue()
-    //create delivery new
-    const newDelivery =await createDelivery({
-                 customername:option.tempproduct[0].customername,
-                 date:option.tempproduct[0].date,
-                 total:totalamount,
-                 billamount:marginValue.amount,
-                 paymentstatus:marginValue.paymentstaus,
-                 margin:marginValue.percentage,
-                 partialamount:partialamount,
-                 //items:productItems,
-                 isdeleted:false,
-                 createddate:TimestampJs(),
-                });
-                try {
-                  // Create new delivery document
-                  const deliveryRef = await createDelivery(newDelivery);
-                  // Add items to the `items` subcollection within the new delivery document
-                  const itemsRef = Firestore.Firestore().collection('delivery').doc (deliveryRef.id).collection('items');
-                  for (const item of productItems) {
-                    await itemsRef.add(item);
-                  }
-                  // Notify success
-                  message.open({ type: 'success', content: 'Production added successfully' });
-              
-                  // Optionally: update delivery status or perform other operations
-                  await deliveryUpdateMt();
-                  
-                  // Cancel the modal or close the form
-                  await modelCancel();
-                } catch (error) {
-                  // Handle errors
-                  console.error('Error adding delivery: ', error);
-                  message.open({ type: 'error', content: 'Error adding production' });
-                }
-  }
-                */
+  // add new delivery
   const addNewDelivery = async () => {
     // Filter product datas
     let findPr = datas.product.filter(pr =>
@@ -701,7 +637,6 @@ let productItems = findPr.map(pr => {
         pr.unit === temp.quantity.split(' ')[1]
       )
     );
-  
     // List
     let productItems = findPr.map(pr => {
       let matchingTempProduct = option.tempproduct.find(temp =>
@@ -715,10 +650,8 @@ let productItems = findPr.map(pr => {
         numberofpacks: matchingTempProduct.numberofpacks
       };
     });
-  
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue();
-  
     // Create delivery new
     const newDelivery = {
       customername: option.tempproduct[0].customername,
@@ -729,27 +662,19 @@ let productItems = findPr.map(pr => {
       margin: marginValue.percentage,
       partialamount: partialamount,
       isdeleted: false,
+      type: returnDelivery.state === true ? 'return' : 'order',
       createddate: TimestampJs(),
     };
-  
     try {
-      // Create new delivery document
+      //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery');
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery);
-  
-      // Add items to the `items` subcollection within the new delivery document
       const itemsCollectionRef = collection(deliveryDocRef, 'items');
       for (const item of productItems) {
         await addDoc(itemsCollectionRef, item);
       }
-  
-      // Notify success
-      message.open({ type: 'success', content: 'Production added successfully' });
-  
-      // Optionally: update delivery status or perform other operations
+      message.open({ type: 'success', content: returnDelivery.state === true ? "Production return successfully" : "Production added successfully"} );
       await deliveryUpdateMt();
-  
-      // Cancel the modal or close the form
       await modelCancel();
     } catch (error) {
       // Handle errors
@@ -757,6 +682,8 @@ let productItems = findPr.map(pr => {
       message.open({ type: 'error', content: 'Error adding production' });
     }
   };
+
+  // model close
   const modelCancel = () => {
     setIsModalOpen(false)
     form2.resetFields()
@@ -1004,6 +931,11 @@ let productItems = findPr.map(pr => {
     setDeliveryBill(pre => ({...pre,model:true,prdata:data,open:!deliveryBill.open}));
   };
 
+  // return
+  const [returnDelivery,setReturnDelivery] = useState({
+      state:false,
+  }); 
+
   return (
     <div>
       <ul>
@@ -1021,21 +953,14 @@ let productItems = findPr.map(pr => {
 
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker />
-            <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
-              Export <PiExport />
-            </Button>
-            <Button
-              onClick={() => setIsMaterialModalOpen(true)}
-              type="primary"
-              disabled={editingKey !== ''}
-            >
-              Return <IoMdRemove />
-            </Button>
+            <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>Export <PiExport /></Button>
+            <Button onClick={() => {setIsModalOpen(true); form.resetFields(); setReturnDelivery(pre => ({...pre,state:true})) }} type="primary" disabled={editingKey !== ''}> Return <IoMdRemove /> </Button>
             <Button
               disabled={editingKey !== ''}
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
+                setReturnDelivery(pre => ({...pre,state:false}))
                 form.resetFields()
               }}
             >
@@ -1069,10 +994,7 @@ let productItems = findPr.map(pr => {
         className="relative"
         title={
           <div className="flex justify-center py-3">
-            
-            <h2>PLACE ORDER</h2>
-
-           
+            <h2>{ returnDelivery.state === true ? "RETURN"  :"PLACE ORDER"}</h2>
           </div>
         }
         width={1100}
@@ -1081,25 +1003,9 @@ let productItems = findPr.map(pr => {
         onCancel={modelCancel}
         okButtonProps={{ disabled: true }}
         footer={
-          <div>
-            {/* <Form.Item className='mb-3 ' name="price">
-         <Radio.Group  buttonStyle="solid">
-          <Radio.Button  value="Price">Price</Radio.Button>
-          <Radio.Button  value="Margin">{`Margin(%)`}</Radio.Button>
-          </Radio.Group>
-         </Form.Item> */}
+          <div> 
             <section className="flex gap-x-3 justify-between ">
-              
-
-              <span>
-                {/* <Search
-                disabled={option.tempproduct.length > 0 ? false : true}
-                  placeholder="Margin"
-                  allowClear
-                  enterButton={<>Enter</>}
-                  onSearch={onPriceChange}
-                  style={{ width: 200 }}
-                /> */}
+              <span className= { `${returnDelivery.state === true ? 'invisible' : ''}`}>
               <Form className='flex gap-x-1' disabled={option.tempproduct.length > 0 ? false : true} form={form5} onFinish={onPriceChange}>
             <Form.Item name='marginvalue' rules={[{ required: true, message: false }]}>
             <InputNumber min={0} max={100} className='w-full' prefix={<span>Margin(%)</span>} />
@@ -1111,7 +1017,8 @@ let productItems = findPr.map(pr => {
               </span>
 
               <Form
-                disabled={marginValue.amount === 0 ? true : false}
+              className={`${returnDelivery.state === true ? 'hidden' : ''}`}
+                disabled={marginValue.amount === 0   ? true  :  false}
                 form={form4}
                 initialValues={{partialamount:0, price: 'Price', paymentstatus: 'Unpaid' }}
                 onFinish={addNewDelivery}
@@ -1134,6 +1041,36 @@ let productItems = findPr.map(pr => {
                       className=" w-fit"
                     >
                       ORDER
+                    </Button>
+                  </Form.Item>
+                </span>
+              </Form>
+
+              <Form
+              className={`${returnDelivery.state === true ? '' : 'hidden'}`}
+                disabled={option.tempproduct.length <= 0   ? true  :  false}
+                form={form4}
+                initialValues={{partialamount:0, price: 'Price', paymentstatus: 'Unpaid' }}
+                onFinish={addNewDelivery}
+              >
+                <span className="flex gap-x-3 m-0 justify-center items-center">
+                  <Form.Item name="paymentstatus">
+                    <Radio.Group disabled={option.tempproduct.length <= 0 ? true : false} buttonStyle="solid" onChange={radioOnchange}>
+                      <Radio.Button value="Paid">PAID</Radio.Button>
+                      <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+                      <Radio.Button value="Partial">PARTIAL</Radio.Button>
+                    </Radio.Group>
+                  </Form.Item>
+                  <Form.Item name="partialamount">
+                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false :true}/>
+                  </Form.Item>
+                  <Form.Item>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      className=" w-fit"
+                    >
+                       {returnDelivery.state === true ? "RETURN"  :"ORDER"}
                     </Button>
                   </Form.Item>
                 </span>
