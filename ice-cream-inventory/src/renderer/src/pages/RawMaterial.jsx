@@ -11,7 +11,8 @@ import {
   message,
   Select,
   DatePicker,
-  Radio
+  Radio,
+  Tag
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -70,7 +71,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           label: supplier.materialname,
           key: supplier.id
         }))
-      console.log(filteredMaterials)
       setMaterials(filteredMaterials)
     } else {
       setMaterials([])
@@ -89,6 +89,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   }
 
   const createAddMaterial = async (values) => {
+  
+ if(form.getFieldValue('partialamount') === 0){
+  return message.open({type: 'warning',content: 'Please enter a valid amount',});
+ }
+ else{
     const { date, ...otherValues } = values
     const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
     await createRawmaterial({
@@ -109,7 +114,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
     form.resetFields()
     rawmaterialUpdateMt()
-    setIsModalOpen(false)
+    setIsModalOpen(false);
+    setRadioBtn({status:true,value:''})
+  }
   }
 
   const columns = [
@@ -177,7 +184,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       editable: true,
       width: 160,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: text => <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text}</Tag>
     },
     {
       title: 'Action',
@@ -416,7 +424,18 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     await updateRawmaterial(id, { isdeleted: true, deletedby: 'admin', deleteddate: TimestampJs() })
     rawmaterialUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
-  }
+  };
+
+  const [radioBtn,setRadioBtn] = useState({
+    status:true,
+    value:'',
+    partialamount:0
+  });
+
+  const radioOnchange = (e) => {
+    setRadioBtn(pre =>({...pre,status:false,value:e.target.value}))
+    form.setFieldsValue({ partialamount: 0 })
+  };
 
   return (
     <div>
@@ -447,7 +466,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </span>
         </li>
         <li className="mt-2">
-          <Form form={form} component={false}>
+          <Form form={form} component={false} initialValues={{ date: dayjs() }}>
             <Table
               virtual
               components={{
@@ -476,8 +495,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         }
         open={isModalOpen}
         onOk={() => form.submit()}
+        okButtonProps={{disabled:radioBtn.status}}
         onCancel={() => {
-          setIsModalOpen(false)
+          setIsModalOpen(false);
+          setRadioBtn({status:true,value:''})
           form.resetFields()
         }}
       >
@@ -602,8 +623,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             rules={[
               { required: true, message: false },
               { type: 'number', message: false }
-            ]}
-          >
+            ]}>
             <InputNumber className="w-full" />
           </Form.Item>
 
@@ -611,13 +631,25 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             className="mb-1"
             name="paymentstatus"
             label="Status"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group>
-              <Radio value={'Paid'}>Paid</Radio>
-              <Radio value={'Unpaid'}>Unpaid</Radio>
+            rules={[{ required: true, message: false }]}>
+            <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
+            <Radio.Button value="Paid">PAID</Radio.Button>
+            <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+            <Radio.Button value="Partial">PARTIAL</Radio.Button>
             </Radio.Group>
           </Form.Item>
+
+          <Form.Item
+            className="mb-0"
+            name="partialamount"
+            label="Partial Amount"
+            rules={[
+              { required: radioBtn.value === 'Partial' || form.getFieldValue('partialamount') === 0 ? true : false , message: false },
+              { type: 'number', message: false }
+            ]}>
+            <InputNumber formatter={value => `${value}`} disabled={radioBtn.value === 'Partial' ? false : true} className="w-full" />
+          </Form.Item>
+
         </Form>
       </Modal>
     </div>
