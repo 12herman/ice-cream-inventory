@@ -13,7 +13,7 @@ export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,c
     const PageLists = [
         <Home datas={datas}/>,
         <RawMaterial datas={datas} rawmaterialUpdateMt={rawmaterialUpdateMt} storageUpdateMt={storageUpdateMt}/>,
-        <Production datas={datas} productionUpdateMt={productionUpdateMt} usedmaterialUpdateMt={usedmaterialUpdateMt}/>,
+        <Production datas={datas} productionUpdateMt={productionUpdateMt} usedmaterialUpdateMt={usedmaterialUpdateMt} storageUpdateMt={storageUpdateMt}/>,
         <Delivery datas={datas} deliveryUpdateMt={deliveryUpdateMt}/>,
         <Storage datas={datas} storageUpdateMt={storageUpdateMt}/>,
         <Product datas={datas} productUpdateMt={productUpdateMt} storageUpdateMt={storageUpdateMt}/>,

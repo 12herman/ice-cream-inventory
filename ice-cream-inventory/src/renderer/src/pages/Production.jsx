@@ -14,13 +14,13 @@ import dayjs from 'dayjs';
 import { createProduction, updateProduction } from '../firebase/data-tables/production';
 import jsonToExcel from '../js-files/json-to-excel';
 import { createUsedmaterial } from '../firebase/data-tables/usedmaterial';
+import { updateStorage } from '../firebase/data-tables/storage';
 
-export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt }) {
+export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt, storageUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [data, setData] = useState([]);
@@ -56,18 +56,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       setSearchText('');
     }
   }
-
-  const createNewProject = async (values) => {
-   await createproduct({ 
-     ...values, 
-     createddate: TimestampJs(), 
-     updateddate: '', 
-     isdeleted: false 
-   });
-   form.resetFields();
-   productionUpdateMt();
-   setIsModalOpen(false);
- };
 
  const columns = [
    {
@@ -438,7 +426,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
 
   // add new production
   const addNewProduction = async()=> {
-    await option.tempproduct.map(async (item,i)=>{
+    await option.tempproduct.map(async (item)=>{
       let {key,...newProduction} = item;
       await createProduction({...newProduction,isdeleted:false});
     });
