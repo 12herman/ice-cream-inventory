@@ -50,7 +50,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   useEffect(() => {
     setData(
       datas.delivery
-        .filter((data) => data.isdeleted === false && data.type === 'order')
+        .filter((data) => data.isdeleted === false )
         .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
     )
   }, [datas, dateRange]);
@@ -116,8 +116,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       dataIndex: 'date',
       key: 'date',
       editable: false,
-      render: text => dayjs(text).format('DD-MM-YY'),
-      width: 100
+      //render: text => dayjs(text).format('DD/MM/YY'),
+      //width: 150
     },
     {
       title: 'Customer',
@@ -161,6 +161,16 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       // editable: true,
       // render: text =>  <span>{formatToRupee(text,true)}</span>
     },
+    
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      editable: true,
+      sorter: (a, b) => a.type.localeCompare(b.type),
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: text => text === 'return' ? <Tag color='red'>Return</Tag> : <Tag color='green'>Order</Tag>
+    },
     {
       title: 'Payment Status',
       dataIndex: 'paymentstatus',
@@ -194,11 +204,11 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
           
-           <FaClipboardList onClick={()=>onOpenDeliveryBill(record)} size={17} className='cursor-pointer text-green-500'/>
+           <FaClipboardList onClick={()=> editingKey !== '' ? console.log('Not Clickable') : onOpenDeliveryBill(record)} size={17} className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer text-green-500'}`} />
             {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link> */}
-            <TbFileDownload size={19} className='text-blue-500 cursor-pointer hover:text-blue-400' />
+            <TbFileDownload size={19} className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}/>
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -579,7 +589,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   const [totalamount, setTotalAmount] = useState(0);
   const createTemDeliveryMt = async (values) => {
     setCount(count + 1)
-    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+    const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : '';
     let [quantityvalue,units] = values.quantity.split(' ');
     const findPrice = await datas.product.find(item => item.isdeleted === false && item.productname === values.productname && item.flavour === values.flavour && item.quantity === Number(quantityvalue) && item.unit === units).price;
     const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs(),price:findPrice * values.numberofpacks,productprice:findPrice };
@@ -795,7 +805,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   // create material
   const createTemMaterial = async (values) => {
     setMtOption((pre) => ({ ...pre, count: pre.count + 1 }))
-    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : ''
+    const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
     const newMaterial = {
       ...values,
       date: formattedDate,

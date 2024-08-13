@@ -9,7 +9,7 @@ const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
 
 export default function Home({ datas }) {
-  const today = dayjs(DatestampJs(), 'DD-MM-YYYY');
+  const today = dayjs(DatestampJs(), 'DD/MM/YYYY');
   const [data, setData] = useState([]);
   const [dateRange, setDateRange] = useState([today, today]);
   const [filteredDelivery, setFilteredDelivery] = useState([]);
@@ -128,7 +128,7 @@ export default function Home({ datas }) {
         <li className='flex gap-x-3 justify-between items-center'>
           <h1>Dashboard</h1>
           <span className='flex gap-x-3 justify-center items-center'>
-          <RangePicker onChange={handleDateChange}  defaultValue={[ today , today]} format='DD-MM-YYYY' />
+          <RangePicker onChange={handleDateChange}  defaultValue={[ today , today]} format='DD/MM/YYYY' />
           <Button>
           <Badge dot>
       <NotificationOutlined

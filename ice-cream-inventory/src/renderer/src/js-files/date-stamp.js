@@ -6,7 +6,7 @@ export const  DatestampJs =() => {
     const year = date.getFullYear();
 
     // Format date
-    const formattedDate = `${day}-${month}-${year}`;
+    const formattedDate = `${day}/${month}/${year}`;
 
     // Combine date and time
     return `${formattedDate}`;

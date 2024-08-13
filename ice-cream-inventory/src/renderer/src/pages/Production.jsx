@@ -404,7 +404,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
   const [count,setCount] = useState(0);
    const createTemProduction = async (values) => {
     setCount(count+1);
-    const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+    const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : '';
     const newProduct = { ...values,key:count, date: formattedDate, createddate: TimestampJs() };
     const checkExsit = option.tempproduct.some(item => item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.quantity === newProduct.quantity && item.numberofpacks === newProduct.numberofpacks && item.date === newProduct.date);
     const checkSamePacks = option.tempproduct.some(item => item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.quantity === newProduct.quantity && item.numberofpacks !== newProduct.numberofpacks && item.date === newProduct.date && item.key !== newProduct.key);
@@ -516,7 +516,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
     // create material
     const createTemMaterial = async (values)=>{
       setMtOption(pre => ({...pre,count:pre.count+1}));
-      const formattedDate = values.date ? values.date.format('DD-MM-YYYY') : '';
+      const formattedDate = values.date ? values.date.format('DD/MM-YYYY') : '';
       const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
       const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
       const dbcheckExsit = datas.usedmaterials.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
@@ -596,7 +596,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       
       <Modal
         className='relative'
-        title={<div className='flex  justify-center py-3'> <h2>Add Products</h2> </div>}
+        title={<div className='flex  justify-center py-3'> <h2>ADD PRODUCT</h2> </div>}
         width={1000}
         open={isModalOpen}
         onOk={addNewProduction}
@@ -677,7 +677,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       {/* material used model */}
       <Modal
         className='relative'
-        title={<div className='flex  justify-center py-3'> <h2>Add Products</h2> </div>}
+        title={<div className='flex  justify-center py-3'> <h2>MATERIAL USED</h2> </div>}
         width={1000}
         open={isMaterialModalOpen}
         onCancel={materialModelCancel}
