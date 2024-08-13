@@ -159,7 +159,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       dataIndex: 'billamount',
       key: 'billamount',
       // editable: true,
-      // render: text =>  <span>{formatToRupee(text,true)}</span>
+      render: text =>  <span>{formatToRupee(text,true)}</span>
     },
     
     {
@@ -549,13 +549,11 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
     form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
     setMarginValue({amount:0,discount:0,percentage:0})
-    const flavourOp = await Array.from(
-      new Set(
-        datas.product
+    const flavourOp = await Array.from( new Set(datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour)
-      )
-    ).map((flavour) => ({ label: flavour, value: flavour }))
+          .map((data) => data.flavour)))
+          .map((flavour) => ({ label: flavour, value: flavour }))
+    
     await setOption((pre) => ({
       ...pre,
       flavourstatus: false,
@@ -661,6 +659,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         pr.unit === temp.quantity.split(' ')[1]
       )
     );
+
     // List
     let productItems = findPr.map(pr => {
       let matchingTempProduct = option.tempproduct.find(temp =>
@@ -783,7 +782,8 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         )
       }
     }
-  ]
+  ];
+
   const [form3] = Form.useForm()
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false)
   const [mtOption, setMtOption] = useState({
@@ -899,20 +899,35 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         key: 'flavour',
         dataIndex: 'flavour',
         width: 70,
-        },
-        {
-          title: 'Quantity',
-          key: 'quantity',
-          dataIndex: 'quantity',
-          width: 70,
-          },
-          {
-            title: 'Number of Packs',
-            key: 'numberofpacks',
-            dataIndex: 'numberofpacks',
-            width: 70,
-            },
-  ]
+      },
+      {
+        title: 'Quantity',
+        key: 'quantity',
+        dataIndex: 'quantity',
+        width: 70,
+      },
+      {
+        title: 'Peice Amount',
+        key: 'price',
+        dataIndex: 'price',
+        width: 70,
+        render:text => <span>{formatToRupee(text,true)}</span>
+      },
+      {
+        title: 'Number of Packs',
+        key: 'numberofpacks',
+        dataIndex: 'numberofpacks',
+        width: 70,
+      },
+      {
+        title: 'Amount',
+        key: 'producttotalamount',
+        dataIndex: 'producttotalamount',
+        width: 70,
+        render:text => <span>{formatToRupee(text,true)}</span>
+      },
+  ];
+
   const [deliveryBill,setDeliveryBill] = useState({
     model:false,
     loading:false,
@@ -936,11 +951,13 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
         let prData = datas.product.filter((item,i) => items.find((item2) => item.id === item2.id))
         let prItems = prData.map((pr,i) =>{
           let matchingData = items.find((item,i) => item.id === pr.id);
+          
           return {
             sno:i+1,
             ...pr,
             quantity: pr.quantity + ' ' + pr.unit ,
             numberofpacks: matchingData.numberofpacks,
+            producttotalamount: matchingData.numberofpacks * pr.price 
           }
         });
       setDeliveryBill(pre => ({...pre,data:{items:prItems,...deliveryBill.prdata}}));
@@ -1352,11 +1369,9 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       <Modal className='relative' width={1000} title={<span className='w-full flex justify-center items-center text-sm py-2'>DELIVERED ON {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date} </span>}  footer={false} open={deliveryBill.model} onCancel={() => setDeliveryBill(pre => ({...pre, model: false }))}>
         <Table
         columns={deliveryColumns}
-       
         dataSource={deliveryBill.data.items}
         loading={deliveryBill.loading}
         />
-        
         {/* <span>Partialamount Amount: <Tag className='text-[1.1rem]' color='orange'>{formatToRupee(deliveryBill.data.partialamount === undefined ? 0 : deliveryBill.data.partialamount)}</Tag></span> */}
         <span>Total Amount: <Tag className='text-[1.1rem]' color='yellow'>{formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.total)}</Tag></span>
         <span>Margin: <Tag className='text-[1.1rem]' color='blue'>{deliveryBill.data.margin === undefined ? 0 : deliveryBill.data.margin}%</Tag></span>
