@@ -64,8 +64,8 @@ export default function Home({ datas }) {
     setIsModalVisible(true);
   }
 
-  const totalSales = filteredDelivery.reduce((total, product) => total + product.billamount, 0);
-  const totalSpend = filteredRawmaterials.reduce((total, material) => total + material.price, 0);
+  const totalSales = filteredDelivery.filter(product => product.type === "order").reduce((total, product) => total + product.billamount, 0);
+  const totalSpend = filteredRawmaterials.filter(material => material.type === "Added").reduce((total, material) => total + material.price, 0);
   const totalProfit = totalSales - totalSpend;
   const totalCustomers = filteredDelivery.length;
   
