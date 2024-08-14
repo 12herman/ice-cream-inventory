@@ -17,6 +17,19 @@ export const getEmployee = async () => {
     }
   };
 
+    // get paydetails for employee
+    export const fetchPayDetailsForEmployee = async (empId) => {
+      try {
+        const itemsCollectionRef = collection(db, 'employee', empId, 'paydetails');
+        const querySnapshot = await getDocs(itemsCollectionRef);
+        const paydetails = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return { paydetails, status: 200 };
+      } catch (err) {
+        console.error("Error fetching items: ", err);
+        return { status: 500, message: err.message };
+      }
+    };
+
   // Create a new employee
 export const createEmployee = async (task) => {
   try {
