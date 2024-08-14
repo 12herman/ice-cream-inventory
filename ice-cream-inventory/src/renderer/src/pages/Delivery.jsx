@@ -169,7 +169,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       editable: true,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: text => text === 'return' ? <Tag color='red'>Return</Tag> : <Tag color='green'>Order</Tag>
+      render: text => text === 'return' ? <Tag color='red'>Return</Tag> : text === 'quick' ? <Tag color='blue'>Quick Sale</Tag>  : <Tag color='green'>Order</Tag>
     },
     {
       title: 'Payment Status',

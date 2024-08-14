@@ -191,9 +191,6 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
     setIsQuickSale(pre =>({...pre,temdata:[],count:0,total:0, date:value === null ? "" : value.format('DD/MM/YYYY')}));
   }; 
 
- 
-
-
   const quicksaleMt = async ()=>{
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue();
     if((qickSaleForm3Value.paymentstatus ==='Partial') === (qickSaleForm3Value.customername === '' || 
@@ -215,7 +212,7 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
           partialamount:qickSaleForm3Value.partialamount === undefined || qickSaleForm3Value.partialamount === null ? 0 : qickSaleForm3Value.partialamount ,
           paymentstatus:qickSaleForm3Value.paymentstatus,
           total:isQuickSale.total,
-          type:'quick sale',
+          type:'quick',
           isdeleted:false,
           createddate:TimestampJs(),
           date:isQuickSale.date

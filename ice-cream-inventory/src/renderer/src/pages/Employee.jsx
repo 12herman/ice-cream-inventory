@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select, Radio } from 'antd';
+import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select, Radio, DatePicker } from 'antd';
 import { PiExport } from "react-icons/pi";
 import { IoMdAdd } from "react-icons/io";
 import { SolutionOutlined } from '@ant-design/icons'
@@ -12,8 +12,12 @@ import { createproduct, deleteproduct, updateproduct } from '../firebase/data-ta
 import { TimestampJs } from '../js-files/time-stamp';
 import jsonToExcel from '../js-files/json-to-excel';
 import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier';
-import { createEmployee, updateEmployee } from '../firebase/data-tables/employee';
+import { createEmployee, fetchPayDetailsForEmployee, updateEmployee } from '../firebase/data-tables/employee';
 const { Search } = Input;
+import dayjs from 'dayjs';
+import { addDoc, collection, doc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+import { formatToRupee } from '../js-files/formate-to-rupee';
 
 export default function Employee({ datas, employeeUpdateMt }) {
   // states
@@ -128,14 +132,20 @@ export default function Employee({ datas, employeeUpdateMt }) {
         </span>
         ) : (
         <span className='flex gap-x-3 justify-center items-center'>
-          <Button>
+          <Button onClick={() => {setEmployeePay(pre=>({...pre,modal:true,name:record})); }}>
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button><SolutionOutlined /></Button>
+            <Button onClick={async ()=> { 
+              let {paydetails,status} = await fetchPayDetailsForEmployee(record.id); 
+              if(status) {
+                setEmployeePayDetails(pre => ({...pre,modal:true,data:paydetails}));
+              }
+               }}><SolutionOutlined /></Button>
         <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
           <MdOutlineModeEditOutline size={20} />
           </Typography.Link>
+          
           <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => deleteProduct(record)} >
             <AiOutlineDelete className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
           </Popconfirm>
@@ -349,7 +359,151 @@ export default function Employee({ datas, employeeUpdateMt }) {
     jsonToExcel(exportDatas, `Employee-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
+  };
+
+  // employee pay
+  const [employeePayForm] = Form.useForm();
+  const [employeePay,setEmployeePay] = useState({
+    modal:false,
+    name:{},
+    data:dayjs().format('DD/MMM/YYYY')
+  });
+  const empPayMt = async(value)=>{
+    let {date,description,...Datas} = value;
+    let formateDate = dayjs(date).format('DD/MM/YYYY');
+    const empId = employeePay.name.id;
+    const payData = {...Datas,date:formateDate,description:description === undefined ? '' : description};
+    try{
+      const employeeDocRef = doc(db,'employee',empId);
+      const payDetailsRef = collection(employeeDocRef,'paydetails');
+      await addDoc(payDetailsRef,payData);
+    }catch (e){ console.log(e);}
+    employeePayForm.resetFields();
+    setEmployeePay(pre => ({...pre,modal:false}));
   }
+
+  // employee pay details
+  const [employeePayDetails,setEmployeePayDetails] = useState({
+    modal:false,
+    data:[],
+    isedit:[]
+  });
+
+  const employeePayDetailsColumn = [
+    {
+    title:'S.No',
+    dataIndex:'sno',
+    key:'sno',
+    render:(_,record,index) => <span>{index+1}</span>
+    },
+    {
+      title:'Date',
+      dataIndex:'date',
+      key:'date',
+      editable: true,
+    },
+    {
+      title:'Amount ₹',
+      dataIndex:'amount',
+      key:'amount',
+      render:(amount) => <span>{formatToRupee(amount,true)}</span>,
+      editable: true,
+    },
+    {
+      title:'Description',
+      dataIndex:'description',
+      key:'description',
+      editable: true,
+    },
+    {
+      title:'Action',
+      dataIndex:'action',
+      key:'action',
+      render:(_,record) =>{
+        let iseditable = isEmpDtailTableEditing(record);
+        return !iseditable ? (
+          <span className='flex gap-2'>
+          <Typography.Link  className='cursor-pointer' onClick={()=>empDetailTbEdit(record)} style={{ marginRight: 8,}}>
+          <MdOutlineModeEditOutline size={20} />
+          </Typography.Link>
+          
+          <Popconfirm className='cursor-pointer' title="Sure to delete?">
+            <AiOutlineDelete className='text-red-500' size={19}/>
+          </Popconfirm>
+          </span>
+        )
+        : <span className='flex gap-2'>
+          <Typography.Link  style={{ marginRight: 8, }} onClick={()=>setEmployeePayDetails(pre => ({...pre,isedit:[]}))}>
+            <LuSave size={17}/>
+          </Typography.Link>
+
+          <Popconfirm  title="Sure to cancel?" onConfirm ={()=>setEmployeePayDetails(pre => ({...pre,isedit:[]}))}>
+          <TiCancel size={20} className='text-red-500 cursor-pointer hover:text-red-400' />
+          </Popconfirm>
+        </span>
+      }
+    }
+  ];
+
+  const isEmpDtailTableEditing = (record)=> { return employeePayDetails.isedit.includes(record.key);};
+
+  const mergedEmpPayDetailColumn= employeePayDetailsColumn.map((item) => {
+    if(!item.editable){
+      return item;
+    }
+    return {
+      ...item,
+    onCell: (record) => ({
+      record,
+      dataIndex: item.dataIndex,
+      title: item.title,
+      editing: isEmpDtailTableEditing(record),
+    })
+    }
+  });
+
+  const empDetailTbEdit = (record) => {
+    empdetailpayform.setFieldsValue({...record});
+    setEmployeePayDetails(pre => ({ ...pre, isedit: [record.key] }));
+  };
+  
+  
+
+  const EmpPayDetailTableEditableCell=({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  })=>{
+    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />;
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <Form.Item
+            name={dataIndex}
+            style={{
+              margin: 0,
+            }}
+            rules={[
+              {
+                required: true,
+                message: false,
+              },
+            ]}
+          >
+            {inputNode}
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    );
+  }
+ const [empdetailpayform] = Form.useForm()
 
   return (
     <div>
@@ -425,7 +579,57 @@ export default function Employee({ datas, employeeUpdateMt }) {
           <Form.Item className='mb-1' name='location' label="Location" rules={[{ required: true, message: false }]}>
             <Input />
           </Form.Item>
-         
+        </Form>
+      </Modal>
+
+      <Modal
+      open={employeePay.modal}
+      onCancel={()=> {setEmployeePay(pre=>({...pre,modal:false})); employeePayForm.resetFields();}}
+      onOk={()=> employeePayForm.submit()}>
+        <span className='block w-full text-center mb-7 text-2xl font-bold'>PAY</span>
+        <span className='w-full text-center block text-sm font-medium uppercase'>{employeePay.name.employeename}</span>
+        <Form
+        onFinish={empPayMt}
+        form={employeePayForm}
+        initialValues={{date: dayjs()}}
+        layout='vertical'>
+        <Form.Item className='mb-1' name='amount' label="Amount" rules={[{ required: true, message: false }]}>
+            <InputNumber min={0} className='w-full' />
+            </Form.Item>
+            <Form.Item
+                className="mb-1"
+                name="description"
+                label="Description"
+                //rules={[{ required: true, message: false }]}
+              >
+              <Input  placeholder='Write the description'/>
+              </Form.Item>
+
+              <Form.Item className=' absolute top-5' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YY"} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={<span className='text-center w-full block pb-5'>PAY DETAILS</span>}
+        open={employeePayDetails.modal}
+        footer={null}
+        width={1000}
+        onCancel={() => { 
+          setEmployeePayDetails(pre => ({...pre,modal:false,data:[]})); 
+        }}>
+        <Form form={empdetailpayform} component={false}>
+        <Table
+          pagination={{pageSize:5}}
+          columns={mergedEmpPayDetailColumn}
+          components={{
+            body: {
+              cell: EmpPayDetailTableEditableCell,
+            },
+          }}
+          dataSource={employeePayDetails.data}
+        />
         </Form>
       </Modal>
     </div>

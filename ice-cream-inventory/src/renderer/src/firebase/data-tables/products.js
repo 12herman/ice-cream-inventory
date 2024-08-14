@@ -4,7 +4,7 @@ import { db } from "../firebase";
 // Get all product
 export const getproduct = async () => {
     try {
-      const collectionRef = collection(db, "projects");
+      const collectionRef = collection(db, "product");
       const querySnapshot = await getDocs(collectionRef);
       const product = querySnapshot.docs.map(doc => ({
         id: doc.id, 
@@ -20,7 +20,7 @@ export const getproduct = async () => {
   // Create a new product
 export const createproduct = async (task) => {
   try {
-    const collectionRef = collection(db, "projects");
+    const collectionRef = collection(db, "product");
     const res = await addDoc(collectionRef, task);
     return { res, status: 200 };
   } catch (err) {
@@ -32,7 +32,7 @@ export const createproduct = async (task) => {
 // Update an existing product
 export const updateproduct = async (productId, updatedData) => {
   try {
-    const docRef = doc(db, "projects", productId);
+    const docRef = doc(db, "product", productId);
     await updateDoc(docRef, updatedData);
     return { status: 200 };
   } catch (err) {
@@ -45,7 +45,7 @@ export const updateproduct = async (productId, updatedData) => {
 // Delete an product
 export const deleteproduct = async (productId) => {
   try {
-    const docRef = doc(db, "projects", productId);
+    const docRef = doc(db, "product", productId);
     await deleteDoc(docRef);
     return { status: 200 };
   } catch (err) {
