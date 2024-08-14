@@ -14,6 +14,7 @@ import {
 } from 'antd'
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { PiExport } from 'react-icons/pi'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
@@ -21,9 +22,10 @@ import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
 import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
 import { createStorage } from '../firebase/data-tables/storage'
+import jsonToExcel from '../js-files/json-to-excel'
 const { Search } = Input
 
-export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}) {
+export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
   const [form] = Form.useForm()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -62,20 +64,20 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}
       createddate: TimestampJs(),
       updateddate: '',
       isdeleted: false
-    });
+    })
     if (!materialExists) {
       await createStorage({
         materialname: values.materialname,
         alertcount: 0,
         quantity: 0,
-        category: "Material List",
+        category: 'Material List',
         createddate: TimestampJs()
-      });
-      storageUpdateMt();
+      })
+      storageUpdateMt()
     }
-    form.resetFields();
-    supplierUpdateMt();
-    setIsModalOpen(false);
+    form.resetFields()
+    supplierUpdateMt()
+    setIsModalOpen(false)
   }
 
   const columns = [
@@ -136,7 +138,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -155,6 +156,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
+            <Button>
+              Pay
+              <MdOutlinePayments />
+            </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => edit(record)}
@@ -364,9 +369,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}
   }
 
   // export
-  const payMt = async () => {
-    // const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
-    // jsonToExcel(exportDatas,`Supplier-List-${TimestampJs()}`);
+  const exportExcel = async () => {
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    jsonToExcel(exportDatas, `Supplier-List-${TimestampJs()}`)
+    setSelectedRowKeys([])
+    setEditingKeys('')
   }
 
   return (
@@ -384,9 +391,9 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt}
           <span className="flex gap-x-3 justify-center items-center">
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
-              onClick={payMt}
+              onClick={exportExcel}
             >
-              Pay <MdOutlinePayments />
+              Export <PiExport />
             </Button>
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}

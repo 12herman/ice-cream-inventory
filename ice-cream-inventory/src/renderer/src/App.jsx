@@ -11,6 +11,7 @@ import { MdOutlinePeopleAlt } from "react-icons/md";
 import { PiUserListBold  } from "react-icons/pi";
 import { GrUserWorker } from "react-icons/gr";
 import { LuMilk } from "react-icons/lu";
+import { notification } from "antd";
 import Pages from "./components/Pages";
 import { getproduct } from "./firebase/data-tables/products";
 import { getSupplier } from "./firebase/data-tables/supplier";
@@ -167,6 +168,27 @@ const App =() =>{
     }
     fetchData();
   },[datas.storageupdatestaus]);
+
+  // Notification logic
+  useEffect(() => {
+    datas.storage.forEach(record => {
+    if(record.category === "Product List"){
+      if (record.numberofpacks < record.alertcount) {
+        notification.warning({
+          message: 'Alert',
+          description: `${record.productname} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`,
+        });
+      }
+    }else{
+      if (record.quantity < record.alertcount) {
+        notification.warning({
+          message: 'Alert',
+          description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`,
+        });
+      }
+    }
+    });
+  }, [datas.storage]);
 
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">

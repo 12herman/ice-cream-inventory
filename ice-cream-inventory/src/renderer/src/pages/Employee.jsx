@@ -109,7 +109,6 @@ export default function Employee({ datas, employeeUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed:'right',
-      width:110,
       render: (_, record) => {
         const editable = isEditing(record);
         return editable ? (
@@ -129,6 +128,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
         </span>
         ) : (
         <span className='flex gap-x-3 justify-center items-center'>
+          <Button>
+              Pay
+              <MdOutlinePayments />
+            </Button>
         <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
           <MdOutlineModeEditOutline size={20} />
           </Typography.Link>
@@ -340,9 +343,11 @@ export default function Employee({ datas, employeeUpdateMt }) {
   };
 
   // export
-  const payMt = async () => {
-    // const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
-    // jsonToExcel(exportDatas,`Supplier-List-${TimestampJs()}`);
+  const exportExcel = async () => {
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    jsonToExcel(exportDatas, `Employee-List-${TimestampJs()}`)
+    setSelectedRowKeys([])
+    setEditingKeys('')
   }
 
   return (
@@ -351,7 +356,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         <li className='flex gap-x-3 justify-between items-center'>
           <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
           <span className='flex gap-x-3 justify-center items-center'>
-            <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={payMt}>Pay <MdOutlinePayments /></Button>
+            <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={exportExcel}>Export <PiExport /></Button>
             <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields(); form.setFieldsValue({gender: 'Male',position:'Worker'});}}>
               New Employee <IoMdAdd />
             </Button>

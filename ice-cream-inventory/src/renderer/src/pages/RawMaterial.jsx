@@ -19,6 +19,7 @@ import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
+import { IoMdRemove } from "react-icons/io";
 import { AiOutlineDelete } from 'react-icons/ai'
 import {
   createRawmaterial,
@@ -40,6 +41,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const [selectedSupplierName, setSelectedSupplierName] = useState(null)
   const [materials, setMaterials] = useState([])
   const [dateRange, setDateRange] = useState([null, null])
+  const [usedmaterialform] = Form.useForm();
+  const [usedMaterialModal, setUsedMaterialModal] = useState(false);
 
   // side effect
   useEffect(() => {
@@ -90,7 +93,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   const createAddMaterial = async (values) => {
   
- if(form.getFieldValue('partialamount') === 0){
+ if(form.getFieldValue('partialamount') === "0"){
   return message.open({type: 'warning',content: 'Please enter a valid amount',});
  }
  else{
@@ -100,7 +103,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       ...otherValues,
       date: formattedDate,
       createddate: TimestampJs(),
-      isdeleted: false
+      isdeleted: false,
+      type: "Added"
     })
     const existingMaterial = datas.storage.find(
       (storageItem) =>
@@ -176,6 +180,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'price',
       editable: true,
       width: 100
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      editable: true,
+      width: 160,
+      sorter: (a, b) => a.type.localeCompare(b.type),
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: text => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
     },
     {
       title: 'Status',
@@ -437,6 +451,95 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     form.setFieldsValue({ partialamount: 0 })
   };
 
+  // material used
+  const usedmaterialcolumns = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 150,
+      editable: false,
+    },
+    {
+      title: 'Material',
+      dataIndex: 'materialname',
+      key: 'materialname',
+      editable: true,
+    },
+    {
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: true,
+    },
+    {
+      title: 'Action',
+      dataIndex: 'operation',
+      fixed:'right',
+      width:110,
+      render: (_, record) => {
+       return (<Popconfirm className={`${editingKey !== '' ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => removeTemMaterial(record)} disabled={editingKey !== ''}>
+       <AiOutlineDelete className={`${editingKey !== ''  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
+      </Popconfirm>);
+      },
+    },
+  ];
+
+  const [mtOption,setMtOption] = useState({
+    material:[],
+    tempproduct:[],
+    count:0
+  });
+
+  useEffect(()=>{
+     const optionsuppliers = datas.suppliers.filter((item,i,self)=> item.isdeleted ===false && i === self.findIndex(d => d.materialname === item.materialname)).map(item => ({label:item.materialname,value:item.materialname}));
+     setMtOption(pre => ({...pre,material:optionsuppliers}));
+  },[])
+
+  // create material
+  const createUsedMaterial = async (values)=>{
+    setMtOption(pre => ({...pre,count:pre.count+1}));
+    const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : '';
+    const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
+    const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
+    const dbcheckExsit = datas.usedmaterials.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
+    if(checkExsit){
+      message.open({type: 'warning',content: 'Product is already added',});
+      return;
+    }
+    else if(dbcheckExsit){
+      message.open({type: 'warning',content: 'Product is already added',});
+      return;
+    }
+    else{
+      setMtOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newMaterial]}));
+    }
+  };
+
+   // remove tem material
+   const removeTemMaterial = (key) => {
+    const newTempProduct = mtOption.tempproduct.filter(item => item.key !== key.key);
+    setMtOption(pre => ({...pre,tempproduct:newTempProduct}));
+  };
+
+  // add new material to data base
+  const addNewTemMaterial = async()=> {
+    mtOption.tempproduct.map(async (item,i)=>{
+      let {key,quantity,...newMaterial} = item;
+      let quntity = Number(quantity.split(' ')[0]);
+      await createRawmaterial({...newMaterial,quantity:quntity,type:'Used'});
+    });
+    rawmaterialUpdateMt();
+    materialModelCancel();
+  };
+
+  // model cancel
+  const materialModelCancel =()=> {
+    setUsedMaterialModal(false);
+    usedmaterialform.resetFields();
+    setMtOption(pre => ({...pre,tempproduct:[],count:0}));
+    };
+
   return (
     <div>
       <ul>
@@ -454,6 +557,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             <Button>
               Export <PiExport />
             </Button>
+            <Button onClick={()=>setUsedMaterialModal(true)} type="primary" disabled={editingKey !== ''}>Material Used <IoMdRemove /></Button>
             <Button
               type="primary"
               onClick={() => {
@@ -652,6 +756,75 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
         </Form>
       </Modal>
+
+      {/* material used model */}
+      <Modal
+        className='relative'
+        title={<div className='flex  justify-center py-3'> <h2>MATERIAL USED</h2> </div>}
+        width={1000}
+        open={usedMaterialModal}
+        onCancel={materialModelCancel}
+        okButtonProps={{ disabled: true }}
+        footer={<Button type='primary' disabled={mtOption.tempproduct.length > 0 ? false:true} onClick={addNewTemMaterial} className=' w-fit'>Add</Button>}
+      >
+      <div className='grid grid-cols-3 gap-x-3'>
+      
+      <span className='col-span-1 '>
+      <Form
+          onFinish={createUsedMaterial}
+          form={usedmaterialform}
+          layout='vertical'
+          initialValues={{ date: dayjs() }}
+        >
+          <Form.Item name='materialname' label="Material Name" rules={[{ required: true, message: false }]}>
+          <Select
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={mtOption.material}
+          />
+          </Form.Item>
+                  
+         <span className='flex gap-x-2 '>
+         <Form.Item className='mb-1 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }]}>
+          <InputNumber className='w-full'/>
+          </Form.Item>
+
+          <Form.Item className='' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
+          <Select
+            showSearch
+            placeholder="Search to Select"
+            optionFilterProp="label"
+            filterSort={(optionA, optionB) =>
+              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+            }
+            options={[{label:'Liter',value:'Liter'},{label:'MM',value:'MM'},{label:'GM',value:'GM'},{label:'KG',value:'KG'}]}
+          />
+          </Form.Item>
+         </span>
+
+          <Form.Item className=' absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+          <DatePicker  format={"DD/MM/YYYY"} />
+          </Form.Item>
+
+          <Form.Item className=' w-full'>
+           <Button className='w-full' type="primary" htmlType="submit">Add To List</Button>
+         </Form.Item>
+        </Form>
+      </span>
+      <span className='col-span-2'>
+        <Table 
+        columns={usedmaterialcolumns}
+        dataSource={mtOption.tempproduct}
+        pagination={{pageSize:4}}
+        />
+      </span>
+      </div>
+      </Modal>
+
     </div>
   )
 }

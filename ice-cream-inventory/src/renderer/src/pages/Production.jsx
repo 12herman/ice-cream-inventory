@@ -6,21 +6,19 @@ import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
 import { AiOutlineDelete } from "react-icons/ai";
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
 import { TimestampJs } from '../js-files/time-stamp';
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 import dayjs from 'dayjs';
 import { createProduction, updateProduction } from '../firebase/data-tables/production';
 import jsonToExcel from '../js-files/json-to-excel';
-import { createUsedmaterial } from '../firebase/data-tables/usedmaterial';
+import { updateStorage } from '../firebase/data-tables/storage';
 
-export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt }) {
+export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt, storageUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
   const [form2] = Form.useForm();
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [data, setData] = useState([]);
@@ -56,18 +54,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       setSearchText('');
     }
   }
-
-  const createNewProject = async (values) => {
-   await createproduct({ 
-     ...values, 
-     createddate: TimestampJs(), 
-     updateddate: '', 
-     isdeleted: false 
-   });
-   form.resetFields();
-   productionUpdateMt();
-   setIsModalOpen(false);
- };
 
  const columns = [
    {
@@ -438,7 +424,7 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
 
   // add new production
   const addNewProduction = async()=> {
-    await option.tempproduct.map(async (item,i)=>{
+    await option.tempproduct.map(async (item)=>{
       let {key,...newProduction} = item;
       await createProduction({...newProduction,isdeleted:false});
     });
@@ -462,47 +448,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       setEditingKey('');
     };
 
-    // material used
-    const columns3 = [
-      // {
-      //   title: 'S.No',
-      //   dataIndex: 'sno',
-      //   key: 'sno',
-      //   width: 70,
-      // },
-      {
-        title: 'Date',
-        dataIndex: 'date',
-        key: 'date',
-        width: 150,
-        editable: false,
-      },
-      {
-        title: 'Material',
-        dataIndex: 'material',
-        key: 'material',
-        editable: true,
-      },
-      {
-        title: 'Quantity',
-        dataIndex: 'quantity',
-        key: 'quantity',
-        editable: true,
-      },
-      {
-        title: 'Action',
-        dataIndex: 'operation',
-        fixed:'right',
-        width:110,
-        render: (_, record) => {
-         return (<Popconfirm className={`${editingKey !== '' ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => removeTemMaterial(record)} disabled={editingKey !== ''}>
-         <AiOutlineDelete className={`${editingKey !== ''  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
-        </Popconfirm>);
-        },
-      },
-    ];
-    const [form3] = Form.useForm();
-    const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
     const [mtOption,setMtOption] = useState({
       material:[],
       tempproduct:[],
@@ -513,51 +458,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
        setMtOption(pre => ({...pre,material:optionsuppliers}));
     },[])
 
-    // create material
-    const createTemMaterial = async (values)=>{
-      setMtOption(pre => ({...pre,count:pre.count+1}));
-      const formattedDate = values.date ? values.date.format('DD/MM-YYYY') : '';
-      const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
-      const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
-      const dbcheckExsit = datas.usedmaterials.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
-      if(checkExsit){
-        message.open({type: 'warning',content: 'Product is already added',});
-        return;
-      }
-      else if(dbcheckExsit){
-        message.open({type: 'warning',content: 'Product is already added',});
-        return;
-      }
-      else{
-        setMtOption(pre => ({...pre,tempproduct:[...pre.tempproduct,newMaterial]}));
-      }
-      
-    };
-
-    // remove tem material
-    const removeTemMaterial = (key) => {
-      const newTempProduct = mtOption.tempproduct.filter(item => item.key !== key.key);
-      setMtOption(pre => ({...pre,tempproduct:newTempProduct}));
-    };
-
-    // add new material to data base
-    const addNewTemMaterial = async()=> {
-      mtOption.tempproduct.map(async (item,i)=>{
-        let {key,quantity,...newMaterial} = item;
-        let quntity = Number(quantity.split(' ')[0]);
-        await createUsedmaterial({...newMaterial,quantity:quntity});
-      });
-     usedmaterialUpdateMt();
-     materialModelCancel();
-    };
-
-    // model cancel
-    const materialModelCancel =()=> {
-      setIsMaterialModalOpen(false);
-      form3.resetFields();
-      setMtOption(pre => ({...pre,tempproduct:[],count:0}));
-      };
-
   return (
     <div>
       <ul>
@@ -567,7 +467,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       <span className='flex gap-x-3 justify-center items-center'>
       <RangePicker onChange={(dates) => setDateRange(dates)} />
           <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>Export <PiExport /></Button>
-          <Button onClick={()=>setIsMaterialModalOpen(true)} type="primary" disabled={editingKey !== ''}>Material Used <IoMdRemove /></Button>
           <Button disabled={editingKey !== ''} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields()}}>
               Add Product <IoMdAdd />
             </Button>
@@ -674,76 +573,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
       </div>
       </Modal>
       
-      {/* material used model */}
-      <Modal
-        className='relative'
-        title={<div className='flex  justify-center py-3'> <h2>MATERIAL USED</h2> </div>}
-        width={1000}
-        open={isMaterialModalOpen}
-        onCancel={materialModelCancel}
-        okButtonProps={{ disabled: true }}
-        footer={<Button type='primary' disabled={mtOption.tempproduct.length > 0 ? false:true} onClick={addNewTemMaterial} className=' w-fit'>Add</Button>}
-      >
-      <div className='grid grid-cols-3 gap-x-3'>
-      
-      <span className='col-span-1 '>
-      <Form
-          onFinish={createTemMaterial}
-          form={form3}
-          layout='vertical'
-          initialValues={{ date: dayjs() }}
-        >
-          <Form.Item name='material' label="Material Name" rules={[{ required: true, message: false }]}>
-          <Select
-            showSearch
-            placeholder="Search to Select"
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-            }
-            options={mtOption.material}
-            onChange={(value,i) => productOnchange(value,i)}
-          />
-          </Form.Item>
-                  
-         <span className='flex gap-x-2 '>
-         <Form.Item className='mb-1 w-full' name='quantity' label="Quantity" rules={[{ required: true, message: false }]}>
-          <InputNumber className='w-full'/>
-          </Form.Item>
-
-          <Form.Item className='' name='unit' label="Unit" rules={[{ required: true, message: false }]}>
-          <Select
-          onChange={(value,i) => flavourOnchange(value,i)}
-            showSearch
-            placeholder="Search to Select"
-            optionFilterProp="label"
-            filterSort={(optionA, optionB) =>
-              (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-            }
-            options={[{label:'Liter',value:'Liter',},{label:'MM',value:'MM'},{label:'GM',value:'GM'},{label:'KG',value:'KG'}]}
-          />
-          </Form.Item>
-         </span>
-
-          <Form.Item className=' absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
-          <DatePicker  format={"DD/MM/YY"} />
-          </Form.Item>
-
-          <Form.Item className=' w-full'>
-           <Button className='w-full' type="primary" htmlType="submit">Add To List</Button>
-         </Form.Item>
-        {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button> */}
-        </Form>
-      </span>
-      <span className='col-span-2'>
-        <Table 
-        columns={columns3}
-        dataSource={mtOption.tempproduct}
-        pagination={{pageSize:4}}
-        />
-      </span>
-      </div>
-      </Modal>
     </div>
   )
 }

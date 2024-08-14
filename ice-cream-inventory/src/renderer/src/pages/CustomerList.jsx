@@ -1,55 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select, Radio } from 'antd';
-import { PiExport } from "react-icons/pi";
-import { IoMdAdd } from "react-icons/io";
-import { MdOutlineModeEditOutline } from "react-icons/md";
-import { LuSave } from "react-icons/lu";
-import { TiCancel } from "react-icons/ti";
-import { AiOutlineDelete } from "react-icons/ai";
-import { MdOutlinePayments } from "react-icons/md";
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products';
-import { TimestampJs } from '../js-files/time-stamp';
-import jsonToExcel from '../js-files/json-to-excel';
-import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier';
-import { createCustomer, updateCustomer } from '../firebase/data-tables/customer';
-const { Search } = Input;
+import React, { useEffect, useState } from 'react'
+import {
+  Button,
+  Input,
+  Table,
+  Modal,
+  Form,
+  InputNumber,
+  Typography,
+  Popconfirm,
+  message,
+  Select,
+  Radio
+} from 'antd'
+import { PiExport } from 'react-icons/pi'
+import { IoMdAdd } from 'react-icons/io'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { LuSave } from 'react-icons/lu'
+import { TiCancel } from 'react-icons/ti'
+import { AiOutlineDelete } from 'react-icons/ai'
+import { MdOutlinePayments } from 'react-icons/md'
+import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products'
+import { TimestampJs } from '../js-files/time-stamp'
+import jsonToExcel from '../js-files/json-to-excel'
+import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
+import { createCustomer, updateCustomer } from '../firebase/data-tables/customer'
+const { Search } = Input
 
 export default function CustomerList({ datas, customerUpdateMt }) {
-  
   // states
-  const [form] = Form.useForm();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingKeys, setEditingKeys] = useState([]);
-  const [data, setData] = useState([]);
+  const [form] = Form.useForm()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingKeys, setEditingKeys] = useState([])
+  const [data, setData] = useState([])
 
   // side effect
   useEffect(() => {
-    setData(datas.customers.length > 0 ?  datas.customers.filter(data => data.isdeleted === false).map((item, index) => ({ ...item,sno:index+1, key: item.id || index })):[]);
-  }, [datas]);
+    setData(
+      datas.customers.length > 0
+        ? datas.customers
+            .filter((data) => data.isdeleted === false)
+            .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+        : []
+    )
+  }, [datas])
 
   // search
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value);
+    setSearchText(value)
   }
   const onSearchChange = (e) => {
-    if(e.target.value === ''){
-      setSearchText('');
+    if (e.target.value === '') {
+      setSearchText('')
     }
   }
 
-  // create new project 
+  // create new project
   const createNewProject = async (values) => {
-    await createCustomer({ 
-      ...values, 
-      createddate: TimestampJs(), 
-      updateddate: '', 
-      isdeleted: false 
-    });
-    form.resetFields();
-    customerUpdateMt();
-    setIsModalOpen(false);
-  };
+    await createCustomer({
+      ...values,
+      createddate: TimestampJs(),
+      updateddate: '',
+      isdeleted: false
+    })
+    form.resetFields()
+    customerUpdateMt()
+    setIsModalOpen(false)
+  }
 
   const columns = [
     {
@@ -59,14 +76,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
-        return(
+        return (
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase()) 
+          String(record.price).toLowerCase().includes(value.toLowerCase())
         )
-      },
+      }
     },
     {
       title: 'Customer Name',
@@ -74,7 +91,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'customername',
       editable: true,
       sorter: (a, b) => a.customername.localeCompare(b.customername),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Transport',
@@ -82,7 +99,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'transport',
       editable: true,
       sorter: (a, b) => a.transport.localeCompare(b.transport),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Location',
@@ -90,58 +107,70 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'location',
       editable: true,
       sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: {target: 'sorter-icon'},
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Mobile Number ',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
-      width: 180,
+      width: 180
     },
     {
       title: 'Vehicle / Freezer ',
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
       editable: true,
-      width: 180,
+      width: 180
     },
     {
       title: 'Action',
       dataIndex: 'operation',
-      fixed:'right',
-      width:110,
+      fixed: 'right',
       render: (_, record) => {
-        const editable = isEditing(record);
+        const editable = isEditing(record)
         return editable ? (
-          <span className='flex gap-x-1 justify-center items-center'>
-          <Typography.Link 
-            onClick={() => save(
-             record
-              )}
-            style={{
-              marginRight: 8,
-            }}
-          >
-            <LuSave size={17}/>
-          </Typography.Link>
-          <Popconfirm  title="Sure to cancel?" onConfirm={cancel}>
-          <TiCancel size={20} className='text-red-500 cursor-pointer hover:text-red-400' />
-          </Popconfirm>
-        </span>
+          <span className="flex gap-x-1 justify-center items-center">
+            <Typography.Link
+              onClick={() => save(record)}
+              style={{
+                marginRight: 8
+              }}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
         ) : (
-        <span className='flex gap-x-3 justify-center items-center'>
-        <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
-          <MdOutlineModeEditOutline size={20} />
-          </Typography.Link>
-          <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed': 'cursor-pointer'} `} title="Sure to delete?" onConfirm={() => deleteProduct(record)} >
-            <AiOutlineDelete className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0  ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
-          </Popconfirm>
-        </span>
-        );
-      },
-    },
-  ];
+          <span className="flex gap-x-3 justify-center items-center">
+            <Button>
+              Pay
+              <MdOutlinePayments />
+            </Button>
+            <Typography.Link
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              onClick={() => edit(record)}
+            >
+              <MdOutlineModeEditOutline size={20} />
+            </Typography.Link>
+            <Popconfirm
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => deleteProduct(record)}
+            >
+              <AiOutlineDelete
+                className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
+  ]
 
   const EditableCell = ({
     editing,
@@ -153,13 +182,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     children,
     ...restProps
   }) => {
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />;
+    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
           <>
-            { dataIndex === 'transport' ? 
-              <span className='flex gap-x-1'>
+            {dataIndex === 'transport' ? (
+              <span className="flex gap-x-1">
                 <Form.Item
                   name="transport"
                   style={{ margin: 0 }}
@@ -169,17 +198,19 @@ export default function CustomerList({ datas, customerUpdateMt }) {
                     placeholder="Select transport"
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
-                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
                       { value: 'Company', label: 'Company' },
                       { value: 'Freezer Box', label: 'Freezer Box' },
-                      { value: 'Self', label: 'Self' },
+                      { value: 'Self', label: 'Self' }
                     ]}
                   />
                 </Form.Item>
               </span>
-            : 
+            ) : (
               <Form.Item
                 name={dataIndex}
                 style={{ margin: 0 }}
@@ -187,25 +218,25 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               >
                 {inputNode}
               </Form.Item>
-            }
+            )}
           </>
         ) : (
           children
         )}
       </td>
-    );
-  };
+    )
+  }
 
-  const isEditing = (record) => editingKeys.includes(record.key);
+  const isEditing = (record) => editingKeys.includes(record.key)
 
-  const edit = (record) => { 
-    form.setFieldsValue({ ...record });
-    setEditingKeys([record.key]);
-  };
+  const edit = (record) => {
+    form.setFieldsValue({ ...record })
+    setEditingKeys([record.key])
+  }
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
-      return col;
+      return col
     }
     return {
       ...col,
@@ -214,45 +245,46 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         inputType: col.dataIndex === 'mobilenumber' ? 'number' : 'text',
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
+        editing: isEditing(record)
+      })
+    }
+  })
 
   const cancel = () => {
-    setEditingKeys([]);
-  };
+    setEditingKeys([])
+  }
 
   const save = async (key) => {
     try {
-      const row = await form.validateFields();
-      const newData = [...data];
-      const index = newData.findIndex((item) => key.id === item.key);
-      if (index != null &&
-        row.customername === key.customername && 
-        row.transport === key.transport && 
-        row.location === key.location && 
+      const row = await form.validateFields()
+      const newData = [...data]
+      const index = newData.findIndex((item) => key.id === item.key)
+      if (
+        index != null &&
+        row.customername === key.customername &&
+        row.transport === key.transport &&
+        row.location === key.location &&
         row.vehicleorfreezerno === key.vehicleorfreezerno &&
         row.mobilenumber === key.mobilenumber
-        ) {
-        message.open({type: 'info',content: 'No changes made',});
-        setEditingKeys([]);
+      ) {
+        message.open({ type: 'info', content: 'No changes made' })
+        setEditingKeys([])
       } else {
-        await updateCustomer(key.id,{...row,updateddate: TimestampJs()},);
-        customerUpdateMt();
-        message.open({type: 'success',content: 'Updated Successfully',});
-        setEditingKeys([]);
+        await updateCustomer(key.id, { ...row, updateddate: TimestampJs() })
+        customerUpdateMt()
+        message.open({ type: 'success', content: 'Updated Successfully' })
+        setEditingKeys([])
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
+      console.log('Validate Failed:', errInfo)
     }
-  };
+  }
 
   // selection
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const onSelectChange = (newSelectedRowKeys) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
+    setSelectedRowKeys(newSelectedRowKeys)
+  }
 
   const rowSelection = {
     selectedRowKeys,
@@ -266,98 +298,122 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         key: 'odd',
         text: 'Select Odd Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
+          let newSelectedRowKeys = []
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
-              return false;
+              return false
             }
-            return true;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
+            return true
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
       },
       {
         key: 'even',
         text: 'Select Even Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
+          let newSelectedRowKeys = []
           newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 === 0) {
-              return false;
+              return false
             }
-            return true;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
-      },
-    ],
-  };
+            return true
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
+      }
+    ]
+  }
 
   // Table Height Auto Adjustment (***Do not touch this code***)
-  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200); // Initial height adjustment
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
   useEffect(() => {
     // Function to calculate and update table height
     const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 100; // Adjust this value based on your layout needs
-      setTableHeight(newHeight);
-    };
+      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+      setTableHeight(newHeight)
+    }
     // Set initial height
-    updateTableHeight();
+    updateTableHeight()
     // Update height on resize and fullscreen change
-    window.addEventListener('resize', updateTableHeight);
-    document.addEventListener('fullscreenchange', updateTableHeight);
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
     // Cleanup event listeners on component unmount
     return () => {
-      window.removeEventListener('resize', updateTableHeight);
-      document.removeEventListener('fullscreenchange', updateTableHeight);
-    };
-  }, []);
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
 
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
-    const {id,...newData} = data;
-    await updateCustomer(id,{isdeleted: true,
+    const { id, ...newData } = data
+    await updateCustomer(id, {
+      isdeleted: true,
       // deletedby: 'admin',
-      deleteddate: TimestampJs()});
+      deleteddate: TimestampJs()
+    })
     //customerUpdateMt();
-    message.open({type: 'success',content: 'Deleted Successfully',});
-  };
+    message.open({ type: 'success', content: 'Deleted Successfully' })
+  }
 
   // export
-  const pay = async () => {
-    // const exportDatas = data.filter(item => selectedRowKeys.includes(item.key));
-    // jsonToExcel(exportDatas,`Supplier-List-${TimestampJs()}`);
+  const exportExcel = async () => {
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
+    setSelectedRowKeys([])
+    setEditingKeys('')
   }
 
   return (
     <div>
       <ul>
-        <li className='flex gap-x-3 justify-between items-center'>
-          <Search  allowClear className='w-[40%]' placeholder="Search" onSearch={onSearchEnter} onChange={onSearchChange} enterButton />
-          <span className='flex gap-x-3 justify-center items-center'>
-            <Button disabled={editingKeys.length !== 0 ||  selectedRowKeys.length === 0} onClick={pay}>Pay <MdOutlinePayments /></Button>
-            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} type="primary" onClick={() => {setIsModalOpen(true); form.resetFields();form.setFieldsValue({transport: 'Company'});}}>
+        <li className="flex gap-x-3 justify-between items-center">
+          <Search
+            allowClear
+            className="w-[40%]"
+            placeholder="Search"
+            onSearch={onSearchEnter}
+            onChange={onSearchChange}
+            enterButton
+          />
+          <span className="flex gap-x-3 justify-center items-center">
+            <Button
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
+              onClick={exportExcel}
+            >
+              Export <PiExport />
+            </Button>
+            <Button
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              type="primary"
+              onClick={() => {
+                setIsModalOpen(true)
+                form.resetFields()
+                form.setFieldsValue({ transport: 'Company' })
+              }}
+            >
               New Customer <IoMdAdd />
             </Button>
           </span>
         </li>
 
-        <li className='mt-2'>
+        <li className="mt-2">
           <Form form={form} component={false}>
             <Table
               virtual
               components={{
                 body: {
-                  cell: EditableCell,
-                },
-              }} 
+                  cell: EditableCell
+                }
+              }}
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
               loading={data.length <= 0 ? true : false}
               rowClassName="editable-row"
-              scroll={{x:900,y: tableHeight}}
+              scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
             />
           </Form>
@@ -368,45 +424,70 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         title="New Supplier"
         open={isModalOpen}
         onOk={() => form.submit()}
-        onCancel={() => { 
-          setIsModalOpen(false); 
-          form.resetFields(); 
+        onCancel={() => {
+          setIsModalOpen(false)
+          form.resetFields()
         }}
       >
         <Form
-          initialValues={{ transport: 'Company' }} 
+          initialValues={{ transport: 'Company' }}
           onFinish={createNewProject}
           form={form}
-          layout='vertical'
+          layout="vertical"
         >
-          <Form.Item className='mb-1' name='customername' label="Customer Name" rules={[{ required: true, message: false }]}>
+          <Form.Item
+            className="mb-1"
+            name="customername"
+            label="Customer Name"
+            rules={[{ required: true, message: false }]}
+          >
             <Input />
           </Form.Item>
 
-          <Form.Item className='mb-1' name='transport' label="Transport Type" rules={[{ required: true, message: false }]}>
-          <Radio.Group>
-            <Radio value={'Company'}>Company</Radio>
-            <Radio value={'Freezer Box'}>Freezer Box</Radio>
-            <Radio value={'Self'}>Self</Radio>
-          </Radio.Group>
+          <Form.Item
+            className="mb-1"
+            name="transport"
+            label="Transport Type"
+            rules={[{ required: true, message: false }]}
+          >
+            <Radio.Group>
+              <Radio value={'Company'}>Company</Radio>
+              <Radio value={'Freezer Box'}>Freezer Box</Radio>
+              <Radio value={'Self'}>Self</Radio>
+            </Radio.Group>
           </Form.Item>
 
-          <Form.Item className='mb-1' name='vehicleorfreezerno' label="Vehicle No / Freezer No" rules={[{ required: true, message: false }]}>
-            <Input className='w-full' />
-          </Form.Item>
-        
-          <Form.Item className='mb-1 w-full' name='mobilenumber' label="Mobile Number" rules={[{ required: true, message: false },{ type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
+          <Form.Item
+            className="mb-1"
+            name="vehicleorfreezerno"
+            label="Vehicle No / Freezer No"
+            rules={[{ required: true, message: false }]}
+          >
+            <Input className="w-full" />
           </Form.Item>
 
-          <Form.Item className='mb-1' name='location' label="location" rules={[{ required: true, message: false }]}>
+          <Form.Item
+            className="mb-1 w-full"
+            name="mobilenumber"
+            label="Mobile Number"
+            rules={[
+              { required: true, message: false },
+              { type: 'number', message: false }
+            ]}
+          >
+            <InputNumber className="w-full" />
+          </Form.Item>
+
+          <Form.Item
+            className="mb-1"
+            name="location"
+            label="location"
+            rules={[{ required: true, message: false }]}
+          >
             <Input />
           </Form.Item>
-         
         </Form>
       </Modal>
     </div>
-  );
+  )
 }
-
-
