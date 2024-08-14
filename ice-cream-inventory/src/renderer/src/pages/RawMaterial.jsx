@@ -144,26 +144,23 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
+      width: 110,
       editable: false
     },
     {
       title: 'Supplier',
       dataIndex: 'suppliername',
       key: 'suppliername',
+      width: 150,
       editable: true
     },
     {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
+      width: 150,
       editable: true
     },
-    // {
-    //   title: 'Location',
-    //   dataIndex: 'location',
-    //   key: 'location',
-    //   editable: true,
-    // },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
@@ -186,7 +183,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'type',
       key: 'type',
       editable: true,
-      width: 160,
+      width: 120,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: text => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
@@ -196,7 +193,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: true,
-      width: 160,
+      width: 120,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
       render: text => <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text}</Tag>

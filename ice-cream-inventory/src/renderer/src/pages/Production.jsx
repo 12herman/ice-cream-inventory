@@ -102,7 +102,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     dataIndex: 'numberofpacks',
     key: 'numberofpacks',
     editable: true,
-    width: 160,
+    width: 100,
   },
    {
      title: 'Action',

@@ -135,7 +135,7 @@ export default function Home({ datas }) {
         <li className='mt-2'>
       <Row gutter={16}>
     <Col span={6}>
-      <Card bordered={false}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
         <Statistic
           title="Total Sales"
           value={totalSales}
@@ -148,7 +148,7 @@ export default function Home({ datas }) {
       </Card>
     </Col>
     <Col span={6}>
-      <Card bordered={false}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
         <Statistic
           title="Total Spending"
           value={totalSpend}
@@ -161,7 +161,7 @@ export default function Home({ datas }) {
       </Card>
     </Col>
     <Col span={6}>
-      <Card bordered={false}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
         <Statistic
           title="Total Profit"
           value={totalProfit}
@@ -174,9 +174,64 @@ export default function Home({ datas }) {
       </Card>
     </Col>
     <Col span={6}>
-      <Card bordered={false}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
         <Statistic
           title="Total Customer"
+          value={totalCustomers}
+          valueStyle={{
+            color: '#3f8600',
+          }}
+          prefix={<IoPerson />}
+        />
+      </Card>
+    </Col>
+  </Row>
+  </li>
+  <li className='mt-4'>
+  <Row gutter={16}>
+    <Col span={6}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+        <Statistic
+          title="Total Quick Sale"
+          value={totalSales}
+          precision={2}
+          valueStyle={{
+            color: '#3f8600',
+          }}
+          prefix={<FaRupeeSign  />}
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+        <Statistic
+          title="Total Return"
+          value={totalSpend}
+          precision={2}
+          valueStyle={{
+            color: '#cf1322',
+          }}
+          prefix={<FaRupeeSign />}
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+        <Statistic
+          title="Total Paid"
+          value={totalProfit}
+          precision={2}
+          valueStyle={{
+            color: totalProfit > 0 ? '#3f8600' : '#cf1322',
+          }}
+          prefix={<FaRupeeSign />}
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+        <Statistic
+          title="Total Unpaid"
           value={totalCustomers}
           valueStyle={{
             color: '#3f8600',
