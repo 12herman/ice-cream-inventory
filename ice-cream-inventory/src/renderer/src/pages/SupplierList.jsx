@@ -12,6 +12,7 @@ import {
   Select,
   Radio
 } from 'antd'
+import { SolutionOutlined } from '@ant-design/icons';
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { PiExport } from 'react-icons/pi'
@@ -160,6 +161,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               Pay
               <MdOutlinePayments />
             </Button>
+            <Button><SolutionOutlined/></Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => edit(record)}

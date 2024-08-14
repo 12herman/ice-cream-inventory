@@ -88,6 +88,11 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'quantity',
     },
     {
+      title: 'Alert Count',
+      dataIndex: 'alertcount',
+      key: 'alertcount',
+    },
+    {
       title: 'Action',
       dataIndex: 'operation',
       fixed:'right',
@@ -141,6 +146,11 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'numberofpacks',
       sorter: (a, b) => (Number(a.numberofpacks) || 0) - (Number(b.numberofpacks) || 0),
       showSorterTooltip: {target: 'sorter-icon'},
+    },
+    {
+      title: 'Alert Count',
+      dataIndex: 'alertcount',
+      key: 'alertcount',
     },
     {
       title: 'Action',

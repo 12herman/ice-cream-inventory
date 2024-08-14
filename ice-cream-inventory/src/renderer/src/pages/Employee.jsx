@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button, Input, Table, Modal, Form, InputNumber, Typography, Popconfirm, message, Select, Radio } from 'antd';
 import { PiExport } from "react-icons/pi";
 import { IoMdAdd } from "react-icons/io";
+import { SolutionOutlined } from '@ant-design/icons'
 import { MdOutlineModeEditOutline } from "react-icons/md";
 import { LuSave } from "react-icons/lu";
 import { TiCancel } from "react-icons/ti";
@@ -132,6 +132,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
               Pay
               <MdOutlinePayments />
             </Button>
+            <Button><SolutionOutlined /></Button>
         <Typography.Link disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0} onClick={() => edit(record)}>
           <MdOutlineModeEditOutline size={20} />
           </Typography.Link>

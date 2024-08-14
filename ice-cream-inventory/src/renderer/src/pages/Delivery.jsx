@@ -50,7 +50,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
   useEffect(() => {
     setData(
       datas.delivery
-        .filter((data) => data.isdeleted === false )
+        .filter((data) => !data.isdeleted && isWithinRange(data.date))
         .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
     )
   }, [datas, dateRange]);
@@ -695,6 +695,24 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
       const itemsCollectionRef = collection(deliveryDocRef, 'items');
       for (const item of productItems) {
         await addDoc(itemsCollectionRef, item);
+
+        const existingProduct = datas.storage.find(
+          (storageItem) =>
+            storageItem.productname === item.productname && storageItem.category === 'Product List'
+        )
+        console.log(existingProduct, returnDelivery.state)
+        if(existingProduct){
+        if (returnDelivery.state === true) {
+          await updateStorage(existingProduct.id, {
+            numberofpacks: existingProduct.numberofpacks + item.numberofpacks
+          })
+        }else{
+          await updateStorage(existingProduct.id, {
+            numberofpacks: existingProduct.numberofpacks - item.numberofpacks
+          })
+        }
+        storageUpdateMt();
+      }
       }
       message.open({ type: 'success', content: returnDelivery.state === true ? "Production return successfully" : "Production added successfully"} );
       await deliveryUpdateMt();
@@ -993,7 +1011,7 @@ export default function Delivery({ datas, deliveryUpdateMt, usedmaterialUpdateMt
           
 
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker />
+            <RangePicker onChange={(dates) => setDateRange(dates)} />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>Export <PiExport /></Button>
             <Button onClick={() => {setIsModalOpen(true); form.resetFields(); setReturnDelivery(pre => ({...pre,state:true})) }} type="primary" disabled={editingKey !== ''}> Return <IoMdRemove /> </Button>
             <Button

@@ -14,7 +14,7 @@ import { createProduction, updateProduction } from '../firebase/data-tables/prod
 import jsonToExcel from '../js-files/json-to-excel';
 import { updateStorage } from '../firebase/data-tables/storage';
 
-export default function Production({ datas, productionUpdateMt,usedmaterialUpdateMt, storageUpdateMt }) {
+export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
 
   //states
   const [form] = Form.useForm();
@@ -297,19 +297,6 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
    };
    
    const columns2 = [
-    // {
-    //   title: 'S.No',
-    //   dataIndex: 'sno',
-    //   key: 'sno',
-    //   width: 70,
-    // },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      width: 150,
-      editable: false,
-    },
     {
       title: 'Product',
       dataIndex: 'productname',
@@ -425,8 +412,19 @@ export default function Production({ datas, productionUpdateMt,usedmaterialUpdat
   // add new production
   const addNewProduction = async()=> {
     await option.tempproduct.map(async (item)=>{
-      let {key,...newProduction} = item;
-      await createProduction({...newProduction,isdeleted:false});
+      let {key,quantity,...newProduction} = item;
+      let quantityNumber = Number(quantity.split(' ')[0]);
+      await createProduction({...newProduction,quantity: quantityNumber,isdeleted:false});
+      const existingProduct = datas.storage.find(
+        (storageItem) =>
+          storageItem.productname === newProduction.productname && storageItem.flavour === newProduction.flavour && storageItem.quantity === quantityNumber && storageItem.category === 'Product List'
+      )
+      if (existingProduct) {
+        await updateStorage(existingProduct.id, {
+          numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks
+        })
+        storageUpdateMt();
+      }
     });
     await productionUpdateMt();
     message.open({type: 'success',content: 'Production added successfully',});

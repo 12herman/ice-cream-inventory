@@ -454,13 +454,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // material used
   const usedmaterialcolumns = [
     {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      width: 150,
-      editable: false,
-    },
-    {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
@@ -501,14 +494,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     setMtOption(pre => ({...pre,count:pre.count+1}));
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : '';
     const newMaterial = {...values,date:formattedDate,key:mtOption.count,createddate:TimestampJs(),isdeleted:false,quantity:values.quantity + ' ' + values.unit};
-    const checkExsit = mtOption.tempproduct.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
-    const dbcheckExsit = datas.usedmaterials.find(item => item.material === newMaterial.material  && item.date === newMaterial.date);
-    if(checkExsit){
+    console.log(mtOption.tempproduct, newMaterial)
+    const checkExist = mtOption.tempproduct.find(item => item.materialname === newMaterial.materialname  && item.date === newMaterial.date);
+    const dbcheckExsit = datas.rawmaterials.find(item => item.materialname === newMaterial.materialname  && item.date === newMaterial.date);
+    if(checkExist){
       message.open({type: 'warning',content: 'Product is already added',});
       return;
     }
     else if(dbcheckExsit){
-      message.open({type: 'warning',content: 'Product is already added',});
+      message.open({type: 'warning',content: 'Product is alreadyy added',});
       return;
     }
     else{
@@ -524,10 +518,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // add new material to data base
   const addNewTemMaterial = async()=> {
-    mtOption.tempproduct.map(async (item,i)=>{
+    mtOption.tempproduct.map(async (item)=>{
       let {key,quantity,...newMaterial} = item;
-      let quntity = Number(quantity.split(' ')[0]);
-      await createRawmaterial({...newMaterial,quantity:quntity,type:'Used'});
+      let quantityNumber = Number(quantity.split(' ')[0]);
+      await createRawmaterial({...newMaterial,quantity: quantityNumber,type:'Used'});
+
+      const existingMaterial = datas.storage.find(
+        (storageItem) =>
+          storageItem.materialname === newMaterial.materialname && storageItem.category === 'Material List'
+      )
+      if (existingMaterial) {
+        await updateStorage(existingMaterial.id, {
+          quantity: existingMaterial.quantity - quantityNumber
+        })
+        storageUpdateMt();
+      }
     });
     rawmaterialUpdateMt();
     materialModelCancel();
