@@ -3,15 +3,16 @@ import React, {useEffect, useState} from 'react';
 import IceCreamLogo from '../assets/img/33456902_6600_7_04.jpg'
 import { LiaHandHoldingUsdSolid } from "react-icons/lia";
 import { TbIceCream } from "react-icons/tb";
-import { Modal, Button, Input, Form, InputNumber, Select, DatePicker, Table , Popconfirm, message, Tag} from 'antd';
+import { Modal, Button, Input, Form, InputNumber, Select, DatePicker, Table , Popconfirm, message, Tag, Radio} from 'antd';
 const { TextArea } = Input;
 import dayjs from 'dayjs';
 import { AiOutlineDelete } from 'react-icons/ai'
-import { count } from 'firebase/firestore';
+import { addDoc, collection, count } from 'firebase/firestore';
 import { formatToRupee } from '../js-files/formate-to-rupee';
 import { TimestampJs } from '../js-files/time-stamp';
+import { db } from '../firebase/firebase';
 
-export default function NavBar({ navPages,setNavPages,datas }) {
+export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) {
 
   const [isSpendingModalOpen, setIsSpendingModalOpen] = useState(false);
   const [spendingForm] = Form.useForm();
@@ -40,11 +41,15 @@ export default function NavBar({ navPages,setNavPages,datas }) {
       total:0,
       date:dayjs().format('DD/MM/YYYY'),
       margin:0,
-      billamount:0
+      billamount:0,
+      marginstate:false,
+      paymentstatus:'Paid',
+      customeroption:[]
     });
   
   const [quickSaleForm] = Form.useForm();
-  const [quickSaleForm2] = Form.useForm()
+  const [quickSaleForm2] = Form.useForm();
+  const [quickSaleForm3] = Form.useForm();
   // tem table column
   const temTableCl = [
     // {
@@ -126,7 +131,11 @@ export default function NavBar({ navPages,setNavPages,datas }) {
   useEffect(()=>{
     const productData =datas.product.filter((item, i, s) =>item.isdeleted === false && s.findIndex((item2) => item2.productname === item.productname) === i)
     .map((data) => ({ lable: data.productname, value: data.productname }))
-    setIsQuickSale(pre => ({...pre,proption:productData}));
+    
+    const customersData = datas.customers
+      .filter((item) => item.isdeleted === false)
+      .map((item) => ({ label: item.customername, value: item.customername }))
+      setIsQuickSale(pre => ({...pre,proption:productData,customeroption:customersData}));
   },[isQuickSale.dataloading]);
 
   const productOnchange = async (value)=>{
@@ -160,14 +169,18 @@ export default function NavBar({ navPages,setNavPages,datas }) {
     setIsQuickSale(pre =>({...pre,temdata:[...pre.temdata,...temdata]}))
     const alltemdata = [...isQuickSale.temdata,...temdata];
     const totalMultiprTotalPr = alltemdata.reduce((acc, curr) => { return acc + (curr.multiprtotalpr || 0)}, 0);
-    setIsQuickSale(pre => ({...pre,total:totalMultiprTotalPr}));
+    setIsQuickSale(pre => ({...pre,total:totalMultiprTotalPr,marginstate:false,paymentstatus:''}));
+    quickSaleForm2.resetFields();
+    quickSaleForm3.resetFields();
   };
 
   const removeTemProduct =(data)=>{
     const deletedData = isQuickSale.temdata.filter(item => item.sno !== data.sno);
     setIsQuickSale(pre => ({...pre,temdata:deletedData}));
     const totalMultiprTotalPr = deletedData.reduce((acc, curr) => { return acc + (curr.multiprtotalpr || 0)}, 0);
-    setIsQuickSale(pre => ({...pre,total:totalMultiprTotalPr}));
+    setIsQuickSale(pre => ({...pre,total:totalMultiprTotalPr,marginstate:false,paymentstatus:''}));
+    quickSaleForm2.resetFields();
+    quickSaleForm3.resetFields();
   };
 
   const qickSaledateChange = (value)=>{
@@ -178,29 +191,61 @@ export default function NavBar({ navPages,setNavPages,datas }) {
     setIsQuickSale(pre =>({...pre,temdata:[],count:0,total:0, date:value === null ? "" : value.format('DD/MM/YYYY')}));
   }; 
 
-  const quicksaleMt = ()=>{
-    const ItemsData = isQuickSale.temdata.map(data => ({id:data.id,numberofpacks:data.numberofpacks})) 
-    console.log(
-      { 
-        customername:'Quick Sale',
-        items:ItemsData,
-        billamount:isQuickSale.billamount,
-        margin:isQuickSale.margin,
-        partialamount:0,
-        paymentstatus:'Paid',
-        total:isQuickSale.total,
-        type:'quick sale',
-        isdeleted:false,
-        createddate:TimestampJs(),
-        date:isQuickSale.date
-      });
+ 
+
+
+  const quicksaleMt = async ()=>{
+    let qickSaleForm3Value = quickSaleForm3.getFieldsValue();
+    if((qickSaleForm3Value.paymentstatus ==='Partial') === (qickSaleForm3Value.customername === '' || 
+      qickSaleForm3Value.customername === undefined || 
+      qickSaleForm3Value.customername === null ||
+      qickSaleForm3Value.partialamount === undefined ||
+      qickSaleForm3Value.partialamount === null ||
+      qickSaleForm3Value.partialamount === ""))
+    {
+      message.open({ type: 'warning', content: 'Please fill the required fields' });
+      return quickSaleForm3.submit()
+    }
+    else{
+      const productItems = await isQuickSale.temdata.map(data => ({id:data.id,numberofpacks:data.numberofpacks}));
+      const newDelivery = { 
+          customername: qickSaleForm3Value.customername === '' || qickSaleForm3Value.customername === undefined || qickSaleForm3Value.customername === null ?  'Quick Sale' : qickSaleForm3Value.customername,
+          billamount:isQuickSale.billamount,
+          margin:isQuickSale.margin,
+          partialamount:qickSaleForm3Value.partialamount === undefined || qickSaleForm3Value.partialamount === null ? 0 : qickSaleForm3Value.partialamount ,
+          paymentstatus:qickSaleForm3Value.paymentstatus,
+          total:isQuickSale.total,
+          type:'quick sale',
+          isdeleted:false,
+          createddate:TimestampJs(),
+          date:isQuickSale.date
+        };
+      try{
+        const deliveryCollectionRef = collection(db, 'delivery');
+      const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery);
+      const itemsCollectionRef = collection(deliveryDocRef, 'items');
+      for (const item of productItems) {
+        await addDoc(itemsCollectionRef, item);
+      }
+        message.open({ type: 'success', content:  "Production added successfully"} );
+        await deliveryUpdateMt();
+        setIsQuickSale(pre =>({...pre,model:false,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0}));
+        quickSaleForm.resetFields(); 
+      } 
+      catch (error) {console.log(error)}
+  }
   };
 
   const marginMt = (value)=>{
     let marginCal = isQuickSale.total * value.marginvalue / 100;
     let marignAn = isQuickSale.total - marginCal;
-    setIsQuickSale(pre => ({...pre,margin:value.marginvalue,billamount:marignAn})); 
+    setIsQuickSale(pre => ({...pre,margin:value.marginvalue,billamount:marignAn,marginstate:true})); 
+  };
+
+  const customerOnchange = (value)=>{
+    console.log(value);
   }
+
 
   return (
     <nav className='border-r-2 h-screen col-span-2 relative'>
@@ -213,22 +258,62 @@ export default function NavBar({ navPages,setNavPages,datas }) {
             </li>
         ))}
       </ul>
-      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => {setIsQuickSale(pre => ({...pre,model:true,dataloading: !isQuickSale.dataloading,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0})); quickSaleForm.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
+
+      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => {setIsQuickSale(pre => ({...pre,model:true,dataloading: !isQuickSale.dataloading,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0,marginstate:false,paymentstatus:''})); quickSaleForm.resetFields(); quickSaleForm2.resetFields();quickSaleForm3.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
       <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(true); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
     {/* quick sale */}
       <Modal
       className='relative'
       footer={
        <div className='flex justify-between items-center'>
+        
         <Form 
         disabled={isQuickSale.temdata.length > 0 ? false :true}
         onFinish={marginMt}
         className='flex gap-x-2'
         form={quickSaleForm2}>
-        <Form.Item name='marginvalue' rules={[{ required: true, message: false }]}><InputNumber min={0} max={100} className='w-full' prefix={<span>Margin(%)</span>} /></Form.Item>
-        <Form.Item><Button type='primary' htmlType="submit">Enter</Button> </Form.Item>
+        <Form.Item className='mb-0' name='marginvalue' rules={[{ required: true, message: false }]}><InputNumber min={0} max={100} className='w-full' prefix={<span>Margin(%)</span>} /></Form.Item>
+        <Form.Item className='mb-0'><Button type='primary' htmlType="submit">Enter</Button> </Form.Item>
         </Form>
-      <Button onClick={quicksaleMt} disabled={isQuickSale.temdata.length > 0 ? false : true} type='primary'>Quick Sale</Button>
+
+        <Form 
+        form={quickSaleForm3}
+        layout="vertical"
+        initialValues={{paymentstatus:"Paid"}} 
+        className='flex gap-x-2 justify-center items-center'>
+        <Form.Item name="paymentstatus" className='mb-0'>
+            <Radio.Group disabled={isQuickSale.marginstate ? false : true} buttonStyle="solid" onChange={(e)=>{setIsQuickSale(pre =>({...pre,paymentstatus:e.target.value}));quickSaleForm3.resetFields(['partialamount']); quickSaleForm3.resetFields(['customername']);}}>
+              <Radio.Button value="Paid">PAID</Radio.Button>
+              <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+              <Radio.Button value="Partial">PARTIAL</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item rules={[{ required: true, message: false }]} className='mb-0' name="partialamount">
+            <InputNumber min={0} disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
+          </Form.Item>
+          <Form.Item
+                className="mb-1"
+                name="customername"
+                //label="Customer Name"
+                rules={[{ required: true, message: false }]}
+              >
+              <Input  placeholder='Enter the name' disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
+                {/* <Select
+                disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}
+                  showSearch
+                  placeholder="Customer Name"
+                  optionFilterProp="label"
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? '')
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? '').toLowerCase())
+                  }
+                  options={isQuickSale.customeroption}
+                  onChange={(value, i) => customerOnchange(value, i)}
+                /> */}
+              </Form.Item>
+        </Form>
+      <Button onClick={quicksaleMt} disabled={isQuickSale.marginstate ? false : true} type='primary'>Sale</Button>
        </div>
       }
         width={1000}
@@ -320,10 +405,10 @@ export default function NavBar({ navPages,setNavPages,datas }) {
         />
         </div>
       
-        <span className={`absolute top-8 right-10 ${isQuickSale.margin === 0 ? 'hidden' :'block' }`}>
-          <Tag color='blue'>MRP Amount: {formatToRupee(isQuickSale.total)}</Tag>
-          <Tag color='orange'>Margin:{isQuickSale.margin} %</Tag>
-          <Tag color='green'>Net Amount:  <span className='text-sm'>{isQuickSale.billamount}</span></Tag>
+        <span className={`absolute top-8 right-10 ${isQuickSale.marginstate === false ? 'hidden' :'block' }`}>
+          <Tag color='blue'>MRP Amount: <span className='text-sm'>{formatToRupee(isQuickSale.total)}</span></Tag>
+          <Tag color='orange'>Margin: <span className='text-sm'>{isQuickSale.margin}</span>%</Tag>
+          <Tag color='green'>Net Amount:  <span className='text-sm'>{formatToRupee(isQuickSale.billamount)}</span></Tag>
         </span>
       </Modal>
 

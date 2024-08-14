@@ -193,7 +193,7 @@ const App =() =>{
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
     {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
-      <NavBar datas={datas} navPages={navPages} setNavPages={setNavPages} />
+      <NavBar deliveryUpdateMt={deliveryUpdateMt} datas={datas} navPages={navPages} setNavPages={setNavPages} />
       <Pages 
       datas={datas} 
       productUpdateMt={productUpdateMt} 
