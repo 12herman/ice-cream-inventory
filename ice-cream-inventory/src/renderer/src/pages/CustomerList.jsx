@@ -10,7 +10,8 @@ import {
   Popconfirm,
   message,
   Select,
-  Radio
+  Radio,
+  DatePicker
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
@@ -20,12 +21,13 @@ import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
-import { createproduct, deleteproduct, updateproduct } from '../firebase/data-tables/products'
 import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
-import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
 import { createCustomer, updateCustomer } from '../firebase/data-tables/customer'
-const { Search } = Input
+import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
+import { db } from '../firebase/firebase'
+import dayjs from 'dayjs'
+const { Search, TextArea } = Input
 
 export default function CustomerList({ datas, customerUpdateMt }) {
   // states
@@ -33,6 +35,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
+  const [payForm] = Form.useForm()
+  const [isPayModelOpen, setIsPayModelOpen] = useState(false)
+  const [isPayDetailsModelOpen, setIsPayDetailsModelOpen] = useState(false)
+  const [customerPayId, setCustomerPayId] = useState(null)
+  const [payDetailsData, setPayDetailsData] = useState([])
 
   // side effect
   useEffect(() => {
@@ -68,6 +75,65 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     customerUpdateMt()
     setIsModalOpen(false)
   }
+
+  const showPayModal = (record) => {
+    payForm.setFieldValue({
+      amount: record.amount || 'N/A',
+      description: record.description || 'N/A'
+    })
+    setCustomerPayId(record.id)
+    setIsPayModelOpen(true)
+  }
+
+  const customerPay = async (value) => {
+    let { date, description, ...Datas } = value
+    let formateDate = dayjs(date).format('DD/MM/YYYY')
+    const payData = { ...Datas, date: formateDate, description: description || '' }
+    try {
+      const customerDocRef = doc(db, 'customer', customerPayId)
+      const payDetailsRef = collection(customerDocRef, 'paydetails')
+      await addDoc(payDetailsRef, payData)
+    } catch (e) {
+      console.log(e)
+    }
+    payForm.resetFields()
+    setCustomerPayId(null)
+    setIsPayModelOpen(false)
+  }
+
+  const showPayDetailsModal = async (record) => {
+    try {
+      const customerDocRef = doc(db, 'customer', record.id)
+      const payDetailsRef = collection(customerDocRef, 'paydetails')
+      const payDetailsSnapshot = await getDocs(payDetailsRef)
+      const payDetails = payDetailsSnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id
+      }))
+      setPayDetailsData(payDetails)
+    } catch (e) {
+      console.log(e)
+    }
+    setIsPayDetailsModelOpen(true)
+  }
+
+  const payDetailsColumns = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date'
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount'
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description'
+    }
+  ]
 
   const columns = [
     {
@@ -146,11 +212,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            <Button>
+            <Button onClick={() => showPayModal(record)}>
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button><SolutionOutlined/></Button>
+            <Button onClick={() => showPayDetailsModal(record)}>
+              <SolutionOutlined />
+            </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => edit(record)}
@@ -489,6 +557,65 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Input />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          <div className="flex  justify-center py-3">
+            {' '}
+            <h1>PAY</h1>{' '}
+          </div>
+        }
+        open={isPayModelOpen}
+        onCancel={() => setIsPayModelOpen(false)}
+        onOk={() => payForm.submit()}
+      >
+        <Form
+          onFinish={customerPay}
+          form={payForm}
+          initialValues={{ date: dayjs() }}
+          layout="vertical"
+        >
+          {/* <Form.Item name="customername" label="Customer Name">
+            <Input disabled />
+          </Form.Item> */}
+          <Form.Item
+            className="mb-1"
+            name="amount"
+            label="Amount"
+            rules={[{ required: true, message: false }]}
+          >
+            <InputNumber min={0} className="w-full" placeholder="Amount" />
+          </Form.Item>
+          <Form.Item className="mb-1" name="description" label="Description">
+            <TextArea rows={4} placeholder="Write the description" />
+          </Form.Item>
+          <Form.Item
+            className=" absolute top-5"
+            name="date"
+            label=""
+            rules={[{ required: true, message: false }]}
+          >
+            <DatePicker format={'DD/MM/YYYY'} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={<span className="text-center w-full block pb-5">PAY DETAILS</span>}
+        open={isPayDetailsModelOpen}
+        footer={null}
+        width={1000}
+        onCancel={() => {
+          setIsPayDetailsModelOpen(false)
+        }}
+      >
+        <Table
+          pagination={{ pageSize: 5 }}
+          columns={payDetailsColumns}
+          dataSource={payDetailsData}
+          rowKey="id"
+        />
       </Modal>
     </div>
   )

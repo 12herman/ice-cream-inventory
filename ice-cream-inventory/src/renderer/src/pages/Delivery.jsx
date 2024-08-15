@@ -23,14 +23,16 @@ import { TimestampJs } from '../js-files/time-stamp'
 const { Search } = Input
 const { RangePicker } = DatePicker
 import dayjs from 'dayjs'
-import { createProduction, updateProduction } from '../firebase/data-tables/production'
 import { getProductById } from '../firebase/data-tables/products'
 import { updateStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
-import { createUsedmaterial } from '../firebase/data-tables/usedmaterial'
-import { createDelivery, fetchItemsForDelivery } from '../firebase/data-tables/delivery'
+import {
+  createDelivery,
+  fetchItemsForDelivery,
+  updateDelivery
+} from '../firebase/data-tables/delivery'
 import { formatToRupee } from '../js-files/formate-to-rupee'
-import { addDoc, collection, Firestore } from 'firebase/firestore'
+import { addDoc, collection } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { FaClipboardList } from 'react-icons/fa'
 import { TbFileDownload } from 'react-icons/tb'
@@ -121,7 +123,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       width: 100,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: text => text === 'return' ? <Tag color='red'>Return</Tag> : text === 'quick' ? <Tag color='blue'>Quick Sale</Tag>  : <Tag color='green'>Order</Tag>
+      render: (text) =>
+        text === 'return' ? (
+          <Tag color="red">Return</Tag>
+        ) : text === 'quick' ? (
+          <Tag color="blue">Quick Sale</Tag>
+        ) : (
+          <Tag color="green">Order</Tag>
+        )
     },
     {
       title: 'Payment Status',
@@ -286,7 +295,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         message.open({ type: 'info', content: 'No changes made' })
         setEditingKey('')
       } else {
-        await updateProduction(key.id, {
+        await updateDelivery(key.id, {
           numberofpacks: row.numberofpacks,
           updateddate: TimestampJs()
         })
@@ -372,7 +381,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     //await deleteproduct(data.id);
     console.log(data)
     const { id, ...newData } = data
-    await updateProduction(id, { isdeleted: true, deleteddate: TimestampJs() })
+    await updateDelivery(id, { isdeleted: true, deleteddate: TimestampJs() })
     deliveryUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
   }
@@ -855,7 +864,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     mtOption.tempproduct.map(async (item, i) => {
       let { key, quantity, ...newMaterial } = item
       let quntity = Number(quantity.split(' ')[0])
-      await createUsedmaterial({ ...newMaterial, quantity: quntity })
+      await createDelivery({ ...newMaterial, quantity: quntity })
     })
     usedmaterialUpdateMt()
     materialModelCancel()

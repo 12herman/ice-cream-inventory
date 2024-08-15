@@ -16,13 +16,12 @@ export default function Home({ datas }) {
   const [filteredRawmaterials, setFilteredRawmaterials] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedTableData, setSelectedTableData] = useState([]);
 
   useEffect(() => {
-    setData(
-      datas.delivery
-        .filter((data) => data.isdeleted === false)
-        .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    )
+    const initialData = datas.delivery.filter((data) => data.isdeleted === false && data.date === today.format('DD/MM/YYYY'))
+    setData(initialData);
+    setSelectedTableData(initialData);
   }, [datas])
 
   useEffect(() => {
@@ -64,10 +63,41 @@ export default function Home({ datas }) {
     setIsModalVisible(true);
   }
 
+  const handleCardClick = (type) => {
+    let newSelectedTableData = [];
+    switch (type) {
+      case 'totalSales':
+        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'order');
+        break;
+      case 'totalSpend':
+        newSelectedTableData = filteredRawmaterials.filter((material) => material.type === 'Added');
+        break;
+      case 'totalQuickSale':
+        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'quick');
+        break;
+      case 'totalReturn':
+        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'return');
+        break;
+      case 'totalPaid':
+        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Paid');
+        break;
+      case 'totalUnpaid':
+        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Unpaid');
+        break;
+      default:
+        newSelectedTableData = filteredDelivery;
+    }
+    setSelectedTableData(newSelectedTableData);
+  };
+
   const totalSales = filteredDelivery.filter(product => product.type === "order").reduce((total, product) => total + product.billamount, 0);
   const totalSpend = filteredRawmaterials.filter(material => material.type === "Added").reduce((total, material) => total + material.price, 0);
   const totalProfit = totalSales - totalSpend;
   const totalCustomers = filteredDelivery.length;
+  const totalQuickSale = filteredDelivery.filter(product => product.type === "quick").reduce((total, product) => total + product.billamount, 0);
+  const totalReturn = filteredDelivery.filter(product => product.type === "return").reduce((total, product) => total + product.billamount, 0);
+  const totalPaid = filteredDelivery.filter(product => product.paymentstatus === "Paid").reduce((total, product) => total + product.billamount, 0);
+  const totalUnpaid = filteredDelivery.filter(product => product.paymentstatus === "Unpaid").reduce((total, product) => total + product.billamount, 0);
   
   const columns = [
     {
@@ -135,33 +165,33 @@ export default function Home({ datas }) {
         <li className='mt-2'>
       <Row gutter={16}>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalSales')} style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Sales"
           value={totalSales}
           precision={2}
           valueStyle={{
-            color: '#3f8600',
+            color: totalSales > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign  />}
         />
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalSpend')} style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Spending"
           value={totalSpend}
           precision={2}
           valueStyle={{
-            color: '#cf1322',
+            color: totalSpend > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalProfit')} style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Profit"
           value={totalProfit}
@@ -174,12 +204,12 @@ export default function Home({ datas }) {
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalCustomers')} style={{ cursor: 'pointer', borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Customer"
           value={totalCustomers}
           valueStyle={{
-            color: '#3f8600',
+            color: totalCustomers > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<IoPerson />}
         />
@@ -190,36 +220,36 @@ export default function Home({ datas }) {
   <li className='mt-4'>
   <Row gutter={16}>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalQuickSale')} style={{ cursor: 'pointer', borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Quick Sale"
-          value={totalSales}
+          value={totalQuickSale}
           precision={2}
           valueStyle={{
-            color: '#3f8600',
+            color: totalQuickSale > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign  />}
         />
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalReturn')} style={{ cursor: 'pointer', borderColor: totalReturn > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Return"
-          value={totalSpend}
+          value={totalReturn}
           precision={2}
           valueStyle={{
-            color: '#cf1322',
+            color: totalReturn > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalPaid')} style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Paid"
-          value={totalProfit}
+          value={totalPaid}
           precision={2}
           valueStyle={{
             color: totalProfit > 0 ? '#3f8600' : '#cf1322',
@@ -229,14 +259,15 @@ export default function Home({ datas }) {
       </Card>
     </Col>
     <Col span={6}>
-      <Card onClick={() => console.log("Hai")} style={{ cursor: 'pointer', borderColor: '#3f8600'}}>
+      <Card onClick={() => handleCardClick('totalUnpaid')} style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Unpaid"
-          value={totalCustomers}
+          value={totalUnpaid}
+          precision={2}
           valueStyle={{
-            color: '#3f8600',
+            color: totalUnpaid > 0 ? '#3f8600' : '#cf1322',
           }}
-          prefix={<IoPerson />}
+          prefix={<FaRupeeSign />}
         />
       </Card>
     </Col>
@@ -244,7 +275,7 @@ export default function Home({ datas }) {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={data} columns={columns} pagination={false} />;
+  <Table dataSource={selectedTableData} pagination={{ pageSize: 6 }} columns={columns} rowKey="id"/>
   </li>
   </ul>
 
