@@ -179,7 +179,7 @@ export default function Storage({ datas, storageUpdateMt }) {
         <li className="flex gap-x-3 justify-between items-center">
           <Search
             placeholder="Search"
-            className="w-[40%]"
+            className="w-[30%]"
             onSearch={onSearchEnter}
             onChange={onSearchChange}
             enterButton
@@ -191,7 +191,6 @@ export default function Storage({ datas, storageUpdateMt }) {
                 label: (
                   <div
                     style={{
-                      padding: 5,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 8
@@ -207,7 +206,6 @@ export default function Storage({ datas, storageUpdateMt }) {
                 label: (
                   <div
                     style={{
-                      padding: 5,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 8

@@ -10,7 +10,6 @@ import dayjs from 'dayjs';
 
 export default function Home({ datas }) {
   const today = dayjs(DatestampJs(), 'DD/MM/YYYY');
-  const [data, setData] = useState([]);
   const [dateRange, setDateRange] = useState([today, today]);
   const [filteredDelivery, setFilteredDelivery] = useState([]);
   const [filteredRawmaterials, setFilteredRawmaterials] = useState([]);
@@ -20,7 +19,6 @@ export default function Home({ datas }) {
 
   useEffect(() => {
     const initialData = datas.delivery.filter((data) => data.isdeleted === false && data.date === today.format('DD/MM/YYYY'))
-    setData(initialData);
     setSelectedTableData(initialData);
   }, [datas])
 
@@ -95,7 +93,7 @@ export default function Home({ datas }) {
   const totalProfit = totalSales - totalSpend;
   const totalCustomers = filteredDelivery.length;
   const totalQuickSale = filteredDelivery.filter(product => product.type === "quick").reduce((total, product) => total + product.billamount, 0);
-  const totalReturn = filteredDelivery.filter(product => product.type === "return").reduce((total, product) => total + product.billamount, 0);
+  const totalReturn = filteredDelivery.filter(product => product.type === "return").length;
   const totalPaid = filteredDelivery.filter(product => product.paymentstatus === "Paid").reduce((total, product) => total + product.billamount, 0);
   const totalUnpaid = filteredDelivery.filter(product => product.paymentstatus === "Unpaid").reduce((total, product) => total + product.billamount, 0);
   
@@ -104,6 +102,8 @@ export default function Home({ datas }) {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
+      sorter: (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1,
+      defaultSortOrder: 'ascend',
     },
     {
       title: 'Customer',
@@ -220,32 +220,6 @@ export default function Home({ datas }) {
   <li className='mt-4'>
   <Row gutter={16}>
     <Col span={6}>
-      <Card onClick={() => handleCardClick('totalQuickSale')} style={{ cursor: 'pointer', borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'}}>
-        <Statistic
-          title="Total Quick Sale"
-          value={totalQuickSale}
-          precision={2}
-          valueStyle={{
-            color: totalQuickSale > 0 ? '#3f8600' : '#cf1322',
-          }}
-          prefix={<FaRupeeSign  />}
-        />
-      </Card>
-    </Col>
-    <Col span={6}>
-      <Card onClick={() => handleCardClick('totalReturn')} style={{ cursor: 'pointer', borderColor: totalReturn > 0 ? '#3f8600' : '#cf1322'}}>
-        <Statistic
-          title="Total Return"
-          value={totalReturn}
-          precision={2}
-          valueStyle={{
-            color: totalReturn > 0 ? '#3f8600' : '#cf1322',
-          }}
-          prefix={<FaRupeeSign />}
-        />
-      </Card>
-    </Col>
-    <Col span={6}>
       <Card onClick={() => handleCardClick('totalPaid')} style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322'}}>
         <Statistic
           title="Total Paid"
@@ -268,6 +242,31 @@ export default function Home({ datas }) {
             color: totalUnpaid > 0 ? '#3f8600' : '#cf1322',
           }}
           prefix={<FaRupeeSign />}
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card onClick={() => handleCardClick('totalQuickSale')} style={{ cursor: 'pointer', borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'}}>
+        <Statistic
+          title="Total Quick Sale"
+          value={totalQuickSale}
+          precision={2}
+          valueStyle={{
+            color: totalQuickSale > 0 ? '#3f8600' : '#cf1322',
+          }}
+          prefix={<FaRupeeSign  />}
+        />
+      </Card>
+    </Col>
+    <Col span={6}>
+      <Card onClick={() => handleCardClick('totalReturn')} style={{ cursor: 'pointer', borderColor: totalReturn > 0 ? '#3f8600' : '#cf1322'}}>
+        <Statistic
+          title="Total Return"
+          value={totalReturn}
+          valueStyle={{
+            color: totalReturn > 0 ? '#3f8600' : '#cf1322',
+          }}
+          prefix={<IoPerson />}
         />
       </Card>
     </Col>

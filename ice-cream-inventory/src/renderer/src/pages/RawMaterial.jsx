@@ -28,6 +28,7 @@ import dayjs from 'dayjs'
 const { Search } = Input
 const { RangePicker } = DatePicker
 
+
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
   const [form] = Form.useForm()
@@ -140,6 +141,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'date',
       key: 'date',
       width: 110,
+      sorter: (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1,
+      defaultSortOrder: 'ascend',
       editable: false
     },
     {
@@ -540,7 +543,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     mtOption.tempproduct.map(async (item) => {
       let { key, quantity, ...newMaterial } = item
       let quantityNumber = Number(quantity.split(' ')[0])
-      await createRawmaterial({ ...newMaterial, quantity: quantityNumber, type: 'Used' })
+      await createRawmaterial({ ...newMaterial, quantity: quantityNumber, type: 'Used', paymentstatus: "Used" })
 
       const existingMaterial = datas.storage.find(
         (storageItem) =>
@@ -571,7 +574,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         <li className="flex gap-x-3 justify-between items-center">
           <Search
             allowClear
-            className="w-[40%]"
+            className="w-[30%]"
             placeholder="Search"
             onSearch={onSearchEnter}
             onChange={onSearchChange}
