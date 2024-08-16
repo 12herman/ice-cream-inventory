@@ -30,6 +30,18 @@ export const getEmployee = async () => {
       }
     };
 
+    // update paydetails for employee
+    export const updatePayDetailsForEmployee = async (empId, payDetailId, updatedData) => {
+      try {
+        const payDetailDocRef = doc(db, 'employee', empId, 'paydetails', payDetailId);
+        await updateDoc(payDetailDocRef, updatedData);
+        return { status: 200, message: 'Pay details updated successfully' };
+      } catch (err) {
+        console.error("Error updating pay details: ", err);
+        return { status: 500, message: err.message };
+      }
+    };
+
   // Create a new employee
 export const createEmployee = async (task) => {
   try {
