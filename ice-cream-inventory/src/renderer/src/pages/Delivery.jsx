@@ -36,12 +36,14 @@ import { addDoc, collection } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { FaClipboardList } from 'react-icons/fa'
 import { TbFileDownload } from 'react-icons/tb'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   //states
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [form4] = Form.useForm()
+  const [temform] = Form.useForm();
   const [dateRange, setDateRange] = useState([null, null])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
@@ -404,21 +406,21 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
       key: 'productname',
-      editable: true,
+      editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Flavor</span>,
       dataIndex: 'flavour',
       key: 'flavour',
-      editable: true,
+      editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Quantity</span>,
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true,
+      editable: false,
       width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -426,7 +428,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true,
+      editable: false,
       width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -438,12 +440,28 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
+      title: <span className="text-[0.7rem]">MRP</span>,
+      dataIndex: 'mrp',
+      key: 'mrp',
+      width: 80,
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Margin</span>,
+      dataIndex: 'margin',
+      key: 'margin',
+      width: 80,
+      editable: true,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       width: 80,
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -451,22 +469,80 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       fixed: 'right',
       width: 50,
       render: (_, record) => {
-        return (
-          <Popconfirm
+        let iseditable = isEditionTemp(record)
+        return !iseditable ? (
+         <span className='flex gap-x-2'>
+         <MdOutlineModeEditOutline className='text-blue-500 cursor-pointer' size={19} onClick={()=>temTbEdit(record)}/>
+           <Popconfirm
             className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
             title="Sure to delete?"
             onConfirm={() => removeTemProduct(record)}
             disabled={editingKey !== ''}
           >
-            <AiOutlineDelete
-              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
-              size={19}
-            />
+            <AiOutlineDelete className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
           </Popconfirm>
-        )
+         </span>
+        ) : 
+        <span className='flex gap-x-2'>
+        <Typography.Link
+              style={{ marginRight: 8 }}
+              onClick={() => tempSingleMargin(record)}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={() => setOption((pre) => ({ ...pre, editingKeys: [] })) }
+            >
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+        </span>
       }
     }
   ]
+
+  const tempSingleMargin = async (data) => {
+    try {
+      const row = await temform.validateFields();
+      const oldtemDatas = option.tempproduct;
+      // Check if the margin already exists for the same key
+      const checkDatas = oldtemDatas.some(
+        (item) => item.key === data.key && item.margin === row.margin
+      );
+      if (checkDatas) {
+        message.open({ type: 'info', content: 'Margin already exists' });
+        return;
+      }
+      // Update the item in the array while maintaining the order
+      const updatedTempproduct = oldtemDatas.map((item) => {
+        if (item.key === data.key) {
+          return {
+            ...item,
+            margin: row.margin,
+            price: data.mrp - data.mrp * (row.margin / 100),
+          };
+        }
+        return item;
+      });
+
+    const totalAmounts = updatedTempproduct.reduce((acc, item) => {
+  return acc + item.price;
+}, 0);
+console.log(totalAmounts);
+setMarginValue(pre=>({...pre,amount:totalAmounts}))
+
+      setOption((pre) => ({
+        ...pre,
+        tempproduct: updatedTempproduct,
+        editingKeys: [],
+      }));
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  
 
   const [option, setOption] = useState({
     customer: [],
@@ -477,7 +553,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     productvalue: '',
     quantity: [],
     quantitystatus: true,
-    tempproduct: []
+    tempproduct: [],
+    editingKeys:[]
   })
 
   //product initial value
@@ -492,7 +569,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setOption((pre) => ({ ...pre, product: productOp }))
     const optionscustomers = datas.customers
       .filter((item) => item.isdeleted === false)
-      .map((item) => ({ label: item.customername, value: item.customername }))
+      .map((item) => ({ label: item.customername, value: item.id }))
     setOption((pre) => ({ ...pre, customer: optionscustomers }))
   }, [])
 
@@ -570,22 +647,25 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
     let [quantityvalue, units] = values.quantity.split(' ')
-    const findPrice = await datas.product.find(
-      (item) =>
+    const findPrice = await datas.product.find((item) =>
         item.isdeleted === false &&
         item.productname === values.productname &&
         item.flavour === values.flavour &&
         item.quantity === Number(quantityvalue) &&
         item.unit === units
-    ).price
+    ).price;
+
     const newProduct = {
       ...values,
       key: count,
       date: formattedDate,
       createddate: TimestampJs(),
+      mrp: findPrice * values.numberofpacks,
+      productprice: findPrice,
+      margin:0,
       price: findPrice * values.numberofpacks,
-      productprice: findPrice
-    }
+    };
+
     const checkExsit = option.tempproduct.some(
       (item) =>
         item.customername === newProduct.customername &&
@@ -640,6 +720,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   // add new delivery
   const addNewDelivery = async () => {
+    
     // Filter product datas
     let findPr = datas.product.filter((pr) =>
       option.tempproduct.find(
@@ -649,7 +730,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           pr.quantity == temp.quantity.split(' ')[0] &&
           pr.unit === temp.quantity.split(' ')[1]
       )
-    )
+    );
+
+    
 
     // List
     let productItems = findPr.map((pr) => {
@@ -662,11 +745,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       )
       return {
         id: pr.id,
-        numberofpacks: matchingTempProduct.numberofpacks
+        numberofpacks: matchingTempProduct.numberofpacks,
+        margin: matchingTempProduct.margin,
       }
     })
+   
     // Partial amount (value)
-    let { partialamount } = form4.getFieldsValue()
+    let { partialamount } = form4.getFieldsValue();
+    
     // Create delivery new
     const newDelivery = {
       customername: option.tempproduct[0].customername,
@@ -680,6 +766,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       type: returnDelivery.state === true ? 'return' : 'order',
       createddate: TimestampJs()
     }
+    console.log(newDelivery);
     try {
       //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery')
@@ -885,7 +972,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     paymentstaus: '',
     particalAmount: 0
   })
+
   const onPriceChange = (value) => {
+    
     let marginamount = totalamount * (value.marginvalue / 100)
     let finalamounts = totalamount - marginamount
     setMarginValue((pre) => ({
@@ -893,9 +982,21 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       amount: finalamounts,
       percentage: value.marginvalue,
       discount: marginamount
-    }))
-    //form5.resetFields(['marginvalue'])
+    }));
+
+      let newData = option.tempproduct.map((item) => {
+      let marginamount = item.mrp * (value.marginvalue / 100);
+      let finalamounts = item.mrp - marginamount;
+      return {
+        ...item,
+        price: finalamounts,
+        margin:value.marginvalue ,
+      }
+    });
+    setOption((pre) => ({ ...pre, tempproduct: newData }));
   }
+    //form5.resetFields(['marginvalue'])
+  
 
   const radioOnchange = (e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
@@ -903,7 +1004,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }
 
   // Ref for get items collections
-
   const deliveryColumns = [
     {
       title: 'S.No',
@@ -942,6 +1042,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'numberofpacks',
       width: 70
     },
+   
     {
       title: 'Amount',
       key: 'producttotalamount',
@@ -1000,7 +1101,69 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   // return
   const [returnDelivery, setReturnDelivery] = useState({
     state: false
-  })
+  });
+
+  const EditableCellTem =({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  })=>{
+    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <Form.Item
+            name={dataIndex}
+            style={{
+              margin: 0
+            }}
+            rules={[
+              {
+                required: true,
+                message: false
+              }
+            ]}
+          >
+            {inputNode}
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    )
+  };
+
+  const isEditionTemp = (re) => {
+  return option.editingKeys.includes(re.key);
+  };
+
+  const temTbEdit =(re)=>{
+    temform.setFieldsValue({ ...re });
+    setOption(pre=>({...pre,editingKeys:[re.key]}));
+  };
+
+  const tempMergedColumns = columns2.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'margin' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditionTemp(record)
+      })
+    }
+  });
+
+  const cancelTemTable =() => { setOption(pre=>({...pre,editingKeys:[]}))};
 
   return (
     <div>
@@ -1168,7 +1331,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           </div>
         }
       >
-        <div className="grid grid-cols-3 gap-x-3">
+        <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1">
             <Form
               onFinish={createTemDeliveryMt}
@@ -1284,12 +1447,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewDelivery} className=' w-full'>Add</Button> */}
             </Form>
           </span>
-          <span className="col-span-2">
+          <span className="col-span-3">
+          <Form form={temform}>
             <Table
-              columns={columns2}
+              components={{body: {cell: EditableCellTem}}}
+              columns={tempMergedColumns}
               dataSource={option.tempproduct}
               pagination={{ pageSize: 4 }}
             />
+            </Form>
           </span>
         </div>
 
@@ -1298,7 +1464,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         >
           <Tag color="blue">MRP Amount: {formatToRupee(totalamount)}</Tag>
           {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
-          <Tag color="orange">Margin: {marginValue.percentage}%</Tag>
+          {/* <Tag color="orange">Margin: {marginValue.percentage}%</Tag> */}
           <Tag color="green">
             Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
           </Tag>
