@@ -1,4 +1,4 @@
-import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs } from "firebase/firestore";
+import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Get all customer
@@ -16,6 +16,24 @@ export const getCustomer = async () => {
       return { status: 500, message: err.message };
     }
   };
+
+// Get customer by ID
+export const getCustomerById = async (customerId) => {
+  try {
+    const docRef = doc(db, "customer", customerId); // Reference to the specific document
+    const docSnapshot = await getDoc(docRef);
+    
+    if (docSnapshot.exists()) {
+      return { customer: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
+    } else {
+      return { status: 404, message: 'customer not found' };
+    }
+  } catch (err) {
+    console.error("Error fetching document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
 
   // Create a new customer
 export const createCustomer = async (task) => {

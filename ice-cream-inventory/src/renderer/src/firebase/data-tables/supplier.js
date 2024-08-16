@@ -1,4 +1,4 @@
-import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs } from "firebase/firestore";
+import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Get all supplier
@@ -16,6 +16,23 @@ export const getSupplier = async () => {
       return { status: 500, message: err.message };
     }
   };
+
+  // Get Supplier by ID
+export const getSupplierById = async (supplierId) => {
+  try {
+    const docRef = doc(db, "supplier", supplierId); // Reference to the specific document
+    const docSnapshot = await getDoc(docRef);
+    
+    if (docSnapshot.exists()) {
+      return { supplier: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
+    } else {
+      return { status: 404, message: 'supplier not found' };
+    }
+  } catch (err) {
+    console.error("Error fetching document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
 
   // Create a new supplier
 export const createSupplier = async (task) => {

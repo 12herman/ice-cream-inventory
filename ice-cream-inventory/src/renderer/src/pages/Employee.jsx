@@ -436,7 +436,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
     try {
       const employeeDocRef = doc(db, 'employee', empId)
       const payDetailsRef = collection(employeeDocRef, 'paydetails')
-      await addDoc(payDetailsRef, payData)
+      await addDoc(payDetailsRef, payData);
+      message.open({ type: 'success', content: 'Pay Added Successfully' })
     } catch (e) {
       console.log(e)
     }
