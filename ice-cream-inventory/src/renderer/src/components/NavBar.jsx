@@ -7,22 +7,17 @@ import { Modal, Button, Input, Form, InputNumber, Select, DatePicker, Table , Po
 const { TextArea } = Input;
 import dayjs from 'dayjs';
 import { AiOutlineDelete } from 'react-icons/ai'
-import { addDoc, collection, count } from 'firebase/firestore';
+import { addDoc, collection, count, doc } from 'firebase/firestore';
 import { formatToRupee } from '../js-files/formate-to-rupee';
 import { TimestampJs } from '../js-files/time-stamp';
 import { db } from '../firebase/firebase';
 
 export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) {
 
-  const [isSpendingModalOpen, setIsSpendingModalOpen] = useState(false);
-  const [spendingForm] = Form.useForm();
+  
   
 
-  const handleSpendingFinish = (values) => {
-    console.log('Spending Data:', values);
-    setIsSpendingModalOpen(false);
-    spendingForm.resetFields();
-  };
+
 
 
   //1) quick sale
@@ -239,10 +234,40 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
     setIsQuickSale(pre => ({...pre,margin:value.marginvalue,billamount:marignAn,marginstate:true})); 
   };
 
-  const customerOnchange = (value)=>{
-    console.log(value);
-  }
+  // const customerOnchange = (value)=>{
+  //   console.log(value);
+  // }
 
+  // spending
+  const [isSpendingModalOpen, setIsSpendingModalOpen] = useState({model:false,parentid:'',employeeoption:[]});
+  const [spendingForm] = Form.useForm();
+  
+useEffect(()=>{
+let employeeOtSet = datas.employees.filter(data=> data.isdeleted === false).map(data =>({label:data.employeename,value:data.id}));
+setIsSpendingModalOpen(pre =>({...pre,employeeoption:employeeOtSet}));
+},[!isSpendingModalOpen.model]);
+
+// sepending method 
+  const handleSpendingFinish = async (values) => {
+    const {empid,...spendDatas} =values;
+    const newSpendingData = {
+      ...spendDatas,
+      createddate:TimestampJs(),
+      isdeleted:false,
+      description:spendDatas.description === '' || spendDatas.description === undefined || spendDatas.description === null ? '' : spendDatas.description,
+      type:'spend',
+      date:dayjs(spendDatas.date).format('DD/MM/YYYY'),
+    };
+    try{
+      const employeeDocRef = doc(db, 'employee', empid);
+      const payDetialsRef = collection(employeeDocRef,'paydetails');
+      await addDoc(payDetialsRef,newSpendingData);
+      setIsSpendingModalOpen(pre =>({...pre,model:false}));
+    spendingForm.resetFields();
+    message.open({ type: 'success', content:  "Spending added successfully"} );
+    }
+    catch(error){console.log(error)}
+  };
 
   return (
     <nav className='border-r-2 h-screen col-span-2 relative'>
@@ -257,7 +282,7 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
       </ul>
 
       <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => {setIsQuickSale(pre => ({...pre,model:true,dataloading: !isQuickSale.dataloading,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0,marginstate:false,paymentstatus:''})); quickSaleForm.resetFields(); quickSaleForm2.resetFields();quickSaleForm3.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
-      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(true); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
+      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(pre =>({...pre,model:true})); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
     {/* quick sale */}
       <Modal
       className='relative'
@@ -409,12 +434,14 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
         </span>
       </Modal>
 
+     {/* spendingModal */}
       <Modal
+      centered
         title={<div className='flex  justify-center py-3'> <h1>SPENDING</h1> </div>}
-        open={isSpendingModalOpen}
+        open={isSpendingModalOpen.model}
         onOk={() => spendingForm.submit()}
         onCancel={() => { 
-          setIsSpendingModalOpen(false); 
+          setIsSpendingModalOpen(pre =>({...pre,model:false})); 
           spendingForm.resetFields(); 
         }}
       >
@@ -424,36 +451,41 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
           onFinish={handleSpendingFinish}
           initialValues={{ date: dayjs() }}
         >
-   
-         <Form.Item className='mb-3 absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
+         <Form.Item className='absolute top-8' name='date' label="" rules={[{ required: true, message: false }]}>
           <DatePicker  format={"DD/MM/YY"} />
           </Form.Item>
 
           <Form.Item
-            name="category"
+          className='mb-1'
+            name="empid"
             label="Person"
-            rules={[{ required: true, message: 'Please select the category!' }]}
+            rules={[{ required: true, message: false }]}
           >
-            <Select>
-              <Select.Option value="Owner">Owner</Select.Option>
-              <Select.Option value="Employee">Employee</Select.Option>
-              <Select.Option value="Other">Other</Select.Option>
-            </Select>
+            <Select
+             showSearch
+             placeholder="Search to Select"
+            options={isSpendingModalOpen.employeeoption}
+            filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? '')
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? '').toLowerCase())
+                  }
+            />
           </Form.Item>
 
-          
           <Form.Item
             name="amount"
             label="Amount"
-            rules={[{ required: true, message: 'Please input the amount!' }]}
+            className='mb-1'
+            rules={[{ required: true, message: false }]}
           >
             <InputNumber min={0} className="w-full" />
           </Form.Item>
 
           <Form.Item
-            name="expenseName"
+            name="description"
             label="Description"
-            rules={[{ required: true, message: 'Please input the expense name!' }]}
+            className='mb-1'
           >
             <TextArea rows={4} />
           </Form.Item>
