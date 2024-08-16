@@ -25,6 +25,7 @@ import dayjs from 'dayjs'
 import { createProduction, updateProduction } from '../firebase/data-tables/production'
 import jsonToExcel from '../js-files/json-to-excel'
 import { updateStorage } from '../firebase/data-tables/storage'
+import { getProductById } from '../firebase/data-tables/products'
 
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   //states
@@ -87,6 +88,8 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
+      sorter: (a, b) => (dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1),
+      defaultSortOrder: 'ascend',
       editable: false
     },
     {
@@ -483,27 +486,41 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
   // add new production
   const addNewProduction = async () => {
-    await option.tempproduct.map(async (item) => {
-      let { key, quantity, ...newProduction } = item
-      let quantityNumber = Number(quantity.split(' ')[0])
-      await createProduction({ ...newProduction, quantity: quantityNumber, isdeleted: false })
-      const existingProduct = datas.storage.find(
-        (storageItem) =>
-          storageItem.productname === newProduction.productname &&
-          storageItem.flavour === newProduction.flavour &&
-          storageItem.quantity === quantityNumber &&
-          storageItem.category === 'Product List'
-      )
-      if (existingProduct) {
+    try {
+      for (const item of option.tempproduct) {
+        let { key, quantity, ...newProduction } = item
+        let quantityNumber = Number(quantity.split(' ')[0])
+        const existingProductList = datas.product.find(
+          (productItem) =>
+            productItem.productname === newProduction.productname &&
+            productItem.flavour === newProduction.flavour &&
+            productItem.quantity === quantityNumber
+        )
+        await createProduction({
+          date: newProduction.date,
+          createddate: newProduction.createddate,
+          productID: existingProductList.id,
+          isdeleted: false,
+          numberofpacks: newProduction.numberofpacks
+        })
+        await productionUpdateMt()
+        const existingProduct = datas.storage.find(
+          (storageItem) =>
+            storageItem.productname === newProduction.productname &&
+            storageItem.flavour === newProduction.flavour &&
+            storageItem.quantity === quantityNumber &&
+            storageItem.category === 'Product List'
+        )
         await updateStorage(existingProduct.id, {
           numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks
         })
-        storageUpdateMt()
+        await storageUpdateMt()
       }
-    })
-    await productionUpdateMt()
-    message.open({ type: 'success', content: 'Production added successfully' })
-    await modelCancel()
+      message.open({ type: 'success', content: 'Production added successfully' })
+      await modelCancel()
+    } catch (error) {
+      console.error('An error occurred while adding new production:', error)
+    }
   }
 
   const modelCancel = () => {
@@ -550,7 +567,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         <li className="flex gap-x-3 justify-between items-center">
           <Search
             allowClear
-            className="w-[40%]"
+            className="w-[30%]"
             placeholder="Search"
             onSearch={onSearchEnter}
             onChange={onSearchChange}
@@ -704,12 +721,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 <DatePicker format={'DD/MM/YY'} />
               </Form.Item>
 
-              <Form.Item className="mb-3 w-full">
+              <div className="mb-3 w-full">
                 <Button className="w-full" type="primary" htmlType="submit">
                   Add To List
                 </Button>
-              </Form.Item>
-              {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewProduction} className=' w-full'>Add</Button> */}
+              </div>
             </Form>
           </span>
           <span className="col-span-2">

@@ -401,7 +401,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         <li className="flex gap-x-3 justify-between items-center">
           <Search
             allowClear
-            className="w-[40%]"
+            className="w-[30%]"
             placeholder="Search"
             onSearch={onSearchEnter}
             onChange={onSearchChange}
