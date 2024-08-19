@@ -420,10 +420,12 @@ setIsSpendingModalOpen(pre =>({...pre,employeeoption:employeeOtSet}));
         </Form>
 
         <Table
+        virtual
         columns={temTableCl}
         pagination={{ pageSize: 4 }}
         className='col-span-4'
         dataSource={isQuickSale.temdata}
+        scroll={{ x:false, y: false }}
         />
         </div>
       
