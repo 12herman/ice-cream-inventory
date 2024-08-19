@@ -356,21 +356,21 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true
-      // width: 120
+      editable: true,
+      //width: 120
     },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true
-      // width: 120
+      editable: true,
+      //width: 80
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      // width: 110,
+       width: 80,
       render: (_, record) => {
         return (
           <Popconfirm
@@ -655,7 +655,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           </Button>
         }
       >
-        <div className="grid grid-cols-3 gap-x-3">
+        <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1">
             <Form
               onFinish={createTemProduction}
@@ -747,11 +747,14 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
               </div>
             </Form>
           </span>
-          <span className="col-span-2">
+          <span className="col-span-3">
             <Table
+              virtual
+              className='w-full'
               columns={columns2}
               dataSource={option.tempproduct}
               pagination={{ pageSize: 4 }}
+              scroll={{ x:false, y: false }}
             />
           </span>
         </div>

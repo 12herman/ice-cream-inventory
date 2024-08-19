@@ -476,19 +476,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // material used
   const usedmaterialcolumns = [
     {
-      title: 'Material',
+      title: "Material",
       dataIndex: 'materialname',
       key: 'materialname',
-      editable: true
+      editable: true,
+      
     },
     {
-      title: 'Quantity',
+      title: "Quantity",
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true
+      editable: true,
+      
     },
     {
-      title: 'Action',
+      title: "Action",
       dataIndex: 'operation',
       fixed: 'right',
       width: 110,
@@ -856,7 +858,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </Button>
         }
       >
-        <div className="grid grid-cols-3 gap-x-3">
+        <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1 ">
             <Form
               onFinish={createUsedMaterial}
@@ -933,11 +935,13 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               </Form.Item>
             </Form>
           </span>
-          <span className="col-span-2">
+          <span className="col-span-3">
             <Table
+            virtual
               columns={usedmaterialcolumns}
               dataSource={mtOption.tempproduct}
               pagination={{ pageSize: 4 }}
+              scroll={{ x:false, y: false }}
             />
           </span>
         </div>

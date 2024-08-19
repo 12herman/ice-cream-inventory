@@ -164,7 +164,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: true,
-      //width: 110,
+      //width: 180,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) =>
@@ -180,7 +180,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
+      //width: 110,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -1259,7 +1259,7 @@ setTotalAmount(mrpAmount)
               pagination={false}
               loading={tableLoading}
               rowClassName="editable-row"
-              //scroll={{  y: tableHeight }}
+              scroll={{ x:900, y: tableHeight }}
               rowSelection={rowSelection}
             />
           </Form>
