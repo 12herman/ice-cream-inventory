@@ -15,9 +15,11 @@ import {
   Tag,
   Empty
 } from 'antd'
+import { BsDatabaseSlash } from "react-icons/bs";
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
+
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { IoMdRemove } from 'react-icons/io'
@@ -634,28 +636,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         </li>
         <li className="mt-2">
           <Form form={form} component={false} initialValues={{ date: dayjs() }}>
-            <Table
-              virtual
-              components={{
-                body: {
-                  cell: EditableCell
-                }
-              }}
-              locale={{
-        emptyText: (
-          <div className='hi w-full flex justify-center items-center'>
-            <Empty className='block w-full' />
-          </div>
-        ),
-      }}
-              dataSource={data}
-              columns={mergedColumns}
-              pagination={false}
-              loading={isMaterialTbLoading}
-              rowClassName="editable-row"
-              scroll={{ x: 900, y: tableHeight }}
-              rowSelection={rowSelection}
-            />
+                  <Table
+          virtual
+          components={{
+            body: {
+              cell: EditableCell,
+            },
+          }}
+          dataSource={data}
+          columns={mergedColumns}
+          pagination={false}
+          loading={isMaterialTbLoading}
+          rowClassName="editable-row"
+          scroll={{ x: 900, y: tableHeight }}
+          rowSelection={rowSelection}
+        />
           </Form>
         </li>
       </ul>

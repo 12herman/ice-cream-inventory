@@ -2,3 +2,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.ant-table-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    min-width: 100%; /* Ensures the container takes up full width */
+    min-height: 150px; /* Ensures vertical centering */
+  }
