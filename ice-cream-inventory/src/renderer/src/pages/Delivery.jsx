@@ -475,7 +475,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      width: 70,
+      
       editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -1493,8 +1493,7 @@ setTotalAmount(mrpAmount)
               columns={tempMergedColumns}
               dataSource={option.tempproduct}
               pagination={{ pageSize: 4 }}
-              scroll={{ x:900, y: tableHeight }}
-              //locale={{emptyText: (""),}}
+              scroll={{ x:false, y: false }}
             />
             </Form>
             {/* <div className={ `${option.tempproduct.length > 0 ? 'hidden' : 'w-full flex flex-col justify-center items-center gap-y-1 absolute top-32 '}`}>
