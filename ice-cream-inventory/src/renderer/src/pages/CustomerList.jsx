@@ -126,6 +126,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
 
   const payDetailsColumns = [
     {
+      title: 'S.No',
+      dataIndex: 'sno',
+      key: 'sno',
+      width:90,
+      render: (record,_,i) => <span>{i+1}</span>
+    },
+
+    {
       title: 'Date',
       dataIndex: 'date',
       key: 'date'
@@ -153,7 +161,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render:(_,record) => {
-        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag className='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
+        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
       }
     },
     {
@@ -161,13 +169,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'type',
       key: 'type',
       render:(_,record) => {
-        return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'Receive' ? <Tag color='blue'>Receive</Tag> : <></>;
+        return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'return' ? <Tag color='red'>Return</Tag> : <></>;
       }
     }, 
     {
       title: 'Description',
       dataIndex: 'description',
-      key: 'description'
+      key: 'description',
+      render: (_,record) => {
+        return record.description === undefined ? <span>-</span> : record.description;
+      }
     },
   ]
 
@@ -230,6 +241,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
+      width:230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -247,7 +259,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             </Popconfirm>
           </span>
         ) : (
-          <span className="flex gap-x-3 justify-center items-center">
+          <span className="flex gap-x-2 justify-center items-center">
             <Button onClick={() => showPayModal(record)}>
               Pay
               <MdOutlinePayments />
@@ -435,6 +447,26 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     const updateTableHeight = () => {
       const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
       setTableHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, []);
+  
+
+  const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 300 // Adjust this value based on your layout needs
+      setHistoryHeight(newHeight)
     }
     // Set initial height
     updateTableHeight()
@@ -646,11 +678,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       >
         <Table
           virtual
-          pagination={{ pageSize: 5 }}
+          pagination={false}
           columns={payDetailsColumns}
           dataSource={payDetailsData}
           rowKey="id"
-          scroll={{ x: false, y: false }}
+          scroll={{ y: historyHeight }}
         />
       </Modal>
     </div>
