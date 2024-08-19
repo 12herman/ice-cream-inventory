@@ -136,6 +136,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
+      width:230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (

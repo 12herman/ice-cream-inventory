@@ -11,7 +11,8 @@ import {
   message,
   Select,
   Radio,
-  DatePicker
+  DatePicker,
+  Tag
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { IoMdAdd } from 'react-icons/io'
@@ -28,6 +29,7 @@ import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
+import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -123,8 +125,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       const payDetails = payDetailsSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }))
-      setPayDetailsData(payDetails)
+      }));
+      const rawmaterialsRef = datas.rawmaterials.filter((item) => item.isdeleted === false && item.supplierid === record.id);
+      const combainData = payDetails.concat(rawmaterialsRef);
+      setPayDetailsData(combainData)
     } catch (e) {
       console.log(e)
     }
@@ -132,21 +136,57 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   }
 
   const payDetailsColumns = [
+    
+    {
+      title: 'S.No',
+      dataIndex: 'sno',
+      key: 'sno',
+      render:(text,record,index)=>index+1
+    },
     {
       title: 'Date',
       dataIndex: 'date',
       key: 'date'
     },
     {
+      title: 'Material Name',
+      dataIndex: 'materialname',
+      key: 'materialname',
+      render:(text,record)=> {
+        if(record.supplierid !== undefined){
+          let materialName = datas.suppliers.find(data => data.id === record.supplierid).materialname;
+          return materialName
+        }
+        else{
+          return '-'
+        }
+      }
+    },
+    {
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render:(text,record)=>record.quantity !== undefined ? record.quantity+' '+record.unit : '-'
+    },
+    {
       title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount'
+      dataIndex: 'price',
+      key: 'price',
+      render:(text,record)=> record.price === undefined ? formatToRupee(record.amount,true) : formatToRupee(record.price,true)
+    },
+    {
+      title: 'Payment Status',
+      dataIndex: 'paymentstatus',
+      key: 'paymentstatus',
+      render:(text,record)=> record.paymentstatus === undefined ? <Tag color='green'>Pay</Tag> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag> : record.paymentstatus === 'Partial' ? <span className='flex items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className=' text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>
     },
     {
       title: 'Description',
       dataIndex: 'description',
-      key: 'description'
-    }
+      key: 'description',
+      render:(text,record)=>record.description === undefined ? '-' : record.description
+    },
+
   ]
 
   const columns = [
@@ -207,6 +247,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
+      width:230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -446,7 +487,26 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     jsonToExcel(exportDatas, `Supplier-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  }
+  };
+
+  const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 300 // Adjust this value based on your layout needs
+      setHistoryHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, []);
 
   return (
     <div>
@@ -622,10 +682,12 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         }}
       >
         <Table
-          pagination={{ pageSize: 5 }}
+        virtual
+          pagination={false}
           columns={payDetailsColumns}
           dataSource={payDetailsData}
           rowKey="id"
+          scroll={{ x: false, y: historyHeight }}
         />
       </Modal>
     </div>
