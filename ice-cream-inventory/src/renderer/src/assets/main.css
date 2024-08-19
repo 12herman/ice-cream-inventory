@@ -9,6 +9,6 @@
     align-items: center;
     height: 100%;
     width: 100%;
-    min-width: 100%; /* Ensures the container takes up full width */
+    min-width: 100% !important; /* Ensures the container takes up full width */
     min-height: 150px; /* Ensures vertical centering */
   }

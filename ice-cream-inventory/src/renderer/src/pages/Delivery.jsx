@@ -14,6 +14,7 @@ import {
   Radio,
   Tag
 } from 'antd'
+import { LuClipboardList } from "react-icons/lu";
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
@@ -474,7 +475,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      width: 80,
+      width: 70,
       editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -490,7 +491,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Action</span>,
       dataIndex: 'operation',
       fixed: 'right',
-      width: 50,
+      width: 80,
       render: (_, record) => {
         let iseditable = isEditionTemp(record)
         return !iseditable ? (
@@ -1258,7 +1259,7 @@ setTotalAmount(mrpAmount)
               pagination={false}
               loading={tableLoading}
               rowClassName="editable-row"
-              scroll={{ x: 900, y: tableHeight }}
+              //scroll={{  y: tableHeight }}
               rowSelection={rowSelection}
             />
           </Form>
@@ -1483,15 +1484,23 @@ setTotalAmount(mrpAmount)
               {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewDelivery} className=' w-full'>Add</Button> */}
             </Form>
           </span>
-          <span className="col-span-3">
+          <span className="col-span-3 relative">
           <Form form={temform}>
             <Table
+              virtual
+              className='w-full'
               components={{body: {cell: EditableCellTem}}}
               columns={tempMergedColumns}
               dataSource={option.tempproduct}
               pagination={{ pageSize: 4 }}
+              scroll={{ x:900, y: tableHeight }}
+              //locale={{emptyText: (""),}}
             />
             </Form>
+            {/* <div className={ `${option.tempproduct.length > 0 ? 'hidden' : 'w-full flex flex-col justify-center items-center gap-y-1 absolute top-32 '}`}>
+         <LuClipboardList className='text-gray-400' style={{ fontSize: '2rem' }} />
+         <p className='text-[0.6rem] text-gray-400'>No data</p>
+       </div> */}
           </span>
         </div>
 
