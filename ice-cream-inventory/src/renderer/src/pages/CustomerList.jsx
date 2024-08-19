@@ -11,7 +11,8 @@ import {
   message,
   Select,
   Radio,
-  DatePicker
+  DatePicker,
+  Tag
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
@@ -27,6 +28,7 @@ import { createCustomer, updateCustomer } from '../firebase/data-tables/customer
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
+import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
 
 export default function CustomerList({ datas, customerUpdateMt }) {
@@ -99,6 +101,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     payForm.resetFields()
     setCustomerPayId(null)
     setIsPayModelOpen(false)
+    message.open({ type: 'success', content: 'Pay Added Successfully' })
   }
 
   const showPayDetailsModal = async (record) => {
@@ -109,8 +112,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       const payDetails = payDetailsSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }))
-      setPayDetailsData(payDetails)
+      }));
+
+      const deliveryDocRef = await datas.delivery.filter((item) => item.isdeleted === false && item.customerid === record.id);
+      const combainData = payDetails.concat(deliveryDocRef);
+
+      setPayDetailsData(combainData)
     } catch (e) {
       console.log(e)
     }
@@ -123,16 +130,45 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'date',
       key: 'date'
     },
+    // {
+    //   title: 'Amount',
+    //   dataIndex: 'amount',
+    //   key: 'amount'
+    // },
     {
       title: 'Amount',
       dataIndex: 'amount',
-      key: 'amount'
+      key: 'amount',
+      render: (_,record) => {
+        return record.amount === undefined ? formatToRupee(record.billamount,true) : formatToRupee(record.amount,true);
+      }
     },
+    // {
+    //   title:'Billamount',
+    //   dataIndex: 'billamount',
+    //   key: 'billamount'
+    // },
+    {
+      title:'Payment Status',
+      dataIndex: 'paymentstatus',
+      key: 'paymentstatus',
+      render:(_,record) => {
+        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag className='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
+      }
+    },
+    {
+      title:'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render:(_,record) => {
+        return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'Receive' ? <Tag color='blue'>Receive</Tag> : <></>;
+      }
+    }, 
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description'
-    }
+    },
   ]
 
   const columns = [
@@ -315,11 +351,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         editing: isEditing(record)
       })
     }
-  })
+  });
 
   const cancel = () => {
     setEditingKeys([])
-  }
+  };
 
   const save = async (key) => {
     try {
@@ -345,13 +381,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
     }
-  }
+  };
 
   // selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys)
-  }
+  };
 
   const rowSelection = {
     selectedRowKeys,
@@ -390,7 +426,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }
       }
     ]
-  }
+  };
 
   // Table Height Auto Adjustment (***Do not touch this code***)
   const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
@@ -410,7 +446,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, [])
+  }, []);
 
   // delete
   const deleteProduct = async (data) => {
@@ -423,7 +459,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     })
     //customerUpdateMt();
     message.open({ type: 'success', content: 'Deleted Successfully' })
-  }
+  };
 
   // export
   const exportExcel = async () => {
@@ -431,7 +467,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  }
+  };
 
   return (
     <div>
@@ -609,10 +645,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }}
       >
         <Table
+          virtual
           pagination={{ pageSize: 5 }}
           columns={payDetailsColumns}
           dataSource={payDetailsData}
           rowKey="id"
+          scroll={{ x: false, y: false }}
         />
       </Modal>
     </div>
