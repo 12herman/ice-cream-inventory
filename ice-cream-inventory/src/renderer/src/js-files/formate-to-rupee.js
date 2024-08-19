@@ -1,6 +1,6 @@
 export const formatToRupee = (number,isDisableRs) => {
     if(number === 0){
-        return '₹ 0.00'
+        return '0.00'
     }
     // Convert the number to a string
     let numStr = number.toString();

@@ -73,7 +73,7 @@ const App = () => {
     usedmaterialupdatestaus: false,
     storage: [],
     storageupdatestaus: false
-  })
+  });
 
   const productUpdateMt = () =>
     setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
@@ -144,7 +144,8 @@ const App = () => {
     const fetchData = async () => {
       const { status, delivery } = await getDelivery()
       if (status) {
-        setDatas((pre) => ({ ...pre, delivery }))
+        
+        setDatas((pre) => ({ ...pre, delivery }));
       }
     }
     fetchData()

@@ -37,6 +37,7 @@ import { db } from '../firebase/firebase'
 import { FaClipboardList } from 'react-icons/fa'
 import { TbFileDownload } from 'react-icons/tb'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { getCustomerById } from '../firebase/data-tables/customer'
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   //states
@@ -47,16 +48,35 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const [dateRange, setDateRange] = useState([null, null])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
-  const [data, setData] = useState([])
+  const [data, setData] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.delivery
-        .filter((data) => !data.isdeleted && isWithinRange(data.date))
-        .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    )
-  }, [datas, dateRange])
+    const fetchData = async () => {
+      setTableLoading(true)
+      const filteredData = await Promise.all(
+        datas.delivery
+          .filter(data => !data.isdeleted && isWithinRange(data.date))
+          .map(async (item, index) => {
+            const result = await getCustomerById(item.customername);
+            const customerName = result.status === 200 ? result.customer.customername : 'Unknown';
+            return {
+              ...item,
+              sno: index + 1,
+              key: item.id || index,
+              customername: customerName,
+            };
+          })
+      );
+  
+      setData(filteredData);
+      setTableLoading(false)
+    };
+  
+    fetchData();
+  }, [datas, dateRange]);
+  
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -103,7 +123,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       key: 'date',
       sorter: (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1,
       defaultSortOrder: 'ascend',
-      editable: false
+      editable: false,
+      //width:150
     },
     {
       title: 'Customer',
@@ -115,6 +136,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: 'Price ₹',
       dataIndex: 'billamount',
       key: 'billamount',
+      //width:150,
       // editable: true,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
@@ -124,7 +146,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'type',
       key: 'type',
       editable: true,
-      width: 100,
+      //width: 100,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) =>
@@ -141,7 +163,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: true,
-      width: 110,
+      //width: 110,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) =>
@@ -166,8 +188,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               onClick={() => save(record)}
               style={{
                 marginRight: 8
-              }}
-            >
+              }}>
               <LuSave size={17} />
             </Typography.Link>
             <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
@@ -430,7 +451,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: false,
+      editable: true,
       width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -474,6 +495,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         let iseditable = isEditionTemp(record)
         return !iseditable ? (
          <span className='flex gap-x-2'>
+        
          <MdOutlineModeEditOutline className='text-blue-500 cursor-pointer' size={19} onClick={()=>temTbEdit(record)}/>
            <Popconfirm
             className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
@@ -509,20 +531,24 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       const row = await temform.validateFields();
       const oldtemDatas = option.tempproduct;
       // Check if the margin already exists for the same key
-      const checkDatas = oldtemDatas.some(
-        (item) => item.key === data.key && item.margin === row.margin
-      );
+      const checkDatas = oldtemDatas.some((item) => item.key === data.key && item.margin === row.margin && item.numberofpacks === row.numberofpacks );
+      
       if (checkDatas) {
-        message.open({ type: 'info', content: 'Margin already exists' });
-        return;
+        message.open({ type: 'info', content: 'Already exists' });
+      }
+      else{
+        message.open({ type: 'success', content: 'Updated successfully' });
       }
       // Update the item in the array while maintaining the order
       const updatedTempproduct = oldtemDatas.map((item) => {
         if (item.key === data.key) {
+          let mrpData = (item.productprice * row.numberofpacks);
           return {
             ...item,
+            numberofpacks: row.numberofpacks,
             margin: row.margin,
-            price: data.mrp - data.mrp * (row.margin / 100),
+            mrp:item.productprice * row.numberofpacks,
+            price: mrpData - mrpData * (row.margin / 100),
           };
         }
         return item;
@@ -531,9 +557,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     const totalAmounts = updatedTempproduct.reduce((acc, item) => {
   return acc + item.price;
 }, 0);
-console.log(totalAmounts);
-setMarginValue(pre=>({...pre,amount:totalAmounts}))
+const mrpAmount = updatedTempproduct.reduce((acc,item)=>{ return acc + item.mrp}, 0);
 
+setMarginValue(pre=>({...pre,amount:totalAmounts,}))
+setTotalAmount(mrpAmount)
       setOption((pre) => ({
         ...pre,
         tempproduct: updatedTempproduct,
@@ -750,7 +777,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
         numberofpacks: matchingTempProduct.numberofpacks,
         margin: matchingTempProduct.margin,
       }
-    })
+    });
    
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue();
@@ -768,16 +795,15 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
       type: returnDelivery.state === true ? 'return' : 'order',
       createddate: TimestampJs()
     }
-    console.log(newDelivery);
+    // console.log(productItems);
+
     try {
       //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
-
       for (const item of productItems) {
         await addDoc(itemsCollectionRef, item)
-
         const { product, status } = await getProductById(item.id)
         if (status === 200) {
           const existingProduct = datas.storage.find(
@@ -920,13 +946,9 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
       quantity: values.quantity + ' ' + values.unit
     }
 
-    const checkExsit = mtOption.tempproduct.find(
-      (item) => item.material === newMaterial.material && item.date === newMaterial.date
-    )
+    const checkExsit = mtOption.tempproduct.find((item) => item.material === newMaterial.material && item.date === newMaterial.date)
 
-    const dbcheckExsit = datas.usedmaterials.find(
-      (item) => item.material === newMaterial.material && item.date === newMaterial.date
-    )
+    const dbcheckExsit = datas.usedmaterials.find((item) => item.material === newMaterial.material && item.date === newMaterial.date)
 
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
@@ -964,7 +986,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
     setIsMaterialModalOpen(false)
     form3.resetFields()
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
-  }
+  };
 
   const [form5] = Form.useForm()
   const [marginValue, setMarginValue] = useState({
@@ -973,19 +995,17 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
     percentage: 0,
     paymentstaus: '',
     particalAmount: 0
-  })
+  });
 
   const onPriceChange = (value) => {
-    
-    let marginamount = totalamount * (value.marginvalue / 100)
-    let finalamounts = totalamount - marginamount
+    let marginamount = totalamount * (value.marginvalue / 100);
+    let finalamounts = totalamount - marginamount;
     setMarginValue((pre) => ({
       ...pre,
       amount: finalamounts,
       percentage: value.marginvalue,
       discount: marginamount
     }));
-
       let newData = option.tempproduct.map((item) => {
       let marginamount = item.mrp * (value.marginvalue / 100);
       let finalamounts = item.mrp - marginamount;
@@ -1003,7 +1023,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
   const radioOnchange = (e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
     form4.resetFields(['partialamount'])
-  }
+  };
 
   // Ref for get items collections
   const deliveryColumns = [
@@ -1044,11 +1064,24 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
       dataIndex: 'numberofpacks',
       width: 70
     },
-   
     {
-      title: 'Amount',
+      title: 'MRP',
       key: 'producttotalamount',
       dataIndex: 'producttotalamount',
+      width: 70,
+      render: (text) => <span>{formatToRupee(text, true)}</span>
+    },
+    {
+      title: 'Margin',
+      key: 'margin',
+      dataIndex: 'margin',
+      width: 70,
+      render: (text) => <span>{text} %</span>
+    },
+    {
+      title: 'Total Amount',
+      key: 'price',
+      dataIndex: 'price',
       width: 70,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     }
@@ -1078,12 +1111,14 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
             items.find((item2) => item.id === item2.id)
           )
           let prItems = prData.map((pr, i) => {
-            let matchingData = items.find((item, i) => item.id === pr.id)
-
+            let matchingData = items.find((item, i) => item.id === pr.id);
+            console.log(matchingData);
             return {
               sno: i + 1,
               ...pr,
               quantity: pr.quantity + ' ' + pr.unit,
+              margin: matchingData.margin,
+              price: (matchingData.numberofpacks * pr.price) - (matchingData.numberofpacks * pr.price) * (matchingData.margin / 100),
               numberofpacks: matchingData.numberofpacks,
               producttotalamount: matchingData.numberofpacks * pr.price
             }
@@ -1093,7 +1128,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
         setDeliveryBill((pre) => ({ ...pre, loading: false }))
       }
     }
-    getItems()
+    getItems();
   }, [deliveryBill.open])
 
   const onOpenDeliveryBill = (data) => {
@@ -1204,8 +1239,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
                 setIsModalOpen(true)
                 setReturnDelivery((pre) => ({ ...pre, state: false }))
                 form.resetFields()
-              }}
-            >
+              }}>
               Place Order <IoMdAdd />
             </Button>
           </span>
@@ -1222,7 +1256,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length === 0 ? true : false}
+              loading={tableLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
@@ -1564,8 +1598,7 @@ setMarginValue(pre=>({...pre,amount:totalAmounts}))
                 className=" absolute top-8"
                 name="date"
                 label=""
-                rules={[{ required: true, message: false }]}
-              >
+                rules={[{ required: true, message: false }]}>
                 <DatePicker format={'DD/MM/YY'} />
               </Form.Item>
 

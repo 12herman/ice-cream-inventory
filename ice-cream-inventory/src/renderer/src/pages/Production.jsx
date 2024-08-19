@@ -338,20 +338,20 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      width: 120
+      // width: 120
     },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      width: 120
+      // width: 120
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
+      // width: 110,
       render: (_, record) => {
         return (
           <Popconfirm
