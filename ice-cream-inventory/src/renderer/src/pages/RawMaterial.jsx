@@ -13,13 +13,9 @@ import {
   DatePicker,
   Radio,
   Tag,
-  Empty
 } from 'antd'
-import { BsDatabaseSlash } from "react-icons/bs";
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
-import { MdOutlineModeEditOutline } from 'react-icons/md'
-
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { IoMdRemove } from 'react-icons/io'
@@ -55,7 +51,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         datas.rawmaterials
       .filter((data) => !data.isdeleted && isWithinRange(data.date))
       .map( async (item, index) => {
-        const result = await getSupplierById(item.supplier);
+        const result = await getSupplierById(item.supplierid);
         const suppliername = result.status === 200 ? result.supplier.suppliername: "";
         const materialname = result.status === 200 ? result.supplier.materialname: "";
        return { 
@@ -124,7 +120,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       
 
       await createRawmaterial({
-  supplier: findSupplierId,
+  supplierid: findSupplierId,
   ...otherValues,
   date: formattedDate,
   createddate: TimestampJs(),
