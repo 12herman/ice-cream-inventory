@@ -152,6 +152,26 @@ export default function Home({ datas }) {
     },
   ];
 
+  // Table Hight Auto Adjustment (***Do not tounch this code*** ) //
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 368 // Adjust this value based on your layout needs
+      setTableHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, []);
+
   return (
     <div>
       <ul>
@@ -274,7 +294,7 @@ export default function Home({ datas }) {
   </li>
 
   <li className='mt-2'>
-  <Table dataSource={selectedTableData} pagination={{ pageSize: 6 }} columns={columns} rowKey="id"/>
+  <Table virtual scroll={{ x: 900, y: tableHeight }} pagination={false} dataSource={selectedTableData} columns={columns} rowKey="id"/>
   </li>
   </ul>
 
@@ -287,7 +307,7 @@ export default function Home({ datas }) {
             <p>Margin: {selectedRecord.margin}</p>
             <p>Net Amount: {selectedRecord.billamount}</p>
             <div>
-            <Table dataSource={selectedRecord.items} columns={itemColumns} pagination={false} rowKey="id" />
+            <Table virtual scroll={{ x: 900, y: tableHeight }} dataSource={selectedRecord.items} columns={itemColumns} pagination={false} rowKey="id" />
           </div>
           </div>
         )}
