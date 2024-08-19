@@ -38,10 +38,29 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
   // side effect
   useEffect(() => {
-    const filteredProductions = datas.productions
-      .filter((data) => !data.isdeleted && isWithinRange(data.date))
-      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    setData(filteredProductions)
+    const fetchData = async () => {
+      const filteredProductions = await Promise.all(
+        datas.productions
+          .filter((data) => !data.isdeleted && isWithinRange(data.date))
+          .map(async (item, index) => {
+            const result = await getProductById(item.productid)
+            const productname = result.status === 200 ? result.product.productname : 'a'
+            const flavour = result.status === 200 ? result.product.flavour : 'a'
+            const quantity = result.status === 200 ? result.product.quantity : 'a'
+            return {
+              ...item,
+              sno: index + 1,
+              key: item.id || index,
+              productname: productname,
+              flavour: flavour,
+              quantity: quantity
+            }
+          })
+      )
+      setData(filteredProductions)
+    }
+
+    fetchData();
   }, [datas.productions, dateRange])
 
   const isWithinRange = (date) => {
@@ -337,14 +356,14 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true,
+      editable: true
       // width: 120
     },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true,
+      editable: true
       // width: 120
     },
     {
@@ -499,7 +518,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         await createProduction({
           date: newProduction.date,
           createddate: newProduction.createddate,
-          productID: existingProductList.id,
+          productid: existingProductList.id,
           isdeleted: false,
           numberofpacks: newProduction.numberofpacks
         })

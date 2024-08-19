@@ -267,15 +267,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
                   <Select
                     placeholder="Select transport"
                     optionFilterProp="label"
-                    filterSort={(optionA, optionB) =>
-                      (optionA?.label ?? '')
-                        .toLowerCase()
-                        .localeCompare((optionB?.label ?? '').toLowerCase())
-                    }
+                    
                     options={[
+                      { value: 'Self', label: 'Self' },
                       { value: 'Company', label: 'Company' },
                       { value: 'Freezer Box', label: 'Freezer Box' },
-                      { value: 'Self', label: 'Self' }
+                      { value: 'Mini Box', label: 'Mini Box' }
                     ]}
                   />
                 </Form.Item>
@@ -461,7 +458,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               onClick={() => {
                 setIsModalOpen(true)
                 form.resetFields()
-                form.setFieldsValue({ transport: 'Company' })
+                form.setFieldsValue({ transport: 'Self' })
               }}
             >
               New Customer <IoMdAdd />
@@ -500,7 +497,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }}
       >
         <Form
-          initialValues={{ transport: 'Company' }}
+          initialValues={{ transport: 'Self' }}
           onFinish={createNewProject}
           form={form}
           layout="vertical"
@@ -521,9 +518,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             rules={[{ required: true, message: false }]}
           >
             <Radio.Group>
+              <Radio value={'Self'}>Self</Radio>
               <Radio value={'Company'}>Company</Radio>
               <Radio value={'Freezer Box'}>Freezer Box</Radio>
-              <Radio value={'Self'}>Self</Radio>
+              <Radio value={'Mini Box'}>Mini Box</Radio>
             </Radio.Group>
           </Form.Item>
 
