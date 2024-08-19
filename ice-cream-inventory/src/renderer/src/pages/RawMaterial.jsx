@@ -28,7 +28,6 @@ import { getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
 const { RangePicker } = DatePicker
 
-
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
   const [form] = Form.useForm()
