@@ -60,7 +60,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         datas.delivery
           .filter(data => !data.isdeleted && isWithinRange(data.date))
           .map(async (item, index) => {
-            const result = await getCustomerById(item.customername);
+            const result = await getCustomerById(item.customerid);
             const customerName = result.status === 200 ? result.customer.customername : 'Unknown';
             return {
               ...item,
@@ -785,7 +785,7 @@ setTotalAmount(mrpAmount)
     
     // Create delivery new
     const newDelivery = {
-      customername: option.tempproduct[0].customername,
+      customerid: option.tempproduct[0].customername,
       date: option.tempproduct[0].date,
       total: totalamount,
       billamount: marginValue.amount,

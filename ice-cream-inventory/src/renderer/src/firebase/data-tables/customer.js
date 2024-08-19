@@ -20,7 +20,7 @@ export const getCustomer = async () => {
 // Get customer by ID
 export const getCustomerById = async (customerId) => {
   try {
-    const docRef = doc(db, "customer", customerId); // Reference to the specific document
+    const docRef = doc(db, "customer", customerId);
     const docSnapshot = await getDoc(docRef);
     
     if (docSnapshot.exists()) {
