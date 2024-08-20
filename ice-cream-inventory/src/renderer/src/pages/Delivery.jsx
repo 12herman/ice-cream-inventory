@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   Button,
   Input,
@@ -39,6 +39,8 @@ import { FaClipboardList } from 'react-icons/fa'
 import { TbFileDownload } from 'react-icons/tb'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { getCustomerById } from '../firebase/data-tables/customer'
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   //states
@@ -167,11 +169,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       //width: 180,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text) =>
+      render: (text,record) =>
         text === 'Paid' ? (
           <Tag color="green">Paid</Tag>
         ) : text === 'Partial' ? (
-          <Tag color="yellow">Partial</Tag>
+          <span className='flex gap-x-0'>
+          <Tag color="yellow">Partial</Tag> <Tag color='blue'>{record.partialamount}</Tag></span>
         ) : (
           <Tag color="red">Unpaid</Tag>
         )
@@ -209,6 +212,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link> */}
             <TbFileDownload
+              onClick={() => handleDownloadPdf(record)}
               size={19}
               className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}
             />
@@ -382,25 +386,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     ]
   }
 
-  // Table Hight Auto Adjustment (***Do not tounch this code*** ) //
-  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
-  useEffect(() => {
-    // Function to calculate and update table height
-    const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
-      setTableHeight(newHeight)
-    }
-    // Set initial height
-    updateTableHeight()
-    // Update height on resize and fullscreen change
-    window.addEventListener('resize', updateTableHeight)
-    document.addEventListener('fullscreenchange', updateTableHeight)
-    // Cleanup event listeners on component unmount
-    return () => {
-      window.removeEventListener('resize', updateTableHeight)
-      document.removeEventListener('fullscreenchange', updateTableHeight)
-    }
-  }, [])
+  
 
   // delete
   const deleteProduct = async (data) => {
@@ -750,7 +736,7 @@ setTotalAmount(mrpAmount)
 
   // add new delivery
   const addNewDelivery = async () => {
-    
+    setTableLoading(true)
     // Filter product datas
     let findPr = datas.product.filter((pr) =>
       option.tempproduct.find(
@@ -761,8 +747,6 @@ setTotalAmount(mrpAmount)
           pr.unit === temp.quantity.split(' ')[1]
       )
     );
-
-    
 
     // List
     let productItems = findPr.map((pr) => {
@@ -799,6 +783,7 @@ setTotalAmount(mrpAmount)
     // console.log(productItems);
 
     try {
+      setIsModalOpen(false)
       //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
@@ -836,12 +821,13 @@ setTotalAmount(mrpAmount)
             : 'Production added successfully'
       })
       await deliveryUpdateMt()
-      await modelCancel()
+      
     } catch (error) {
       // Handle errors
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
     }
+    setTableLoading(false)
   }
 
   // model close
@@ -1032,59 +1018,58 @@ setTotalAmount(mrpAmount)
       title: 'S.No',
       key: 'sno',
       dataIndex: 'sno',
-      width: 20
+      
     },
     {
       title: 'Product Name',
       key: 'productname',
       dataIndex: 'productname',
-      width: 70
+     
     },
     {
       title: 'Flavour',
       key: 'flavour',
       dataIndex: 'flavour',
-      width: 70
+      
     },
     {
       title: 'Quantity',
       key: 'quantity',
       dataIndex: 'quantity',
-      width: 70
+      
     },
     {
       title: 'Peice Amount',
-      key: 'price',
-      dataIndex: 'price',
-      width: 70,
-      render: (text) => <span>{formatToRupee(text, true)}</span>
+      key: 'pieceamount',
+      dataIndex: 'pieceamount',
+     
+      render: (text) => <span>{text}</span>
     },
     {
       title: 'Number of Packs',
       key: 'numberofpacks',
       dataIndex: 'numberofpacks',
-      width: 70
+     
     },
     {
       title: 'MRP',
       key: 'producttotalamount',
       dataIndex: 'producttotalamount',
-      width: 70,
+     
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
       title: 'Margin',
       key: 'margin',
       dataIndex: 'margin',
-      width: 70,
-      render: (text) => <span>{text} %</span>
+     
+      render: (text) => text === undefined ? `0 %` : <span>{text} %</span>
     },
     {
       title: 'Total Amount',
       key: 'price',
       dataIndex: 'price',
-      width: 70,
-      render: (text) => <span>{formatToRupee(text, true)}</span>
+      render:(text)=> <span>{formatToRupee(text, true)}</span>
     }
   ]
 
@@ -1099,7 +1084,9 @@ setTotalAmount(mrpAmount)
       supplier: '',
       date: ''
     },
-    open: false
+    open: false,
+    totalamount:0,
+    billingamount:0,
   })
 
   useEffect(() => {
@@ -1113,27 +1100,30 @@ setTotalAmount(mrpAmount)
           )
           let prItems = prData.map((pr, i) => {
             let matchingData = items.find((item, i) => item.id === pr.id);
-            console.log(matchingData);
             return {
               sno: i + 1,
               ...pr,
+              pieceamount: pr.price,
               quantity: pr.quantity + ' ' + pr.unit,
               margin: matchingData.margin,
               price: (matchingData.numberofpacks * pr.price) - (matchingData.numberofpacks * pr.price) * (matchingData.margin / 100),
               numberofpacks: matchingData.numberofpacks,
               producttotalamount: matchingData.numberofpacks * pr.price
             }
-          })
+          });
+
           setDeliveryBill((pre) => ({ ...pre, data: { items: prItems, ...deliveryBill.prdata } }))
         }
-        setDeliveryBill((pre) => ({ ...pre, loading: false }))
+        setDeliveryBill((pre) => ({ ...pre, loading: false}))
       }
     }
     getItems();
+    
+    
   }, [deliveryBill.open])
 
   const onOpenDeliveryBill = (data) => {
-    setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open }))
+    setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open }));
   }
 
   // return
@@ -1203,8 +1193,91 @@ setTotalAmount(mrpAmount)
 
   const cancelTemTable =() => { setOption(pre=>({...pre,editingKeys:[]}))};
 
+    // Table Height Auto Adjustment (***Do not touch this code***)
+    const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+    useEffect(() => {
+      // Function to calculate and update table height
+      const updateTableHeight = () => {
+        const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+        setTableHeight(newHeight)
+      }
+      // Set initial height
+      updateTableHeight()
+      // Update height on resize and fullscreen change
+      window.addEventListener('resize', updateTableHeight)
+      document.addEventListener('fullscreenchange', updateTableHeight)
+      // Cleanup event listeners on component unmount
+      return () => {
+        window.removeEventListener('resize', updateTableHeight)
+        document.removeEventListener('fullscreenchange', updateTableHeight)
+      }
+    }, []);
+
+
+    // html to pdf
+    const printRef = useRef();
+
+  const handleDownloadPdf = async (record) => {
+   await setDeliveryBill((pre) => ({ ...pre, prdata: record, open: !deliveryBill.open }));
+   
+   console.log(record);
+
+
+    const element = printRef.current;
+    const canvas = await html2canvas(element);
+    const data = canvas.toDataURL('image/png');
+    const pdf = new jsPDF();
+    const imgWidth = 210; // A4 page width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save(`${record.customername+ "-" + record.date}.pdf`);
+  };
+
+  
+
   return (
     <div>
+
+      <div ref={printRef} className='absolute top-[-200rem]' style={{ padding: '20px', backgroundColor: '#ffff' }}>
+        <h1 className='font-bold  text-center text-lg'>Invoice</h1>
+        <table className="min-w-full border-collapse">
+  <thead>
+    <tr>
+      <th className="p-4 text-left border-b">Product Name</th>
+      <th className="p-4 text-left border-b">Flavour</th>
+      <th className="p-4 text-left border-b">Quantity</th>
+      <th className="p-4 text-left border-b">Piece Amount</th>
+      <th className="p-4 text-left border-b">Number of Packs</th>
+      <th className="p-4 text-left border-b">MRP</th>
+      <th className="p-4 text-left border-b">Margin</th>
+      <th className="p-4 text-left border-b">Total Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      deliveryBill.data.items !== undefined && deliveryBill.data.items.length >0 ? deliveryBill.data.items.map((item, i) => (
+        <tr key={i} >
+          <td className="p-4 border-b">{item.productname}</td>
+          <td className="p-4 border-b">{item.flavour}</td>
+          <td className="p-4 border-b">{item.quantity}</td>
+          <td className="p-4 border-b">{item.pieceamount}</td>
+          <td className="p-4 border-b">{item.numberofpacks}</td>
+          <td className="p-4 border-b">{item.producttotalamount}</td>
+          <td className="p-4 border-b">{item.margin}</td>
+          <td className="p-4 border-b">
+            {(item.numberofpacks * item.pieceamount) - 
+             ((item.numberofpacks * item.pieceamount) * item.margin / 100)}
+          </td>
+        </tr>
+      )) :'No Data'
+    }
+  </tbody>
+</table>
+ <p className='text-end mt-5'>Total Amount: <span className=' font-bold'>{deliveryBill.data.length >= 0  ? deliveryBill.data.total : formatToRupee(deliveryBill.data.total)} </span> </p>
+ <p className='text-end'>Billing Amount: <span className=' font-bold'>{deliveryBill.data.length >= 0  ? deliveryBill.data.billamount : formatToRupee(deliveryBill.data.billamount)}</span></p>
+      </div>
+
+
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
           <Search
@@ -1219,7 +1292,7 @@ setTotalAmount(mrpAmount)
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker onChange={(dates) => setDateRange(dates)} />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
-              Export <PiExport />
+              Export <PiExport/>
             </Button>
             <Button
               onClick={() => {
@@ -1642,31 +1715,36 @@ setTotalAmount(mrpAmount)
         onCancel={() => setDeliveryBill((pre) => ({ ...pre, model: false }))}
       >
         <Table
+          virtual
           columns={deliveryColumns}
           dataSource={deliveryBill.data.items}
           loading={deliveryBill.loading}
+          pagination={false}
+          scroll={{ y: tableHeight }}
         />
         {/* <span>Partialamount Amount: <Tag className='text-[1.1rem]' color='orange'>{formatToRupee(deliveryBill.data.partialamount === undefined ? 0 : deliveryBill.data.partialamount)}</Tag></span> */}
-        <span>
-          Total Amount:{' '}
+        <div className='mt-5'>
+        <span >
+          Total Amount:
           <Tag className="text-[1.1rem]" color="yellow">
             {formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.total)}
           </Tag>
         </span>
-        <span>
+        {/* <span>
           Margin:{' '}
           <Tag className="text-[1.1rem]" color="blue">
             {deliveryBill.data.margin === undefined ? 0 : deliveryBill.data.margin}%
           </Tag>
-        </span>
+        </span> */}
         <span>
-          Billing Amount:{' '}
+          Billing Amount:
           <Tag className="text-[1.1rem]" color="green">
             {formatToRupee(
               deliveryBill.data.billamount === undefined ? 0 : deliveryBill.data.billamount
             )}
           </Tag>
         </span>
+        </div>
       </Modal>
     </div>
   )
