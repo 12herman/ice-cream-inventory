@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react'
+import { PrinterOutlined, DownloadOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import {
-  NotificationOutlined,
-  PrinterOutlined,
-  DownloadOutlined,
-  UnorderedListOutlined
-} from '@ant-design/icons'
-import { Card, Col, Row, Statistic, DatePicker, Badge, Table, Button, Modal } from 'antd'
+  Card,
+  Col,
+  Row,
+  Statistic,
+  DatePicker,
+  Tag,
+  Table,
+  Button,
+  Modal,
+  Descriptions
+} from 'antd'
 import { FaRupeeSign } from 'react-icons/fa'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
 import { fetchItemsForDelivery } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById } from '../firebase/data-tables/supplier'
+import { jsPDF } from 'jspdf'
 const { RangePicker } = DatePicker
 import dayjs from 'dayjs'
 
@@ -45,7 +52,6 @@ export default function Home({ datas }) {
       setSelectedTableData(initialData)
       setTableLoading(false)
     }
-
     fetchData()
   }, [datas])
 
@@ -82,12 +88,16 @@ export default function Home({ datas }) {
         datas.rawmaterials
           .filter((material) => isWithinRange(material.date))
           .map(async (item) => {
-            const result = await getSupplierById(item.supplierid)
-            const suppliername = result.status === 200 ? result.supplier.suppliername : ''
+            let suppliername = '-'
+            if (item.type === 'Added') {
+              const result = await getSupplierById(item.supplierid)
+              suppliername = result.supplier.suppliername
+            }
             return {
               ...item,
               key: item.id,
-              customername: suppliername
+              customername: suppliername,
+              billamount: item.price
             }
           })
       )
@@ -166,16 +176,72 @@ export default function Home({ datas }) {
     .filter((product) => product.paymentstatus === 'Unpaid')
     .reduce((total, product) => total + product.billamount, 0)
 
+  const handlePrint = (record) => {
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`
+    <html>
+      <head>
+        <title>Bill Details</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; }
+          .bill-container { margin: 20px; }
+          h1 { font-size: 32px; }
+          p { font-size: 20px; }
+          .items { margin-top: 20px; }
+          .item { margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="bill-container">
+          <h1>Bill Details</h1>
+          <p><strong>Customer :</strong> ${record.customername}</p>
+          <p><strong>Date :</strong> ${record.date}</p>
+          <p><strong>Gross Amount :</strong> ${record.total}</p>
+          <p><strong>Net Amount :</strong> ${record.billamount}</p>
+          <p><strong>Payment Status :</strong> ${record.paymentstatus}</p>
+        </div>
+      </body>
+    </html>
+  `)
+    printWindow.document.close()
+    printWindow.focus()
+    printWindow.print()
+    printWindow.close()
+  }
+
+  const handleDownload = (record) => {
+    const doc = new jsPDF()
+    doc.setFontSize(20)
+    doc.text('Bill Details', 10, 15)
+    doc.setFontSize(12)
+    doc.text(`Customer: `, 10, 30)
+    doc.text(`${record.customername}`, 80, 30)
+    doc.text(`Date: `, 10, 40)
+    doc.text(`${record.date}`, 80, 40)
+    doc.text(`Gross Amount: `, 10, 50)
+    doc.text(`${record.total}`, 80, 50)
+    doc.text(`Net Amount: `, 10, 60)
+    doc.text(`${record.billamount}`, 80, 60)
+    doc.text(`Payment Status: `, 10, 70)
+    doc.text(`${record.paymentstatus}`, 80, 70)
+    doc.save('Bill-'+`${record.createddate}`+'.pdf')
+  }
+
   const columns = [
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => (dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1),
-      defaultSortOrder: 'ascend'
+      key: 'createddate',
+      sorter: (a, b) => {
+        const format = 'DD/MM/YYYY,hh:mmA'
+        const dateA = dayjs(a.createddate, format)
+        const dateB = dayjs(b.createddate, format)
+        return dateB.isAfter(dateA) ? -1 : 1
+      },
+      defaultSortOrder: 'descend'
     },
     {
-      title: 'Customer',
+      title: 'Customer / Supplier',
       dataIndex: 'customername',
       key: 'customername'
     },
@@ -185,14 +251,39 @@ export default function Home({ datas }) {
       key: 'total'
     },
     {
-      title: 'Margin(%)',
-      dataIndex: 'margin',
-      key: 'margin'
-    },
-    {
-      title: 'Net Amount',
+      title: 'Amount',
       dataIndex: 'billamount',
       key: 'billamount'
+    },
+    {
+      title: 'Status',
+      dataIndex: 'paymentstatus',
+      key: 'paymentstatus',
+      render: (text, record) => {
+        const { partialamount } = record
+        if (text === 'Paid') {
+          return (
+            <>
+              <Tag color="green">Paid</Tag>
+              <Tag color="blue">{record.type}</Tag>
+            </>
+          )
+        } else if (text === 'Partial') {
+          return (
+            <>
+              <Tag color="yellow">Partial - {partialamount}</Tag>
+              <Tag color="blue">{record.type}</Tag>
+            </>
+          )
+        } else {
+          return (
+            <>
+              <Tag color="red">Unpaid</Tag>
+              <Tag color="blue">{record.type}</Tag>
+            </>
+          )
+        }
+      }
     },
     {
       title: 'Action',
@@ -205,8 +296,12 @@ export default function Home({ datas }) {
             style={{ marginRight: 8 }}
             onClick={() => showModal(record)}
           />
-          <Button icon={<DownloadOutlined />} style={{ marginRight: 8 }} />
-          <Button icon={<PrinterOutlined />} />
+          <Button
+            icon={<DownloadOutlined />}
+            style={{ marginRight: 8 }}
+            onClick={() => handleDownload(record)}
+          />
+          <Button icon={<PrinterOutlined />} onClick={() => handlePrint(record)} />
         </span>
       )
     }
@@ -418,18 +513,18 @@ export default function Home({ datas }) {
         open={isModalVisible}
         onOk={() => setIsModalVisible(false)}
         onCancel={() => setIsModalVisible(false)}
+        width={800}
       >
         {selectedRecord && (
           <div>
-            <p>Customer: {selectedRecord.customername}</p>
-            <p>Date: {selectedRecord.date}</p>
-            <p>Gross Amount: {selectedRecord.total}</p>
-            <p>Margin: {selectedRecord.margin}</p>
-            <p>Net Amount: {selectedRecord.billamount}</p>
-            <div>
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Customer">{selectedRecord.customername}</Descriptions.Item>
+              <Descriptions.Item label="Date">{selectedRecord.date}</Descriptions.Item>
+              <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
+              <Descriptions.Item label="Net Amount">{selectedRecord.billamount}</Descriptions.Item>
+            </Descriptions>
+            <div className="mt-2">
               <Table
-                virtual
-                scroll={{ x: 900, y: tableHeight }}
                 dataSource={selectedRecord.items}
                 columns={itemColumns}
                 pagination={false}

@@ -136,7 +136,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date'
+      key: 'date',
+      sorter: (a, b) => {
+        const dateA = dayjs(a.date, 'DD/MM/YYYY');
+        const dateB = dayjs(b.date, 'DD/MM/YYYY');
+        return dateA.isAfter(dateB) ? 1 : -1;
+      },
+      defaultSortOrder: 'descend'
     },
     // {
     //   title: 'Amount',

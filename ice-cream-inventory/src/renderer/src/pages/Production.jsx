@@ -106,9 +106,14 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => (dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1),
-      defaultSortOrder: 'ascend',
+      key: 'createddate',
+      sorter: (a, b) => {
+        const format = 'DD/MM/YYYY,hh:mmA';
+        const dateA = dayjs(a.createddate, format);
+        const dateB = dayjs(b.createddate, format);
+        return dateB.isAfter(dateA) ? -1 : 1;
+      },
+      defaultSortOrder: 'descend',
       editable: false
     },
     {
@@ -160,9 +165,9 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
+            {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
               <MdOutlineModeEditOutline size={20} />
-            </Typography.Link>
+            </Typography.Link> */}
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"

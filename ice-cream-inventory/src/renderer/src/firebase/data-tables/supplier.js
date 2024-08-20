@@ -20,7 +20,7 @@ export const getSupplier = async () => {
   // Get Supplier by ID
 export const getSupplierById = async (supplierId) => {
   try {
-    const docRef = doc(db, "supplier", supplierId); // Reference to the specific document
+    const docRef = doc(db, "supplier", supplierId);
     const docSnapshot = await getDoc(docRef);
     
     if (docSnapshot.exists()) {
