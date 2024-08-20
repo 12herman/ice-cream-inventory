@@ -12,7 +12,7 @@ import {
   Select,
   DatePicker,
   Radio,
-  Tag,
+  Tag
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -39,32 +39,37 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const [dateRange, setDateRange] = useState([null, null])
   const [usedmaterialform] = Form.useForm()
   const [usedMaterialModal, setUsedMaterialModal] = useState(false)
-  const [isMaterialTbLoading,setIsMaterialTbLoading] = useState(true);
+  const [isMaterialTbLoading, setIsMaterialTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
-    const fetchData = async ()=>{
-      setIsMaterialTbLoading(true);
-      
+    const fetchData = async () => {
+      setIsMaterialTbLoading(true)
+
       const filteredMaterials = await Promise.all(
         datas.rawmaterials
-      .filter((data) => !data.isdeleted && isWithinRange(data.date))
-      .map( async (item, index) => {
-        const result = await getSupplierById(item.supplierid);
-        const suppliername = result.status === 200 ? result.supplier.suppliername: "";
-        const materialname = result.status === 200 ? result.supplier.materialname: "";
-       return { 
-        ...item, sno: index + 1, 
-        key: item.id || index, 
-        suppliername:suppliername,
-        materialname:materialname 
-      }
-      }))
-      setData(filteredMaterials);
-      setIsMaterialTbLoading(false);
+          .filter((data) => !data.isdeleted && isWithinRange(data.date))
+          .map(async (item, index) => {
+            let suppliername = '-'
+            let materialname = item.materialname || '-'
+            if (item.type === 'Added') {
+              const result = await getSupplierById(item.supplierid)
+              suppliername = result.supplier.suppliername
+              materialname = result.supplier.materialname
+            }
+            return {
+              ...item,
+              sno: index + 1,
+              key: item.id || index,
+              suppliername: suppliername,
+              materialname: materialname
+            }
+          })
+      )
+      setData(filteredMaterials)
+      setIsMaterialTbLoading(false)
     }
-
-    fetchData();
+    fetchData()
   }, [datas.rawmaterials, dateRange])
 
   const isWithinRange = (date) => {
@@ -89,11 +94,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           label: supplier.materialname,
           key: supplier.id
         }))
-      setMaterials(filteredMaterials);
-      form.resetFields(['materialname','quantity','unit','price','paymentstatus']);
-
+      setMaterials(filteredMaterials)
+      form.resetFields(['materialname', 'quantity', 'unit', 'price', 'paymentstatus'])
     } else {
-      setMaterials([]);
+      setMaterials([])
     }
   }, [selectedSupplierName, datas.suppliers])
 
@@ -112,22 +116,28 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     if (form.getFieldValue('partialamount') === '0') {
       return message.open({ type: 'warning', content: 'Please enter a valid amount' })
     } else {
-      const { date,materialname,suppliername,...otherValues } = values
+      const { date, materialname, suppliername, ...otherValues } = values
       const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
-      
-      const findSupplierId = await datas.suppliers.find((supplier) => supplier.materialname === materialname && supplier.suppliername === suppliername).id;
-      
+
+      const findSupplierId = await datas.suppliers.find(
+        (supplier) =>
+          supplier.materialname === materialname && supplier.suppliername === suppliername
+      ).id
 
       await createRawmaterial({
-  supplierid: findSupplierId,
-  ...otherValues,
-  date: formattedDate,
-  createddate: TimestampJs(),
-  isdeleted: false,
-  type: 'Added'
-})
+        supplierid: findSupplierId,
+        ...otherValues,
+        date: formattedDate,
+        createddate: TimestampJs(),
+        isdeleted: false,
+        type: 'Added'
+      })
 
-      const existingMaterial = datas.storage.find((storageItem) => storageItem.materialname === otherValues.materialname && storageItem.category === 'Material List');
+      const existingMaterial = datas.storage.find(
+        (storageItem) =>
+          storageItem.materialname === otherValues.materialname &&
+          storageItem.category === 'Material List'
+      )
 
       if (existingMaterial) {
         await updateStorage(existingMaterial.id, {
@@ -140,8 +150,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       setIsModalOpen(false)
       setRadioBtn({ status: true, value: '' })
     }
-
-
   }
 
   const columns = [
@@ -164,11 +172,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date',
-      // width: 110,
-      sorter: (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1,
-      defaultSortOrder: 'ascend',
-      editable: true
+      key: 'createddate',
+      sorter: (a, b) => {
+        const format = 'DD/MM/YYYY,hh:mmA';
+        const dateA = dayjs(a.createddate, format);
+        const dateB = dayjs(b.createddate, format);
+        return dateB.isAfter(dateA) ? -1 : 1;
+      },
+      defaultSortOrder: 'descend'
     },
     {
       title: 'Supplier',
@@ -198,7 +209,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      editable: true,
+      editable: true
       // width: 100
     },
     {
@@ -227,7 +238,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      // width: 110,
+      width: 110,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -264,7 +275,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )
       }
     }
-  ];
+  ]
 
   const EditableCell = ({
     editing,
@@ -285,7 +296,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               <span className="flex gap-x-1">
                 <Form.Item
                   name="quantity"
-                  style={{ margin: 0}}
+                  style={{ margin: 0 }}
                   rules={[{ required: true, message: false }]}
                 >
                   <InputNumber className="w-full" />
@@ -476,21 +487,19 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // material used
   const usedmaterialcolumns = [
     {
-      title: "Material",
+      title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      editable: true,
-      
+      editable: true
     },
     {
-      title: "Quantity",
+      title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true,
-      
+      editable: true
     },
     {
-      title: "Action",
+      title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
       width: 110,
@@ -570,7 +579,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     mtOption.tempproduct.map(async (item) => {
       let { key, quantity, ...newMaterial } = item
       let quantityNumber = Number(quantity.split(' ')[0])
-      await createRawmaterial({ ...newMaterial, quantity: quantityNumber, type: 'Used', paymentstatus: "Used" })
+      await createRawmaterial({
+        ...newMaterial,
+        quantity: quantityNumber,
+        type: 'Used',
+        paymentstatus: 'Used'
+      })
 
       const existingMaterial = datas.storage.find(
         (storageItem) =>
@@ -586,15 +600,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     })
     rawmaterialUpdateMt()
     materialModelCancel()
-  };
+  }
 
   // model cancel
   const materialModelCancel = () => {
     setUsedMaterialModal(false)
     usedmaterialform.resetFields()
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
-  };
-
+  }
 
   return (
     <div>
@@ -623,8 +636,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             <Button
               type="primary"
               onClick={() => {
-                setIsModalOpen(true);
-                form.resetFields();
+                setIsModalOpen(true)
+                form.resetFields()
               }}
             >
               Add Material <IoMdAdd />
@@ -633,21 +646,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         </li>
         <li className="mt-2">
           <Form form={form} component={false} initialValues={{ date: dayjs() }}>
-                  <Table
-          virtual
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          dataSource={data}
-          columns={mergedColumns}
-          pagination={false}
-          loading={isMaterialTbLoading}
-          rowClassName="editable-row"
-          scroll={{ x: 900, y: tableHeight }}
-          rowSelection={rowSelection}
-        />
+            <Table
+              virtual
+              components={{
+                body: {
+                  cell: EditableCell
+                }
+              }}
+              dataSource={data}
+              columns={mergedColumns}
+              pagination={false}
+              loading={isMaterialTbLoading}
+              rowClassName="editable-row"
+              scroll={{ x: 900, y: tableHeight }}
+              rowSelection={rowSelection}
+            />
           </Form>
         </li>
       </ul>
@@ -655,7 +668,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       <Modal
         title={
           <div className="flex  justify-center py-3">
-            
             <h1>ADD MATERIAL</h1>
           </div>
         }
@@ -690,13 +702,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   .localeCompare((optionB?.label ?? '').toLowerCase())
               }
               options={Array.from(
-                new Map(datas.suppliers.map((supplier) => [supplier.suppliername, supplier])).values()
+                new Map(
+                  datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
+                ).values()
               ).map((supplier, index) => {
                 return {
                   value: supplier.suppliername,
                   label: supplier.suppliername,
-                  key: index,  
-                };
+                  key: index
+                }
               })}
               onChange={(value) => setSelectedSupplierName(value)}
             />
@@ -716,7 +730,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             name="materialname"
             label="Material Name"
             rules={[{ required: true, message: false }]}
-            
           >
             <Select
               showSearch
@@ -864,7 +877,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               onFinish={createUsedMaterial}
               form={usedmaterialform}
               layout="vertical"
-              initialValues={{ date: dayjs(), }}
+              initialValues={{ date: dayjs() }}
             >
               <Form.Item
                 name="materialname"
@@ -937,11 +950,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </span>
           <span className="col-span-3">
             <Table
-            virtual
+              virtual
               columns={usedmaterialcolumns}
               dataSource={mtOption.tempproduct}
               pagination={{ pageSize: 4 }}
-              scroll={{ x:false, y: false }}
+              scroll={{ x: false, y: false }}
             />
           </span>
         </div>

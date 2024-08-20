@@ -121,11 +121,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1,
-      defaultSortOrder: 'ascend',
-      editable: false,
-      //width:150
+      key: 'createddate',
+      sorter: (a, b) => {
+        const format = 'DD/MM/YYYY,hh:mmA';
+        const dateA = dayjs(a.createddate, format);
+        const dateB = dayjs(b.createddate, format);
+        return dateB.isAfter(dateA) ? -1 : 1;
+      },
+      defaultSortOrder: 'descend',
+      editable: false
     },
     {
       title: 'Customer',
@@ -180,7 +184,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      //width: 110,
+      width: 110,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
