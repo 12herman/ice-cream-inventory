@@ -11,12 +11,15 @@ const theme = {
   },
 };
 
+
+
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <React.StrictMode>
    <ConfigProvider theme={theme} getPopupContainer={() => document.getElementById('root')}>
   <AntdApp> 
   <App />
   </AntdApp>
     </ConfigProvider>
-  </React.StrictMode>
+ 
 )

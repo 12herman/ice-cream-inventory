@@ -266,11 +266,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           </span>
         ) : (
           <span className="flex gap-x-2 justify-center items-center">
-            <Button onClick={() => showPayModal(record)}>
+            <Button onClick={() => showPayModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button onClick={() => showPayDetailsModal(record)}>
+            <Button  onClick={() => showPayDetailsModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
               <SolutionOutlined />
             </Button>
             <Typography.Link

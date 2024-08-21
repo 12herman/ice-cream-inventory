@@ -156,6 +156,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
+            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => {
                 setEmployeePay((pre) => ({ ...pre, modal: true, name: record }))
               }}
@@ -164,6 +165,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
               <MdOutlinePayments />
             </Button>
             <Button
+            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {

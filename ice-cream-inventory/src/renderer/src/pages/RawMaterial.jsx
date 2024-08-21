@@ -338,7 +338,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )}
       </td>
     )
-  }
+  };
+  
+
+
+
   const isEditing = (record) => record.key === editingKey
   const edit = (record) => {
     form.setFieldsValue({ ...record })
@@ -609,6 +613,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
   }
 
+  
   return (
     <div>
       <ul>
