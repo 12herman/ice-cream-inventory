@@ -144,30 +144,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       },
       defaultSortOrder: 'descend'
     },
-    // {
-    //   title: 'Amount',
-    //   dataIndex: 'amount',
-    //   key: 'amount'
-    // },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
       render: (_,record) => {
         return record.amount === undefined ? formatToRupee(record.billamount,true) : formatToRupee(record.amount,true);
-      }
-    },
-    // {
-    //   title:'Billamount',
-    //   dataIndex: 'billamount',
-    //   key: 'billamount'
-    // },
-    {
-      title:'Payment Status',
-      dataIndex: 'paymentstatus',
-      key: 'paymentstatus',
-      render:(_,record) => {
-        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
       }
     },
     {
@@ -178,6 +160,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'return' ? <Tag color='red'>Return</Tag> : <></>;
       }
     }, 
+    {
+      title:'Payment Status',
+      dataIndex: 'paymentstatus',
+      key: 'paymentstatus',
+      render:(_,record) => {
+        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
+      }
+    },
     {
       title: 'Description',
       dataIndex: 'description',
@@ -197,11 +187,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
-          String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.transport).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.vehicleorfreezerno).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
@@ -655,9 +645,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             className="mb-1"
             name="amount"
             label="Amount"
-            rules={[{ required: true, message: false }]}
           >
-            <InputNumber min={0} className="w-full" placeholder="Amount" />
+            <InputNumber min={0} className="w-full" placeholder="Enter amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the description" />

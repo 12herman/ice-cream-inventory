@@ -141,7 +141,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      render:(text,record,index)=>index+1
+      render:(text,record,index)=> <span>{ index + 1 }</span>
     },
     {
       title: 'Date',
@@ -204,11 +204,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
+          String(record.suppliername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.gender).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
@@ -660,7 +660,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             className="mb-1"
             name="amount"
             label="Amount"
-            rules={[{ required: true, message: false }]}
           >
             <InputNumber min={0} className="w-full" placeholder="Amount" />
           </Form.Item>
