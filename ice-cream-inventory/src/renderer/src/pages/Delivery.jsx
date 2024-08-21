@@ -14,7 +14,6 @@ import {
   Radio,
   Tag
 } from 'antd'
-import { LuClipboardList } from "react-icons/lu";
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
@@ -72,15 +71,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             };
           })
       );
-  
       setData(filteredData);
       setTableLoading(false)
     };
-  
     fetchData();
   }, [datas, dateRange]);
   
-
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return true
@@ -115,8 +111,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.paymentstatus).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.billamount).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.type).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.paymentstatus).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
@@ -125,7 +122,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'date',
       key: 'createddate',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,hh:mmA';
+        const format = 'DD/MM/YYYY,HH:mm'
         const dateA = dayjs(a.createddate, format);
         const dateB = dayjs(b.createddate, format);
         return dateB.isAfter(dateA) ? -1 : 1;
@@ -140,7 +137,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       editable: false
     },
     {
-      title: 'Price ₹',
+      title: 'Price',
       dataIndex: 'billamount',
       key: 'billamount',
       //width:150,

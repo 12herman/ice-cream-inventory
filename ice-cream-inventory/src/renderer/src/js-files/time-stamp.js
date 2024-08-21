@@ -6,18 +6,11 @@ export const  TimestampJs =() => {
     const year = date.getFullYear();
 
     // Extract time components
-    let hours = date.getHours();
+    const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
-    // Determine AM/PM
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    
-    // Convert to 12-hour format
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
 
     // Format time
-    const formattedTime = `${hours}.${minutes}${ampm}`;
+    const formattedTime = `${hours}.${minutes}`;
 
     // Format date
     const formattedDate = `${day}/${month}/${year}`;

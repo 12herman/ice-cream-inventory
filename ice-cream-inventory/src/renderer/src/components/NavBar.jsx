@@ -122,7 +122,7 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
         return !iseditable ? (
          <span className='flex gap-x-2'>
         
-         <MdOutlineModeEditOutline className='text-blue-500 cursor-pointer' size={19} onClick={()=>temTbEdit(record)}/>
+         <MdOutlineModeEditOutline className='text-pink-500 cursor-pointer' size={19} onClick={()=>temTbEdit(record)}/>
            <Popconfirm
             className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
             title="Sure to delete?"
@@ -414,15 +414,16 @@ setIsQuickSale(pre=>({...pre,billamount:totalAmounts,total:mrpAmount,editingKeys
       <ul>
        <li className='flex flex-col justify-center items-center gap-y-1 my-8'><img className='w-14 rounded-full' src={IceCreamLogo}/><span className='font-medium text-[0.9rem]'>Ice Cream</span></li>
         {navPages.pages.map((page, i) => (
-            <li key={i} className={`${page === navPages.currentpage ? 'text-white bg-blue-500 rounded-r-full':''} cursor-pointer px-2 py-2 flex items-center gap-x-2`} onClick={() => setNavPages(pre =>({...pre,currentpage:page,pagecount:i}))}>
+            <li key={i} className={`${page === navPages.currentpage ? 'text-white bg-pink-500 rounded-r-full':''} cursor-pointer px-2 py-2 flex items-center gap-x-2`} onClick={() => setNavPages(pre =>({...pre,currentpage:page,pagecount:i}))}>
                 <span >{navPages.icons[i]}</span>
                 <span>{page}</span>
             </li>
         ))}
       </ul>
 
-      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => {setIsQuickSale(pre => ({...pre,model:true,dataloading: !isQuickSale.dataloading,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0,marginstate:false,paymentstatus:''})); quickSaleForm.resetFields(); quickSaleForm2.resetFields();quickSaleForm3.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
-      <Button className='flex justify-center items-center gap-x-2 bg-blue-500 text-white p-1 w-[95%] rounded-md absolute bottom-5 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-blue-400' onClick={() => { setIsSpendingModalOpen(pre =>({...pre,model:true})); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
+      <Button className='flex justify-center items-center gap-x-2 bg-pink-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-pink-400' onClick={() => {setIsQuickSale(pre => ({...pre,model:true,dataloading: !isQuickSale.dataloading,temdata:[],count:0,total:0,date:dayjs().format('DD/MM/YYYY'),margin:0,billamount:0,marginstate:false,paymentstatus:''})); quickSaleForm.resetFields(); quickSaleForm2.resetFields();quickSaleForm3.resetFields();}}><TbIceCream size={25}/><span>Quick Sale</span></Button>
+      <Button className='flex justify-center items-center gap-x-2 bg-pink-500 text-white p-1 w-[95%] rounded-md absolute bottom-6 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-pink-400' onClick={() => { setIsSpendingModalOpen(pre =>({...pre,model:true})); spendingForm.resetFields(); }}><LiaHandHoldingUsdSolid size={25}/><span>Spending</span></Button>
+      <span className='flex justify-center items-center gap-x-2 text-pink-500 absolute bottom-1 w-[100%] text-xs font-bold'>Version : 1.0</span>
     {/* quick sale */}
       <Modal
       className='relative'

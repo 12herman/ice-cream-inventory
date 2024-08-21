@@ -95,11 +95,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
+          String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.numberofpacks).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.numberofpacks).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
@@ -108,7 +108,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       dataIndex: 'date',
       key: 'createddate',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,hh:mmA';
+        const format = 'DD/MM/YYYY,HH:mm'
         const dateA = dayjs(a.createddate, format);
         const dateB = dayjs(b.createddate, format);
         return dateB.isAfter(dateA) ? -1 : 1;
