@@ -182,8 +182,13 @@ export default function NavBar({ navPages,setNavPages,datas,deliveryUpdateMt }) 
   };
 
   const QuickSaleTemAdd = async (values,i) => {
-    let existingDataCheck = isQuickSale.temdata.filter((item) => item.productname === values.productname && item.flavour === values.flavour && item.quantity === Number(values.quantity.split(' ')[0]) && item.unit === values.quantity.split(' ')[1]);
-    if (existingDataCheck.length > 0) return message.open({ type: 'warning', content: 'This product is already existing in the list' });
+   
+    console.log(Number(values.quantity.split(' ')[0]));
+    let existingDataCheck = isQuickSale.temdata.filter((item) => item.productname === values.productname && item.flavour === values.flavour && item.quantity === values.quantity );
+    
+    if (existingDataCheck.length > 0) {
+      return message.open({ type: 'warning', content: 'This product is already existing in the list' })
+    };
 
     setIsQuickSale(pre=>({...pre,count:isQuickSale.count+1}))
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : '';
@@ -314,7 +319,7 @@ setIsSpendingModalOpen(pre =>({...pre,employeeoption:employeeOtSet}));
     children,
     ...restProps
   })=>{
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    const inputNode = inputType === 'number' ? <InputNumber size='small' className='w-[4rem]' min={0}/> : <InputNumber size='small' className='w-[4rem]' min={1}/>
     return (
       <td {...restProps}>
         {editing ? (
@@ -451,15 +456,15 @@ setIsQuickSale(pre=>({...pre,billamount:totalAmounts,total:mrpAmount,editingKeys
             </Radio.Group>
           </Form.Item>
           <Form.Item rules={[{ required: true, message: false }]} className='mb-0' name="partialamount">
-            <InputNumber min={0} disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
+            <InputNumber  placeholder='Amount' min={0} disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
           </Form.Item>
           <Form.Item
-                className="mb-1"
+                 className="mb-0"
                 name="customername"
                 //label="Customer Name"
                 rules={[{ required: true, message: false }]}
               >
-              <Input  placeholder='Enter the name' disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
+              <Input   placeholder='Enter the name' disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}/>
                 {/* <Select
                 disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}
                   showSearch

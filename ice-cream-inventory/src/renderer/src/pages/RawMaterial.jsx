@@ -230,8 +230,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       // width: 120,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text) => (
-        <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text}</Tag>
+      render: (text,record) => (
+        <span className='flex gap-x-0'><Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text} </Tag> {text === 'Partial' ? <Tag color='blue'>{record.partialamount}</Tag> : null}</span>
       )
     },
     {
@@ -275,7 +275,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )
       }
     }
-  ]
+  ];
 
   const EditableCell = ({
     editing,
@@ -555,9 +555,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       quantity: values.quantity + ' ' + values.unit
     }
     console.log(mtOption.tempproduct, newMaterial)
-    const checkExist = mtOption.tempproduct.find(
-      (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
-    )
+    
+    const checkExist = mtOption.tempproduct.find((item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date)
+
     const dbcheckExsit = datas.rawmaterials.find(
       (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
     )
@@ -628,7 +628,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           />
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker onChange={(dates) => setDateRange(dates)} />
-            <Button>
+            <Button disabled={editingKey === ''}>
               Export <PiExport />
             </Button>
             <Button
@@ -639,6 +639,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               Material Used <IoMdRemove />
             </Button>
             <Button
+            disabled={editingKey !== ''}
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
@@ -759,7 +760,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" />
+              <InputNumber min={0} className="w-full" />
             </Form.Item>
 
             <Form.Item
@@ -812,7 +813,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" />
+            <InputNumber min={0} className="w-full" />
           </Form.Item>
 
           <Form.Item
@@ -909,7 +910,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   label="Quantity"
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber className="w-full" />
+                  <InputNumber min={0} className="w-full" />
                 </Form.Item>
 
                 <Form.Item
@@ -920,7 +921,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 >
                   <Select
                     showSearch
-                    placeholder="Search to Select"
+                    placeholder="Select"
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
@@ -928,10 +929,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
-                      { label: 'Liter', value: 'Liter' },
-                      { label: 'MM', value: 'MM' },
                       { label: 'GM', value: 'GM' },
-                      { label: 'KG', value: 'KG' }
+                      { label: 'KG', value: 'KG' },
+                      { label: 'LI', value: 'LI' },
+                      { label: 'MI', value: 'MI' },
                     ]}
                   />
                 </Form.Item>
