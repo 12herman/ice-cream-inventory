@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Input, Button, Table, Segmented, Modal, Form, InputNumber } from 'antd'
-import { IoMdAlarm } from 'react-icons/io'
+import { Input, Button, Table, Segmented, Modal, Form, InputNumber, Popconfirm } from 'antd'
+import { MdAccessAlarm } from 'react-icons/md'
+import { MdUndo } from 'react-icons/md'
 import { LuMilk, LuIceCream } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
@@ -41,6 +42,21 @@ export default function Storage({ datas, storageUpdateMt }) {
     storageUpdateMt()
     setEditingRecordId(null)
     setIsModalVisible(false)
+  }
+
+  const resetStorage = async (values) => {
+    if (values.category === 'Material List') {
+      await updateStorage(values.id, {
+        quantity: 0,
+        updateddate: TimestampJs()
+      })
+    } else {
+      await updateStorage(values.id, {
+        numberofpacks: 0,
+        updateddate: TimestampJs()
+      })
+    }
+    storageUpdateMt()
   }
 
   const showModal = (record) => {
@@ -96,14 +112,26 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
+      width: 150,
       render: (_, record) => (
-        <Button
-          onClick={() => showModal(record)}
-          style={{ color: record.quantity < record.alertcount ? 'red' : 'default' }}
-        >
-          <IoMdAlarm />
-        </Button>
+        <>
+          <Button
+            onClick={() => showModal(record)}
+            style={{ color: record.quantity < record.alertcount ? 'red' : 'default' }}
+          >
+            <MdAccessAlarm />
+          </Button>
+          <Popconfirm
+            title="Are you sure to reset?"
+            onConfirm={() => resetStorage(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button className="ml-2">
+              <MdUndo />
+            </Button>
+          </Popconfirm>
+        </>
       )
     }
   ]
@@ -159,14 +187,26 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 110,
+      width: 150,
       render: (_, record) => (
-        <Button
-          onClick={() => showModal(record)}
-          style={{ color: record.numberofpacks < record.alertcount ? 'red' : 'default' }}
-        >
-          <IoMdAlarm />
-        </Button>
+        <>
+          <Button
+            onClick={() => showModal(record)}
+            style={{ color: record.numberofpacks < record.alertcount ? 'red' : 'default' }}
+          >
+            <MdAccessAlarm />
+          </Button>
+          <Popconfirm
+            title="Are you sure to reset?"
+            onConfirm={() => resetStorage(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+          <Button className="ml-2">
+            <MdUndo />
+          </Button>
+          </Popconfirm>
+        </>
       )
     }
   ]

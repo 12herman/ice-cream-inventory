@@ -511,9 +511,9 @@ export default function Home({ datas }) {
       <Modal
         title="Items"
         open={isModalVisible}
-        onOk={() => setIsModalVisible(false)}
         onCancel={() => setIsModalVisible(false)}
         width={800}
+        footer={null}
       >
         {selectedRecord && (
           <div>
