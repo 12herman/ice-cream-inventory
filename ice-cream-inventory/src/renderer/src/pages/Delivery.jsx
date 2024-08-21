@@ -215,11 +215,25 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link> */}
-            <TbFileDownload
+            
+            {/* <TbFileDownload
               onClick={() => handleDownloadPdf(record)}
               size={19}
               className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}
+            /> */}
+
+            <Popconfirm
+              className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to download pdf?"
+              onConfirm={() => handleDownloadPdf(record)}
+              disabled={editingKey !== ''}
+            >
+              <TbFileDownload
+              size={19}
+              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}
             />
+            </Popconfirm>
+
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
