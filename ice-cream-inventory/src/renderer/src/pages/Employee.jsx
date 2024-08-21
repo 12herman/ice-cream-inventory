@@ -167,11 +167,13 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <Button
             disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
+                setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {
                   let checkPayData = paydetails.filter((item) => item.isdeleted === false);
                   setEmployeePayDetails((pre) => ({ ...pre, modal: true, data: checkPayData, parentid:record.id }))
                 }
+                setEmpListTb(false)
               }}
             >
               <SolutionOutlined />
@@ -461,6 +463,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
+      width:100,
       render: (_, record, index) => <span>{index + 1}</span>
     },
     {
@@ -539,7 +542,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     }
     return {
       ...item,
-      onCell: (record) => ({
+        onCell: (record) => ({
         record,
         dataIndex: item.dataIndex,
         title: item.title,
@@ -642,8 +645,29 @@ export default function Employee({ datas, employeeUpdateMt }) {
             setEmployeePayDetails((pre) => ({ ...pre, data: checkPayData }))
             }
         message.open({ type: 'success',content: 'Payment Data deleted successfully'});
-  }
+  };
 
+
+  const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 300 // Adjust this value based on your layout needs
+      setHistoryHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, []);
+
+  const [empListTb,setEmpListTb] = useState(true)
   return (
     <div>
       <ul>
@@ -818,20 +842,21 @@ export default function Employee({ datas, employeeUpdateMt }) {
         footer={null}
         pagination={{pageSize: 5}}
         width={1000}
+        height={historyHeight}
         onCancel={() => {
           setEmployeePayDetails((pre) => ({ ...pre, modal: false, data: [],isedit:[] }));
         }}
       >
         <Form form={empdetailpayform} component={false}>
           <Table
-            pagination={{ pageSize: 5 }}
+            virtual
+            loading={empListTb}
+            pagination={false}
             columns={mergedEmpPayDetailColumn}
-            components={{
-              body: {
-                cell: EmpPayDetailTableEditableCell
-              }
-            }}
+            components={{  body: { cell: EmpPayDetailTableEditableCell}}}
+            scroll={{ x: false, y: historyHeight }}
             dataSource={employeePayDetails.data}
+            rowKey="id"
           />
         </Form>
       </Modal>

@@ -412,7 +412,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           item.isdeleted === false &&
           s.findIndex((item2) => item2.productname === item.productname) === i
       )
-      .map((data) => ({ lable: data.productname, value: data.productname }))
+      .map((data) => ({ label: data.productname, value: data.productname }))
     setOption((pre) => ({ ...pre, product: productOp }))
   }, [])
 
@@ -675,6 +675,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 rules={[{ required: true, message: false }]}
               >
                 <Select
+                  onChange={(value, i) => productOnchange(value, i)}
                   showSearch
                   placeholder="Search to Select"
                   optionFilterProp="label"
@@ -684,7 +685,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                       .localeCompare((optionB?.label ?? '').toLowerCase())
                   }
                   options={option.product}
-                  onChange={(value, i) => productOnchange(value, i)}
                 />
               </Form.Item>
               <Form.Item
@@ -733,7 +733,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber className="w-full" />
+                <InputNumber min={0} className="w-full" />
               </Form.Item>
 
               <Form.Item

@@ -666,7 +666,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </Modal>
 
       <Modal
-        title={<span className="text-center w-full block pb-5">PAY DETAILS</span>}
+        title={<span className="text-center w-full block pb-1">PAY DETAILS</span>}
         open={isPayDetailsModelOpen}
         footer={null}
         width={1000}

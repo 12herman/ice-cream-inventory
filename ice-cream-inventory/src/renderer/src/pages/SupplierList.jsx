@@ -272,11 +272,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            <Button onClick={() => showPayModal(record)}>
+            <Button onClick={() => showPayModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button onClick={() => showPayDetailsModal(record)}>
+            <Button onClick={() => showPayDetailsModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
               <SolutionOutlined />
             </Button>
             <Typography.Link
@@ -692,7 +692,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           columns={payDetailsColumns}
           dataSource={payDetailsData}
           rowKey="id"
-          scroll={{ x: false, y: historyHeight }}
+          scroll={{ y: historyHeight }}
         />
       </Modal>
     </div>

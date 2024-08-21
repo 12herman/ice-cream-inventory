@@ -109,6 +109,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
+          String(record.type).toLowerCase().includes(value.toLowerCase()) ||
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.billamount).toLowerCase().includes(value.toLowerCase()) ||
@@ -446,7 +447,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'quantity',
       key: 'quantity',
       editable: false,
-      width: 80,
+      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -454,21 +455,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      width: 80,
+      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      width: 100,
+      // width: 100,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
-      width: 80,
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -476,7 +476,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      
       editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -484,7 +483,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
-      width: 80,
+      // width: 80,
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
@@ -596,7 +595,7 @@ setTotalAmount(mrpAmount)
           item.isdeleted === false &&
           s.findIndex((item2) => item2.productname === item.productname) === i
       )
-      .map((data) => ({ lable: data.productname, value: data.productname }))
+      .map((data) => ({ label: data.productname, value: data.productname }))
     setOption((pre) => ({ ...pre, product: productOp }))
     const optionscustomers = datas.customers
       .filter((item) => item.isdeleted === false)
@@ -1156,7 +1155,7 @@ setTotalAmount(mrpAmount)
     children,
     ...restProps
   })=>{
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    const inputNode = inputType === 'number' ? <InputNumber className='w-[4rem]' size='small' min={0}/> : <InputNumber className='w-[4rem]' size='small' min={1}/>
     return (
       <td {...restProps}>
         {editing ? (
@@ -1549,7 +1548,7 @@ setTotalAmount(mrpAmount)
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber className="w-full" />
+                <InputNumber min={1} className="w-full" />
               </Form.Item>
 
               <Form.Item
