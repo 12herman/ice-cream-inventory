@@ -12,7 +12,8 @@ import {
   Select,
   DatePicker,
   Radio,
-  Tag
+  Tag,
+  Segmented 
 } from 'antd'
 import { LuClipboardList } from "react-icons/lu";
 import { PiExport } from 'react-icons/pi'
@@ -774,11 +775,22 @@ setTotalAmount(mrpAmount)
           pr.quantity == temp.quantity.split(' ')[0] &&
           pr.unit === temp.quantity.split(' ')[1]
       )
-      return {
-        id: pr.id,
-        numberofpacks: matchingTempProduct.numberofpacks,
-        margin: matchingTempProduct.margin,
+
+      if (returnDelivery.state === true){
+        return {
+          id: pr.id,
+          numberofpacks: matchingTempProduct.numberofpacks,
+          // margin: matchingTempProduct.margin,
+        }
       }
+      else{
+        return {
+          id: pr.id,
+          numberofpacks: matchingTempProduct.numberofpacks,
+          margin: matchingTempProduct.margin,
+        }
+      }
+      
     });
    
     // Partial amount (value)
@@ -791,7 +803,7 @@ setTotalAmount(mrpAmount)
       total: totalamount,
       billamount: marginValue.amount,
       paymentstatus: marginValue.paymentstaus,
-      margin: marginValue.percentage,
+      // margin: marginValue.percentage,
       partialamount: partialamount,
       isdeleted: false,
       type: returnDelivery.state === true ? 'return' : 'order',
@@ -805,38 +817,33 @@ setTotalAmount(mrpAmount)
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
+      
       for (const item of productItems) {
+        
         await addDoc(itemsCollectionRef, item)
         const { product, status } = await getProductById(item.id)
+        
         if (status === 200) {
           const existingProduct = datas.storage.find(
             (storageItem) =>
               storageItem.productname === product.productname &&
               storageItem.flavour === product.flavour &&
               storageItem.quantity === product.quantity &&
-              storageItem.category === 'Product List'
-          )
+              storageItem.category === 'Product List');
+
           if (existingProduct) {
             if (returnDelivery.state === true) {
-              await updateStorage(existingProduct.id, {
-                numberofpacks: existingProduct.numberofpacks + item.numberofpacks
-              })
-            } else {
-              await updateStorage(existingProduct.id, {
-                numberofpacks: existingProduct.numberofpacks - item.numberofpacks
-              })
+              await updateStorage(existingProduct.id, { numberofpacks: existingProduct.numberofpacks + item.numberofpacks })
+            } 
+            else {
+              await updateStorage(existingProduct.id, {  numberofpacks: existingProduct.numberofpacks - item.numberofpacks })
             }
             await storageUpdateMt()
           }
         }
       }
-      message.open({
-        type: 'success',
-        content:
-          returnDelivery.state === true
-            ? 'Production return successfully'
-            : 'Production added successfully'
-      })
+
+      message.open({ type: 'success', content: returnDelivery.state === true ? 'Production return successfully' : 'Production added successfully' })
       await deliveryUpdateMt()
       
     } catch (error) {
@@ -1435,6 +1442,7 @@ setTotalAmount(mrpAmount)
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
                     <Radio.Group
+                      className={`${returnDelivery.state === true ? 'hidden' : 'block'}`}
                       disabled={option.tempproduct.length <= 0 ? true : false}
                       buttonStyle="solid"
                       onChange={radioOnchange}
@@ -1445,7 +1453,7 @@ setTotalAmount(mrpAmount)
                     </Radio.Group>
                   </Form.Item>
                   <Form.Item name="partialamount">
-                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
+                    <InputNumber className={`${returnDelivery.state === true ? 'hidden' : 'block'}`} disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
                   </Form.Item>
                   <Form.Item>
                     <Button htmlType="submit" type="primary" className=" w-fit">
@@ -1599,7 +1607,7 @@ setTotalAmount(mrpAmount)
           <Tag color="blue">MRP Amount: {formatToRupee(totalamount)}</Tag>
           {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
           {/* <Tag color="orange">Margin: {marginValue.percentage}%</Tag> */}
-          <Tag color="green">
+          <Tag color="green" className={`${returnDelivery.state === true ? 'hidden' : 'inline-block'}`}>
             Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
           </Tag>
         </span>
