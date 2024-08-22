@@ -54,6 +54,22 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const [data, setData] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
 
+  const [deliveryBill, setDeliveryBill] = useState({
+    model: false,
+    loading: false,
+    state: false,
+    data: [],
+    prdata: {
+      id: '',
+      supplierid: '',
+      supplier: '',
+      date: ''
+    },
+    open: false,
+    totalamount:0,
+    billingamount:0,
+    returnmodeltable:false,
+  });
   // side effect
   useEffect(() => {
     const fetchData = async () => {
@@ -579,8 +595,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       key: 'returntype',
       editable: true,
       render: (text) => {
-        console.log(text);
-        
        return text === 'damage' ? <Tag color='red' className="text-[0.7rem]">Damage</Tag> : <Tag color='blue' className="text-[0.7rem]">Normal</Tag>
       }
     },
@@ -886,8 +900,8 @@ setTotalAmount(mrpAmount)
         return {
           id: pr.id,
           numberofpacks: matchingTempProduct.numberofpacks,
-          returntype:matchingTempProduct.returntype
-          // margin: matchingTempProduct.margin,
+          returntype:matchingTempProduct.returntype,
+           margin: 0,
         }
       }
       else{
@@ -1195,19 +1209,26 @@ setTotalAmount(mrpAmount)
      
     },
     {
-      title: 'MRP',
+      title:  'MRP',
       key: 'producttotalamount',
       dataIndex: 'producttotalamount',
      
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
-      title: 'Margin',
-      key: 'margin',
-      dataIndex: 'margin',
-     
-      render: (text) => text === undefined ? `0 %` : <span>{text} %</span>
-    },
+      title: deliveryBill.returnmodeltable === false ? 'Margin' : 'Type',
+      key: deliveryBill.returnmodeltable === false ? 'margin' : 'returntype',
+      dataIndex: deliveryBill.returnmodeltable === false ? 'margin' : 'returntype',
+      render: (text,record) => {
+       if(deliveryBill.returnmodeltable === false){
+        return text === undefined ? `0 %` : <span>{text} %</span>
+       }else{
+        console.log(record);
+        
+        return text === 'damage' ? <Tag color='red'>Damage</Tag> : <Tag color='blue'>Normal</Tag>
+       }
+    }
+  },
     {
       title: 'Total Amount',
       key: 'price',
@@ -1216,26 +1237,12 @@ setTotalAmount(mrpAmount)
     }
   ]
 
-  const [deliveryBill, setDeliveryBill] = useState({
-    model: false,
-    loading: false,
-    state: false,
-    data: [],
-    prdata: {
-      id: '',
-      supplierid: '',
-      supplier: '',
-      date: ''
-    },
-    open: false,
-    totalamount:0,
-    billingamount:0,
-  })
+
 
   useEffect(() => {
     const getItems = async () => {
       if (deliveryBill.prdata.id !== '') {
-        setDeliveryBill((pre) => ({ ...pre, loading: true }))
+        setDeliveryBill((pre) => ({ ...pre, loading: true }));
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
         if (status === 200) {
           let prData = datas.product.filter((item, i) =>
@@ -1243,6 +1250,8 @@ setTotalAmount(mrpAmount)
           )
           let prItems = prData.map((pr, i) => {
             let matchingData = items.find((item, i) => item.id === pr.id);
+            console.log(matchingData);
+            
             return {
               sno: i + 1,
               ...pr,
@@ -1251,7 +1260,8 @@ setTotalAmount(mrpAmount)
               margin: matchingData.margin,
               price: (matchingData.numberofpacks * pr.price) - (matchingData.numberofpacks * pr.price) * (matchingData.margin / 100),
               numberofpacks: matchingData.numberofpacks,
-              producttotalamount: matchingData.numberofpacks * pr.price
+              producttotalamount: matchingData.numberofpacks * pr.price,
+              returntype: matchingData.returntype,
             }
           });
 
@@ -1266,8 +1276,8 @@ setTotalAmount(mrpAmount)
   }, [deliveryBill.open])
 
   const onOpenDeliveryBill = (data) => {
-    setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open }));
-  }
+    setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open, returnmodeltable:data.type === 'return' ? true : false }));
+  };
 
   // return
   const [returnDelivery, setReturnDelivery] = useState({
@@ -1292,7 +1302,16 @@ setTotalAmount(mrpAmount)
           ? <Form.Item 
           name="returntype" style={{margin:0}} 
           rules={[{ required: true,  message: false } ]}>
-              <Select options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]} size='small' />
+              <Select options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]} size='small' dropdownRender={menu => (
+      <div>
+        {menu}
+        <style jsx>{`
+          .ant-select-item-option-content {
+            font-size: 0.6rem;
+          }
+        `}</style>
+      </div>
+    )}/>
           </Form.Item> 
           : 
           <Form.Item
@@ -1459,8 +1478,8 @@ setTotalAmount(mrpAmount)
             <Button
               onClick={() => {
                 setIsModalOpen(true)
+                setReturnDelivery((pre) => ({ ...pre, state: true }));
                 form.resetFields()
-                setReturnDelivery((pre) => ({ ...pre, state: true }))
               }}
               type="primary"
               disabled={editingKey !== ''}
@@ -1880,7 +1899,7 @@ setTotalAmount(mrpAmount)
         width={1000}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">
-            DELIVERED ON {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}{' '}
+          {deliveryBill.returnmodeltable === true ? "RETURN" : "DELIVERED" } ON  {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}
           </span>
         }
         footer={false}
@@ -1909,7 +1928,7 @@ setTotalAmount(mrpAmount)
             {deliveryBill.data.margin === undefined ? 0 : deliveryBill.data.margin}%
           </Tag>
         </span> */}
-        <span>
+        <span className={`${deliveryBill.returnmodeltable === true ? 'hidden' : 'inline-block'}`}>
           Billing Amount:
           <Tag className="text-[1.1rem]" color="green">
             {formatToRupee(
