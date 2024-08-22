@@ -486,7 +486,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       key: 'price',
       // width: 80,
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -528,12 +528,109 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     }
   ]
 
+  const columnsReturn = [
+    {
+      title: <span className="text-[0.7rem]">Product</span>,
+      dataIndex: 'productname',
+      key: 'productname',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Flavor</span>,
+      dataIndex: 'flavour',
+      key: 'flavour',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Quantity</span>,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: false,
+      // width: 80,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Packs</span>,
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
+      editable: true,
+      // width: 80,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Piece Price</span>,
+      dataIndex: 'productprice',
+      key: 'productprice',
+      // width: 100,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">MRP</span>,
+      dataIndex: 'mrp',
+      key: 'mrp',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Return Type</span>,
+      dataIndex: 'returntype',
+      key: 'returntype',
+      editable: true,
+      render: (text) => {
+        console.log(text);
+        
+       return text === 'damage' ? <Tag color='red' className="text-[0.7rem]">Damage</Tag> : <Tag color='blue' className="text-[0.7rem]">Normal</Tag>
+      }
+    },
+    {
+      title: <span className="text-[0.7rem]">Action</span>,
+      dataIndex: 'operation',
+      fixed: 'right',
+      width: 80,
+      render: (_, record) => {
+        let iseditable = isEditionTemp(record)
+        return !iseditable ? (
+         <span className='flex gap-x-2'>
+        
+         <MdOutlineModeEditOutline className='text-blue-500 cursor-pointer' size={19} onClick={()=>temTbEdit(record)}/>
+           <Popconfirm
+            className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+            title="Sure to delete?"
+            onConfirm={() => removeTemProduct(record)}
+            disabled={editingKey !== ''}
+          >
+            <AiOutlineDelete className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`} size={19}/>
+          </Popconfirm>
+         </span>
+        ) : 
+        <span className='flex gap-x-2'>
+        <Typography.Link
+              style={{ marginRight: 8 }}
+              onClick={() => tempSingleMargin(record)}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={() => setOption((pre) => ({ ...pre, editingKeys: [] })) }
+            >
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+        </span>
+      }
+    }
+  ];
+
   const tempSingleMargin = async (data) => {
     try {
       const row = await temform.validateFields();
       const oldtemDatas = option.tempproduct;
       // Check if the margin already exists for the same key
-      const checkDatas = oldtemDatas.some((item) => item.key === data.key && item.margin === row.margin && item.numberofpacks === row.numberofpacks );
+      const checkDatas = returnDelivery.state === true ? oldtemDatas.some((item) => item.key === data.key && item.numberofpacks === row.numberofpacks && item.returntype === row.returntype)
+      : oldtemDatas.some((item) => item.key === data.key && item.margin === row.margin && item.numberofpacks === row.numberofpacks );
       
       if (checkDatas) {
         message.open({ type: 'info', content: 'Already exists' });
@@ -545,13 +642,22 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       const updatedTempproduct = oldtemDatas.map((item) => {
         if (item.key === data.key) {
           let mrpData = (item.productprice * row.numberofpacks);
-          return {
-            ...item,
-            numberofpacks: row.numberofpacks,
-            margin: row.margin,
-            mrp:item.productprice * row.numberofpacks,
-            price: mrpData - mrpData * (row.margin / 100),
-          };
+          if(returnDelivery.state === true){
+            return {
+              ...item,
+              numberofpacks: row.numberofpacks,
+              mrp:item.productprice * row.numberofpacks,
+              returntype: row.returntype,
+            };
+          }else{
+            return {
+              ...item,
+              numberofpacks: row.numberofpacks,
+              margin: row.margin,
+              mrp:item.productprice * row.numberofpacks,
+              price: mrpData - mrpData * (row.margin / 100),
+            };
+          }
         }
         return item;
       });
@@ -675,6 +781,7 @@ setTotalAmount(mrpAmount)
   const [count, setCount] = useState(0)
   const [totalamount, setTotalAmount] = useState(0)
   const createTemDeliveryMt = async (values) => {
+    
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
     let [quantityvalue, units] = values.quantity.split(' ')
@@ -686,7 +793,7 @@ setTotalAmount(mrpAmount)
         item.unit === units
     ).price;
 
-    const newProduct = {
+    const newProduct =  {
       ...values,
       key: count,
       date: formattedDate,
@@ -705,7 +812,8 @@ setTotalAmount(mrpAmount)
         item.quantity === newProduct.quantity &&
         item.numberofpacks === newProduct.numberofpacks &&
         item.date === newProduct.date
-    )
+    );
+
     const checkSamePacks = option.tempproduct.some(
       (item) =>
         item.customername === newProduct.customername &&
@@ -715,7 +823,8 @@ setTotalAmount(mrpAmount)
         item.numberofpacks !== newProduct.numberofpacks &&
         item.date === newProduct.date &&
         item.key !== newProduct.key
-    )
+    );
+
     //const dbCheck = datas.delivery.some(item => item.isdeleted === false && item.customername ===newProduct.customername && item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.date === newProduct.date && newProduct.quantity === item.quantity );
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
@@ -777,6 +886,7 @@ setTotalAmount(mrpAmount)
         return {
           id: pr.id,
           numberofpacks: matchingTempProduct.numberofpacks,
+          returntype:matchingTempProduct.returntype
           // margin: matchingTempProduct.margin,
         }
       }
@@ -794,7 +904,19 @@ setTotalAmount(mrpAmount)
     let { partialamount } = form4.getFieldsValue();
     
     // Create delivery new
-    const newDelivery = {
+    const newDelivery = returnDelivery.state === true ? {
+      customerid: option.tempproduct[0].customername,
+      date: option.tempproduct[0].date,
+      total: totalamount,
+      billamount:totalamount,
+      paymentstatus: marginValue.paymentstaus,
+      // margin: marginValue.percentage,
+      partialamount: partialamount,
+      isdeleted: false,
+      type: returnDelivery.state === true ? 'return' : 'order',
+      createddate: TimestampJs()
+    } :
+    {
       customerid: option.tempproduct[0].customername,
       date: option.tempproduct[0].date,
       total: totalamount,
@@ -806,7 +928,7 @@ setTotalAmount(mrpAmount)
       type: returnDelivery.state === true ? 'return' : 'order',
       createddate: TimestampJs()
     }
-    // console.log(productItems);
+     console.log(productItems,newDelivery);
 
     try {
       setIsModalOpen(false)
@@ -1166,6 +1288,13 @@ setTotalAmount(mrpAmount)
     return (
       <td {...restProps}>
         {editing ? (
+          dataIndex === 'returntype' 
+          ? <Form.Item 
+          name="returntype" style={{margin:0}} 
+          rules={[{ required: true,  message: false } ]}>
+              <Select options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]} size='small' />
+          </Form.Item> 
+          : 
           <Form.Item
             name={dataIndex}
             style={{
@@ -1195,8 +1324,24 @@ setTotalAmount(mrpAmount)
     temform.setFieldsValue({ ...re });
     setOption(pre=>({...pre,editingKeys:[re.key]}));
   };
-
-  const tempMergedColumns = columns2.map((col) => {
+  // columnsReturn
+  const tempMergedColumns = returnDelivery.state === true ? 
+  columnsReturn.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'margin' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditionTemp(record)
+      })
+    }
+  })
+  : columns2.map((col) => {
     if (!col.editable) {
       return col
     }
@@ -1240,10 +1385,6 @@ setTotalAmount(mrpAmount)
 
   const handleDownloadPdf = async (record) => {
    await setDeliveryBill((pre) => ({ ...pre, prdata: record, open: !deliveryBill.open }));
-   
-   console.log(record);
-
-
     const element = printRef.current;
     const canvas = await html2canvas(element);
     const data = canvas.toDataURL('image/png');
@@ -1469,7 +1610,7 @@ setTotalAmount(mrpAmount)
               onFinish={createTemDeliveryMt}
               form={form2}
               layout="vertical"
-              initialValues={{ date: dayjs() }}
+              initialValues={{ date: dayjs(), returntype:'normal'}}
             >
               <Form.Item
                 className="mb-1"
@@ -1547,6 +1688,16 @@ setTotalAmount(mrpAmount)
                       .localeCompare((optionB?.label ?? '').toLowerCase())
                   }
                   options={option.quantity}
+                />
+              </Form.Item>
+
+              <Form.Item
+               className={`mb-1 w-full text-[0.7rem] ${returnDelivery.state === true ? 'block' : 'hidden'}`}
+                name="returntype"
+                label="Return Type"
+                rules={[{ required: returnDelivery.state === true ? true : false , message: false }]}>
+                <Segmented options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]}
+                // value={value} onChange={setValue} 
                 />
               </Form.Item>
 
