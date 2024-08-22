@@ -5,7 +5,7 @@ import App from './App'
 import { ConfigProvider, App as AntdApp } from 'antd'
 const theme = {
   token: {
-    colorPrimary: '#e44f99'
+    colorPrimary: '#f26723'
   }
 }
 

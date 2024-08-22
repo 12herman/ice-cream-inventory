@@ -344,7 +344,7 @@ export default function Home({ datas }) {
     <div>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
-          <h1>Dashboard</h1>
+          <h1 className='font-bold text-base'>Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
               onChange={handleDateChange}

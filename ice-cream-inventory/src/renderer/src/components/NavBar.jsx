@@ -1,6 +1,6 @@
 // src/components/NavBar.js
 import React, { useEffect, useState } from 'react'
-import IceCreamLogo from '../assets/img/33456902_6600_7_04.jpg'
+import IceCreamLogo from '../assets/img/logo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
 import {
@@ -133,7 +133,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         return !iseditable ? (
           <span className="flex gap-x-2">
             <MdOutlineModeEditOutline
-              className="text-pink-500 cursor-pointer"
+              className="text-[#f26723] cursor-pointer"
               size={19}
               onClick={() => temTbEdit(record)}
             />
@@ -571,13 +571,12 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     <nav className="border-r-2 h-screen col-span-2 relative">
       <ul>
         <li className="flex flex-col justify-center items-center gap-y-1 my-8">
-          <img className="w-14 rounded-full" src={IceCreamLogo} />
-          <span className="font-medium text-[0.9rem]">Ice Cream</span>
+          <img className="w-full" src={IceCreamLogo} />
         </li>
         {navPages.pages.map((page, i) => (
           <li
             key={i}
-            className={`${page === navPages.currentpage ? 'text-white bg-pink-500 rounded-r-full' : ''} cursor-pointer px-2 py-2 flex items-center gap-x-2`}
+            className={`${page === navPages.currentpage ? 'text-white bg-[#f26723] rounded-r-full' : ''} cursor-pointer px-2 py-2 flex items-center gap-x-2`}
             onClick={() => setNavPages((pre) => ({ ...pre, currentpage: page, pagecount: i }))}
           >
             <span>{navPages.icons[i]}</span>
@@ -587,7 +586,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       </ul>
 
       <Button
-        className="flex justify-center items-center gap-x-2 bg-pink-500 text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-pink-400"
+        className="flex justify-center items-center gap-x-2 bg-[#f26723] text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-[#f26723]"
         onClick={() => {
           setIsQuickSale((pre) => ({
             ...pre,
@@ -611,7 +610,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         <span>Quick Sale</span>
       </Button>
       <Button
-        className="flex justify-center items-center gap-x-2 bg-pink-500 text-white p-1 w-[95%] rounded-md absolute bottom-6 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-pink-400"
+        className="flex justify-center items-center gap-x-2 bg-[#f26723] text-white p-1 w-[95%] rounded-md absolute bottom-6 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-[#f26723]"
         onClick={() => {
           setIsSpendingModalOpen((pre) => ({ ...pre, model: true }))
           spendingForm.resetFields()
@@ -620,7 +619,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         <LiaHandHoldingUsdSolid size={25} />
         <span>Spending</span>
       </Button>
-      <span className="flex justify-center items-center gap-x-2 text-pink-500 absolute bottom-1 w-[100%] text-xs font-bold">
+      <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-bold">
         Version : 1.0
       </span>
       {/* quick sale */}
@@ -644,7 +643,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
               <Form.Item className="mb-0">
                 <Button type="primary" htmlType="submit">
                   Enter
-                </Button>{' '}
+                </Button>
               </Form.Item>
             </Form>
 
@@ -755,7 +754,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
             onFinish={QuickSaleTemAdd}
             initialValues={{ date: dayjs() }}
           >
-            <Form.Item name="type" className="mb-1">
+            <Form.Item name="type" className="mb-1 mt-3">
                 <Radio.Group
                   defaultValue="quick"
                   buttonStyle="solid"
