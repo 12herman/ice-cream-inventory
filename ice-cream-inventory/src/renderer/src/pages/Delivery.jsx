@@ -79,7 +79,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           .filter(data => !data.isdeleted && isWithinRange(data.date))
           .map(async (item, index) => {
             const result = await getCustomerById(item.customerid);
-            const customerName = result.status === 200 ? result.customer.customername : 'Unknown';
+            const customerName = result.status === 200 ? result.customer.customername : item.customername;
             return {
               ...item,
               sno: index + 1,
@@ -176,6 +176,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           <Tag color="red">Return</Tag>
         ) : text === 'quick' ? (
           <Tag color="blue">Quick Sale</Tag>
+        ) : text === 'booking' ? (
+          <Tag color="cyan">Booking</Tag>
         ) : (
           <Tag color="green">Order</Tag>
         )
