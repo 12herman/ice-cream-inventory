@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Input, Button, Table, Segmented, Modal, Form, InputNumber, Popconfirm } from 'antd'
 import { MdAccessAlarm } from 'react-icons/md'
-import { MdUndo } from 'react-icons/md'
+import { LiaUndoAltSolid } from "react-icons/lia";
 import { LuMilk, LuIceCream } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
@@ -128,7 +128,7 @@ export default function Storage({ datas, storageUpdateMt }) {
             cancelText="No"
           >
             <Button className="ml-2">
-              <MdUndo />
+              <LiaUndoAltSolid />
             </Button>
           </Popconfirm>
         </>
@@ -203,7 +203,7 @@ export default function Storage({ datas, storageUpdateMt }) {
             cancelText="No"
           >
           <Button className="ml-2">
-            <MdUndo />
+            <LiaUndoAltSolid />
           </Button>
           </Popconfirm>
         </>

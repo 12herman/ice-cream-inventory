@@ -200,6 +200,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'customername',
       key: 'customername',
       editable: true,
+      width: 180,
       sorter: (a, b) => a.customername.localeCompare(b.customername),
       showSorterTooltip: { target: 'sorter-icon' }
     },
@@ -208,6 +209,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'transport',
       key: 'transport',
       editable: true,
+      width: 180,
       sorter: (a, b) => a.transport.localeCompare(b.transport),
       showSorterTooltip: { target: 'sorter-icon' }
     },
@@ -216,6 +218,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'location',
       key: 'location',
       editable: true,
+      width: 180,
       sorter: (a, b) => a.location.localeCompare(b.location),
       showSorterTooltip: { target: 'sorter-icon' }
     },

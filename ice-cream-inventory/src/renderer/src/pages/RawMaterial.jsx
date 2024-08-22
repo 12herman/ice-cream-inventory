@@ -174,7 +174,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'date',
       key: 'createddate',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,hh:mmA';
+        const format = 'DD/MM/YYYY,HH:mm'
         const dateA = dayjs(a.createddate, format);
         const dateB = dayjs(b.createddate, format);
         return dateB.isAfter(dateA) ? -1 : 1;
