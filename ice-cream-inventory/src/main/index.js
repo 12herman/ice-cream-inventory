@@ -6,8 +6,8 @@ import icon from '../../resources/icon.png?asset'
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
+    width: 1280,
+    height: 720,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -33,7 +33,7 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  mainWindow.setMinimumSize(1000, 700);
+  mainWindow.setMinimumSize(1280, 720);
 }
 
 // This method will be called when Electron has finished

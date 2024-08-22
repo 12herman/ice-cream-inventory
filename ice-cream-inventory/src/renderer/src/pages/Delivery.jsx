@@ -121,7 +121,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 80,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -146,6 +146,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         return dateB.isAfter(dateA) ? -1 : 1;
       },
       defaultSortOrder: 'descend',
+      width: 115,
       editable: false
     },
     {
@@ -158,7 +159,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: 'Price',
       dataIndex: 'billamount',
       key: 'billamount',
-      //width:150,
+      width:150,
       // editable: true,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
@@ -168,7 +169,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'type',
       key: 'type',
       editable: true,
-      //width: 100,
+      width: 90,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) =>
@@ -187,7 +188,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: true,
-      //width: 180,
+      width: 155,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text,record) =>
@@ -649,7 +650,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       : oldtemDatas.some((item) => item.key === data.key && item.margin === row.margin && item.numberofpacks === row.numberofpacks );
       
       if (checkDatas) {
-        message.open({ type: 'info', content: 'Already exists' });
+        message.open({ type: 'info', content: 'No Changes found' });
       }
       else{
         message.open({ type: 'success', content: 'Updated successfully' });
@@ -944,8 +945,9 @@ setTotalAmount(mrpAmount)
       type: returnDelivery.state === true ? 'return' : 'order',
       createddate: TimestampJs()
     }
-     console.log(productItems,newDelivery);
-
+    setOption(prev => ({...prev,tempproduct:[]}));
+    setTotalAmount(0);
+    setMarginValue(pre =>({...pre,amount:0}))
     try {
       setIsModalOpen(false)
       //Create new delivery document
@@ -979,7 +981,8 @@ setTotalAmount(mrpAmount)
       }
 
       message.open({ type: 'success', content: returnDelivery.state === true ? 'Production return successfully' : 'Production added successfully' })
-      await deliveryUpdateMt()
+      await deliveryUpdateMt();
+
       
     } catch (error) {
       // Handle errors
@@ -1717,9 +1720,7 @@ setTotalAmount(mrpAmount)
                 name="returntype"
                 label="Return Type"
                 rules={[{ required: returnDelivery.state === true ? true : false , message: false }]}>
-                <Segmented options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]}
-                // value={value} onChange={setValue} 
-                />
+                <Segmented block   size='middle' options={[{label:'Normal',value:'normal'},{label:'Damage',value:'damage'}]}/>
               </Form.Item>
 
               <Form.Item

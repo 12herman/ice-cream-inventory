@@ -120,7 +120,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      width: 180,
+      width: 130,
       render: (_, record) => {
         return record.quantity + ' ' + record.unit
       }
@@ -130,7 +130,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       dataIndex: 'productperpack',
       key: 'productperpack',
       editable: true,
-      width: 160
+      width: 149
     },
     {
       title: 'Price',

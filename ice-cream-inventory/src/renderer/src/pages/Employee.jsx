@@ -82,7 +82,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 80,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -109,7 +109,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
       key: 'position',
       editable: true,
       sorter: (a, b) => a.position.localeCompare(b.position),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      width:143
     },
     {
       title: 'Location',
@@ -124,13 +125,14 @@ export default function Employee({ datas, employeeUpdateMt }) {
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
-      width: 180
+      width: 140
     },
     {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
-      editable: true
+      editable: true,
+      width:105
     },
     {
       title: 'Action',
@@ -463,7 +465,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width:100,
+      width:90,
       render: (_, record, index) => <span>{index + 1}</span>
     },
     {
@@ -476,14 +478,16 @@ export default function Employee({ datas, employeeUpdateMt }) {
         return dateA.isAfter(dateB) ? 1 : -1;
       },
       defaultSortOrder: 'descend',
-      editable: true
+      editable: true,
+      width:115
     },
     {
       title: 'Amount ₹',
       dataIndex: 'amount',
       key: 'amount',
       render: (amount) => <span>{formatToRupee(amount, true)}</span>,
-      editable: true
+      editable: true,
+      width:160
     },
     {
       title: 'Description',

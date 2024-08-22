@@ -179,7 +179,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         const dateB = dayjs(b.createddate, format);
         return dateB.isAfter(dateA) ? -1 : 1;
       },
-      defaultSortOrder: 'descend'
+      defaultSortOrder: 'descend',
+      width: 115,
     },
     {
       title: 'Supplier',
@@ -200,24 +201,24 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      // width: 120,
+       width: 120,
       render: (_, record) => {
         return record.quantity + ' ' + record.unit
-      }
+      },
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      editable: true
-      // width: 100
+      editable: true,
+       width: 120
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       editable: false,
-      // width: 120,
+       width: 80,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
@@ -227,7 +228,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: false,
-      // width: 120,
+       width: 140,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text,record) => (

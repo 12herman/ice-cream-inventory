@@ -114,7 +114,8 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         return dateB.isAfter(dateA) ? -1 : 1;
       },
       defaultSortOrder: 'descend',
-      editable: false
+      editable: false,
+      width: 115
     },
     {
       title: 'Product',

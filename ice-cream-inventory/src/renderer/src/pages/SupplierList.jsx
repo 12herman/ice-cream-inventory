@@ -12,7 +12,7 @@ import {
   Select,
   Radio,
   DatePicker,
-  Tag
+  Tag,
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { IoMdAdd } from 'react-icons/io'
@@ -90,6 +90,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     form.resetFields()
     supplierUpdateMt()
     setIsModalOpen(false)
+    message.open({type:'success', content: 'Supplier Added Successfully'})
   }
 
   const showPayModal = (record) => {
@@ -141,7 +142,8 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      render:(text,record,index)=> <span>{ index + 1 }</span>
+      render:(text,record,index)=> <span>{ index + 1 }</span>,
+      width: 80,
     },
     {
       title: 'Date',
@@ -152,7 +154,8 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         const dateB = dayjs(b.date, 'DD/MM/YYYY');
         return dateA.isAfter(dateB) ? 1 : -1;
       },
-      defaultSortOrder: 'descend'
+      defaultSortOrder: 'descend',
+      width: 115,
     },
     {
       title: 'Material Name',
@@ -172,19 +175,22 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      render:(text,record)=>record.quantity !== undefined ? record.quantity+' '+record.unit : '-'
+      render:(text,record)=>record.quantity !== undefined ? record.quantity+' '+record.unit : '-',
+      width:100
     },
     {
       title: 'Amount',
       dataIndex: 'price',
       key: 'price',
-      render:(text,record)=> record.price === undefined ? formatToRupee(record.amount,true) : formatToRupee(record.price,true)
+      render:(text,record)=> record.price === undefined ? formatToRupee(record.amount,true) : formatToRupee(record.price,true),
+      width:130
     },
     {
       title: 'Payment Status',
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
-      render:(text,record)=> record.paymentstatus === undefined ? <Tag color='green'>Pay</Tag> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag> : record.paymentstatus === 'Partial' ? <span className='flex items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className=' text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>
+      render:(text,record)=> record.paymentstatus === undefined ? <Tag color='green'>Pay</Tag> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag> : record.paymentstatus === 'Partial' ? <span className='flex items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className=' text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>,
+      width:139
     },
     {
       title: 'Description',
@@ -199,7 +205,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 80,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -241,13 +247,14 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
-      width: 180
+      width: 136
     },
     {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
-      editable: true
+      editable: true,
+      width:83
     },
     {
       title: 'Action',

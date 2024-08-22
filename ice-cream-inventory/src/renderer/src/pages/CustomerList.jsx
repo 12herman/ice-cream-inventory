@@ -142,7 +142,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         const dateB = dayjs(b.date, 'DD/MM/YYYY');
         return dateA.isAfter(dateB) ? 1 : -1;
       },
-      defaultSortOrder: 'descend'
+      defaultSortOrder: 'descend',
+      width:115,
     },
     {
       title: 'Amount',
@@ -150,7 +151,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'amount',
       render: (_,record) => {
         return record.amount === undefined ? formatToRupee(record.billamount,true) : formatToRupee(record.amount,true);
-      }
+      },
+      width:120,
     },
     {
       title:'Type',
@@ -158,7 +160,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'type',
       render:(_,record) => {
         return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'return' ? <Tag color='red'>Return</Tag> : <></>;
-      }
+      },
+      width:90,
     }, 
     {
       title:'Payment Status',
@@ -166,7 +169,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       key: 'paymentstatus',
       render:(_,record) => {
         return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
-      }
+      },
+      width:140
     },
     {
       title: 'Description',
@@ -182,7 +186,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 80,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -200,7 +204,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'customername',
       key: 'customername',
       editable: true,
-      width: 180,
+      // width: 180,
       sorter: (a, b) => a.customername.localeCompare(b.customername),
       showSorterTooltip: { target: 'sorter-icon' }
     },
@@ -209,16 +213,17 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'transport',
       key: 'transport',
       editable: true,
-      width: 180,
+      // width: 180,
       sorter: (a, b) => a.transport.localeCompare(b.transport),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      width:139
     },
     {
       title: 'Location',
       dataIndex: 'location',
       key: 'location',
       editable: true,
-      width: 180,
+      // width: 180,
       sorter: (a, b) => a.location.localeCompare(b.location),
       showSorterTooltip: { target: 'sorter-icon' }
     },
@@ -227,14 +232,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
-      width: 180
+      width: 136
     },
     {
       title: 'Vehicle / Freezer ',
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
       editable: true,
-      width: 180
     },
     {
       title: 'Action',
