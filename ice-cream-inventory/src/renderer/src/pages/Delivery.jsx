@@ -1261,7 +1261,7 @@ setTotalAmount(mrpAmount)
 
   useEffect(() => {
     const getItems = async () => {
-      if (deliveryBill.open) {
+      if (deliveryBill.prdata.id !== '') {
        await setDeliveryBill((pre) => ({ ...pre, loading: true }));
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
         if (status === 200) {
