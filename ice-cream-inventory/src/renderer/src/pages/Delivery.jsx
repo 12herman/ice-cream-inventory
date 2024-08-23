@@ -80,11 +80,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           .map(async (item, index) => {
             const result = await getCustomerById(item.customerid);
             const customerName = result.status === 200 ? result.customer.customername : item.customername;
+            const mobileNumber = result.status === 200 ? result.customer.mobilenumber : item.mobilenumber;
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
               customername: customerName,
+              mobilenumber:mobileNumber
             };
           })
       );
@@ -154,6 +156,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'customername',
       key: 'customername',
       editable: false
+    },
+    {
+      title: 'Mobile Number',
+      dataIndex: 'mobilenumber',
+      key: 'mobilenumber',
+      editable: false,
+      render: (text,record) => {
+        return <span>{text === undefined ? '-' : text}</span>
+      },
+      width:136
     },
     {
       title: 'Price',
@@ -462,6 +474,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
+    
     {
       title: <span className="text-[0.7rem]">Quantity</span>,
       dataIndex: 'quantity',
@@ -947,7 +960,10 @@ setTotalAmount(mrpAmount)
     }
     setOption(prev => ({...prev,tempproduct:[]}));
     setTotalAmount(0);
-    setMarginValue(pre =>({...pre,amount:0}))
+    setMarginValue(pre =>({...pre,amount:0}));
+    modelCancel();
+    form5.resetFields(['marginvalue']);
+    form4.resetFields(['partialamount']);
     try {
       setIsModalOpen(false)
       //Create new delivery document
@@ -996,7 +1012,8 @@ setTotalAmount(mrpAmount)
   const modelCancel = () => {
     setIsModalOpen(false)
     form2.resetFields()
-    form5.resetFields(['marginvalue'])
+    form5.resetFields(['marginvalue']);
+    form4.resetFields(['partialamount']);
     setOption((pre) => ({
       ...pre,
       tempproduct: [],
@@ -1228,8 +1245,6 @@ setTotalAmount(mrpAmount)
        if(deliveryBill.returnmodeltable === false){
         return text === undefined ? `0 %` : <span>{text} %</span>
        }else{
-        console.log(record);
-        
         return text === 'damage' ? <Tag color='red'>Damage</Tag> : <Tag color='blue'>Normal</Tag>
        }
     }
@@ -1246,17 +1261,15 @@ setTotalAmount(mrpAmount)
 
   useEffect(() => {
     const getItems = async () => {
-      if (deliveryBill.prdata.id !== '') {
-        setDeliveryBill((pre) => ({ ...pre, loading: true }));
+      if (deliveryBill.open) {
+       await setDeliveryBill((pre) => ({ ...pre, loading: true }));
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
         if (status === 200) {
           let prData = datas.product.filter((item, i) =>
             items.find((item2) => item.id === item2.id)
           )
-          let prItems = prData.map((pr, i) => {
+          let prItems = await prData.map((pr, i) => {
             let matchingData = items.find((item, i) => item.id === pr.id);
-            console.log(matchingData);
-            
             return {
               sno: i + 1,
               ...pr,
@@ -1269,19 +1282,16 @@ setTotalAmount(mrpAmount)
               returntype: matchingData.returntype,
             }
           });
-
-          setDeliveryBill((pre) => ({ ...pre, data: { items: prItems, ...deliveryBill.prdata } }))
+         await setDeliveryBill((pre) => ({ ...pre, data: { items: prItems, ...deliveryBill.prdata } }))
         }
-        setDeliveryBill((pre) => ({ ...pre, loading: false}))
+       await setDeliveryBill((pre) => ({ ...pre, loading: false}))
       }
     }
     getItems();
-    
-    
   }, [deliveryBill.open])
 
-  const onOpenDeliveryBill = (data) => {
-    setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open, returnmodeltable:data.type === 'return' ? true : false }));
+  const onOpenDeliveryBill = async (data) => {
+   await setDeliveryBill((pre) => ({ ...pre, model: true, prdata: data, open: !deliveryBill.open, returnmodeltable:data.type === 'return' ? true : false }));
   };
 
   // return
@@ -1406,24 +1416,48 @@ setTotalAmount(mrpAmount)
 
     // html to pdf
     const printRef = useRef();
+    const [invoiceDatas,setInvoiceDatas] = useState({data:[],isGenerate:false});
+    const handleDownloadPdf = async (record) => {
+    const { items, status } = await fetchItemsForDelivery(record.id);
+    if (status === 200) {
+          let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id));
+          let prItems = await prData.map((pr, i) => {
+            let matchingData = items.find((item, i) => item.id === pr.id);
+            return {
+              sno: i + 1,
+              ...pr,
+              pieceamount: pr.price,
+              quantity: pr.quantity + ' ' + pr.unit,
+              margin: matchingData.margin,
+              price: (matchingData.numberofpacks * pr.price) - (matchingData.numberofpacks * pr.price) * (matchingData.margin / 100),
+              numberofpacks: matchingData.numberofpacks,
+              producttotalamount: matchingData.numberofpacks * pr.price,
+              returntype: matchingData.returntype,
+            }
+          });
+          await setInvoiceDatas(pre=>({...pre,data:prItems,isGenerate:true,customerdetails:record}));
+        };
+  };
 
-  const handleDownloadPdf = async (record) => {
-   await setDeliveryBill((pre) => ({ ...pre, prdata: record, open: !deliveryBill.open }));
-    const element = printRef.current;
+  useEffect(()=>{
+    const generatePDF = async()=>{
+    if(invoiceDatas.isGenerate){
+    const element = await printRef.current;
     const canvas = await html2canvas(element);
-    const data = canvas.toDataURL('image/png');
-    const pdf = new jsPDF();
+    const data = await canvas.toDataURL('image/png');
+    const pdf = await new jsPDF();
     const imgWidth = 210; // A4 page width in mm
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`${record.customername+ "-" + record.date}.pdf`);
-  };
-
-  
+    pdf.save(`${invoiceDatas.customerdetails.customername+ "-" + invoiceDatas.customerdetails.date}.pdf`);
+    await setInvoiceDatas(pre=>({...pre,isGenerate:false}));
+    }
+    };
+    generatePDF();
+  },[invoiceDatas.isGenerate,printRef]);
 
   return (
     <div>
-
       <div ref={printRef} className='absolute top-[-200rem]' style={{ padding: '20px', backgroundColor: '#ffff' }}>
         <h1 className='font-bold  text-center text-lg'>Invoice</h1>
         <table className="min-w-full border-collapse">
@@ -1441,7 +1475,7 @@ setTotalAmount(mrpAmount)
   </thead>
   <tbody>
     {
-      deliveryBill.data.items !== undefined && deliveryBill.data.items.length >0 ? deliveryBill.data.items.map((item, i) => (
+      invoiceDatas.data.length > 0 ? invoiceDatas.data.map((item, i) => (
         <tr key={i} >
           <td className="p-4 border-b">{item.productname}</td>
           <td className="p-4 border-b">{item.flavour}</td>
@@ -1497,7 +1531,8 @@ setTotalAmount(mrpAmount)
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
-                setReturnDelivery((pre) => ({ ...pre, state: false }))
+                setReturnDelivery((pre) => ({ ...pre, state: false }));
+                form4.resetFields(['partialamount']);
                 form.resetFields()
               }}>
               Place Order <IoMdAdd />
