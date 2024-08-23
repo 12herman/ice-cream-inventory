@@ -495,45 +495,46 @@ export default function Employee({ datas, employeeUpdateMt }) {
       key: 'description',
       editable: true
     },
-    // {
-    //   title: 'Action',
-    //   dataIndex: 'action',
-    //   key: 'action',
-    //   render: (_, record) => {
-    //     let iseditable = isEmpDtailTableEditing(record)
-    //     return !iseditable ? (
-    //       <span className="flex gap-2">
-    //         <Typography.Link
-    //           className="cursor-pointer"
-    //           onClick={() => empDetailTbEdit(record)}
-    //           style={{ marginRight: 8 }}
-    //         >
-    //           <MdOutlineModeEditOutline size={20} />
-    //         </Typography.Link>
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+      render: (_, record) => {
+        let iseditable = isEmpDtailTableEditing(record);
 
-    //         <Popconfirm onConfirm={()=> payDetailDelete(record)} className="cursor-pointer" title="Sure to delete?">
-    //           <AiOutlineDelete className="text-red-500" size={19} />
-    //         </Popconfirm>
-    //       </span>
-    //     ) : (
-    //       <span className="flex gap-2">
-    //         <Typography.Link
-    //           style={{ marginRight: 8 }}
-    //           onClick={() => payDetailSave(record)}
-    //         >
-    //           <LuSave size={17} />
-    //         </Typography.Link>
+        return !iseditable ? (
+          <span className="flex gap-2">
+            <Typography.Link
+              className="cursor-pointer"
+              onClick={() => empDetailTbEdit(record)}
+              style={{ marginRight: 8 }}
+            >
+              <MdOutlineModeEditOutline size={20} />
+            </Typography.Link>
 
-    //         <Popconfirm
-    //           title="Sure to cancel?"
-    //           onConfirm={() => setEmployeePayDetails((pre) => ({ ...pre, isedit: [] })) }
-    //         >
-    //           <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
-    //         </Popconfirm>
-    //       </span>
-    //     )
-    //   }
-    // }
+            <Popconfirm onConfirm={()=> payDetailDelete(record)} className="cursor-pointer" title="Sure to delete?">
+              <AiOutlineDelete className="text-red-500" size={19} />
+            </Popconfirm>
+          </span>
+        ) : (
+          <span className="flex gap-2">
+            <Typography.Link
+              style={{ marginRight: 8 }}
+              onClick={() => payDetailSave(record)}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={() => setEmployeePayDetails((pre) => ({ ...pre, isedit: [] })) }
+            >
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
   ];
 
   const isEmpDtailTableEditing = (record) => {
@@ -559,7 +560,6 @@ export default function Employee({ datas, employeeUpdateMt }) {
     const date = dayjs(record.date, "DD/MM/YYYY");
     empdetailpayform.setFieldsValue({ ...record,date })
     setEmployeePayDetails((pre) => ({ ...pre, isedit:[record.id]}));
-    console.log();
   };
 
   const EmpPayDetailTableEditableCell = ({
@@ -572,6 +572,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
     children,
     ...restProps
   }) => {
+    console.log(editing);
+    
     const inputNode = dataIndex === 'amount' ? <InputNumber /> : <Input />;
     return (
       <td {...restProps}>

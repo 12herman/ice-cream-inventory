@@ -354,7 +354,130 @@ export default function Home({ datas }) {
           </span>
         </li>
 
-        <li className="mt-2">
+        <li className='mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
+        <Card onClick={() => handleCardClick('totalSales')}
+             style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Sales"
+                  value={totalSales}
+                  precision={2}
+                  valueStyle={{
+                    color: totalSales > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+
+              <Card
+                onClick={() => handleCardClick('totalSpend')}
+                style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Spending"
+                  value={totalSpend}
+                  precision={2}
+                  valueStyle={{
+                    color: totalSpend > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card> 
+
+              <Card
+                onClick={() => handleCardClick('totalProfit')}
+                style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Profit"
+                  value={totalProfit}
+                  precision={2}
+                  valueStyle={{
+                    color: totalProfit > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+
+              <Card
+                onClick={() => handleCardClick('totalCustomers')}
+                style={{
+                  cursor: 'pointer',
+                  borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'
+                }}
+              >
+                <Statistic
+                  title="Total Customer"
+                  value={totalCustomers}
+                  valueStyle={{
+                    color: totalCustomers > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<IoPerson />}
+                />
+              </Card>  
+
+              <Card
+                onClick={() => handleCardClick('totalPaid')}
+                style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Paid"
+                  value={totalPaid}
+                  precision={2}
+                  valueStyle={{
+                    color: totalProfit > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+
+              <Card
+                onClick={() => handleCardClick('totalUnpaid')}
+                style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Unpaid"
+                  value={totalUnpaid}
+                  precision={2}
+                  valueStyle={{
+                    color: totalUnpaid > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+              <Card
+                onClick={() => handleCardClick('totalQuickSale')}
+                style={{
+                  cursor: 'pointer',
+                  borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
+                }}
+              >
+                <Statistic
+                  title="Total Quick Sale"
+                  value={totalQuickSale}
+                  precision={2}
+                  valueStyle={{
+                    color: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+              <Card
+                onClick={() => handleCardClick('totalReturn')}
+                style={{ cursor: 'pointer', borderColor: totalReturn > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Return"
+                  value={totalReturn}
+                  valueStyle={{
+                    color: totalReturn > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<IoPerson />}
+                />
+              </Card>
+        </li>
+
+        {/* <li className="mt-2">
           <Row gutter={16}>
             <Col span={6}>
               <Card
@@ -424,7 +547,7 @@ export default function Home({ datas }) {
             </Col>
           </Row>
         </li>
-        <li className="mt-4">
+        <li className="mt-2">
           <Row gutter={16}>
             <Col span={6}>
               <Card
@@ -493,7 +616,7 @@ export default function Home({ datas }) {
               </Card>
             </Col>
           </Row>
-        </li>
+        </li> */}
 
         <li className="mt-2">
           <Table
