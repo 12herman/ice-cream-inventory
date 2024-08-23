@@ -28,8 +28,8 @@ import { db } from '../firebase/firebase'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
+
 export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt }) {
-  //1) quick sale
   const [isQuickSale, setIsQuickSale] = useState({
     model: false,
     temdata: [],
@@ -45,6 +45,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     date: dayjs().format('DD/MM/YYYY'),
     margin: 0,
     billamount: 0,
+    type: 'quick',
     marginstate: false,
     paymentstatus: 'Paid',
     customeroption: [],
@@ -301,12 +302,20 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     quickSaleForm.resetFields(['quantity'])
     quickSaleForm.resetFields(['flavour'])
     quickSaleForm.resetFields(['numberofpacks'])
+
+    const isFutureDate = value && dayjs(value).isAfter(dayjs());
+
+    quickSaleForm.setFieldsValue({
+      type : isFutureDate ? 'booking' : 'quick'
+    });
+
     setIsQuickSale((pre) => ({
       ...pre,
       temdata: [],
       count: 0,
       total: 0,
-      date: value === null ? '' : value.format('DD/MM/YYYY')
+      date: value === null ? '' : value.format('DD/MM/YYYY'),
+      type: isFutureDate ? 'booking' : 'quick'
     }))
   }
 
@@ -331,12 +340,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         margin: data.margin
       }))
       const newDelivery = {
-        customername:
-          qickSaleForm3Value.customername === '' ||
-          qickSaleForm3Value.customername === undefined ||
-          qickSaleForm3Value.customername === null
-            ? 'Quick Sale'
-            : qickSaleForm3Value.customername,
+        customername: qickSaleForm3Value.customername || 'Quick Sale',
+        mobilenumber: qickSaleForm3Value.mobilenumber || '',
         billamount: isQuickSale.billamount,
         // margin:isQuickSale.margin,
         partialamount:
@@ -682,26 +687,12 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
               <Form.Item
                 className="mb-0"
                 name="customername"
-                //label="Customer Name"
                 rules={[{ required: true, message: false }]}
               >
                 <Input
                   placeholder="Customer name"
                   disabled={isQuickSale.paymentstatus === 'Partial' || isQuickSale.type === 'booking' ? false : true}
                 />
-                {/* <Select
-                disabled={isQuickSale.paymentstatus === 'Partial' ? false :true}
-                  showSearch
-                  placeholder="Customer Name"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={isQuickSale.customeroption}
-                  onChange={(value, i) => customerOnchange(value, i)}
-                /> */}
               </Form.Item>
               <Form.Item
                 className="mb-0"
@@ -752,11 +743,10 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
             form={quickSaleForm}
             layout="vertical"
             onFinish={QuickSaleTemAdd}
-            initialValues={{ date: dayjs() }}
+            initialValues={{ date: dayjs(), type: 'quick'}}
           >
             <Form.Item name="type" className="mb-1 mt-3">
                 <Radio.Group
-                  defaultValue="quick"
                   buttonStyle="solid"
                   style={{ width: '100%',textAlign: 'center', fontWeight: '600' }}
                   onChange={(e) => {
