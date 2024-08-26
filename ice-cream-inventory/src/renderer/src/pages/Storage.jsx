@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { Input, Button, Table, Segmented, Modal, Form, InputNumber, Popconfirm,Typography, message } from 'antd'
+import {
+  Input,
+  Button,
+  Table,
+  Segmented,
+  Modal,
+  Form,
+  InputNumber,
+  Popconfirm,
+  Typography,
+  message
+} from 'antd'
 import { MdAccessAlarm } from 'react-icons/md'
-import { LiaUndoAltSolid } from "react-icons/lia";
+import { LiaUndoAltSolid } from 'react-icons/lia'
 import { LuMilk, LuIceCream } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
@@ -9,27 +20,24 @@ import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
-import { useForm } from 'antd/es/form/Form';
+import { useForm } from 'antd/es/form/Form'
 const { Search } = Input
 
 export default function Storage({ datas, storageUpdateMt }) {
-  const [form] = Form.useForm();
-  const [ediablefForm] = Form.useForm();
+  const [form] = Form.useForm()
+  const [ediablefForm] = Form.useForm()
   const [data, setData] = useState([])
   const [selectedSegment, setSelectedSegment] = useState('Material List')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState(null)
-  const [editingKeys, setEditingKeys] = useState([]);
-  const [tableLoading,setTableLoading] = useState(false)
+  const [editingKeys, setEditingKeys] = useState([])
+  const [tableLoading, setTableLoading] = useState(false)
   useEffect(() => {
-    setTableLoading(true);
+    setTableLoading(true)
     const rawData = datas.storage.filter((data) => data.category === selectedSegment)
-    setData(rawData);
-    setTableLoading(false);
-  }, [datas, 
-    selectedSegment
-  ]);
-  
+    setData(rawData)
+    setTableLoading(false)
+  }, [datas, selectedSegment])
 
   // search
   const [searchText, setSearchText] = useState('')
@@ -49,7 +57,6 @@ export default function Storage({ datas, storageUpdateMt }) {
         updateddate: TimestampJs()
       })
     }
-    console.log(values)
     form.resetFields()
     storageUpdateMt()
     setEditingRecordId(null)
@@ -81,11 +88,10 @@ export default function Storage({ datas, storageUpdateMt }) {
     })
     setEditingRecordId(record.id)
     setIsModalVisible(true)
-    console.log(record.id)
   }
 
   const onSegmentChange = (value) => {
-    setEditingKeys([]);
+    setEditingKeys([])
     setSelectedSegment(value)
     setSearchText('')
   }
@@ -196,6 +202,7 @@ export default function Storage({ datas, storageUpdateMt }) {
   //   //   )
   //   // }
   // ];
+
   const materialColumns = [
     {
       title: 'S.No',
@@ -207,9 +214,9 @@ export default function Storage({ datas, storageUpdateMt }) {
         return (
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase())
-        );
+        )
       },
-      editable: false, 
+      editable: false
     },
     {
       title: 'Material',
@@ -217,30 +224,30 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'materialname',
       sorter: (a, b) => a.materialname.localeCompare(b.materialname),
       showSorterTooltip: { target: 'sorter-icon' },
-      editable: false, 
+      editable: false
     },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true, 
+      editable: true
     },
     {
       title: 'Alert Count',
       dataIndex: 'alertcount',
       key: 'alertcount',
-      editable: true, 
+      editable: true
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 230, 
+      width: 110,
       render: (_, record) => {
-        const editable = isEditing(record);
+        const editable = isEditing(record)
         return editable ? (
           <span className="flex gap-x-1 items-center">
-            <Typography.Link onClick={() =>storageSave(record)} style={{ marginRight: 8 }}>
+            <Typography.Link onClick={() => storageSave(record)} style={{ marginRight: 8 }}>
               <LuSave size={17} />
             </Typography.Link>
             <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
@@ -250,9 +257,9 @@ export default function Storage({ datas, storageUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 items-center">
             <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)}>
-              <MdOutlineModeEditOutline  size={19}/>
+              <MdOutlineModeEditOutline size={19} />
             </Typography.Link>
-            <Popconfirm
+            {/* <Popconfirm
               disabled={editingKeys.length !== 0}
               className={`${editingKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               title="Sure to delete?"
@@ -262,13 +269,12 @@ export default function Storage({ datas, storageUpdateMt }) {
               className={`${editingKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
                 size={19}
               />
-            </Popconfirm>
+            </Popconfirm> */}
           </span>
-        );
-      },
-    },
-  ];
-  
+        )
+      }
+    }
+  ]
 
   const productColumns = [
     {
@@ -282,6 +288,7 @@ export default function Storage({ datas, storageUpdateMt }) {
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.alertcount).toLowerCase().includes(value.toLowerCase()) ||
           String(record.numberofpacks).toLowerCase().includes(value.toLowerCase())
         )
       }
@@ -311,24 +318,24 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'numberofpacks',
       sorter: (a, b) => (Number(a.numberofpacks) || 0) - (Number(b.numberofpacks) || 0),
       showSorterTooltip: { target: 'sorter-icon' },
-      editable: true,
+      editable: true
     },
     {
       title: 'Alert Count',
       dataIndex: 'alertcount',
       key: 'alertcount',
-      editable: true,
+      editable: true
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 150,
+      width: 110,
       render: (_, record) => {
-        const editable = isEditing(record);
+        const editable = isEditing(record)
         return editable ? (
           <span className="flex gap-x-1 items-center">
-            <Typography.Link onClick={() =>storageSave(record)} style={{ marginRight: 8 }}>
+            <Typography.Link onClick={() => storageSave(record)} style={{ marginRight: 8 }}>
               <LuSave size={17} />
             </Typography.Link>
             <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
@@ -338,9 +345,9 @@ export default function Storage({ datas, storageUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 items-center">
             <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)}>
-              <MdOutlineModeEditOutline  size={19}/>
+              <MdOutlineModeEditOutline size={19} />
             </Typography.Link>
-            <Popconfirm
+            {/* <Popconfirm
               disabled={editingKeys.length !== 0}
               className={`${editingKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               title="Sure to delete?"
@@ -350,10 +357,10 @@ export default function Storage({ datas, storageUpdateMt }) {
               className={`${editingKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
                 size={19}
               />
-            </Popconfirm>
+            </Popconfirm> */}
           </span>
-        );
-      },
+        )
+      }
       // render: (_, record) => (
       //   <>
       //     <Button
@@ -377,17 +384,19 @@ export default function Storage({ datas, storageUpdateMt }) {
     }
   ]
 
-   const columns = selectedSegment === 'Material List' ? materialColumns : productColumns
+  const columns = selectedSegment === 'Material List' ? materialColumns : productColumns
   const edit = (record) => {
     ediablefForm.setFieldsValue({ ...record })
     setEditingKeys([record.id])
-  };
-  
-  const isEditing = (record) =>  { return editingKeys.includes(record.id)}
+  }
+
+  const isEditing = (record) => {
+    return editingKeys.includes(record.id)
+  }
 
   const mergedColumns = columns.map((item) => {
     if (!item.editable) {
-      return item;
+      return item
     }
     return {
       ...item,
@@ -396,11 +405,11 @@ export default function Storage({ datas, storageUpdateMt }) {
         inputType: item.dataIndex,
         dataIndex: item.dataIndex,
         title: item.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
-  
+        editing: isEditing(record)
+      })
+    }
+  })
+
   const EditableCell = ({
     editing,
     dataIndex,
@@ -411,7 +420,8 @@ export default function Storage({ datas, storageUpdateMt }) {
     children,
     ...restProps
   }) => {
-    const inputNode = dataIndex === 'quantity' || dataIndex === 'alertcount' ? <InputNumber /> : <Input />;
+    const inputNode =
+      dataIndex === 'quantity' || dataIndex === 'alertcount' ? <InputNumber /> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
@@ -421,8 +431,8 @@ export default function Storage({ datas, storageUpdateMt }) {
             rules={[
               {
                 required: true,
-                message:false,
-              },
+                message: false
+              }
             ]}
           >
             {inputNode}
@@ -432,68 +442,71 @@ export default function Storage({ datas, storageUpdateMt }) {
           children
         )}
       </td>
-    );
-  };
-  
-  const cancel = () => {
-    setEditingKeys([]);
-  };
+    )
+  }
 
-  const storageSave= async(record)=>{
-    try{
-      const row = await ediablefForm.validateFields();
-      if(selectedSegment === 'Material List'){
-      const exsitingData = await datas.storage.some((item) => item.id === record.id && item.quantity === row.quantity && item.alertcount === row.alertcount);
-      if(exsitingData){
-         message.open({
-          type: 'info',
-          content: 'Data already exists',
-          duration: 2
-        });
-        setEditingKeys([]);
+  const cancel = () => {
+    setEditingKeys([])
+  }
+
+  const storageSave = async (record) => {
+    try {
+      const row = await ediablefForm.validateFields()
+      if (selectedSegment === 'Material List') {
+        const exsitingData = await datas.storage.some(
+          (item) =>
+            item.id === record.id &&
+            item.quantity === row.quantity &&
+            item.alertcount === row.alertcount
+        )
+        if (exsitingData) {
+          message.open({
+            type: 'info',
+            content: 'Data already exists',
+            duration: 2
+          })
+          setEditingKeys([])
+        } else {
+          setTableLoading(true)
+          await updateStorage(record.id, {
+            alertcount: row.alertcount,
+            quantity: row.quantity,
+            updateddate: TimestampJs()
+          })
+          storageUpdateMt()
+          setEditingKeys([])
+          setTableLoading(false)
+        }
+      } else {
+        const exsitingData = await datas.storage.some(
+          (item) =>
+            item.id === record.id &&
+            item.numberofpacks === row.numberofpacks &&
+            item.alertcount === row.alertcount
+        )
+        if (exsitingData) {
+          message.open({
+            type: 'info',
+            content: 'Data already exists',
+            duration: 2
+          })
+          setEditingKeys([])
+        } else {
+          setTableLoading(true)
+          await updateStorage(record.id, {
+            alertcount: row.alertcount,
+            numberofpacks: row.numberofpacks,
+            updateddate: TimestampJs()
+          })
+          storageUpdateMt()
+          setEditingKeys([])
+          setTableLoading(false)
+        }
       }
-      else{
-        setTableLoading(true);
-        await updateStorage(record.id, {
-          alertcount: row.alertcount,
-          quantity:row.quantity,
-          updateddate: TimestampJs()
-        });
-        storageUpdateMt();
-        setEditingKeys([]);
-        setTableLoading(false);
-      }
-    }else{
-      const exsitingData = await datas.storage.some((item) => item.id === record.id && item.numberofpacks === row.numberofpacks && item.alertcount === row.alertcount);
-      if(exsitingData){
-        message.open({
-         type: 'info',
-         content: 'Data already exists',
-         duration: 2
-       });
-       setEditingKeys([]);
-      }
-      else{
-        setTableLoading(true);
-        await updateStorage(record.id, {
-          alertcount: row.alertcount,
-          numberofpacks:row.numberofpacks,
-          updateddate: TimestampJs()
-        });
-        storageUpdateMt();
-        setEditingKeys([]);
-        setTableLoading(false);
-      }
-      
-      
-    }
-      
-    }
-    catch(e){
+    } catch (e) {
       console.log(e)
     }
   }
-
 
   return (
     <div>
@@ -544,20 +557,20 @@ export default function Storage({ datas, storageUpdateMt }) {
             value={selectedSegment}
           />
         </li>
-        
+
         <li className="mt-2">
-        <Form form={ediablefForm} component={false}>
-          <Table
-            virtual
-            columns={mergedColumns}
-            components={{ body: { cell: EditableCell }}}
-            dataSource={data}
-            // loading={data.length === 0}
-            loading={tableLoading}
-            pagination={false}
-            scroll={{ x: false, y: false }}
-            rowKey="id"
-          />
+          <Form form={ediablefForm} component={false}>
+            <Table
+              virtual
+              columns={mergedColumns}
+              components={{ body: { cell: EditableCell } }}
+              dataSource={data}
+              // loading={data.length === 0}
+              loading={tableLoading}
+              pagination={false}
+              scroll={{ x: false, y: false }}
+              rowKey="id"
+            />
           </Form>
         </li>
       </ul>

@@ -101,7 +101,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
       key: 'employeename',
       editable: true,
       sorter: (a, b) => a.employeename.localeCompare(b.employeename),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Position',
@@ -110,7 +111,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       editable: true,
       sorter: (a, b) => a.position.localeCompare(b.position),
       showSorterTooltip: { target: 'sorter-icon' },
-      width:143
+      width: 143
     },
     {
       title: 'Location',
@@ -132,13 +133,13 @@ export default function Employee({ datas, employeeUpdateMt }) {
       dataIndex: 'gender',
       key: 'gender',
       editable: true,
-      width:105
+      width: 105
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width:230,
+      width: 230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -158,7 +159,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
-            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => {
                 setEmployeePay((pre) => ({ ...pre, modal: true, name: record }))
               }}
@@ -167,13 +168,18 @@ export default function Employee({ datas, employeeUpdateMt }) {
               <MdOutlinePayments />
             </Button>
             <Button
-            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
                 setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {
-                  let checkPayData = paydetails.filter((item) => item.isdeleted === false);
-                  setEmployeePayDetails((pre) => ({ ...pre, modal: true, data: checkPayData, parentid:record.id }))
+                  let checkPayData = paydetails.filter((item) => item.isdeleted === false)
+                  setEmployeePayDetails((pre) => ({
+                    ...pre,
+                    modal: true,
+                    data: checkPayData,
+                    parentid: record.id
+                  }))
                 }
                 setEmpListTb(false)
               }}
@@ -285,7 +291,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
   const edit = (record) => {
     form.setFieldsValue({ ...record })
     setEditingKeys([record.key])
-  };
+  }
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
@@ -301,11 +307,11 @@ export default function Employee({ datas, employeeUpdateMt }) {
         editing: isEditing(record)
       })
     }
-  });
+  })
 
   const cancel = () => {
     setEditingKeys([])
-  };
+  }
 
   const save = async (key) => {
     try {
@@ -331,13 +337,13 @@ export default function Employee({ datas, employeeUpdateMt }) {
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
     }
-  };
+  }
 
   // selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys)
-  };
+  }
 
   const rowSelection = {
     selectedRowKeys,
@@ -396,7 +402,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
+  }, [])
 
   // delete
   const deleteProduct = async (data) => {
@@ -409,7 +415,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     })
     employeeUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
-  };
+  }
 
   // export
   const exportExcel = async () => {
@@ -417,7 +423,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     jsonToExcel(exportDatas, `Employee-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  };
+  }
 
   // employee pay
   const [employeePayForm] = Form.useForm()
@@ -425,7 +431,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     modal: false,
     name: {},
     data: dayjs().format('DD/MMM/YYYY')
-  });
+  })
 
   const empPayMt = async (value) => {
     let { date, description, ...Datas } = value
@@ -436,14 +442,14 @@ export default function Employee({ datas, employeeUpdateMt }) {
       date: formateDate,
       description: description === undefined ? '' : description,
       type: 'pay',
-      createddate:TimestampJs(),
-      isdeleted:false
-    };
+      createddate: TimestampJs(),
+      isdeleted: false
+    }
 
     try {
       const employeeDocRef = doc(db, 'employee', empId)
       const payDetailsRef = collection(employeeDocRef, 'paydetails')
-      await addDoc(payDetailsRef, payData);
+      await addDoc(payDetailsRef, payData)
       message.open({ type: 'success', content: 'Pay Added Successfully' })
     } catch (e) {
       console.log(e)
@@ -458,14 +464,14 @@ export default function Employee({ datas, employeeUpdateMt }) {
     data: [],
     isedit: [],
     parentid: 0
-  });
+  })
 
   const employeePayDetailsColumn = [
     {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width:90,
+      width: 90,
       render: (_, record, index) => <span>{index + 1}</span>
     },
     {
@@ -473,73 +479,84 @@ export default function Employee({ datas, employeeUpdateMt }) {
       dataIndex: 'date',
       key: 'date',
       sorter: (a, b) => {
-        const dateA = dayjs(a.date, 'DD/MM/YYYY');
-        const dateB = dayjs(b.date, 'DD/MM/YYYY');
-        return dateA.isAfter(dateB) ? 1 : -1;
+        const dateA = dayjs(a.date, 'DD/MM/YYYY')
+        const dateB = dayjs(b.date, 'DD/MM/YYYY')
+        return dateA.isAfter(dateB) ? 1 : -1
       },
       defaultSortOrder: 'descend',
       editable: true,
-      width:115
+      width: 115
     },
     {
-      title: 'Amount ₹',
+      title: 'Payment',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount) => <span>{formatToRupee(amount, true)}</span>,
+      render: (_, record) => (
+        <span>{record.type === 'pay' ? formatToRupee(record.amount, true) : ''}</span>
+      ),
       editable: true,
-      width:160
+      width: 160
+    },
+    {
+      title: 'Return',
+      dataIndex: 'type',
+      key: 'type',
+      render: (_, record) => (
+        <span>{record.type === 'spend' ? formatToRupee(record.amount, true) : ''}</span>
+      ),
+      width: 160
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
       editable: true
-    },
-    {
-      title: 'Action',
-      dataIndex: 'action',
-      key: 'action',
-      render: (_, record) => {
-        let iseditable = isEmpDtailTableEditing(record);
-
-        return !iseditable ? (
-          <span className="flex gap-2">
-            <Typography.Link
-              className="cursor-pointer"
-              onClick={() => empDetailTbEdit(record)}
-              style={{ marginRight: 8 }}
-            >
-              <MdOutlineModeEditOutline size={20} />
-            </Typography.Link>
-
-            <Popconfirm onConfirm={()=> payDetailDelete(record)} className="cursor-pointer" title="Sure to delete?">
-              <AiOutlineDelete className="text-red-500" size={19} />
-            </Popconfirm>
-          </span>
-        ) : (
-          <span className="flex gap-2">
-            <Typography.Link
-              style={{ marginRight: 8 }}
-              onClick={() => payDetailSave(record)}
-            >
-              <LuSave size={17} />
-            </Typography.Link>
-
-            <Popconfirm
-              title="Sure to cancel?"
-              onConfirm={() => setEmployeePayDetails((pre) => ({ ...pre, isedit: [] })) }
-            >
-              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
-            </Popconfirm>
-          </span>
-        )
-      }
     }
-  ];
+    // {
+    //   title: 'Action',
+    //   dataIndex: 'action',
+    //   key: 'action',
+    //   render: (_, record) => {
+    //     let iseditable = isEmpDtailTableEditing(record);
+
+    //     return !iseditable ? (
+    //       <span className="flex gap-2">
+    //         <Typography.Link
+    //           className="cursor-pointer"
+    //           onClick={() => empDetailTbEdit(record)}
+    //           style={{ marginRight: 8 }}
+    //         >
+    //           <MdOutlineModeEditOutline size={20} />
+    //         </Typography.Link>
+
+    //         <Popconfirm onConfirm={()=> payDetailDelete(record)} className="cursor-pointer" title="Sure to delete?">
+    //           <AiOutlineDelete className="text-red-500" size={19} />
+    //         </Popconfirm>
+    //       </span>
+    //     ) : (
+    //       <span className="flex gap-2">
+    //         <Typography.Link
+    //           style={{ marginRight: 8 }}
+    //           onClick={() => payDetailSave(record)}
+    //         >
+    //           <LuSave size={17} />
+    //         </Typography.Link>
+
+    //         <Popconfirm
+    //           title="Sure to cancel?"
+    //           onConfirm={() => setEmployeePayDetails((pre) => ({ ...pre, isedit: [] })) }
+    //         >
+    //           <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+    //         </Popconfirm>
+    //       </span>
+    //     )
+    //   }
+    // }
+  ]
 
   const isEmpDtailTableEditing = (record) => {
     return employeePayDetails.isedit.includes(record.id)
-  };
+  }
 
   const mergedEmpPayDetailColumn = employeePayDetailsColumn.map((item) => {
     if (!item.editable) {
@@ -547,20 +564,20 @@ export default function Employee({ datas, employeeUpdateMt }) {
     }
     return {
       ...item,
-        onCell: (record) => ({
+      onCell: (record) => ({
         record,
         dataIndex: item.dataIndex,
         title: item.title,
         editing: isEmpDtailTableEditing(record)
       })
     }
-  });
+  })
 
   const empDetailTbEdit = (record) => {
-    const date = dayjs(record.date, "DD/MM/YYYY");
-    empdetailpayform.setFieldsValue({ ...record,date })
-    setEmployeePayDetails((pre) => ({ ...pre, isedit:[record.id]}));
-  };
+    const date = dayjs(record.date, 'DD/MM/YYYY')
+    empdetailpayform.setFieldsValue({ ...record, date })
+    setEmployeePayDetails((pre) => ({ ...pre, isedit: [record.id] }))
+  }
 
   const EmpPayDetailTableEditableCell = ({
     editing,
@@ -572,9 +589,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     children,
     ...restProps
   }) => {
-    console.log(editing);
-    
-    const inputNode = dataIndex === 'amount' ? <InputNumber /> : <Input />;
+    const inputNode = dataIndex === 'amount' ? <InputNumber /> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
@@ -594,8 +609,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
               rules={[
                 {
                   required: true,
-                  message: false,
-                },
+                  message: false
+                }
               ]}
             >
               {inputNode}
@@ -605,54 +620,61 @@ export default function Employee({ datas, employeeUpdateMt }) {
           children
         )}
       </td>
-    );
-  };
+    )
+  }
 
-  const [empdetailpayform] = Form.useForm();
+  const [empdetailpayform] = Form.useForm()
   // edid cell save
-  const payDetailSave = async (value) =>{
-    try{
-      const row = await empdetailpayform.validateFields();
-      const oldData = [...employeePayDetails.data];
-      const index = oldData.findIndex((item) => value.id === item.id);
-      const existingData = oldData.filter((item) => item.id === value.id)[0];
-      const newDatas =({...row,date:row.date.format('DD/MM/YYYY'),updateddate:TimestampJs()});
-      if(existingData.amount === row.amount && existingData.description === row.description && existingData.date === row.date.format('DD/MM/YYYY') && index !== null){
-          message.open({
-            type: 'info',
-            content: 'No changes made',
-            duration: 2
-          });
-         setEmployeePayDetails((pre) => ({ ...pre, isedit: [] }))
-         return;
-      }
-      else{
-        await updatePayDetailsForEmployee(employeePayDetails.parentid,value.id,newDatas);
-        setEmployeePayDetails((pre) => ({ ...pre, isedit: [] }));
-        employeeUpdateMt();
+  const payDetailSave = async (value) => {
+    try {
+      const row = await empdetailpayform.validateFields()
+      const oldData = [...employeePayDetails.data]
+      const index = oldData.findIndex((item) => value.id === item.id)
+      const existingData = oldData.filter((item) => item.id === value.id)[0]
+      const newDatas = { ...row, date: row.date.format('DD/MM/YYYY'), updateddate: TimestampJs() }
+      if (
+        existingData.amount === row.amount &&
+        existingData.description === row.description &&
+        existingData.date === row.date.format('DD/MM/YYYY') &&
+        index !== null
+      ) {
+        message.open({
+          type: 'info',
+          content: 'No changes made',
+          duration: 2
+        })
+        setEmployeePayDetails((pre) => ({ ...pre, isedit: [] }))
+        return
+      } else {
+        await updatePayDetailsForEmployee(employeePayDetails.parentid, value.id, newDatas)
+        setEmployeePayDetails((pre) => ({ ...pre, isedit: [] }))
+        employeeUpdateMt()
         let { paydetails, status } = await fetchPayDetailsForEmployee(employeePayDetails.parentid)
-                if (status) {
-                  let checkPayData = paydetails.filter((item) => item.isdeleted === false);
-                  setEmployeePayDetails((pre) => ({ ...pre, data: checkPayData }))
-                }
-        message.open({ type: 'success',content: 'Payment Data updated successfully'});
-      } 
-    }catch(e){console.log(e)}
-  };
+        if (status) {
+          let checkPayData = paydetails.filter((item) => item.isdeleted === false)
+          setEmployeePayDetails((pre) => ({ ...pre, data: checkPayData }))
+        }
+        message.open({ type: 'success', content: 'Payment Data updated successfully' })
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   // delete row
-  const payDetailDelete = async(value)=>{
-    console.log(value.id,employeePayDetails.parentid);
-    await updatePayDetailsForEmployee(employeePayDetails.parentid,value.id,{isdeleted:true,updateddate:TimestampJs()});
-    employeeUpdateMt();
+  const payDetailDelete = async (value) => {
+    await updatePayDetailsForEmployee(employeePayDetails.parentid, value.id, {
+      isdeleted: true,
+      updateddate: TimestampJs()
+    })
+    employeeUpdateMt()
     let { paydetails, status } = await fetchPayDetailsForEmployee(employeePayDetails.parentid)
-        if (status) {
-            let checkPayData = paydetails.filter((item) => item.isdeleted === false);
-            setEmployeePayDetails((pre) => ({ ...pre, data: checkPayData }))
-            }
-        message.open({ type: 'success',content: 'Payment Data deleted successfully'});
-  };
-
+    if (status) {
+      let checkPayData = paydetails.filter((item) => item.isdeleted === false)
+      setEmployeePayDetails((pre) => ({ ...pre, data: checkPayData }))
+    }
+    message.open({ type: 'success', content: 'Payment Data deleted successfully' })
+  }
 
   const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
   useEffect(() => {
@@ -671,9 +693,9 @@ export default function Employee({ datas, employeeUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
+  }, [])
 
-  const [empListTb,setEmpListTb] = useState(true)
+  const [empListTb, setEmpListTb] = useState(true)
   return (
     <div>
       <ul>
@@ -735,7 +757,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
         onCancel={() => {
           setIsModalOpen(false)
           form.resetFields()
-        }}>
+        }}
+      >
         <Form
           initialValues={{ gender: 'Male', position: 'Worker' }}
           onFinish={createNewProject}
@@ -770,6 +793,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             rules={[{ required: true, message: false }]}
           >
             <Radio.Group>
+              <Radio value={'Owner'}>Owner</Radio>
               <Radio value={'Office Admin'}>Office Admin</Radio>
               <Radio value={'Worker'}>Worker</Radio>
             </Radio.Group>
@@ -802,7 +826,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         open={employeePay.modal}
         onCancel={() => {
           setEmployeePay((pre) => ({ ...pre, modal: false }))
-          employeePayForm.resetFields();
+          employeePayForm.resetFields()
         }}
         onOk={() => employeePayForm.submit()}
       >
@@ -816,18 +840,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
           initialValues={{ date: dayjs() }}
           layout="vertical"
         >
-          <Form.Item
-            className="mb-1"
-            name="amount"
-            label="Amount"
-          >
-            <InputNumber min={0} className="w-full" placeholder='Enter amount'/>
+          <Form.Item className="mb-1" name="amount" label="Amount">
+            <InputNumber min={0} className="w-full" placeholder="Enter amount" />
           </Form.Item>
-          <Form.Item
-            className="mb-1"
-            name="description"
-            label="Description"
-          >
+          <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the description" />
           </Form.Item>
 
@@ -846,11 +862,11 @@ export default function Employee({ datas, employeeUpdateMt }) {
         title={<span className="text-center w-full block pb-5">PAY DETAILS</span>}
         open={employeePayDetails.modal}
         footer={null}
-        pagination={{pageSize: 5}}
+        pagination={{ pageSize: 5 }}
         width={1000}
         height={historyHeight}
         onCancel={() => {
-          setEmployeePayDetails((pre) => ({ ...pre, modal: false, data: [],isedit:[] }));
+          setEmployeePayDetails((pre) => ({ ...pre, modal: false, data: [], isedit: [] }))
         }}
       >
         <Form form={empdetailpayform} component={false}>
@@ -859,7 +875,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             loading={empListTb}
             pagination={false}
             columns={mergedEmpPayDetailColumn}
-            components={{  body: { cell: EmpPayDetailTableEditableCell}}}
+            components={{ body: { cell: EmpPayDetailTableEditableCell } }}
             scroll={{ x: false, y: historyHeight }}
             dataSource={employeePayDetails.data}
             rowKey="id"

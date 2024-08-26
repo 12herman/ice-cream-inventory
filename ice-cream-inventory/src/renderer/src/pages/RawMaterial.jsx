@@ -175,12 +175,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'createddate',
       sorter: (a, b) => {
         const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format);
-        const dateB = dayjs(b.createddate, format);
-        return dateB.isAfter(dateA) ? -1 : 1;
+        const dateA = dayjs(a.createddate, format)
+        const dateB = dayjs(b.createddate, format)
+        return dateB.isAfter(dateA) ? -1 : 1
       },
       defaultSortOrder: 'descend',
-      width: 115,
+      width: 115
     },
     {
       title: 'Supplier',
@@ -201,24 +201,24 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-       width: 120,
+      width: 120,
       render: (_, record) => {
         return record.quantity + ' ' + record.unit
-      },
+      }
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       editable: true,
-       width: 120
+      width: 120
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       editable: false,
-       width: 80,
+      width: 80,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
@@ -228,11 +228,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: false,
-       width: 140,
+      width: 140,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text,record) => (
-        <span className='flex gap-x-0'><Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text} </Tag> {text === 'Partial' ? <Tag color='blue'>{record.partialamount}</Tag> : null}</span>
+      render: (text, record) => (
+        <span className="flex gap-x-0">
+          <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>
+            {text}{' '}
+          </Tag>{' '}
+          {text === 'Partial' ? <Tag color="blue">{record.partialamount}</Tag> : null}
+        </span>
       )
     },
     {
@@ -276,7 +281,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )
       }
     }
-  ];
+  ]
 
   const EditableCell = ({
     editing,
@@ -339,10 +344,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )}
       </td>
     )
-  };
-  
-
-
+  }
 
   const isEditing = (record) => record.key === editingKey
   const edit = (record) => {
@@ -406,7 +408,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     newSelectedRowKeys.length === 0 ? setEditingKey('') : setEditingKey('hi')
     if (newSelectedRowKeys.length > 0) {
       const selectTableData = data.filter((item) => newSelectedRowKeys.includes(item.key))
-      console.log(selectTableData)
     }
     setSelectedRowKeys(newSelectedRowKeys)
   }
@@ -555,9 +556,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       isdeleted: false,
       quantity: values.quantity + ' ' + values.unit
     }
-    console.log(mtOption.tempproduct, newMaterial)
-    
-    const checkExist = mtOption.tempproduct.find((item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date)
+
+    const checkExist = mtOption.tempproduct.find(
+      (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
+    )
 
     const dbcheckExsit = datas.rawmaterials.find(
       (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
@@ -614,7 +616,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
   }
 
-  
   return (
     <div>
       <ul>
@@ -640,7 +641,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               Material Used <IoMdRemove />
             </Button>
             <Button
-            disabled={editingKey !== ''}
+              disabled={editingKey !== ''}
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
@@ -933,7 +934,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                       { label: 'GM', value: 'GM' },
                       { label: 'KG', value: 'KG' },
                       { label: 'LI', value: 'LI' },
-                      { label: 'MI', value: 'MI' },
+                      { label: 'MI', value: 'MI' }
                     ]}
                   />
                 </Form.Item>

@@ -12,7 +12,7 @@ import {
   Select,
   Radio,
   DatePicker,
-  Tag,
+  Tag
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { IoMdAdd } from 'react-icons/io'
@@ -90,7 +90,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     form.resetFields()
     supplierUpdateMt()
     setIsModalOpen(false)
-    message.open({type:'success', content: 'Supplier Added Successfully'})
+    message.open({ type: 'success', content: 'Supplier Added Successfully' })
   }
 
   const showPayModal = (record) => {
@@ -126,9 +126,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       const payDetails = payDetailsSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }));
-      const rawmaterialsRef = datas.rawmaterials.filter((item) => item.isdeleted === false && item.supplierid === record.id);
-      const combainData = payDetails.concat(rawmaterialsRef);
+      }))
+      const rawmaterialsRef = datas.rawmaterials.filter(
+        (item) => item.isdeleted === false && item.supplierid === record.id
+      )
+      const combainData = payDetails.concat(rawmaterialsRef)
       setPayDetailsData(combainData)
     } catch (e) {
       console.log(e)
@@ -137,36 +139,36 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   }
 
   const payDetailsColumns = [
-    
     {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      render:(text,record,index)=> <span>{ index + 1 }</span>,
-      width: 80,
+      render: (text, record, index) => <span>{index + 1}</span>,
+      width: 80
     },
     {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
       sorter: (a, b) => {
-        const dateA = dayjs(a.date, 'DD/MM/YYYY');
-        const dateB = dayjs(b.date, 'DD/MM/YYYY');
-        return dateA.isAfter(dateB) ? 1 : -1;
+        const dateA = dayjs(a.date, 'DD/MM/YYYY')
+        const dateB = dayjs(b.date, 'DD/MM/YYYY')
+        return dateA.isAfter(dateB) ? 1 : -1
       },
       defaultSortOrder: 'descend',
-      width: 115,
+      width: 115
     },
     {
       title: 'Material Name',
       dataIndex: 'materialname',
       key: 'materialname',
-      render:(text,record)=> {
-        if(record.supplierid !== undefined){
-          let materialName = datas.suppliers.find(data => data.id === record.supplierid).materialname;
+      render: (text, record) => {
+        if (record.supplierid !== undefined) {
+          let materialName = datas.suppliers.find(
+            (data) => data.id === record.supplierid
+          ).materialname
           return materialName
-        }
-        else{
+        } else {
           return '-'
         }
       }
@@ -175,30 +177,49 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      render:(text,record)=>record.quantity !== undefined ? record.quantity+' '+record.unit : '-',
-      width:100
+      render: (text, record) =>
+        record.quantity !== undefined ? record.quantity + ' ' + record.unit : '-',
+      width: 100
     },
     {
       title: 'Amount',
       dataIndex: 'price',
       key: 'price',
-      render:(text,record)=> record.price === undefined ? formatToRupee(record.amount,true) : formatToRupee(record.price,true),
-      width:130
+      render: (text, record) =>
+        record.price === undefined
+          ? formatToRupee(record.amount, true)
+          : formatToRupee(record.price, true),
+      width: 130
     },
     {
       title: 'Payment Status',
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
-      render:(text,record)=> record.paymentstatus === undefined ? <Tag color='green'>Pay</Tag> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag> : record.paymentstatus === 'Partial' ? <span className='flex items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className=' text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>,
-      width:139
+      render: (text, record) =>
+        record.paymentstatus === undefined ? (
+          <Tag color="green">Pay</Tag>
+        ) : record.paymentstatus === 'Paid' ? (
+          <Tag color="green">Paid</Tag>
+        ) : record.paymentstatus === 'Unpaid' ? (
+          <Tag color="red">UnPaid</Tag>
+        ) : record.paymentstatus === 'Partial' ? (
+          <span className="flex items-center">
+            <Tag color="yellow">Partial</Tag>{' '}
+            <Tag color="blue" className=" text-[0.7rem]">
+              {formatToRupee(record.partialamount, true)}
+            </Tag>
+          </span>
+        ) : (
+          <></>
+        ),
+      width: 139
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      render:(text,record)=>record.description === undefined ? '-' : record.description
-    },
-
+      render: (text, record) => (record.description === undefined ? '-' : record.description)
+    }
   ]
 
   const columns = [
@@ -224,7 +245,8 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       key: 'suppliername',
       editable: true,
       sorter: (a, b) => a.suppliername.localeCompare(b.suppliername),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Material Name',
@@ -254,13 +276,13 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       dataIndex: 'gender',
       key: 'gender',
       editable: true,
-      width:83
+      width: 83
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width:230,
+      width: 230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -279,11 +301,17 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            <Button onClick={() => showPayModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
+            <Button
+              onClick={() => showPayModal(record)}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            >
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button onClick={() => showPayDetailsModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
+            <Button
+              onClick={() => showPayDetailsModal(record)}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            >
               <SolutionOutlined />
             </Button>
             <Typography.Link
@@ -500,7 +528,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     jsonToExcel(exportDatas, `Supplier-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  };
+  }
 
   const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
   useEffect(() => {
@@ -519,7 +547,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
+  }, [])
 
   return (
     <div>
@@ -663,11 +691,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
           </Form.Item> */}
-          <Form.Item
-            className="mb-1"
-            name="amount"
-            label="Amount"
-          >
+          <Form.Item className="mb-1" name="amount" label="Amount">
             <InputNumber min={0} className="w-full" placeholder="Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
@@ -694,7 +718,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         }}
       >
         <Table
-        virtual
+          virtual
           pagination={false}
           columns={payDetailsColumns}
           dataSource={payDetailsData}

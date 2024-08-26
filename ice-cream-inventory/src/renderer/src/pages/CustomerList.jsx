@@ -42,6 +42,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [isPayDetailsModelOpen, setIsPayDetailsModelOpen] = useState(false)
   const [customerPayId, setCustomerPayId] = useState(null)
   const [payDetailsData, setPayDetailsData] = useState([])
+  const [isVehicleNoDisabled, setIsVehicleNoDisabled] = useState(true)
 
   // side effect
   useEffect(() => {
@@ -67,15 +68,21 @@ export default function CustomerList({ datas, customerUpdateMt }) {
 
   // create new project
   const createNewProject = async (values) => {
-    await createCustomer({
-      ...values,
-      createddate: TimestampJs(),
-      updateddate: '',
-      isdeleted: false
-    })
-    form.resetFields()
-    customerUpdateMt()
-    setIsModalOpen(false)
+    try {
+      await createCustomer({
+        ...values,
+        vehicleorfreezerno: values.vehicleorfreezerno || '',
+        createddate: TimestampJs(),
+        updateddate: '',
+        isdeleted: false
+      })
+      form.resetFields()
+      customerUpdateMt()
+      setIsModalOpen(false)
+      message.open({ type: 'success', content: 'Customer Added Successfully' })
+    } catch (error) {
+      message.open({ type: 'error', content: 'Failed to add customer' })
+    }
   }
 
   const showPayModal = (record) => {
@@ -112,10 +119,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       const payDetails = payDetailsSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }));
+      }))
 
-      const deliveryDocRef = await datas.delivery.filter((item) => item.isdeleted === false && item.customerid === record.id);
-      const combainData = payDetails.concat(deliveryDocRef);
+      const deliveryDocRef = await datas.delivery.filter(
+        (item) => item.isdeleted === false && item.customerid === record.id
+      )
+      const combainData = payDetails.concat(deliveryDocRef)
 
       setPayDetailsData(combainData)
     } catch (e) {
@@ -129,8 +138,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width:90,
-      render: (record,_,i) => <span>{i+1}</span>
+      width: 90,
+      render: (record, _, i) => <span>{i + 1}</span>
     },
 
     {
@@ -138,48 +147,73 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'date',
       key: 'date',
       sorter: (a, b) => {
-        const dateA = dayjs(a.date, 'DD/MM/YYYY');
-        const dateB = dayjs(b.date, 'DD/MM/YYYY');
-        return dateA.isAfter(dateB) ? 1 : -1;
+        const dateA = dayjs(a.date, 'DD/MM/YYYY')
+        const dateB = dayjs(b.date, 'DD/MM/YYYY')
+        return dateA.isAfter(dateB) ? 1 : -1
       },
       defaultSortOrder: 'descend',
-      width:115,
+      width: 115
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (_,record) => {
-        return record.amount === undefined ? formatToRupee(record.billamount,true) : formatToRupee(record.amount,true);
+      render: (_, record) => {
+        return record.amount === undefined
+          ? formatToRupee(record.billamount, true)
+          : formatToRupee(record.amount, true)
       },
-      width:120,
+      width: 120
     },
     {
-      title:'Type',
+      title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render:(_,record) => {
-        return record.type === undefined ? <Tag color='green'>Pay</Tag> : record.type === 'order' ? <Tag color='green'>Order</Tag> : record.type === 'return' ? <Tag color='red'>Return</Tag> : <></>;
+      render: (_, record) => {
+        return record.type === undefined ? (
+          <Tag color="green">Pay</Tag>
+        ) : record.type === 'order' ? (
+          <Tag color="green">Order</Tag>
+        ) : record.type === 'return' ? (
+          <Tag color="red">Return</Tag>
+        ) : (
+          <></>
+        )
       },
-      width:90,
-    }, 
+      width: 90
+    },
     {
-      title:'Payment Status',
+      title: 'Payment Status',
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
-      render:(_,record) => {
-        return record.paymentstatus === undefined ? <span>-</span> : record.paymentstatus === 'Paid' ? <Tag color='green'>Paid</Tag> : record.paymentstatus === 'Unpaid' ? <Tag color='red'>UnPaid</Tag>: record.paymentstatus === 'Partial' ? <span className='flex  items-center'><Tag color='yellow'>Partial</Tag> <Tag color='blue' className='text-[0.7rem]'>{formatToRupee(record.partialamount,true)}</Tag></span> : <></>;
+      render: (_, record) => {
+        return record.paymentstatus === undefined ? (
+          <span>-</span>
+        ) : record.paymentstatus === 'Paid' ? (
+          <Tag color="green">Paid</Tag>
+        ) : record.paymentstatus === 'Unpaid' ? (
+          <Tag color="red">UnPaid</Tag>
+        ) : record.paymentstatus === 'Partial' ? (
+          <span className="flex  items-center">
+            <Tag color="yellow">Partial</Tag>{' '}
+            <Tag color="blue" className="text-[0.7rem]">
+              {formatToRupee(record.partialamount, true)}
+            </Tag>
+          </span>
+        ) : (
+          <></>
+        )
       },
-      width:140
+      width: 140
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      render: (_,record) => {
-        return record.description === undefined ? <span>-</span> : record.description;
+      render: (_, record) => {
+        return record.description === undefined ? <span>-</span> : record.description
       }
-    },
+    }
   ]
 
   const columns = [
@@ -206,7 +240,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       editable: true,
       // width: 180,
       sorter: (a, b) => a.customername.localeCompare(b.customername),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Transport',
@@ -216,7 +251,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       // width: 180,
       sorter: (a, b) => a.transport.localeCompare(b.transport),
       showSorterTooltip: { target: 'sorter-icon' },
-      width:139
+      width: 139
     },
     {
       title: 'Location',
@@ -238,13 +273,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       title: 'Vehicle / Freezer ',
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
-      editable: true,
+      editable: true
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-      width:230,
+      width: 230,
       render: (_, record) => {
         const editable = isEditing(record)
         return editable ? (
@@ -263,11 +298,17 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           </span>
         ) : (
           <span className="flex gap-x-2 justify-center items-center">
-            <Button onClick={() => showPayModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
+            <Button
+              onClick={() => showPayModal(record)}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            >
               Pay
               <MdOutlinePayments />
             </Button>
-            <Button  onClick={() => showPayDetailsModal(record)} disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}>
+            <Button
+              onClick={() => showPayDetailsModal(record)}
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            >
               <SolutionOutlined />
             </Button>
             <Typography.Link
@@ -318,7 +359,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
                   <Select
                     placeholder="Select transport"
                     optionFilterProp="label"
-                    
                     options={[
                       { value: 'Self', label: 'Self' },
                       { value: 'Company', label: 'Company' },
@@ -366,11 +406,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         editing: isEditing(record)
       })
     }
-  });
+  })
 
   const cancel = () => {
     setEditingKeys([])
-  };
+  }
 
   const save = async (key) => {
     try {
@@ -396,13 +436,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
     }
-  };
+  }
 
   // selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys)
-  };
+  }
 
   const rowSelection = {
     selectedRowKeys,
@@ -441,7 +481,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }
       }
     ]
-  };
+  }
 
   // Table Height Auto Adjustment (***Do not touch this code***)
   const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
@@ -461,8 +501,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
-  
+  }, [])
 
   const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
   useEffect(() => {
@@ -481,7 +520,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
+  }, [])
 
   // delete
   const deleteProduct = async (data) => {
@@ -494,7 +533,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     })
     //customerUpdateMt();
     message.open({ type: 'success', content: 'Deleted Successfully' })
-  };
+  }
 
   // export
   const exportExcel = async () => {
@@ -502,7 +541,15 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  };
+  }
+
+  const handleTransportChange = (value) => {
+    if (value === 'Company' || value === 'Freezer Box') {
+      setIsVehicleNoDisabled(false)
+    } else {
+      setIsVehicleNoDisabled(true)
+    }
+  }
 
   return (
     <div>
@@ -572,6 +619,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           onFinish={createNewProject}
           form={form}
           layout="vertical"
+          onValuesChange={(changedValues) => {
+            if (changedValues.transport) {
+              handleTransportChange(changedValues.transport)
+            }
+          }}
         >
           <Form.Item
             className="mb-1"
@@ -600,9 +652,9 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             className="mb-1"
             name="vehicleorfreezerno"
             label="Vehicle No / Freezer No"
-            rules={[{ required: true, message: false }]}
+            rules={[{ required: false, message: 'Vehicle or Freezer No is required' }]}
           >
-            <Input className="w-full" />
+            <Input className="w-full" disabled={isVehicleNoDisabled} />
           </Form.Item>
 
           <Form.Item
@@ -648,11 +700,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
           </Form.Item> */}
-          <Form.Item
-            className="mb-1"
-            name="amount"
-            label="Amount"
-          >
+          <Form.Item className="mb-1" name="amount" label="Amount">
             <InputNumber min={0} className="w-full" placeholder="Enter amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">

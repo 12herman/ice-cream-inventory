@@ -337,8 +337,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
   // delete
   const deleteProduct = async (data) => {
-    //await deleteproduct(data.id);
-    console.log(data)
     const { id, ...newData } = data
     await updateProduction(id, { isdeleted: true, deleteddate: TimestampJs() })
     productionUpdateMt()
@@ -504,7 +502,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
   // remove temp product
   const removeTemProduct = (key) => {
-    console.log(key)
     const newTempProduct = option.tempproduct.filter((item) => item.key !== key.key)
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
   }

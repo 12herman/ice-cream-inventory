@@ -105,7 +105,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       key: 'productname',
       editable: true,
       sorter: (a, b) => a.productname.localeCompare(b.productname),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Flavour',
@@ -126,13 +127,6 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       }
     },
     {
-      title: 'Product Per Pack',
-      dataIndex: 'productperpack',
-      key: 'productperpack',
-      editable: true,
-      width: 149
-    },
-    {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
@@ -140,6 +134,19 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       width: 100,
       sorter: (a, b) => (Number(a.price) || 0) - (Number(b.price) || 0),
       showSorterTooltip: { target: 'sorter-icon' }
+    },
+    {
+      title: 'Product Per Pack',
+      dataIndex: 'productperpack',
+      key: 'productperpack',
+      editable: true,
+      width: 149
+    },
+    {
+      title: 'Pack Price',
+      width: 100,
+      key: 'packprice',
+      render: (_, record) => record.price * record.productperpack,
     },
     {
       title: 'Action',
