@@ -49,7 +49,11 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     marginstate: false,
     paymentstatus: 'Paid',
     customeroption: [],
-    editingKeys: []
+    editingKeys: [],
+    temtableedit:{
+      margin:true,
+      price:true,
+    }
   })
 
   const [quickSaleForm] = Form.useForm()
@@ -116,14 +120,15 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      editable: true,
+      editable: (isQuickSale.temtableedit.margin),
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      editable: (isQuickSale.temtableedit.price),
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -134,7 +139,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         return !iseditable ? (
           <span className="flex gap-x-2">
             <MdOutlineModeEditOutline
-              className="text-[#f26723] cursor-pointer"
+              className="text-blue-500 cursor-pointer"
               size={19}
               onClick={() => temTbEdit(record)}
             />
@@ -275,7 +280,6 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       ...pre,
       total: totalMultiprTotalPr,
       marginstate: false,
-      paymentstatus: ''
     }))
     quickSaleForm2.resetFields()
     quickSaleForm3.resetFields()
@@ -320,20 +324,46 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
   }
 
   const quicksaleMt = async () => {
-    setIsQuickSale((pre) => ({ ...pre, model: false }))
+    
+    // if(isQuickSale.type === 'booking'){
+    // }
+
+    // setIsQuickSale((pre) => ({ ...pre, model: false }))
+    
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue()
+    
     if (
-      (qickSaleForm3Value.paymentstatus === 'Partial') ===
+      ( isQuickSale.type === 'booking') &&
       (qickSaleForm3Value.customername === '' ||
         qickSaleForm3Value.customername === undefined ||
         qickSaleForm3Value.customername === null ||
-        qickSaleForm3Value.partialamount === undefined ||
-        qickSaleForm3Value.partialamount === null ||
-        qickSaleForm3Value.partialamount === '')
+       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === undefined ||
+       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null ||
+       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '' ||
+        qickSaleForm3Value.mobilenumber === undefined ||
+        qickSaleForm3Value.mobilenumber === null ||
+        qickSaleForm3Value.mobilenumber === '')
     ) {
       message.open({ type: 'warning', content: 'Please fill the required fields' })
-      return quickSaleForm3.submit()
-    } else {
+      quickSaleForm3.submit();
+      return;
+    }
+    else if ((isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid') && (qickSaleForm3Value.customername === '' ||
+      qickSaleForm3Value.customername === undefined ||
+      qickSaleForm3Value.customername === null ||
+      qickSaleForm3Value.mobilenumber === undefined ||
+      qickSaleForm3Value.mobilenumber === null ||
+      qickSaleForm3Value.mobilenumber === '' ||
+     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === undefined ||
+     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null ||
+     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '' ) ){
+        message.open({ type: 'warning', content: 'Please fill the required fields' })
+        quickSaleForm3.submit();
+        return;
+      }
+    else {
+      setIsQuickSale(pre => ({...pre,model:false}))
+      console.log('close the model');
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
@@ -373,13 +403,15 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
           total: 0,
           date: dayjs().format('DD/MM/YYYY'),
           margin: 0,
-          billamount: 0
+          billamount: 0,
+          type: 'quick',
         }))
         quickSaleForm.resetFields()
       } catch (error) {
         console.log(error)
       }
     }
+
   }
 
   const marginMt = (value) => {
@@ -447,6 +479,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       console.log(error)
     }
   }
+  
+  const [firstValue, setFirstValue] = useState(null);
 
   const EditableCellTem = ({
     editing,
@@ -459,11 +493,29 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     ...restProps
   }) => {
     const inputNode =
-      inputType === 'number' ? (
-        <InputNumber size="small" className="w-[4rem]" min={0} />
-      ) : (
+    dataIndex === 'numberofpacks' ? (
         <InputNumber size="small" className="w-[4rem]" min={1} />
-      )
+      ) :
+      dataIndex === 'margin'? 
+        <InputNumber onFocus={ (e)=> { 
+          if (firstValue === null) {
+            setFirstValue(e.target.value); // Store the first value
+            setIsQuickSale(pre => ({
+            ...pre,
+            temtableedit: { ...pre.temtableedit, margin: true, price: false }
+        }));
+        }
+         }} size="small" className="w-[4rem]" min={0} max={100}/>
+        : <InputNumber onFocus={ (e)=> { 
+          if (firstValue === null) {
+            setFirstValue(e.target.value); // Store the first value
+            setIsQuickSale(pre => ({
+            ...pre,
+            temtableedit: { ...pre.temtableedit, margin: false, price: true }
+        }));
+        }
+
+         }} size="small" className="w-[4rem]" min={0}/>
     return (
       <td {...restProps}>
         {editing ? (
@@ -510,7 +562,6 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
 
   const temTbEdit = (re) => {
     form.setFieldsValue({ ...re })
-    console.log(re.key)
     setIsQuickSale((pre) => ({ ...pre, editingKeys: [re.key] }))
   }
 
@@ -522,52 +573,105 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     try {
       const row = await form.validateFields()
       const oldtemDatas = isQuickSale.temdata
-
       // Check if the margin already exists for the same key
-      const checkDatas = oldtemDatas.some(
-        (item) =>
-          item.key === data.key &&
-          item.margin === row.margin &&
-          item.numberofpacks === row.numberofpacks
-      )
+      const checkDatas = oldtemDatas.some((item) =>item.key === data.key && item.margin === row.margin &&  item.numberofpacks === row.numberofpacks && item.price === row.price);
 
       if (checkDatas) {
-        message.open({ type: 'info', content: 'Already exists' })
+        message.open({ type: 'info', content: 'Already exists' });
+        setIsQuickSale((pre) => ({
+          ...pre,
+          editingKeys: [],
+          temtableedit:{margin:true,price:true}
+        }));
+        setFirstValue(null)
+        return;
       } else {
         message.open({ type: 'success', content: 'Updated successfully' })
+      };
+
+      if(isQuickSale.temtableedit.margin === true ){
+// Update the item in the array while maintaining the order
+const updatedTempproduct = oldtemDatas.map((item) => {
+  if (item.key === data.key) {
+    let mrpData = item.productprice * row.numberofpacks
+    return {
+      ...item,
+      numberofpacks: row.numberofpacks,
+      margin: row.margin,
+      mrp: item.productprice * row.numberofpacks,
+      price: mrpData - mrpData * (row.margin / 100)
+    }
+  }
+  return item
+});
+
+const totalAmounts = updatedTempproduct.reduce((acc, item) => {
+  return acc + item.price
+}, 0);
+
+const mrpAmount = updatedTempproduct.reduce((acc, item) => {
+  return acc + item.mrp
+}, 0);
+
+setIsQuickSale((pre) => ({
+  ...pre,
+  billamount: totalAmounts,
+  total: mrpAmount,
+  editingKeys: [],
+  temdata: updatedTempproduct,
+  marginstate: true,
+  temtableedit:{margin:true,price:true}
+}));
+setFirstValue(null)
       }
-      // Update the item in the array while maintaining the order
-      const updatedTempproduct = oldtemDatas.map((item) => {
-        if (item.key === data.key) {
-          let mrpData = item.productprice * row.numberofpacks
-          return {
-            ...item,
-            numberofpacks: row.numberofpacks,
-            margin: row.margin,
-            mrp: item.productprice * row.numberofpacks,
-            price: mrpData - mrpData * (row.margin / 100)
+      else{
+
+        const updatedTempproduct = oldtemDatas.map((item) => {
+          if (item.key === data.key) {
+            let mrpData = item.productprice * row.numberofpacks;
+            let price = mrpData - mrpData * (row.margin / 100);
+        
+            // Automatically calculate margin if price is updated
+            let calculatedMargin = 0;
+            if (row.price !== undefined) {
+              price = row.price;
+              calculatedMargin = ((mrpData - price) / mrpData) * 100;
+            } else {
+              calculatedMargin = row.margin;
+            }
+        
+            return {
+              ...item,
+              numberofpacks: row.numberofpacks,
+              margin: calculatedMargin,
+              mrp: mrpData,
+              price: price,
+            };
           }
-        }
-        return item
-      })
+          return item;
+        });
+        
+        const totalAmounts = updatedTempproduct.reduce((acc, item) => {
+          return acc + item.price;
+        }, 0);
+        
+        const mrpAmount = updatedTempproduct.reduce((acc, item) => {
+          return acc + item.mrp;
+        }, 0);
 
-      const totalAmounts = updatedTempproduct.reduce((acc, item) => {
-        return acc + item.price
-      }, 0)
-
-      const mrpAmount = updatedTempproduct.reduce((acc, item) => {
-        return acc + item.mrp
-      }, 0)
-
-      setIsQuickSale((pre) => ({
-        ...pre,
-        billamount: totalAmounts,
-        total: mrpAmount,
-        editingKeys: [],
-        temdata: updatedTempproduct,
-        marginstate: true
-      }))
-    } catch (e) {
+        setIsQuickSale((pre) => ({
+          ...pre,
+          billamount: totalAmounts,
+          total: mrpAmount,
+          editingKeys: [],
+          temdata: updatedTempproduct,
+          marginstate: true,
+          temtableedit:{margin:true,price:true}
+        }));
+        setFirstValue(null)
+      }
+    } 
+    catch (e) {
       console.log(e)
     }
   }
@@ -604,7 +708,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
             margin: 0,
             billamount: 0,
             marginstate: false,
-            paymentstatus: ''
+            paymentstatus: 'Paid'
           }))
           quickSaleForm.resetFields()
           quickSaleForm2.resetFields()
@@ -663,9 +767,11 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
                   disabled={isQuickSale.marginstate ? false : true}
                   buttonStyle="solid"
                   onChange={(e) => {
-                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value }))
-                    quickSaleForm3.resetFields(['partialamount'])
-                    quickSaleForm3.resetFields(['customername'])
+                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value }));
+                    if(e.target.value === 'Paid') {quickSaleForm3.resetFields() }
+                    if(e.target.value === 'Unpaid') {quickSaleForm3.resetFields(['partialamount']) }
+                    // quickSaleForm3.resetFields(['partialamount'])
+                    //  isQuickSale.type === 'booking' ? '' : quickSaleForm3.resetFields(['customername'])
                   }}
                 >
                   <Radio.Button value="Paid">PAID</Radio.Button>
@@ -674,7 +780,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
                 </Radio.Group>
               </Form.Item>
               <Form.Item
-                rules={[{ required: true, message: false }]}
+                rules={[{ required: ((isQuickSale.paymentstatus === 'Partial')  ? true : false), message: false }]}
                 className="mb-0"
                 name="partialamount"
               >
@@ -687,21 +793,22 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
               <Form.Item
                 className="mb-0"
                 name="customername"
-                rules={[{ required: true, message: false }]}
+                rules={[{ required: ( (isQuickSale.type === 'booking') || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? true : false), message: false }]}
               >
                 <Input
                   placeholder="Customer name"
-                  disabled={isQuickSale.paymentstatus === 'Partial' || isQuickSale.type === 'booking' ? false : true}
+                  disabled={isQuickSale.paymentstatus === 'Partial' || isQuickSale.type === 'booking' || (isQuickSale.paymentstatus === 'Unpaid' && isQuickSale.type === 'quick') ? false : true}
                 />
               </Form.Item>
               <Form.Item
                 className="mb-0"
                 name="mobilenumber"
-                rules={[{ required: true, message: false }]}
+                rules={[{ required: ((isQuickSale.type === 'booking') || (isQuickSale.type ==='quick' && isQuickSale !== 'Paid') ? true : false), message: false }]}
               >
-                <Input
+                <InputNumber
+                className='w-[12rem]'
                   placeholder="Mobile Number"
-                  disabled={isQuickSale.type === 'booking' ? false : true}
+                  disabled={isQuickSale.type === 'booking' || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? false :  true}
                 />
                 </Form.Item>
             </Form>
@@ -732,7 +839,10 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
             total: 0,
             date: dayjs().format('DD/MM/YYYY'),
             margin: 0,
-            billamount: 0
+            billamount: 0,
+            type: 'quick',
+            paymentstatus:'Paid',
+            editingKeys: [],
           }))
           quickSaleForm.resetFields()
         }}
@@ -750,7 +860,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
                   buttonStyle="solid"
                   style={{ width: '100%',textAlign: 'center', fontWeight: '600' }}
                   onChange={(e) => {
-                    setIsQuickSale((pre) => ({ ...pre, type: e.target.value }))
+                    quickSaleForm3.resetFields()
+                    setIsQuickSale((pre) => ({ ...pre, type: e.target.value,paymentstatus:'Paid' }));
                   }}
                 >
                   <Radio.Button value="quick" style={{ width: '50%' }}>QUICK</Radio.Button>
@@ -806,7 +917,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
               label="Number of Packs"
               rules={[{ required: true, message: false }]}
             >
-              <InputNumber className="w-full" />
+              <InputNumber min={1} className="w-full" />
             </Form.Item>
 
             <Form.Item

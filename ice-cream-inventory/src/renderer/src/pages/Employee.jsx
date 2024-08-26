@@ -159,16 +159,18 @@ export default function Employee({ datas, employeeUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
-              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            className='py-0 text-[0.7rem]'
+            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => {
                 setEmployeePay((pre) => ({ ...pre, modal: true, name: record }))
               }}
             >
               Pay
-              <MdOutlinePayments />
+              <MdOutlinePayments size={13}/>
             </Button>
             <Button
-              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            className='py-0 text-[0.7rem]'
+            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
                 setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
@@ -184,7 +186,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 setEmpListTb(false)
               }}
             >
-              <SolutionOutlined />
+              <SolutionOutlined size={12}/>
             </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
