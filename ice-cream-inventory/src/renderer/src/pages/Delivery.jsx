@@ -42,7 +42,8 @@ import { TbFileDownload } from 'react-icons/tb'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import jsPDF from 'jspdf';
+import companyLogo from '../assets/img/companylogo.png';
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   //states
@@ -1484,6 +1485,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const printRef = useRef()
   const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false })
   const handleDownloadPdf = async (record) => {
+    console.log(record);
+    
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
@@ -1533,29 +1536,53 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   return (
     <div>
+
+
+
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
-        <h1 className="font-bold  text-center text-lg">Invoice</h1>
+      <section className='w-[90%] mx-auto mt-14'>
+      <ul className='flex justify-center items-center gap-x-5'>
+          <li> <img className='w-[6rem]' src={companyLogo} alt='comapanylogo'/> </li>
+          <li className='text-center'> <h1 className='text-xl font-bold'>NEW SARANYA ICE COMPANY</h1> <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p> </li>
+        </ul>
+
+        <ul className='mt-5 flex justify-between'>
+        <li> 
+        <div><span className='font-bold'>GSTIN:</span>  33AAIFN6367K1ZV</div> 
+        <div> <span className='font-bold'>Date:</span> <span>{invoiceDatas.customerdetails.date}</span></div> 
+        <div><span className='font-bold'>Name:</span> <span>{invoiceDatas.customerdetails.customername}</span></div>
+        </li>
+        
+        <li className='text-end flex flex-col items-end'> 
+        <span> <span className='font-bold'>Cell:</span> 7373674757</span> 
+        <span>8056848361</span> 
+        </li>
+       </ul>
+
+        {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
         <table className="min-w-full border-collapse">
           <thead>
             <tr>
-              <th className="p-4 text-left border-b">Product Name</th>
-              <th className="p-4 text-left border-b">Flavour</th>
-              <th className="p-4 text-left border-b">Quantity</th>
-              <th className="p-4 text-left border-b">Piece Amount</th>
-              <th className="p-4 text-left border-b">Number of Packs</th>
-              <th className="p-4 text-left border-b">MRP</th>
-              <th className="p-4 text-left border-b">Margin</th>
-              <th className="p-4 text-left border-b">Total Amount</th>
+            <th className="p-4 text-left border-b">S.No</th>
+              <th className="p-4 border-b text-center">Product Name</th>
+              <th className="p-4 border-b text-center">Flavour</th>
+              <th className="p-4 border-b text-center">Quantity</th>
+              <th className="p-4 border-b text-center">Piece Amount</th>
+              <th className="p-4 border-b text-center">Number of Packs</th>
+              <th className="p-4 border-b text-center">MRP</th>
+              <th className="p-4 border-b text-center">Margin</th>
+              <th className="p-4 border-b text-center">Total Amount</th>
             </tr>
           </thead>
           <tbody>
             {invoiceDatas.data.length > 0
               ? invoiceDatas.data.map((item, i) => (
                   <tr key={i}>
+                    <td className="p-4 border-b">{i+1}</td>
                     <td className="p-4 border-b">{item.productname}</td>
                     <td className="p-4 border-b">{item.flavour}</td>
                     <td className="p-4 border-b">{item.quantity}</td>
@@ -1575,20 +1602,24 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         <p className="text-end mt-5">
           Total Amount:{' '}
           <span className=" font-bold">
-            {deliveryBill.data.length >= 0
-              ? deliveryBill.data.total
-              : formatToRupee(deliveryBill.data.total)}{' '}
+          {formatToRupee(invoiceDatas.customerdetails.total)}
           </span>{' '}
         </p>
         <p className="text-end">
           Billing Amount:{' '}
           <span className=" font-bold">
-            {deliveryBill.data.length >= 0
-              ? deliveryBill.data.billamount
-              : formatToRupee(deliveryBill.data.billamount)}
+           {formatToRupee(invoiceDatas.customerdetails.billamount)}
           </span>
         </p>
+        <p className={` ${invoiceDatas.customerdetails.partialamount !==0 ? 'block text-end':'hidden'}`}>
+          Partial Amount:{' '}
+          <span className=" font-bold">
+           {formatToRupee(invoiceDatas.customerdetails.partialamount)}
+          </span>
+        </p>
+        </section>
       </div>
+     
 
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -2087,6 +2118,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           </span>
         </div>
       </Modal>
+
+      
     </div>
   )
 }
