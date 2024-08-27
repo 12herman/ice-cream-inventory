@@ -182,7 +182,34 @@ export default function Home({ datas }) {
     .filter((product) => product.paymentstatus === 'Unpaid')
     .reduce((total, product) => total + product.billamount, 0)
 
-
+  const handlePrint = (record) => {
+    // const { items, status } = await fetchItemsForDelivery(record.id)
+    // if (status === 200) {
+    //   let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
+    //   let prItems = await prData.map((pr, i) => {
+    //     let matchingData = items.find((item, i) => item.id === pr.id)
+    //     return {
+    //       sno: i + 1,
+    //       ...pr,
+    //       pieceamount: pr.price,
+    //       quantity: pr.quantity + ' ' + pr.unit,
+    //       margin: matchingData.margin,
+    //       price:
+    //         matchingData.numberofpacks * pr.price -
+    //         matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+    //       numberofpacks: matchingData.numberofpacks,
+    //       producttotalamount: matchingData.numberofpacks * pr.price,
+    //       returntype: matchingData.returntype
+    //     }
+    //   });
+    //   await setInvoiceDatas((pre) => ({
+    //     ...pre,
+    //     data: prItems,
+    //     isGenerate: true,
+    //     customerdetails: record
+    //   }))
+    // }
+  }
 
   const printRef = useRef()
   const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false,customerdetails:{} })
@@ -210,8 +237,7 @@ export default function Home({ datas }) {
         ...pre,
         data: prItems,
         isGenerate: true,
-        customerdetails: record,
-        isPrint:true,
+        customerdetails: record
       }))
     }
   };
@@ -234,45 +260,6 @@ export default function Home({ datas }) {
     }
     generatePDF()
   }, [invoiceDatas.isGenerate, printRef]);
-
-
-  const handlePrint = async(record) => {
-    const { items, status } = await fetchItemsForDelivery(record.id)
-    if (status === 200) {
-      let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-      let prItems = await prData.map((pr, i) => {
-        let matchingData = items.find((item, i) => item.id === pr.id)
-        return {
-          sno: i + 1,
-          ...pr,
-          pieceamount: pr.price,
-          quantity: pr.quantity + ' ' + pr.unit,
-          margin: matchingData.margin,
-          price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-          numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
-        }
-      });
-      await setInvoiceDatas((pre) => ({
-        ...pre,
-        data: prItems,
-        isPrint: true,
-        customerdetails: record
-      }))
-    }
-  };
-  useEffect(() => {
-    const generatePrint = async () => {
-      if (invoiceDatas.isGenerate) {
-        printRef.current.handlePrint();
-        await setInvoiceDatas((pre) => ({ ...pre, isPrint: false }))
-      }
-    }
-    generatePrint()
-  }, [invoiceDatas.isPrint, printRef]);
 
   const columns = [
     {
@@ -352,19 +339,14 @@ export default function Home({ datas }) {
           />
           </Popconfirm>
 
-          <Popconfirm
-        title="Sure to print PDF?"
-        onConfirm={() => handlePrint(record)}
-      >
-        <Button icon={<PrinterOutlined />}></Button>
-      </Popconfirm>
-
-      <ReactToPrint
-        ref={printRef}
-         //trigger={() => null}
+          <Popconfirm title="Sure to print pdf?"  
+          onConfirm={() => handlePrint(record)}>
+           <ReactToPrint
+        trigger={() => <Button icon={<PrinterOutlined />}  />}
         content={() => printRef.current}
       />
-
+          
+          </Popconfirm>
         </span>
       )
     }
