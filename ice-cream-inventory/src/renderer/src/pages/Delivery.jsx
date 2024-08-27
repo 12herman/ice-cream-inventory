@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { debounce } from 'lodash';
 import {
   Button,
   Input,
@@ -13,7 +14,8 @@ import {
   DatePicker,
   Radio,
   Tag,
-  Segmented
+  Segmented,
+  Spin
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
@@ -780,7 +782,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     form5.resetFields(['marginvalue'])
   }
   // customer onchange value
-  const customerOnchange = async (value, i) => {
+  const customerOnchange = debounce ((value, i) => {
     form2.resetFields(['productname'])
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
@@ -789,16 +791,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setTotalAmount(0)
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-  }
+  },300)
 
   //product onchange value
-  const productOnchange = async (value, i) => {
+  const productOnchange = debounce ( (value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    const flavourOp = await Array.from(
+    const flavourOp =  Array.from(
       new Set(
         datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
@@ -806,17 +808,17 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       )
     ).map((flavour) => ({ label: flavour, value: flavour }))
 
-    await setOption((pre) => ({
+     setOption((pre) => ({
       ...pre,
       flavourstatus: false,
       flavour: flavourOp,
       productvalue: value,
       quantitystatus: true
     }))
-  }
+  },300)
 
   //flavour onchange value
-  const flavourOnchange = async (value, i) => {
+  const flavourOnchange = debounce(async (value, i) => {
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
@@ -832,12 +834,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       )
     ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
     await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
-  }
+  },300)
 
   // create add tem product
   const [count, setCount] = useState(0)
   const [totalamount, setTotalAmount] = useState(0)
-  const createTemDeliveryMt = async (values) => {
+  const createTemDeliveryMt = debounce(async (values) => {
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
     let [quantityvalue, units] = values.quantity.split(' ')
@@ -904,7 +906,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       form4.setFieldsValue({ paymentstatus: 'Unpaid' })
       //form2.resetFields();
     }
-  }
+  },200)
 
   // remove temp product
   const removeTemProduct = (key) => {
@@ -915,9 +917,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     form4.setFieldsValue({ paymentstatus: 'Unpaid' })
   }
 
+  const [isDeliverySpiner,setIsDeliverySpiner] = useState(false)
   // add new delivery
   const addNewDelivery = async () => {
-    setTableLoading(true)
+    setIsDeliverySpiner(true)
+    // setTableLoading(true)
     // Filter product datas
     let findPr = datas.product.filter((pr) =>
       option.tempproduct.find(
@@ -985,14 +989,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
-    setOption((prev) => ({ ...prev, tempproduct: [] }))
-    setTotalAmount(0)
-    setMarginValue((pre) => ({ ...pre, amount: 0 }))
-    modelCancel()
-    form5.resetFields(['marginvalue'])
-    form4.resetFields(['partialamount'])
+
     try {
-      setIsModalOpen(false)
+      //setIsModalOpen(false)
       //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
@@ -1038,8 +1037,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       // Handle errors
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
+    } finally{
+      setIsDeliverySpiner(false);
+      modelCancel();
+      setOption((prev) => ({ ...prev, tempproduct: [] }))
+      setTotalAmount(0)
+      setMarginValue((pre) => ({ ...pre, amount: 0 }))
+      form5.resetFields(['marginvalue'])
+      form4.resetFields(['partialamount'])
     }
-    setTableLoading(false)
+    // setTableLoading(false)
   }
 
   // model close
@@ -1201,7 +1208,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     particalAmount: 0
   })
 
-  const onPriceChange = (value) => {
+  const onPriceChange = debounce((value) => {
     let marginamount = totalamount * (value.marginvalue / 100)
     let finalamounts = totalamount - marginamount
     setMarginValue((pre) => ({
@@ -1220,13 +1227,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       }
     })
     setOption((pre) => ({ ...pre, tempproduct: newData }))
-  }
+  },200)
   //form5.resetFields(['marginvalue'])
 
-  const radioOnchange = (e) => {
+  const radioOnchange = debounce((e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
     form4.resetFields(['partialamount'])
-  }
+  },200)
 
   // Ref for get items collections
   const deliveryColumns = [
@@ -1325,15 +1332,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     getItems()
   }, [deliveryBill.open])
 
-  const onOpenDeliveryBill = async (data) => {
-    await setDeliveryBill((pre) => ({
+  const onOpenDeliveryBill = debounce( (data) => {
+    
+     setDeliveryBill((pre) => ({
       ...pre,
       model: true,
       prdata: data,
       open: !deliveryBill.open,
       returnmodeltable: data.type === 'return' ? true : false
     }))
-  }
+  },200)
 
   // return
   const [returnDelivery, setReturnDelivery] = useState({
@@ -1664,7 +1672,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               <span className={`${returnDelivery.state === true ? 'invisible' : ''}`}>
                 <Form
                   className="flex gap-x-1"
-                  disabled={option.tempproduct.length > 0 ? false : true}
+                  disabled={option.tempproduct.length > 0 && !isDeliverySpiner ? false : true}
                   form={form5}
                   onFinish={onPriceChange}
                 >
@@ -1686,7 +1694,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
               <Form
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
-                disabled={marginValue.amount === 0 ? true : false}
+                disabled={marginValue.amount === 0 || isDeliverySpiner  ? true : false}
                 form={form4}
                 initialValues={{ partialamount: 0, price: 'Price', paymentstatus: 'Unpaid' }}
                 onFinish={addNewDelivery}
@@ -1694,7 +1702,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
                     <Radio.Group
-                      disabled={marginValue.amount === 0 ? true : false}
+                      disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
                       buttonStyle="solid"
                       onChange={radioOnchange}
                     >
@@ -1716,7 +1724,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
               <Form
                 className={`${returnDelivery.state === true ? '' : 'hidden'}`}
-                disabled={option.tempproduct.length <= 0 ? true : false}
+                disabled={option.tempproduct.length <= 0 || isDeliverySpiner ? true : false}
                 form={form4}
                 initialValues={{ partialamount: 0, price: 'Price', paymentstatus: 'Unpaid' }}
                 onFinish={addNewDelivery}
@@ -1751,6 +1759,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           </div>
         }
       >
+      <Spin spinning={isDeliverySpiner}>
         <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1">
             <Form
@@ -1864,7 +1873,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               </Form.Item>
 
               <Form.Item
-                className="mb-3 absolute top-8"
+                className="mb-3 absolute top-[-2.7rem]"
                 name="date"
                 label=""
                 rules={[{ required: true, message: false }]}
@@ -1903,9 +1912,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         </div>
 
         <span
-          className={`absolute top-8 right-10 ${marginValue.amount === 0 ? 'hidden' : 'block'}`}
+          className={`absolute top-[-2.7rem] right-10 ${marginValue.amount === 0 ? 'hidden' : 'block'}`}
         >
-          <Tag color="blue">MRP Amount: {formatToRupee(totalamount)}</Tag>
+          <Tag color="blue">MRP Amount:  <span className="text-sm">{formatToRupee(totalamount)}</span></Tag>
           {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
           {/* <Tag color="orange">Margin: {marginValue.percentage}%</Tag> */}
           <Tag
@@ -1915,10 +1924,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
           </Tag>
         </span>
+        </Spin>
       </Modal>
 
       {/* material used model */}
-      <Modal
+      {/* <Modal
         className="relative"
         title={
           <div className="flex  justify-center py-3">
@@ -2018,7 +2028,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   Add To List
                 </Button>
               </Form.Item>
-              {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewDelivery} className=' w-full'>Add</Button> */}
+              
             </Form>
           </span>
           <span className="col-span-2">
@@ -2029,7 +2039,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             />
           </span>
         </div>
-      </Modal>
+      </Modal> */}
 
       {/* Delivery bill model */}
       <Modal

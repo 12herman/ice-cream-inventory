@@ -10,7 +10,8 @@ import {
   Popconfirm,
   message,
   Select,
-  DatePicker
+  DatePicker,
+  Spin
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -506,8 +507,10 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
   }
 
+  const [isAddProductModal,setIsAddProductModal] = useState(false)
   // add new production
   const addNewProduction = async () => {
+    setIsAddProductModal(true);
     try {
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
@@ -542,6 +545,9 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       await modelCancel()
     } catch (error) {
       console.error('An error occurred while adding new production:', error)
+    }
+    finally{
+      setIsAddProductModal(false);
     }
   }
 
@@ -650,7 +656,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         footer={
           <Button
             type="primary"
-            disabled={option.tempproduct.length > 0 ? false : true}
+            disabled={option.tempproduct.length > 0 && !isAddProductModal ? false : true}
             onClick={addNewProduction}
             className=" w-fit"
           >
@@ -658,6 +664,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           </Button>
         }
       >
+      <Spin spinning={isAddProductModal}>
         <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1">
             <Form
@@ -735,7 +742,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
               </Form.Item>
 
               <Form.Item
-                className="mb-3 absolute top-8"
+                className=" absolute top-[-2.8rem]"
                 name="date"
                 label=""
                 rules={[{ required: true, message: false }]}
@@ -761,6 +768,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             />
           </span>
         </div>
+        </Spin>
       </Modal>
     </div>
   )
