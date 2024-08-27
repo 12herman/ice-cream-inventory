@@ -58,18 +58,22 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         storageItem.flavour === values.flavour &&
         storageItem.quantity === values.quantity
     )
-    await createproduct({
+    const productRef = await createproduct({
       ...values,
       createddate: TimestampJs(),
       updateddate: '',
       isdeleted: false
     })
+    const productId = productRef.res.id;
+    console.log(productId,productRef);
     if (!productExists) {
       await createStorage({
         productname: values.productname,
         flavour: values.flavour,
         quantity: values.quantity,
         unit: values.unit,
+        productperpack: values.productperpack,
+        productid: productId,
         alertcount: 0,
         numberofpacks: 0,
         category: 'Product List',
@@ -456,7 +460,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       </ul>
 
       <Modal
-        title="Products"
+        title={<span className='flex justify-center'>NEW PRODUCT</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
@@ -466,26 +470,26 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       >
         <Form onFinish={createNewProject} form={form} layout="vertical">
           <Form.Item
-            className="mb-0"
+            className="mb-2"
             name="productname"
             label="Product Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Product Name' />
           </Form.Item>
 
           <Form.Item
-            className="mb-0"
+            className="mb-2"
             name="flavour"
-            label="Flavour"
+            label="Flavour Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Flavour Name'/>
           </Form.Item>
 
           <span className="flex gap-x-2">
             <Form.Item
-              className="mb-0 w-full"
+              className="mb-2 w-full"
               name="quantity"
               label="Quantity"
               rules={[
@@ -493,18 +497,18 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" />
+              <InputNumber className="w-full" placeholder='Enter the Quantity'/>
             </Form.Item>
 
             <Form.Item
-              className="mb-0"
+              className="mb-2"
               name="unit"
               label="Unit"
               rules={[{ required: true, message: false }]}
             >
               <Select
                 showSearch
-                placeholder="Search to Select"
+                placeholder="Select the Unit"
                 optionFilterProp="label"
                 filterSort={(optionA, optionB) =>
                   (optionA?.label ?? '')
@@ -517,12 +521,16 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                     label: 'GM'
                   },
                   {
-                    value: 'mm',
-                    label: 'MM'
-                  },
-                  {
                     value: 'kg',
                     label: 'KG'
+                  },
+                  {
+                    value: 'ml',
+                    label: 'ML'
+                  },
+                  {
+                    value: 'lt',
+                    label: 'LT'
                   }
                 ]}
               />
@@ -530,7 +538,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
           </span>
 
           <Form.Item
-            className="mb-0"
+            className="mb-2"
             name="productperpack"
             label="Product Per Pack"
             rules={[
@@ -538,11 +546,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" />
+            <InputNumber className="w-full" placeholder='Enter the PPP' />
           </Form.Item>
 
           <Form.Item
-            className="mb-0"
+            className="mb-2"
             name="price"
             label="Price"
             rules={[
@@ -550,7 +558,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" />
+            <InputNumber className="w-full" placeholder='Enter the Amount' />
           </Form.Item>
         </Form>
       </Modal>

@@ -877,7 +877,7 @@ setFirstValue(null)
               <Select
                 onChange={productOnchange}
                 showSearch
-                placeholder="Search to Select"
+                placeholder="Select the Product"
                 options={isQuickSale.proption}
               />
             </Form.Item>
@@ -892,7 +892,7 @@ setFirstValue(null)
                 disabled={isQuickSale.flavourinputstatus}
                 onChange={flavourOnchange}
                 showSearch
-                placeholder="Search to Select"
+                placeholder="Select the Flavour"
                 options={isQuickSale.flaveroption}
               />
             </Form.Item>
@@ -906,7 +906,7 @@ setFirstValue(null)
               <Select
                 disabled={isQuickSale.quantityinputstatus}
                 showSearch
-                placeholder="Search to Select"
+                placeholder="Select the Quantity"
                 options={isQuickSale.quntityoption}
               />
             </Form.Item>
@@ -917,7 +917,7 @@ setFirstValue(null)
               label="Number of Packs"
               rules={[{ required: true, message: false }]}
             >
-              <InputNumber min={1} className="w-full" />
+              <InputNumber min={1} className="w-full" placeholder='Enter the Number'/>
             </Form.Item>
 
             <Form.Item
@@ -1000,7 +1000,7 @@ setFirstValue(null)
           >
             <Select
               showSearch
-              placeholder="Search to Select"
+              placeholder="Select the Person"
               options={isSpendingModalOpen.employeeoption}
               filterSort={(optionA, optionB) =>
                 (optionA?.label ?? '')
@@ -1016,11 +1016,11 @@ setFirstValue(null)
             className="mb-1"
             rules={[{ required: true, message: false }]}
           >
-            <InputNumber min={0} className="w-full" />
+            <InputNumber min={0} className="w-full" placeholder='Enter the Amount' />
           </Form.Item>
 
           <Form.Item name="description" label="Description" className="mb-1">
-            <TextArea rows={4} />
+            <TextArea rows={4} placeholder='Write the Description'/>
           </Form.Item>
         </Form>
       </Modal>

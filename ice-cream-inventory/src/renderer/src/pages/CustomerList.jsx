@@ -544,10 +544,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   }
 
   const handleTransportChange = (value) => {
-    if (value === 'Company' || value === 'Freezer Box') {
-      setIsVehicleNoDisabled(false)
-    } else {
+    if (value === 'Self') {
       setIsVehicleNoDisabled(true)
+    } else {
+      setIsVehicleNoDisabled(false)
     }
   }
 
@@ -606,7 +606,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </ul>
 
       <Modal
-        title="New Supplier"
+        title={<span className='flex justify-center'>NEW CUSTOMER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
@@ -626,16 +626,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           }}
         >
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="customername"
             label="Customer Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Customer Name' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="transport"
             label="Transport Type"
             rules={[{ required: true, message: false }]}
@@ -649,16 +649,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="vehicleorfreezerno"
             label="Vehicle No / Freezer No"
             rules={[{ required: false, message: 'Vehicle or Freezer No is required' }]}
           >
-            <Input className="w-full" disabled={isVehicleNoDisabled} />
+            <Input className="w-full" disabled={isVehicleNoDisabled} placeholder='Enter the Vehicle / Box Number'/>
           </Form.Item>
 
           <Form.Item
-            className="mb-1 w-full"
+            className="mb-2 w-full"
             name="mobilenumber"
             label="Mobile Number"
             rules={[
@@ -666,16 +666,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" />
+            <InputNumber className="w-full" placeholder='Enter the Mobile Number' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="location"
             label="location"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Location' />
           </Form.Item>
         </Form>
       </Modal>
@@ -701,10 +701,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Input disabled />
           </Form.Item> */}
           <Form.Item className="mb-1" name="amount" label="Amount">
-            <InputNumber min={0} className="w-full" placeholder="Enter amount" />
+            <InputNumber min={0} className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the description" />
+            <TextArea rows={4} placeholder="Write the Description" />
           </Form.Item>
           <Form.Item
             className=" absolute top-5"

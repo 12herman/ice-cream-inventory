@@ -313,6 +313,16 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'quantity'
     },
     {
+      title: 'Box',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (_, record) => {
+        const quotient = Math.floor(record.numberofpacks / record.productperpack);
+        const remainder = record.numberofpacks % record.productperpack;
+        return `${quotient} Box , ${remainder} Piece`;
+      }
+    },
+    {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',

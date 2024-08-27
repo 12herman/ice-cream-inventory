@@ -604,7 +604,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       </ul>
 
       <Modal
-        title="New Supplier"
+        title={<span className='flex justify-center'>NEW SUPPLIER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
@@ -619,34 +619,34 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           layout="vertical"
         >
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="suppliername"
             label="Supplier Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input className="w-full" />
+            <Input className="w-full" placeholder='Enter the Supplier Name' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="location"
             label="location"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Location' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="materialname"
             label="Material Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input />
+            <Input placeholder='Enter the Material Name' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1 w-full"
+            className="mb-2 w-full"
             name="mobilenumber"
             label="Mobile Number"
             rules={[
@@ -654,11 +654,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" />
+            <InputNumber className="w-full" placeholder='Enter the Mobile Number' />
           </Form.Item>
 
           <Form.Item
-            className="mb-1"
+            className="mb-2"
             name="gender"
             label="Gender"
             rules={[{ required: true, message: false }]}
@@ -692,10 +692,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             <Input disabled />
           </Form.Item> */}
           <Form.Item className="mb-1" name="amount" label="Amount">
-            <InputNumber min={0} className="w-full" placeholder="Amount" />
+            <InputNumber min={0} className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the description" />
+            <TextArea rows={4} placeholder="Write the Description" />
           </Form.Item>
           <Form.Item
             className=" absolute top-5"
