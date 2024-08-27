@@ -16,7 +16,8 @@ import {
   message,
   Tag,
   Radio,
-  Typography
+  Typography,
+  Spin
 } from 'antd'
 const { TextArea } = Input
 import dayjs from 'dayjs'
@@ -53,8 +54,10 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     temtableedit:{
       margin:true,
       price:true,
-    }
-  })
+    },
+    spinning: false,
+  });
+  const [isSpinners,setIsSpinners] = useState(false)
 
   const [quickSaleForm] = Form.useForm()
   const [quickSaleForm2] = Form.useForm()
@@ -362,7 +365,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         return;
       }
     else {
-      setIsQuickSale(pre => ({...pre,model:false}))
+      setIsSpinners(true)
+      setIsQuickSale(pre => ({...pre}))
       console.log('close the model');
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
@@ -405,14 +409,14 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
           margin: 0,
           billamount: 0,
           type: 'quick',
-        }))
-        quickSaleForm.resetFields()
+        }));
+        quickSaleForm.resetFields();
+        setIsSpinners(false);
       } catch (error) {
         console.log(error)
       }
     }
-
-  }
+  };
 
   const marginMt = (value) => {
     let marginCal = (isQuickSale.total * value.marginvalue) / 100
@@ -430,8 +434,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       billamount: marignAn,
       marginstate: true,
       temdata: newData
-    }))
-  }
+    }));
+  };
 
   // const customerOnchange = (value)=>{
   //   console.log(value);
@@ -443,14 +447,14 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
     parentid: '',
     employeeoption: []
   })
-  const [spendingForm] = Form.useForm()
+  const [spendingForm] = Form.useForm();
 
   useEffect(() => {
     let employeeOtSet = datas.employees
       .filter((data) => data.isdeleted === false)
       .map((data) => ({ label: data.employeename, value: data.id }))
     setIsSpendingModalOpen((pre) => ({ ...pre, employeeoption: employeeOtSet }))
-  }, [!isSpendingModalOpen.model])
+  }, [!isSpendingModalOpen.model]);
 
   // sepending method
   const handleSpendingFinish = async (values) => {
@@ -469,16 +473,18 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       date: dayjs(spendDatas.date).format('DD/MM/YYYY')
     }
     try {
+      setSpendSpin(true);
       const employeeDocRef = doc(db, 'employee', empid)
       const payDetialsRef = collection(employeeDocRef, 'paydetails')
       await addDoc(payDetialsRef, newSpendingData)
       setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
       spendingForm.resetFields()
       message.open({ type: 'success', content: 'Spending added successfully' })
+      setSpendSpin(false);
     } catch (error) {
       console.log(error)
     }
-  }
+  };
   
   const [firstValue, setFirstValue] = useState(null);
 
@@ -513,8 +519,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
             ...pre,
             temtableedit: { ...pre.temtableedit, margin: false, price: true }
         }));
-        }
-
+        };
          }} size="small" className="w-[4rem]" min={0}/>
     return (
       <td {...restProps}>
@@ -575,9 +580,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       const oldtemDatas = isQuickSale.temdata
       // Check if the margin already exists for the same key
       const checkDatas = oldtemDatas.some((item) =>item.key === data.key && item.margin === row.margin &&  item.numberofpacks === row.numberofpacks && item.price === row.price);
-
       if (checkDatas) {
-        message.open({ type: 'info', content: 'Already exists' });
+        message.open({ type: 'info', content: 'No Changes made' });
         setIsQuickSale((pre) => ({
           ...pre,
           editingKeys: [],
@@ -674,7 +678,9 @@ setFirstValue(null)
     catch (e) {
       console.log(e)
     }
-  }
+  };
+
+  const[spenditSpin,setSpendSpin] = useState(false);
 
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
@@ -733,7 +739,7 @@ setFirstValue(null)
       </span>
       {/* quick sale */}
       <Modal
-        className="relative"
+        
         footer={
           <div className="flex justify-between items-center">
             <Form
@@ -814,7 +820,7 @@ setFirstValue(null)
             </Form>
             <Button
               onClick={quicksaleMt}
-              disabled={isQuickSale.marginstate ? false : true}
+              disabled={isQuickSale.marginstate && isSpinners === false ? false  :  true   }
               type="primary"
             >
               Sale
@@ -846,7 +852,10 @@ setFirstValue(null)
           }))
           quickSaleForm.resetFields()
         }}
+        
       >
+      <Spin  spinning={isSpinners}>
+      <div className="relative"> 
         <div className="grid grid-cols-4 gap-x-2">
           <Form
             className="col-span-1"
@@ -921,7 +930,7 @@ setFirstValue(null)
             </Form.Item>
 
             <Form.Item
-              className="mb-3 absolute top-8"
+              className="mb-3 absolute top-[-2.7rem]"
               name="date"
               label=""
               rules={[{ required: true, message: false }]}
@@ -947,9 +956,10 @@ setFirstValue(null)
             />
           </Form>
         </div>
+       
 
         <span
-          className={`absolute top-8 right-10 ${isQuickSale.marginstate === false ? 'hidden' : 'block'}`}
+          className={`absolute top-[-2.7rem] right-10 ${isQuickSale.marginstate === false ? 'hidden' : 'block'}`}
         >
           <Tag color="blue">
             MRP Amount: <span className="text-sm">{formatToRupee(isQuickSale.total)}</span>
@@ -959,6 +969,8 @@ setFirstValue(null)
             Net Amount: <span className="text-sm">{formatToRupee(isQuickSale.billamount)}</span>
           </Tag>
         </span>
+        </div>
+        </Spin>
       </Modal>
 
       {/* spendingModal */}
@@ -976,7 +988,9 @@ setFirstValue(null)
           setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
           spendingForm.resetFields()
         }}
+        okButtonProps={{disabled:spenditSpin}}
       >
+      <Spin spinning={spenditSpin} className='relative'>
         <Form
           form={spendingForm}
           layout="vertical"
@@ -984,7 +998,7 @@ setFirstValue(null)
           initialValues={{ date: dayjs() }}
         >
           <Form.Item
-            className="absolute top-8"
+            className="absolute top-[-3rem]"
             name="date"
             label=""
             rules={[{ required: true, message: false }]}
@@ -1023,6 +1037,7 @@ setFirstValue(null)
             <TextArea rows={4} />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
     </nav>
   )

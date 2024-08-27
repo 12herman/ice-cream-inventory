@@ -12,7 +12,8 @@ import {
   Select,
   DatePicker,
   Radio,
-  Tag
+  Tag,
+  Spin
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -41,6 +42,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const [usedMaterialModal, setUsedMaterialModal] = useState(false)
   const [isMaterialTbLoading, setIsMaterialTbLoading] = useState(true)
 
+  const [isLoadMaterialUsedModal, setIsLoadMaterialUsedModal] = useState(false)
   // side effect
   useEffect(() => {
     const fetchData = async () => {
@@ -112,43 +114,54 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
   }
 
+  const [isLoadingModal,setIsLoadingModal] = useState(false)
+  
   const createAddMaterial = async (values) => {
-    if (form.getFieldValue('partialamount') === '0') {
-      return message.open({ type: 'warning', content: 'Please enter a valid amount' })
-    } else {
-      const { date, materialname, suppliername, ...otherValues } = values
-      const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
+    setIsLoadingModal(true);
+    try{
 
-      const findSupplierId = await datas.suppliers.find(
-        (supplier) =>
-          supplier.materialname === materialname && supplier.suppliername === suppliername
-      ).id
+      if (form.getFieldValue('partialamount') === '0') {
+        return message.open({ type: 'warning', content: 'Please enter a valid amount' })
+      } else {
+        
+        const { date, materialname, suppliername, ...otherValues } = await values
+        const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
+        const findSupplierId = await datas.suppliers.find(
+          (supplier) =>
+            supplier.materialname === materialname && supplier.suppliername === suppliername
+        ).id
+  
+        await createRawmaterial({
+          supplierid: findSupplierId,
+          ...otherValues,
+          date: formattedDate,
+          partialamount:otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
+          createddate: TimestampJs(),
+          isdeleted: false,
+          type: 'Added'
+        });
 
-      await createRawmaterial({
-        supplierid: findSupplierId,
-        ...otherValues,
-        date: formattedDate,
-        createddate: TimestampJs(),
-        isdeleted: false,
-        type: 'Added'
-      })
-
-      const existingMaterial = datas.storage.find(
-        (storageItem) =>
-          storageItem.materialname === otherValues.materialname &&
-          storageItem.category === 'Material List'
-      )
-
-      if (existingMaterial) {
-        await updateStorage(existingMaterial.id, {
-          quantity: existingMaterial.quantity + otherValues.quantity
-        })
-        storageUpdateMt()
+        const existingMaterial = await datas.storage.find(
+          (storageItem) =>
+            storageItem.materialname === otherValues.materialname &&
+            storageItem.category === 'Material List'
+        )
+        if (existingMaterial) {
+          await updateStorage(existingMaterial.id, {
+            quantity: existingMaterial.quantity + otherValues.quantity
+          })
+          storageUpdateMt();
+        }
+        form.resetFields()
+        rawmaterialUpdateMt()
+        setIsModalOpen(false)
+        setRadioBtn({ status: true, value: '' })
       }
-      form.resetFields()
-      rawmaterialUpdateMt()
-      setIsModalOpen(false)
-      setRadioBtn({ status: true, value: '' })
+    }catch(error){
+      console.log(error)
+    }
+    finally{
+      setIsLoadingModal(false)
     }
   }
 
@@ -175,12 +188,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'createddate',
       sorter: (a, b) => {
         const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format)
-        const dateB = dayjs(b.createddate, format)
-        return dateB.isAfter(dateA) ? -1 : 1
+        const dateA = dayjs(a.createddate, format);
+        const dateB = dayjs(b.createddate, format);
+        return dateB.isAfter(dateA) ? -1 : 1;
       },
       defaultSortOrder: 'descend',
-      width: 115
+      width: 115,
     },
     {
       title: 'Supplier',
@@ -201,24 +214,24 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-      width: 120,
+       width: 120,
       render: (_, record) => {
         return record.quantity + ' ' + record.unit
-      }
+      },
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       editable: true,
-      width: 120
+       width: 120
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       editable: false,
-      width: 80,
+       width: 80,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
@@ -228,16 +241,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: false,
-      width: 140,
+       width: 140,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text, record) => (
-        <span className="flex gap-x-0">
-          <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>
-            {text}{' '}
-          </Tag>{' '}
-          {text === 'Partial' ? <Tag color="blue">{record.partialamount}</Tag> : null}
-        </span>
+      render: (text,record) => (
+        <span className='flex gap-x-0'><Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text} </Tag> {text === 'Partial' ? <Tag color='blue'>{record.partialamount}</Tag> : null}</span>
       )
     },
     {
@@ -281,7 +289,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )
       }
     }
-  ]
+  ];
 
   const EditableCell = ({
     editing,
@@ -344,7 +352,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )}
       </td>
     )
-  }
+  };
+  
+
+
 
   const isEditing = (record) => record.key === editingKey
   const edit = (record) => {
@@ -408,6 +419,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     newSelectedRowKeys.length === 0 ? setEditingKey('') : setEditingKey('hi')
     if (newSelectedRowKeys.length > 0) {
       const selectTableData = data.filter((item) => newSelectedRowKeys.includes(item.key))
+      console.log(selectTableData)
     }
     setSelectedRowKeys(newSelectedRowKeys)
   }
@@ -556,10 +568,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       isdeleted: false,
       quantity: values.quantity + ' ' + values.unit
     }
-
-    const checkExist = mtOption.tempproduct.find(
-      (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
-    )
+    console.log(mtOption.tempproduct, newMaterial)
+    
+    const checkExist = mtOption.tempproduct.find((item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date)
 
     const dbcheckExsit = datas.rawmaterials.find(
       (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
@@ -583,6 +594,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // add new material to data base
   const addNewTemMaterial = async () => {
+    setIsLoadMaterialUsedModal(true);
+    try{
+    
     mtOption.tempproduct.map(async (item) => {
       let { key, quantity, ...newMaterial } = item
       let quantityNumber = Number(quantity.split(' ')[0])
@@ -592,7 +606,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         type: 'Used',
         paymentstatus: 'Used'
       })
-
       const existingMaterial = datas.storage.find(
         (storageItem) =>
           storageItem.materialname === newMaterial.materialname &&
@@ -605,8 +618,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         storageUpdateMt()
       }
     })
-    rawmaterialUpdateMt()
+   await rawmaterialUpdateMt()
     materialModelCancel()
+    message.open({ type: 'success', content: 'Added Successfully' });
+  } 
+    catch (error) {
+      console.log(error)
+    }
+    finally {
+     await setIsLoadMaterialUsedModal(false);
+    }
   }
 
   // model cancel
@@ -616,6 +637,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
   }
 
+  
   return (
     <div>
       <ul>
@@ -641,11 +663,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               Material Used <IoMdRemove />
             </Button>
             <Button
-              disabled={editingKey !== ''}
+            disabled={editingKey !== ''}
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
-                form.resetFields()
+                form.resetFields();
+                // form.setFields({paymentstatus:'Paid'})
               }}
             >
               Add Material <IoMdAdd />
@@ -681,18 +704,19 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         }
         open={isModalOpen}
         onOk={() => form.submit()}
-        okButtonProps={{ disabled: radioBtn.status }}
+        okButtonProps={{ disabled: isLoadingModal }}
         onCancel={() => {
           setIsModalOpen(false)
           setRadioBtn({ status: true, value: '' })
           form.resetFields()
         }}
       >
+      <Spin spinning={isLoadingModal}>
         <Form
           onFinish={createAddMaterial}
           form={form}
           layout="vertical"
-          initialValues={{ date: dayjs() }}
+          initialValues={{ date: dayjs(),paymentstatus: 'Paid'}}
         >
           <Form.Item
             className="mb-0"
@@ -725,7 +749,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </Form.Item>
 
           <Form.Item
-            className="mb-3 absolute top-8"
+            className="mb-3 absolute top-[-3rem]"
             name="date"
             label=""
             rules={[{ required: true, message: false }]}
@@ -853,6 +877,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       {/* material used model */}
@@ -871,7 +896,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         footer={
           <Button
             type="primary"
-            disabled={mtOption.tempproduct.length > 0 ? false : true}
+            disabled={mtOption.tempproduct.length > 0 && !isLoadMaterialUsedModal ? false : true}
             onClick={addNewTemMaterial}
             className=" w-fit"
           >
@@ -879,6 +904,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </Button>
         }
       >
+      <Spin spinning={isLoadMaterialUsedModal}>
         <div className="grid grid-cols-4 gap-x-3">
           <span className="col-span-1 ">
             <Form
@@ -934,14 +960,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                       { label: 'GM', value: 'GM' },
                       { label: 'KG', value: 'KG' },
                       { label: 'LI', value: 'LI' },
-                      { label: 'MI', value: 'MI' }
+                      { label: 'MI', value: 'MI' },
                     ]}
                   />
                 </Form.Item>
               </span>
 
               <Form.Item
-                className=" absolute top-8"
+                className=" absolute top-[-3rem]"
                 name="date"
                 label=""
                 rules={[{ required: true, message: false }]}
@@ -966,6 +992,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             />
           </span>
         </div>
+        </Spin>
       </Modal>
     </div>
   )
