@@ -12,7 +12,8 @@ import {
   Select,
   Radio,
   DatePicker,
-  Tag
+  Tag,
+  Spin
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { IoMdAdd } from 'react-icons/io'
@@ -66,43 +67,53 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     }
   }
 
+  const [supplierModalLoading,setSupplierModalLoading] = useState(false)
   // create new project
   const createNewSupplier = async (values) => {
-    const materialExists = datas.storage.find(
-      (storageItem) => storageItem.materialname === values.materialname
-    )
-    await createSupplier({
-      ...values,
-      createddate: TimestampJs(),
-      updateddate: '',
-      isdeleted: false
+    setSupplierModalLoading(true);
+try{
+  const materialExists = datas.storage.find((storageItem) => storageItem.materialname === values.materialname)
+  await createSupplier({
+    ...values,
+    createddate: TimestampJs(),
+    updateddate: '',
+    isdeleted: false
+  });
+  if (!materialExists) {
+    await createStorage({
+      materialname: values.materialname,
+      alertcount: 0,
+      quantity: 0,
+      category: 'Material List',
+      createddate: TimestampJs()
     })
-    if (!materialExists) {
-      await createStorage({
-        materialname: values.materialname,
-        alertcount: 0,
-        quantity: 0,
-        category: 'Material List',
-        createddate: TimestampJs()
-      })
-      storageUpdateMt()
-    }
-    form.resetFields()
-    supplierUpdateMt()
-    setIsModalOpen(false)
-    message.open({ type: 'success', content: 'Supplier Added Successfully' })
+    storageUpdateMt()
+  }
+  form.resetFields()
+  supplierUpdateMt()
+  message.open({ type: 'success', content: 'Supplier Added Successfully' })
+}
+catch(e){console.log(e)}
+finally{
+  
+  setSupplierModalLoading(false);
+  setIsModalOpen(false);
+}
   }
 
   const showPayModal = (record) => {
-    payForm.setFieldValue({
-      amount: record.amount || 'N/A',
-      description: record.description || 'N/A'
-    })
+    payForm.resetFields()
+    // payForm.setFieldValue({
+    //   amount: record.amount || 'N/A',
+    //   description: record.description || 'N/A'
+    // })
     setSupplierPayId(record.id)
     setIsPayModelOpen(true)
   }
 
+  const [payModalLoading,setPayModalLoading] = useState(false)
   const supplierPay = async (value) => {
+    setPayModalLoading(true);
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
     const payData = { ...Datas, date: formateDate, description: description || '' }
@@ -113,9 +124,12 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     } catch (e) {
       console.log(e)
     }
-    payForm.resetFields()
-    setSupplierPayId(null)
-    setIsPayModelOpen(false)
+finally{
+  payForm.resetFields()
+  setSupplierPayId(null)
+  setIsPayModelOpen(false)
+  setPayModalLoading(false)
+}
   }
 
   const showPayDetailsModal = async (record) => {
@@ -607,11 +621,13 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         title="New Supplier"
         open={isModalOpen}
         onOk={() => form.submit()}
+        okButtonProps={{disabled: supplierModalLoading}}
         onCancel={() => {
           setIsModalOpen(false)
           form.resetFields()
         }}
       >
+      <Spin spinning={supplierModalLoading}>
         <Form
           initialValues={{ gender: 'Male' }}
           onFinish={createNewSupplier}
@@ -669,6 +685,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             </Radio.Group>
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal
@@ -680,8 +697,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         }
         open={isPayModelOpen}
         onCancel={() => setIsPayModelOpen(false)}
+        okButtonProps={{disabled:payModalLoading}}
         onOk={() => payForm.submit()}
       >
+      <Spin className='relative' spinning={payModalLoading}>
         <Form
           onFinish={supplierPay}
           form={payForm}
@@ -691,14 +710,14 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
           </Form.Item> */}
-          <Form.Item className="mb-1" name="amount" label="Amount">
+          <Form.Item rules={[{ required: true, message: false }]}  className="mb-1" name="amount" label="Amount">
             <InputNumber min={0} className="w-full" placeholder="Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the description" />
           </Form.Item>
           <Form.Item
-            className=" absolute top-5"
+            className=" absolute top-[-3rem]"
             name="date"
             label=""
             rules={[{ required: true, message: false }]}
@@ -706,6 +725,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             <DatePicker format={'DD/MM/YYYY'} />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal
