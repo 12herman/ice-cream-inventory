@@ -11,7 +11,8 @@ import {
   message,
   Select,
   Radio,
-  DatePicker
+  DatePicker,
+  Spin
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -64,18 +65,25 @@ export default function Employee({ datas, employeeUpdateMt }) {
     }
   }
 
+  const [isNewEployeeLoading,setIsNewEmployeeLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
-    await createEmployee({
-      ...values,
-      createddate: TimestampJs(),
-      updateddate: '',
-      isdeleted: false
-    })
-    form.resetFields()
-    employeeUpdateMt()
-    message.open({ type: 'success', content: 'Created Successfully' })
-    setIsModalOpen(false)
+    setIsNewEmployeeLoading(true)
+   try{ await createEmployee({
+    ...values,
+    createddate: TimestampJs(),
+    updateddate: '',
+    isdeleted: false
+  })
+  form.resetFields()
+  employeeUpdateMt()
+  message.open({ type: 'success', content: 'Created Successfully' })
+  
+}catch(e){console.log(e)}
+finally{
+  setIsModalOpen(false);
+  setIsNewEmployeeLoading(false)
+}
   }
 
   const columns = [
@@ -159,17 +167,17 @@ export default function Employee({ datas, employeeUpdateMt }) {
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
-            className='py-0 text-[0.7rem]'
+            className='py-0 text-[0.7rem] h-[1.7rem]'
             disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => {
                 setEmployeePay((pre) => ({ ...pre, modal: true, name: record }))
               }}
             >
               Pay
-              <MdOutlinePayments size={13}/>
+              <MdOutlinePayments />
             </Button>
             <Button
-            className='py-0 text-[0.7rem]'
+            className='py-0 text-[0.7rem] h-[1.7rem]'
             disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
                 setEmpListTb(true)
@@ -186,7 +194,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 setEmpListTb(false)
               }}
             >
-              <SolutionOutlined size={12}/>
+              <SolutionOutlined />
             </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
@@ -435,7 +443,9 @@ export default function Employee({ datas, employeeUpdateMt }) {
     data: dayjs().format('DD/MMM/YYYY')
   })
 
+  const [isEmpLoading,setIsEmpLoading] =useState(false);
   const empPayMt = async (value) => {
+    setIsEmpLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
     const empId = employeePay.name.id
@@ -456,8 +466,11 @@ export default function Employee({ datas, employeeUpdateMt }) {
     } catch (e) {
       console.log(e)
     }
+   finally{
     employeePayForm.resetFields()
-    setEmployeePay((pre) => ({ ...pre, modal: false }))
+    setEmployeePay((pre) => ({ ...pre, modal: false }));
+    setIsEmpLoading(false)
+   }
   }
 
   // employee pay details
@@ -760,7 +773,9 @@ export default function Employee({ datas, employeeUpdateMt }) {
           setIsModalOpen(false)
           form.resetFields()
         }}
+        okButtonProps={{disabled:isNewEployeeLoading}}
       >
+      <Spin spinning={isNewEployeeLoading}>
         <Form
           initialValues={{ gender: 'Male', position: 'Worker' }}
           onFinish={createNewProject}
@@ -822,6 +837,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <Input />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal
@@ -831,7 +847,9 @@ export default function Employee({ datas, employeeUpdateMt }) {
           employeePayForm.resetFields()
         }}
         onOk={() => employeePayForm.submit()}
+        okButtonProps={{disabled:isEmpLoading}}
       >
+      <Spin spinning={isEmpLoading}>
         <span className="block w-full text-center mb-7 text-2xl font-bold">PAY</span>
         <span className="w-full text-center block text-sm font-medium uppercase">
           {employeePay.name.employeename}
@@ -858,6 +876,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <DatePicker format={'DD/MM/YY'} />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal

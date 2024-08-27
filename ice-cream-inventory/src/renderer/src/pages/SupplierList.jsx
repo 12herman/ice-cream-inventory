@@ -316,6 +316,7 @@ finally{
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
+            className='py-0 text-[0.7rem] h-[1.7rem]'
               onClick={() => showPayModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -323,6 +324,7 @@ finally{
               <MdOutlinePayments />
             </Button>
             <Button
+            className='py-0 text-[0.7rem] h-[1.7rem]'
               onClick={() => showPayDetailsModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
