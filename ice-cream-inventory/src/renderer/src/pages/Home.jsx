@@ -361,7 +361,7 @@ export default function Home({ datas }) {
 
       <ReactToPrint
         ref={printRef}
-         trigger={() => null}
+         //trigger={() => null}
         content={() => printRef.current}
       />
 
