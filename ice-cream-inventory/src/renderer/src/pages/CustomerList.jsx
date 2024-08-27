@@ -12,7 +12,8 @@ import {
   Select,
   Radio,
   DatePicker,
-  Tag
+  Tag,
+  Spin
 } from 'antd'
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
@@ -66,8 +67,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     }
   }
 
+  const[isNewCustomerLoading,setIsNewCustomerLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
+    setIsNewCustomerLoading(true);
     try {
       await createCustomer({
         ...values,
@@ -76,25 +79,31 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         updateddate: '',
         isdeleted: false
       })
-      form.resetFields()
       customerUpdateMt()
-      setIsModalOpen(false)
       message.open({ type: 'success', content: 'Customer Added Successfully' })
     } catch (error) {
       message.open({ type: 'error', content: 'Failed to add customer' })
     }
+    finally{
+      form.resetFields()
+      setIsModalOpen(false)
+      setIsNewCustomerLoading(false);
+    }
   }
 
   const showPayModal = (record) => {
-    payForm.setFieldValue({
-      amount: record.amount || 'N/A',
-      description: record.description || 'N/A'
-    })
+    // payForm.setFieldValue({
+    //   amount: record.amount || 'N/A',
+    //   description: record.description || 'N/A'
+    // })
+    payForm.resetFields()
     setCustomerPayId(record.id)
     setIsPayModelOpen(true)
   }
 
+  const [isCustomerPayLoading,setIsCustomerPayLoading] = useState(false) 
   const customerPay = async (value) => {
+    setIsCustomerPayLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
     const payData = { ...Datas, date: formateDate, description: description || '' }
@@ -102,13 +111,17 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
       await addDoc(payDetailsRef, payData)
+      message.open({ type: 'success', content: 'Pay Added Successfully' })
     } catch (e) {
       console.log(e)
     }
-    payForm.resetFields()
+    finally{
+      payForm.resetFields()
     setCustomerPayId(null)
     setIsPayModelOpen(false)
-    message.open({ type: 'success', content: 'Pay Added Successfully' })
+    setIsCustomerPayLoading(false)
+    }
+    
   }
 
   const showPayDetailsModal = async (record) => {
@@ -299,6 +312,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         ) : (
           <span className="flex gap-x-2 justify-center items-center">
             <Button
+            className='py-0 text-[0.7rem] h-[1.7rem]'
               onClick={() => showPayModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -306,6 +320,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               <MdOutlinePayments />
             </Button>
             <Button
+            className='py-0 text-[0.7rem] h-[1.7rem]'
               onClick={() => showPayDetailsModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -609,11 +624,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         title={<span className='flex justify-center'>NEW CUSTOMER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
+        okButtonProps={{disabled:isNewCustomerLoading}}
         onCancel={() => {
           setIsModalOpen(false)
           form.resetFields()
         }}
       >
+      <Spin spinning={isNewCustomerLoading}>
         <Form
           initialValues={{ transport: 'Self' }}
           onFinish={createNewProject}
@@ -678,6 +695,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Input placeholder='Enter the Location' />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal
@@ -690,7 +708,9 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         open={isPayModelOpen}
         onCancel={() => setIsPayModelOpen(false)}
         onOk={() => payForm.submit()}
+        okButtonProps={{disabled:isCustomerPayLoading}}
       >
+        <Spin spinning={isCustomerPayLoading}>
         <Form
           onFinish={customerPay}
           form={payForm}
@@ -700,14 +720,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
           </Form.Item> */}
-          <Form.Item className="mb-1" name="amount" label="Amount">
+          <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
             <InputNumber min={0} className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the Description" />
           </Form.Item>
           <Form.Item
-            className=" absolute top-5"
+            className=" absolute top-[-3rem]"
             name="date"
             label=""
             rules={[{ required: true, message: false }]}
@@ -715,6 +735,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <DatePicker format={'DD/MM/YYYY'} />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
 
       <Modal

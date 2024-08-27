@@ -9,7 +9,8 @@ import {
   Typography,
   Popconfirm,
   message,
-  Select
+  Select,
+  Spin
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -21,6 +22,7 @@ import { createproduct, updateproduct } from '../firebase/data-tables/products'
 import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createStorage } from '../firebase/data-tables/storage'
+import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search } = Input
 
 export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
@@ -50,40 +52,48 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     }
   }
 
+  const [isProductLoading,setIsProductLoading] = useState(false)
   // create new project
-  const createNewProject = async (values) => {
-    const productExists = datas.product.find(
-      (storageItem) =>
-        storageItem.productname === values.productname &&
-        storageItem.flavour === values.flavour &&
-        storageItem.quantity === values.quantity
-    )
-    const productRef = await createproduct({
-      ...values,
-      createddate: TimestampJs(),
-      updateddate: '',
-      isdeleted: false
-    })
-    const productId = productRef.res.id;
+  const createNewProduct = async (values) => {
+    setIsProductLoading(true)
+    try{
+      const productExists = datas.product.find(
+        (storageItem) =>
+          storageItem.productname === values.productname &&
+          storageItem.flavour === values.flavour &&
+          storageItem.quantity === values.quantity
+      )
+      const productRef = await createproduct({
+        ...values,
+        createddate: TimestampJs(),
+        updateddate: '',
+        isdeleted: false
+      })
+      const productId = productRef.res.id;
     console.log(productId,productRef);
     if (!productExists) {
-      await createStorage({
-        productname: values.productname,
-        flavour: values.flavour,
-        quantity: values.quantity,
-        unit: values.unit,
-        productperpack: values.productperpack,
+        await createStorage({
+          productname: values.productname,
+          flavour: values.flavour,
+          quantity: values.quantity,
+          unit: values.unit,
+          productperpack: values.productperpack,
         productid: productId,
         alertcount: 0,
-        numberofpacks: 0,
-        category: 'Product List',
-        createddate: TimestampJs()
-      })
-      storageUpdateMt()
+          numberofpacks: 0,
+          category: 'Product List',
+          createddate: TimestampJs()
+        })
+        storageUpdateMt()
+      }
+      form.resetFields()
+      productUpdateMt()
     }
-    form.resetFields()
-    productUpdateMt()
-    setIsModalOpen(false)
+    catch(e) {console.log(e);}
+    finally{
+      setIsProductLoading(false);
+      setIsModalOpen(false)
+    }
   }
 
   const columns = [
@@ -137,7 +147,10 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       editable: true,
       width: 100,
       sorter: (a, b) => (Number(a.price) || 0) - (Number(b.price) || 0),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: (_, record) => {
+        return <span>{formatToRupee(record.price, true)}</span>
+      }
     },
     {
       title: 'Product Per Pack',
@@ -150,7 +163,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       title: 'Pack Price',
       width: 100,
       key: 'packprice',
-      render: (_, record) => record.price * record.productperpack,
+      render: (_, record) =>  <span>{formatToRupee(record.price * record.productperpack,true)}</span>,
+      
     },
     {
       title: 'Action',
@@ -463,12 +477,14 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         title={<span className='flex justify-center'>NEW PRODUCT</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
+        okButtonProps={{disabled:isProductLoading}}  
         onCancel={() => {
           setIsModalOpen(false)
           form.resetFields()
         }}
       >
-        <Form onFinish={createNewProject} form={form} layout="vertical">
+      <Spin spinning={isProductLoading}>
+        <Form onFinish={createNewProduct} form={form} layout="vertical">
           <Form.Item
             className="mb-2"
             name="productname"
@@ -561,6 +577,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             <InputNumber className="w-full" placeholder='Enter the Amount' />
           </Form.Item>
         </Form>
+        </Spin>
       </Modal>
     </div>
   )

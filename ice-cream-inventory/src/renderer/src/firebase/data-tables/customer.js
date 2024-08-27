@@ -18,21 +18,43 @@ export const getCustomer = async () => {
   };
 
 // Get customer by ID
+// export const getCustomerById = async (customerId) => {
+//   try {
+//     const docRef = doc(db, "customer", customerId);
+//     const docSnapshot = await getDoc(docRef);
+    
+//     if (docSnapshot.exists()) {
+//       return { customer: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
+//     } else {
+//       return { status: 404, message: 'customer not found' };
+//     }
+//   } catch (err) {
+//     console.error("Error fetching document: ", err);
+//     return { status: 500, message: err.message };
+//   }
+// };
+// Get customer by ID
 export const getCustomerById = async (customerId) => {
+  if (!customerId) {
+    console.error("Error: customerId is undefined or null");
+    return { status: 400, message: 'Invalid customer ID' };
+  }
+
   try {
     const docRef = doc(db, "customer", customerId);
     const docSnapshot = await getDoc(docRef);
-    
+
     if (docSnapshot.exists()) {
       return { customer: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
     } else {
-      return { status: 404, message: 'customer not found' };
+      return { status: 404, message: 'Customer not found' };
     }
   } catch (err) {
     console.error("Error fetching document: ", err);
     return { status: 500, message: err.message };
   }
 };
+
 
 
   // Create a new customer
