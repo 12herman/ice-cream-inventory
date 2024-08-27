@@ -1483,7 +1483,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   // html to pdf
   const printRef = useRef()
-  const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false })
+  const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false,customerdetails:{} })
   const handleDownloadPdf = async (record) => {
     console.log(record);
     
@@ -1532,8 +1532,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       }
     }
     generatePDF()
-  }, [invoiceDatas.isGenerate, printRef])
+  }, [invoiceDatas.isGenerate, printRef]);
 
+  console.log(invoiceDatas.customerdetails);
+  
   return (
     <div>
 
@@ -1553,8 +1555,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         <ul className='mt-5 flex justify-between'>
         <li> 
         <div><span className='font-bold'>GSTIN:</span>  33AAIFN6367K1ZV</div> 
-        <div> <span className='font-bold'>Date:</span> <span>{invoiceDatas.customerdetails.date}</span></div> 
-        <div><span className='font-bold'>Name:</span> <span>{invoiceDatas.customerdetails.customername}</span></div>
+        <div> <span className='font-bold'>Date:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.date : null}</span></div> 
+        <div><span className='font-bold'>Name:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.customername : null}</span></div>
         </li>
         
         <li className='text-end flex flex-col items-end'> 
@@ -1602,19 +1604,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         <p className="text-end mt-5">
           Total Amount:{' '}
           <span className=" font-bold">
-          {formatToRupee(invoiceDatas.customerdetails.total)}
+          {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.total) : null}
           </span>{' '}
         </p>
         <p className="text-end">
           Billing Amount:{' '}
           <span className=" font-bold">
-           {formatToRupee(invoiceDatas.customerdetails.billamount)}
+           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.billamount) : null}
           </span>
         </p>
         <p className={` ${invoiceDatas.customerdetails.partialamount !==0 ? 'block text-end':'hidden'}`}>
           Partial Amount:{' '}
           <span className=" font-bold">
-           {formatToRupee(invoiceDatas.customerdetails.partialamount)}
+           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.partialamount) : null}
           </span>
         </p>
         </section>
