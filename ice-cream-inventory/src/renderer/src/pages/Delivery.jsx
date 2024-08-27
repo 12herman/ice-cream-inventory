@@ -1485,7 +1485,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const printRef = useRef()
   const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false,customerdetails:{} })
   const handleDownloadPdf = async (record) => {
-    console.log(record);
     
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
@@ -1534,7 +1533,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     generatePDF()
   }, [invoiceDatas.isGenerate, printRef]);
 
-  console.log(invoiceDatas.customerdetails);
   
   return (
     <div>
