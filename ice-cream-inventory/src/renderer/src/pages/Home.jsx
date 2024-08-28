@@ -160,7 +160,7 @@ const totalPaid = filteredDelivery
   .filter((product) => product.paymentstatus === 'Unpaid')
   .reduce((total, product) => total + product.billamount, 0)
 
-  const [activeCard, setActiveCard] = useState(null);
+  const [activeCard, setActiveCard] = useState('totalCustomers');
   const cardsData = [
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
     { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
@@ -171,7 +171,6 @@ const totalPaid = filteredDelivery
     { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> },
   ];
-
 
   const handleCardClick = (type) => {
     setActiveCard(type);
