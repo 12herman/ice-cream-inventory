@@ -131,7 +131,49 @@ export default function Home({ datas }) {
     }
   }
 
+  const totalSales = filteredDelivery
+  .filter((product) => product.type === 'order')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const totalSpend = filteredRawmaterials
+  .filter((material) => material.type === 'Added')
+  .reduce((total, material) => total + material.price, 0)
+
+const totalProfit = totalSales - totalSpend
+
+
+const totalCustomers = filteredDelivery.length
+
+
+const totalQuickSale = filteredDelivery
+  .filter((product) => product.type === 'quick')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  //const totalReturn = filteredDelivery.filter((product) => product.type === 'return').length
+const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
+
+const totalPaid = filteredDelivery
+  .filter((product) => product.paymentstatus === 'Paid')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const totalUnpaid = filteredDelivery
+  .filter((product) => product.paymentstatus === 'Unpaid')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const [activeCard, setActiveCard] = useState('totalCustomers');
+  const cardsData = [
+    { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
+    { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
+    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
+    { key: 'totalCustomers', title: 'Total Customer', value: totalCustomers, prefix: <IoPerson /> },
+    { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
+    { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
+    { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
+    { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> },
+  ];
+
   const handleCardClick = (type) => {
+    setActiveCard(type);
     let newSelectedTableData = []
     switch (type) {
       case 'totalSales':
@@ -162,25 +204,7 @@ export default function Home({ datas }) {
     setSelectedTableData(newSelectedTableData)
   }
 
-  const totalSales = filteredDelivery
-    .filter((product) => product.type === 'order')
-    .reduce((total, product) => total + product.billamount, 0)
-  const totalSpend = filteredRawmaterials
-    .filter((material) => material.type === 'Added')
-    .reduce((total, material) => total + material.price, 0)
-  const totalProfit = totalSales - totalSpend
-  const totalCustomers = filteredDelivery.length
-  const totalQuickSale = filteredDelivery
-    .filter((product) => product.type === 'quick')
-    .reduce((total, product) => total + product.billamount, 0)
-  //const totalReturn = filteredDelivery.filter((product) => product.type === 'return').length
-  const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
-  const totalPaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Paid')
-    .reduce((total, product) => total + product.billamount, 0)
-  const totalUnpaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Unpaid')
-    .reduce((total, product) => total + product.billamount, 0)
+ 
 
   // const handlePrint = async (record) => {
   //   const { items, status } = await fetchItemsForDelivery(record.id)
@@ -402,12 +426,18 @@ export default function Home({ datas }) {
       render: (_, record) => (
         <span>
           <Button
+          className='py-0 text-[0.7rem] h-[1.7rem]'
             icon={<UnorderedListOutlined />}
             style={{ marginRight: 8 }}
             onClick={() => showModal(record)}
           />
-          <Popconfirm title="Sure to download pdf?" onConfirm={() => handleDownloadPdf(record)}>
-            <Button icon={<DownloadOutlined />} style={{ marginRight: 8 }} />
+          <Popconfirm title="Sure to download pdf?" 
+          onConfirm={() => handleDownloadPdf(record)}>
+          <Button
+          className='py-0 text-[0.7rem] h-[1.7rem]'
+            icon={<DownloadOutlined />}
+            style={{ marginRight: 8 }}
+          />
           </Popconfirm>
 
           {/* <Popconfirm title="Sure to print pdf?"  
@@ -447,7 +477,7 @@ export default function Home({ datas }) {
   useEffect(() => {
     // Function to calculate and update table height
     const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 368 // Adjust this value based on your layout needs
+      const newHeight = window.innerHeight - 280 // Adjust this value based on your layout needs
       setTableHeight(newHeight)
     }
     // Set initial height
@@ -466,7 +496,7 @@ export default function Home({ datas }) {
     <div>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
-          <h1 className="font-bold text-base">Dashboard</h1>
+          <h1 className='font-bold text-base invisible'>Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
               onChange={handleDateChange}
@@ -476,21 +506,21 @@ export default function Home({ datas }) {
           </span>
         </li>
 
-        <li className="mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
-          <Card
-            onClick={() => handleCardClick('totalSales')}
-            style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Sales"
-              value={totalSales}
-              precision={2}
-              valueStyle={{
-                color: totalSales > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
+        {/* <li  className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
+        <Card onClick={() => handleCardClick('totalSales')}
+             style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+              
+                  title="Total Sales"
+                  value={totalSales}
+                  precision={2}
+                  valueStyle={{
+                    color: totalSales > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
 
           <Card
             onClick={() => handleCardClick('totalSpend')}
@@ -554,51 +584,80 @@ export default function Home({ datas }) {
             />
           </Card>
 
-          <Card
-            onClick={() => handleCardClick('totalUnpaid')}
-            style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Unpaid"
-              value={totalUnpaid}
-              precision={2}
-              valueStyle={{
-                color: totalUnpaid > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
-          <Card
-            onClick={() => handleCardClick('totalQuickSale')}
-            style={{
-              cursor: 'pointer',
-              borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-            }}
-          >
-            <Statistic
-              title="Total Quick Sale"
-              value={totalQuickSale}
-              precision={2}
-              valueStyle={{
-                color: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
-          <Card
-            onClick={() => handleCardClick('totalBooking')}
-            style={{ cursor: 'pointer', borderColor: totalBooking > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Booking"
-              value={totalBooking}
-              valueStyle={{
-                color: totalBooking > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<IoPerson />}
-            />
-          </Card>
-        </li>
+              <Card
+                onClick={() => handleCardClick('totalUnpaid')}
+                style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Unpaid"
+                  value={totalUnpaid}
+                  precision={2}
+                  valueStyle={{
+                    color: totalUnpaid > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+              <Card
+                onClick={() => handleCardClick('totalQuickSale')}
+                style={{
+                  cursor: 'pointer',
+                  borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
+                }}
+              >
+                <Statistic
+                  title="Total Quick Sale"
+                  value={totalQuickSale}
+                  precision={2}
+                  valueStyle={{
+                    color: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<FaRupeeSign />}
+                />
+              </Card>
+              <Card
+                onClick={() => handleCardClick('totalBooking')}
+                style={{ cursor: 'pointer', borderColor: totalBooking > 0 ? '#3f8600' : '#cf1322' }}
+              >
+                <Statistic
+                  title="Total Booking"
+                  value={totalBooking}
+                  valueStyle={{
+                    color: totalBooking > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={<IoPerson />}
+                />
+              </Card>
+        </li> */}
+
+        <ul className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
+  {cardsData.map(card => {
+    const isActive = activeCard === card.key;
+    return (
+      <Card
+        key={card.key}
+        onClick={() => handleCardClick(card.key)}
+        style={{
+          cursor: 'pointer',
+          borderColor: isActive ? '#f26723' : (card.value > 0 ? '#3f8600' : '#cf1322'),
+          borderWidth: 2,
+          background: isActive ? '#f26723' : '',
+          color: isActive ? '#ffffff' : '',
+        }}
+      >
+        <Statistic
+          title={isActive ? <span className='text-white'>{card.title}</span> : <span>{card.title}</span>}
+          value={card.value}
+          precision={card.key === 'totalCustomers' ? 0 : 2}
+          valueStyle={{
+            color: isActive ? '#ffffff' : (card.value > 0 ? '#3f8600' : '#cf1322'),
+          }}
+          prefix={card.prefix}
+        />
+      </Card>
+    );
+  })}
+</ul>
 
         {/* <li className="mt-2">
           <Row gutter={16}>
