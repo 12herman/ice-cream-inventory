@@ -1984,7 +1984,7 @@ useEffect(() => {
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={1} className="w-full" placeholder='Enter the Number'/>
+                <InputNumber type='number' min={1} className="w-full" placeholder='Enter the Number'/>
               </Form.Item>
 
              
