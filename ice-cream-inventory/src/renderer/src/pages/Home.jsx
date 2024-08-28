@@ -327,6 +327,7 @@ export default function Home({ datas }) {
       render: (_, record) => (
         <span>
           <Button
+          className='py-0 text-[0.7rem] h-[1.7rem]'
             icon={<UnorderedListOutlined />}
             style={{ marginRight: 8 }}
             onClick={() => showModal(record)}
@@ -334,6 +335,7 @@ export default function Home({ datas }) {
           <Popconfirm title="Sure to download pdf?" 
           onConfirm={() => handleDownloadPdf(record)}>
           <Button
+          className='py-0 text-[0.7rem] h-[1.7rem]'
             icon={<DownloadOutlined />}
             style={{ marginRight: 8 }}
           />
@@ -342,7 +344,7 @@ export default function Home({ datas }) {
           <Popconfirm title="Sure to print pdf?"  
           onConfirm={() => handlePrint(record)}>
            <ReactToPrint
-        trigger={() => <Button icon={<PrinterOutlined />}  />}
+        trigger={() => <Button className='py-0 text-[0.7rem] h-[1.7rem]' icon={<PrinterOutlined />}  />}
         content={() => printRef.current}
       />
           
@@ -370,7 +372,7 @@ export default function Home({ datas }) {
   useEffect(() => {
     // Function to calculate and update table height
     const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 368 // Adjust this value based on your layout needs
+      const newHeight = window.innerHeight - 280 // Adjust this value based on your layout needs
       setTableHeight(newHeight)
     }
     // Set initial height
@@ -389,7 +391,7 @@ export default function Home({ datas }) {
     <div>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
-          <h1 className='font-bold text-base'>Dashboard</h1>
+          <h1 className='font-bold text-base invisible'>Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
               onChange={handleDateChange}
@@ -404,6 +406,7 @@ export default function Home({ datas }) {
              style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
               >
                 <Statistic
+              
                   title="Total Sales"
                   value={totalSales}
                   precision={2}

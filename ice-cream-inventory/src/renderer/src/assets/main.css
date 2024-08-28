@@ -12,3 +12,6 @@
     min-width: 100% !important; /* Ensures the container takes up full width */
     min-height: 150px; /* Ensures vertical centering */
   }
+  :where(.css-dev-only-do-not-override-pbnz8n).ant-card .ant-card-body{
+    padding: 5px;
+  }
