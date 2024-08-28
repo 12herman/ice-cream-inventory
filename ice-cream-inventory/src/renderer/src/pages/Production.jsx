@@ -682,7 +682,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 <Select
                   onChange={(value, i) => productOnchange(value, i)}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Product"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -702,7 +702,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                   disabled={option.flavourstatus}
                   onChange={(value, i) => flavourOnchange(value, i)}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Flavour"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -721,7 +721,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 <Select
                   disabled={option.quantitystatus}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Quantity"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -738,7 +738,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={0} className="w-full" />
+                <InputNumber min={0} className="w-full" placeholder='Enter the Number' />
               </Form.Item>
 
               <Form.Item

@@ -22,10 +22,10 @@ import { getSupplierById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
 const { RangePicker } = DatePicker
 import dayjs from 'dayjs'
-import companyLogo from '../assets/img/companylogo.png';
+import companyLogo from '../assets/img/companylogo.png'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import html2canvas from 'html2canvas'
-import ReactToPrint from 'react-to-print';
+import ReactToPrint from 'react-to-print'
 
 export default function Home({ datas }) {
   const today = dayjs(DatestampJs(), 'DD/MM/YYYY')
@@ -206,37 +206,85 @@ const totalPaid = filteredDelivery
 
  
 
-  const handlePrint = (record) => {
-    // const { items, status } = await fetchItemsForDelivery(record.id)
-    // if (status === 200) {
-    //   let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-    //   let prItems = await prData.map((pr, i) => {
-    //     let matchingData = items.find((item, i) => item.id === pr.id)
-    //     return {
-    //       sno: i + 1,
-    //       ...pr,
-    //       pieceamount: pr.price,
-    //       quantity: pr.quantity + ' ' + pr.unit,
-    //       margin: matchingData.margin,
-    //       price:
-    //         matchingData.numberofpacks * pr.price -
-    //         matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-    //       numberofpacks: matchingData.numberofpacks,
-    //       producttotalamount: matchingData.numberofpacks * pr.price,
-    //       returntype: matchingData.returntype
-    //     }
-    //   });
-    //   await setInvoiceDatas((pre) => ({
-    //     ...pre,
-    //     data: prItems,
-    //     isGenerate: true,
-    //     customerdetails: record
-    //   }))
-    // }
-  }
+  // const handlePrint = async (record) => {
+  //   const { items, status } = await fetchItemsForDelivery(record.id)
+  //   if (status === 200) {
+  //     let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
+  //     let prItems = await prData.map((pr, i) => {
+  //       let matchingData = items.find((item, i) => item.id === pr.id)
+  //       return {
+  //         sno: i + 1,
+  //         ...pr,
+  //         pieceamount: pr.price,
+  //         quantity: pr.quantity + ' ' + pr.unit,
+  //         margin: matchingData.margin,
+  //         price:
+  //           matchingData.numberofpacks * pr.price -
+  //           matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+  //         numberofpacks: matchingData.numberofpacks,
+  //         producttotalamount: matchingData.numberofpacks * pr.price,
+  //         returntype: matchingData.returntype
+  //       }
+  //     });
 
+  //     const printContent = `
+  //       <div>
+  //         <h1>Invoice</h1>
+  //         <p>Customer Details: ${record.customerName}</p>
+  //         <table>
+  //           <thead>
+  //             <tr>
+  //               <th>S.No</th>
+  //               <th>Product Name</th>
+  //               <th>Piece Amount</th>
+  //               <th>Quantity</th>
+  //               <th>Margin</th>
+  //               <th>Price</th>
+  //               <th>Number of Packs</th>
+  //               <th>Total Amount</th>
+  //               <th>Return Type</th>
+  //             </tr>
+  //           </thead>
+  //           <tbody>
+  //             ${prItems.map((item) => `
+  //               <tr>
+  //                 <td>${item.sno}</td>
+  //                 <td>${item.name}</td>
+  //                 <td>${item.pieceamount}</td>
+  //                 <td>${item.quantity}</td>
+  //                 <td>${item.margin}</td>
+  //                 <td>${item.price}</td>
+  //                 <td>${item.numberofpacks}</td>
+  //                 <td>${item.producttotalamount}</td>
+  //                 <td>${item.returntype}</td>
+  //               </tr>
+  //             `).join('')}
+  //           </tbody>
+  //         </table>
+  //       </div>
+  //     `;
+
+  //     const printWindow = window.open('', '', 'height=600,width=800');
+  //     printWindow.document.write('<html><head><title>Invoice</title>');
+  //     printWindow.document.write('</head><body>');
+  //     printWindow.document.write(printContent);
+  //     printWindow.document.write('</body></html>');
+  //     printWindow.document.close();
+  //     printWindow.print();
+  //   }
+  // }
+
+  const componentRef = useRef()
   const printRef = useRef()
-  const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false,customerdetails:{} })
+  const [isPrinting, setIsPrinting] = useState(false);
+  const promiseResolveRef = useRef(null);
+
+  const [invoiceDatas, setInvoiceDatas] = useState({
+    data: [],
+    isGenerate: false,
+    customerdetails: {}
+  })
+
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
@@ -256,7 +304,7 @@ const totalPaid = filteredDelivery
           producttotalamount: matchingData.numberofpacks * pr.price,
           returntype: matchingData.returntype
         }
-      });
+      })
       await setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
@@ -264,7 +312,42 @@ const totalPaid = filteredDelivery
         customerdetails: record
       }))
     }
-  };
+  }
+
+  const handlePrint = async (record) => {
+    const { items, status } = await fetchItemsForDelivery(record.id)
+    if (status === 200) {
+      let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
+      let prItems = await prData.map((pr, i) => {
+        let matchingData = items.find((item, i) => item.id === pr.id)
+        return {
+          sno: i + 1,
+          ...pr,
+          pieceamount: pr.price,
+          quantity: pr.quantity + ' ' + pr.unit,
+          margin: matchingData.margin,
+          price:
+            matchingData.numberofpacks * pr.price -
+            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+          numberofpacks: matchingData.numberofpacks,
+          producttotalamount: matchingData.numberofpacks * pr.price,
+          returntype: matchingData.returntype
+        }
+      })
+      await setInvoiceDatas((pre) => ({
+        ...pre,
+        data: prItems,
+        isGenerate: false,
+        customerdetails: record
+      }))
+    }
+  }
+
+  useEffect(() => {
+    if (isPrinting && promiseResolveRef.current) {
+      promiseResolveRef.current();
+    }
+  }, [isPrinting]);
 
   useEffect(() => {
     const generatePDF = async () => {
@@ -283,7 +366,7 @@ const totalPaid = filteredDelivery
       }
     }
     generatePDF()
-  }, [invoiceDatas.isGenerate, printRef]);
+  }, [invoiceDatas.isGenerate, printRef])
 
   const columns = [
     {
@@ -307,7 +390,7 @@ const totalPaid = filteredDelivery
     {
       title: 'Gross Amount',
       dataIndex: 'total',
-      key: 'total',
+      key: 'total'
     },
     {
       title: 'Amount',
@@ -365,14 +448,23 @@ const totalPaid = filteredDelivery
           />
           </Popconfirm>
 
-          <Popconfirm title="Sure to print pdf?"  
-          onConfirm={() => handlePrint(record)}>
-           <ReactToPrint
-        trigger={() => <Button className='py-0 text-[0.7rem] h-[1.7rem]' icon={<PrinterOutlined />}  />}
-        content={() => printRef.current}
-      />
-          
-          </Popconfirm>
+          <ReactToPrint
+            trigger={() => <Button className='py-0 text-[0.7rem] h-[1.7rem]' icon={<PrinterOutlined />} />}
+            onBeforeGetContent={async () => {
+              return new Promise((resolve) => {
+                promiseResolveRef.current = resolve;
+                handlePrint(record).then(() => {
+                  setIsPrinting(true);
+                })
+              });
+            }}
+            content={() => componentRef.current}
+            onAfterPrint={ () => {
+              promiseResolveRef.current = null;
+              setIsPrinting(false);
+            }}
+          />
+
         </span>
       )
     }
@@ -441,67 +533,67 @@ const totalPaid = filteredDelivery
                 />
               </Card>
 
-              <Card
-                onClick={() => handleCardClick('totalSpend')}
-                style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Spending"
-                  value={totalSpend}
-                  precision={2}
-                  valueStyle={{
-                    color: totalSpend > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card> 
+          <Card
+            onClick={() => handleCardClick('totalSpend')}
+            style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322' }}
+          >
+            <Statistic
+              title="Total Spending"
+              value={totalSpend}
+              precision={2}
+              valueStyle={{
+                color: totalSpend > 0 ? '#3f8600' : '#cf1322'
+              }}
+              prefix={<FaRupeeSign />}
+            />
+          </Card>
 
-              <Card
-                onClick={() => handleCardClick('totalProfit')}
-                style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Profit"
-                  value={totalProfit}
-                  precision={2}
-                  valueStyle={{
-                    color: totalProfit > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
+          <Card
+            onClick={() => handleCardClick('totalProfit')}
+            style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
+          >
+            <Statistic
+              title="Total Profit"
+              value={totalProfit}
+              precision={2}
+              valueStyle={{
+                color: totalProfit > 0 ? '#3f8600' : '#cf1322'
+              }}
+              prefix={<FaRupeeSign />}
+            />
+          </Card>
 
-              <Card
-                onClick={() => handleCardClick('totalCustomers')}
-                style={{
-                  cursor: 'pointer',
-                  borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-                }}
-              >
-                <Statistic
-                  title="Total Customer"
-                  value={totalCustomers}
-                  valueStyle={{
-                    color: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<IoPerson />}
-                />
-              </Card>  
+          <Card
+            onClick={() => handleCardClick('totalCustomers')}
+            style={{
+              cursor: 'pointer',
+              borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'
+            }}
+          >
+            <Statistic
+              title="Total Customer"
+              value={totalCustomers}
+              valueStyle={{
+                color: totalCustomers > 0 ? '#3f8600' : '#cf1322'
+              }}
+              prefix={<IoPerson />}
+            />
+          </Card>
 
-              <Card
-                onClick={() => handleCardClick('totalPaid')}
-                style={{ cursor: 'pointer', borderColor: totalPaid > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Paid"
-                  value={totalPaid}
-                  precision={2}
-                  valueStyle={{
-                    color: totalPaid > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
+          <Card
+            onClick={() => handleCardClick('totalPaid')}
+            style={{ cursor: 'pointer', borderColor: totalPaid > 0 ? '#3f8600' : '#cf1322' }}
+          >
+            <Statistic
+              title="Total Paid"
+              value={totalPaid}
+              precision={2}
+              valueStyle={{
+                color: totalPaid > 0 ? '#3f8600' : '#cf1322'
+              }}
+              prefix={<FaRupeeSign />}
+            />
+          </Card>
 
               <Card
                 onClick={() => handleCardClick('totalUnpaid')}
@@ -764,80 +856,117 @@ const totalPaid = filteredDelivery
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
-      <section className='w-[90%] mx-auto mt-14'>
-      <ul className='flex justify-center items-center gap-x-5'>
-          <li> <img className='w-[6rem]' src={companyLogo} alt='comapanylogo'/> </li>
-          <li className='text-center'> <h1 className='text-xl font-bold'>NEW SARANYA ICE COMPANY</h1> <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p> </li>
-        </ul>
+        <div ref={componentRef}>
+          <section className="w-[90%] mx-auto mt-14">
+            <ul className="flex justify-center items-center gap-x-5">
+              <li>
+                {' '}
+                <img className="w-[6rem]" src={companyLogo} alt="comapanylogo" />{' '}
+              </li>
+              <li className="text-center">
+                {' '}
+                <h1 className="text-xl font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
+                <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p>{' '}
+              </li>
+            </ul>
 
-        <ul className='mt-5 flex justify-between'>
-        <li> 
-        <div><span className='font-bold'>GSTIN:</span>  33AAIFN6367K1ZV</div> 
-        <div> <span className='font-bold'>Date:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.date : null}</span></div> 
-        <div><span className='font-bold'>Name:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.customername : null}</span></div>
-        </li>
-        
-        <li className='text-end flex flex-col items-end'> 
-        <span> <span className='font-bold'>Cell:</span> 7373674757</span> 
-        <span>8056848361</span> 
-        </li>
-       </ul>
+            <ul className="mt-5 flex justify-between">
+              <li>
+                <div>
+                  <span className="font-bold">GSTIN:</span> 33AAIFN6367K1ZV
+                </div>
+                <div>
+                  {' '}
+                  <span className="font-bold">Date:</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.date
+                      : null}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-bold">Name:</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.customername
+                      : null}
+                  </span>
+                </div>
+              </li>
 
-        {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr>
-            <th className="p-4 text-left border-b">S.No</th>
-              <th className="p-4 border-b text-center">Product Name</th>
-              <th className="p-4 border-b text-center">Flavour</th>
-              <th className="p-4 border-b text-center">Quantity</th>
-              <th className="p-4 border-b text-center">Piece Amount</th>
-              <th className="p-4 border-b text-center">Number of Packs</th>
-              <th className="p-4 border-b text-center">MRP</th>
-              <th className="p-4 border-b text-center">Margin</th>
-              <th className="p-4 border-b text-center">Total Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoiceDatas.data.length > 0
-              ? invoiceDatas.data.map((item, i) => (
-                  <tr key={i}>
-                    <td className="p-4 border-b">{i+1}</td>
-                    <td className="p-4 border-b">{item.productname}</td>
-                    <td className="p-4 border-b">{item.flavour}</td>
-                    <td className="p-4 border-b">{item.quantity}</td>
-                    <td className="p-4 border-b">{item.pieceamount}</td>
-                    <td className="p-4 border-b">{item.numberofpacks}</td>
-                    <td className="p-4 border-b">{item.producttotalamount}</td>
-                    <td className="p-4 border-b">{item.margin}</td>
-                    <td className="p-4 border-b">
-                      {item.numberofpacks * item.pieceamount -
-                        (item.numberofpacks * item.pieceamount * item.margin) / 100}
-                    </td>
-                  </tr>
-                ))
-              : 'No Data'}
-          </tbody>
-        </table>
-        <p className="text-end mt-5">
-          Total Amount:{' '}
-          <span className=" font-bold">
-          {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.total) : null}
-          </span>{' '}
-        </p>
-        <p className="text-end">
-          Billing Amount:{' '}
-          <span className=" font-bold">
-           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.billamount) : null}
-          </span>
-        </p>
-        <p className={` ${invoiceDatas.customerdetails.partialamount !==0 ? 'block text-end':'hidden'}`}>
-          Partial Amount:{' '}
-          <span className=" font-bold">
-           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.partialamount) : null}
-          </span>
-        </p>
-        </section>
+              <li className="text-end flex flex-col items-end">
+                <span>
+                  {' '}
+                  <span className="font-bold">Cell:</span> 7373674757
+                </span>
+                <span>8056848361</span>
+              </li>
+            </ul>
+
+            {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="p-4 text-left border-b">S.No</th>
+                  <th className="p-4 border-b text-center">Product Name</th>
+                  <th className="p-4 border-b text-center">Flavour</th>
+                  <th className="p-4 border-b text-center">Quantity</th>
+                  <th className="p-4 border-b text-center">Piece Amount</th>
+                  <th className="p-4 border-b text-center">Number of Packs</th>
+                  <th className="p-4 border-b text-center">MRP</th>
+                  <th className="p-4 border-b text-center">Margin</th>
+                  <th className="p-4 border-b text-center">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceDatas.data.length > 0
+                  ? invoiceDatas.data.map((item, i) => (
+                      <tr key={i}>
+                        <td className="p-4 border-b">{i + 1}</td>
+                        <td className="p-4 border-b">{item.productname}</td>
+                        <td className="p-4 border-b">{item.flavour}</td>
+                        <td className="p-4 border-b">{item.quantity}</td>
+                        <td className="p-4 border-b">{item.pieceamount}</td>
+                        <td className="p-4 border-b">{item.numberofpacks}</td>
+                        <td className="p-4 border-b">{item.producttotalamount}</td>
+                        <td className="p-4 border-b">{item.margin}</td>
+                        <td className="p-4 border-b">
+                          {item.numberofpacks * item.pieceamount -
+                            (item.numberofpacks * item.pieceamount * item.margin) / 100}
+                        </td>
+                      </tr>
+                    ))
+                  : 'No Data'}
+              </tbody>
+            </table>
+            <p className="text-end mt-5">
+              Total Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.total)
+                  : null}
+              </span>{' '}
+            </p>
+            <p className="text-end">
+              Billing Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                  : null}
+              </span>
+            </p>
+            <p
+              className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            >
+              Partial Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.partialamount)
+                  : null}
+              </span>
+            </p>
+          </section>
+        </div>
       </div>
     </div>
   )

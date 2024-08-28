@@ -176,7 +176,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       render: (text, record) => {
         return <span>{text === undefined ? '-' : text}</span>
       },
-      width: 136
     },
     {
       title: 'Price',
@@ -186,7 +185,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       // editable: true,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
-
     {
       title: 'Type',
       dataIndex: 'type',
@@ -1893,7 +1891,7 @@ useEffect(() => {
                   autoFocus
                   ref={customerRef}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Customer"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1913,7 +1911,7 @@ useEffect(() => {
                 <Select
                   disabled={option.customerstatus}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Product"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1934,7 +1932,7 @@ useEffect(() => {
                   disabled={option.flavourstatus}
                   onChange={(value, i) => flavourOnchange(value, i)}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Flavour"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1953,7 +1951,7 @@ useEffect(() => {
                 <Select
                   disabled={option.quantitystatus}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Quantity"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1986,7 +1984,7 @@ useEffect(() => {
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={1} className="w-full" />
+                <InputNumber min={1} className="w-full" placeholder='Enter the Number'/>
               </Form.Item>
 
              
