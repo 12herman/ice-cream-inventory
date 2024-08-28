@@ -170,7 +170,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       render: (text, record) => {
         return <span>{text === undefined ? '-' : text}</span>
       },
-      width: 136
     },
     {
       title: 'Price',
@@ -180,7 +179,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       // editable: true,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
-
     {
       title: 'Type',
       dataIndex: 'type',
