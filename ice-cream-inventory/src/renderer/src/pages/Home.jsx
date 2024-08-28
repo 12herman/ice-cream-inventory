@@ -276,6 +276,9 @@ const totalPaid = filteredDelivery
 
   const componentRef = useRef()
   const printRef = useRef()
+  const [isPrinting, setIsPrinting] = useState(false);
+  const promiseResolveRef = useRef(null);
+
   const [invoiceDatas, setInvoiceDatas] = useState({
     data: [],
     isGenerate: false,
@@ -337,9 +340,14 @@ const totalPaid = filteredDelivery
         isGenerate: false,
         customerdetails: record
       }))
-      console.log(invoiceDatas)
     }
   }
+
+  useEffect(() => {
+    if (isPrinting && promiseResolveRef.current) {
+      promiseResolveRef.current();
+    }
+  }, [isPrinting]);
 
   useEffect(() => {
     const generatePDF = async () => {
@@ -440,17 +448,20 @@ const totalPaid = filteredDelivery
           />
           </Popconfirm>
 
-          {/* <Popconfirm title="Sure to print pdf?"  
-          onConfirm={() => handlePrint(record)}>
-          <Button icon={<PrinterOutlined />}  />
-          </Popconfirm> */}
-
           <ReactToPrint
-            trigger={() => <Button icon={<PrinterOutlined />} />}
-            onBeforeGetContent={async () => await handlePrint(record)}
-            content={() => {
-              console.log('Content for printing:', componentRef.current)
-              return componentRef.current
+            trigger={() => <Button className='py-0 text-[0.7rem] h-[1.7rem]' icon={<PrinterOutlined />} />}
+            onBeforeGetContent={async () => {
+              return new Promise((resolve) => {
+                promiseResolveRef.current = resolve;
+                handlePrint(record).then(() => {
+                  setIsPrinting(true);
+                })
+              });
+            }}
+            content={() => componentRef.current}
+            onAfterPrint={ () => {
+              promiseResolveRef.current = null;
+              setIsPrinting(false);
             }}
           />
 

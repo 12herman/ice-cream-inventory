@@ -726,7 +726,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           >
             <Select
               showSearch
-              placeholder="Select"
+              placeholder="Select the Supplier Name"
               optionFilterProp="label"
               filterSort={(optionA, optionB) =>
                 (optionA?.label ?? '')
@@ -765,7 +765,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           >
             <Select
               showSearch
-              placeholder="Select"
+              placeholder="Select the Material Name"
               optionFilterProp="label"
               filterSort={(optionA, optionB) =>
                 (optionA?.label ?? '')
@@ -786,7 +786,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber min={0} className="w-full" />
+              <InputNumber min={0} className="w-full" placeholder='Enter the Quantity' />
             </Form.Item>
 
             <Form.Item
@@ -797,7 +797,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             >
               <Select
                 showSearch
-                placeholder="Select"
+                placeholder="Select the Unit"
                 optionFilterProp="label"
                 filterSort={(optionA, optionB) =>
                   (optionA?.label ?? '')
@@ -811,7 +811,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   },
                   {
                     value: 'ml',
-                    label: 'Ml'
+                    label: 'ML'
                   },
                   {
                     value: 'kg',
@@ -839,7 +839,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber min={0} className="w-full" />
+            <InputNumber min={0} className="w-full" placeholder='Enter the Amount' />
           </Form.Item>
 
           <Form.Item
@@ -874,6 +874,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               formatter={(value) => `${value}`}
               disabled={radioBtn.value === 'Partial' ? false : true}
               className="w-full"
+              placeholder='Enter the Partial Amount'
             />
           </Form.Item>
         </Form>
@@ -920,7 +921,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               >
                 <Select
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Material"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -938,7 +939,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   label="Quantity"
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber min={0} className="w-full" />
+                  <InputNumber min={0} className="w-full" placeholder='Enter the Quantity' />
                 </Form.Item>
 
                 <Form.Item
@@ -957,10 +958,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
-                      { label: 'GM', value: 'GM' },
-                      { label: 'KG', value: 'KG' },
-                      { label: 'LI', value: 'LI' },
-                      { label: 'MI', value: 'MI' },
+                      { label: 'GM', value: 'gm' },
+                      { label: 'KG', value: 'kg' },
+                      { label: 'LT', value: 'lt' },
+                      { label: 'ML', value: 'ml' },
                     ]}
                   />
                 </Form.Item>

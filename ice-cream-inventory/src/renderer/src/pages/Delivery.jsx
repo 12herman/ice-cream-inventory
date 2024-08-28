@@ -1805,7 +1805,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               >
                 <Select
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Customer Name"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1825,7 +1825,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 <Select
                   disabled={option.customerstatus}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Product Name"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1846,7 +1846,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   disabled={option.flavourstatus}
                   onChange={(value, i) => flavourOnchange(value, i)}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Flavour Name"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1865,7 +1865,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 <Select
                   disabled={option.quantitystatus}
                   showSearch
-                  placeholder="Search to Select"
+                  placeholder="Select the Quantity"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1898,7 +1898,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={1} className="w-full" />
+                <InputNumber min={1} className="w-full" placeholder='Enter the Number'/>
               </Form.Item>
 
               <Form.Item
