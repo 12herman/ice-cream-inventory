@@ -831,7 +831,7 @@ setFirstValue(null)
         title={
           <div className="flex  justify-center py-3">
             {' '}
-            <h1 style={{ fontWeight: "bold" }}>QUICK SALE</h1>{' '}
+            <h1 style={{ fontWeight: "bold" }}>{isQuickSale.type === "booking" ? "BOOKING" : "QUICK SALE" } </h1>{' '}
           </div>
         }
         open={isQuickSale.model}
