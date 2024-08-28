@@ -19,6 +19,7 @@ import { getDelivery } from './firebase/data-tables/delivery'
 import { getEmployee } from './firebase/data-tables/employee'
 import { getProduction } from './firebase/data-tables/production'
 import { getStorage } from './firebase/data-tables/storage'
+import dayjs from 'dayjs'
 
 const App = () => {
   // nav state
@@ -191,6 +192,7 @@ const App = () => {
         if (record.numberofpacks < record.alertcount) {
           notification.warning({
             message: 'Alert',
+            duration: 0,
             description: `${record.productname} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`
           })
         }
@@ -198,12 +200,32 @@ const App = () => {
         if (record.quantity < record.alertcount) {
           notification.warning({
             message: 'Alert',
+            duration: 0,
             description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`
           })
         }
       }
     })
   }, [datas.storage])
+
+  useEffect(() => {
+    const today = dayjs().format('DD/MM/YYYY');
+    const tomorrow = dayjs().add(1, 'day').format('DD/MM/YYYY');
+    const dayAfterTomorrow = dayjs().add(2, 'day').format('DD/MM/YYYY');
+    datas.delivery.forEach((record) => {
+      if (record.type === 'booking') {
+        if (record.date === today ||
+          record.date === tomorrow ||
+          record.date === dayAfterTomorrow) {
+          notification.info({
+            message: 'Alert',
+            duration: 0,
+            description: `${record.customername} have a booking on ${record.date}!`
+          })
+        }
+      }
+    })
+  }, [datas.delivery])
 
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
