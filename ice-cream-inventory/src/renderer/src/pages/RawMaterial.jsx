@@ -726,7 +726,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           >
             <Select
               showSearch
-              placeholder="Select the Supplier Name"
+              placeholder="Select the Supplier"
               optionFilterProp="label"
               filterSort={(optionA, optionB) =>
                 (optionA?.label ?? '')
@@ -765,7 +765,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           >
             <Select
               showSearch
-              placeholder="Select the Material Name"
+              placeholder="Select the Material"
               optionFilterProp="label"
               filterSort={(optionA, optionB) =>
                 (optionA?.label ?? '')

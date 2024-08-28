@@ -1805,7 +1805,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               >
                 <Select
                   showSearch
-                  placeholder="Select the Customer Name"
+                  placeholder="Select the Customer"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1825,7 +1825,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 <Select
                   disabled={option.customerstatus}
                   showSearch
-                  placeholder="Select the Product Name"
+                  placeholder="Select the Product"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
@@ -1846,7 +1846,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   disabled={option.flavourstatus}
                   onChange={(value, i) => flavourOnchange(value, i)}
                   showSearch
-                  placeholder="Select the Flavour Name"
+                  placeholder="Select the Flavour"
                   optionFilterProp="label"
                   filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '')
