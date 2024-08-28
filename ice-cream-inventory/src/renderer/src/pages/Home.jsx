@@ -131,7 +131,50 @@ export default function Home({ datas }) {
     }
   }
 
+  const totalSales = filteredDelivery
+  .filter((product) => product.type === 'order')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const totalSpend = filteredRawmaterials
+  .filter((material) => material.type === 'Added')
+  .reduce((total, material) => total + material.price, 0)
+
+const totalProfit = totalSales - totalSpend
+
+
+const totalCustomers = filteredDelivery.length
+
+
+const totalQuickSale = filteredDelivery
+  .filter((product) => product.type === 'quick')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  //const totalReturn = filteredDelivery.filter((product) => product.type === 'return').length
+const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
+
+const totalPaid = filteredDelivery
+  .filter((product) => product.paymentstatus === 'Paid')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const totalUnpaid = filteredDelivery
+  .filter((product) => product.paymentstatus === 'Unpaid')
+  .reduce((total, product) => total + product.billamount, 0)
+
+  const [activeCard, setActiveCard] = useState(null);
+  const cardsData = [
+    { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
+    { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
+    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
+    { key: 'totalCustomers', title: 'Total Customer', value: totalCustomers, prefix: <IoPerson /> },
+    { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
+    { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
+    { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
+    { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> },
+  ];
+
+
   const handleCardClick = (type) => {
+    setActiveCard(type);
     let newSelectedTableData = []
     switch (type) {
       case 'totalSales':
@@ -162,25 +205,7 @@ export default function Home({ datas }) {
     setSelectedTableData(newSelectedTableData)
   }
 
-  const totalSales = filteredDelivery
-    .filter((product) => product.type === 'order')
-    .reduce((total, product) => total + product.billamount, 0)
-  const totalSpend = filteredRawmaterials
-    .filter((material) => material.type === 'Added')
-    .reduce((total, material) => total + material.price, 0)
-  const totalProfit = totalSales - totalSpend
-  const totalCustomers = filteredDelivery.length
-  const totalQuickSale = filteredDelivery
-    .filter((product) => product.type === 'quick')
-    .reduce((total, product) => total + product.billamount, 0)
-  //const totalReturn = filteredDelivery.filter((product) => product.type === 'return').length
-  const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
-  const totalPaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Paid')
-    .reduce((total, product) => total + product.billamount, 0)
-  const totalUnpaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Unpaid')
-    .reduce((total, product) => total + product.billamount, 0)
+ 
 
   const handlePrint = (record) => {
     // const { items, status } = await fetchItemsForDelivery(record.id)
@@ -401,7 +426,7 @@ export default function Home({ datas }) {
           </span>
         </li>
 
-        <li className='mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
+        {/* <li  className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
         <Card onClick={() => handleCardClick('totalSales')}
              style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
               >
@@ -523,7 +548,36 @@ export default function Home({ datas }) {
                   prefix={<IoPerson />}
                 />
               </Card>
-        </li>
+        </li> */}
+
+        <ul className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
+  {cardsData.map(card => {
+    const isActive = activeCard === card.key;
+    return (
+      <Card
+        key={card.key}
+        onClick={() => handleCardClick(card.key)}
+        style={{
+          cursor: 'pointer',
+          borderColor: isActive ? '#f26723' : (card.value > 0 ? '#3f8600' : '#cf1322'),
+          borderWidth: 2,
+          background: isActive ? '#f26723' : '',
+          color: isActive ? '#ffffff' : '',
+        }}
+      >
+        <Statistic
+          title={isActive ? <span className='text-white'>{card.title}</span> : <span>{card.title}</span>}
+          value={card.value}
+          precision={card.key === 'totalCustomers' ? 0 : 2}
+          valueStyle={{
+            color: isActive ? '#ffffff' : (card.value > 0 ? '#3f8600' : '#cf1322'),
+          }}
+          prefix={card.prefix}
+        />
+      </Card>
+    );
+  })}
+</ul>
 
         {/* <li className="mt-2">
           <Row gutter={16}>
