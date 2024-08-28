@@ -567,7 +567,7 @@ const totalPaid = filteredDelivery
         <Statistic
           title={isActive ? <span className='text-white'>{card.title}</span> : <span>{card.title}</span>}
           value={card.value}
-          precision={card.key === 'totalCustomers' ? 0 : 2}
+          precision={card.key === 'totalCustomers' || card.key === 'totalBooking'  ? 0 : 2}
           valueStyle={{
             color: isActive ? '#ffffff' : (card.value > 0 ? '#3f8600' : '#cf1322'),
           }}

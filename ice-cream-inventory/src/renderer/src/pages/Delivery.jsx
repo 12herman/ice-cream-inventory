@@ -15,8 +15,10 @@ import {
   Radio,
   Tag,
   Segmented,
-  Spin
-} from 'antd'
+  Spin,
+  
+} from 'antd';
+import { PiWarningCircleFill } from "react-icons/pi";
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
@@ -44,6 +46,10 @@ import { getCustomerById } from '../firebase/data-tables/customer'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf';
 import companyLogo from '../assets/img/companylogo.png';
+import { customRound } from '../js-files/round-amount';
+
+// tempSingleMargin
+// onPriceChange
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   //states
@@ -506,7 +512,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
@@ -521,7 +527,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       key: 'price',
       // width: 80,
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -603,14 +609,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'productprice',
       key: 'productprice',
       // width: 100,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Return Type</span>,
@@ -671,7 +677,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         )
       }
     }
-  ]
+  ];
 
   const tempSingleMargin = async (data) => {
     try {
@@ -697,11 +703,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         message.open({ type: 'info', content: 'No Changes found' })
       } else {
         message.open({ type: 'success', content: 'Updated successfully' })
-      }
+      };
+
       // Update the item in the array while maintaining the order
-      const updatedTempproduct = oldtemDatas.map((item) => {
+      const updatedTempproduct = oldtemDatas.map( (item) => {
         if (item.key === data.key) {
-          let mrpData = item.productprice * row.numberofpacks
+        let mrpData = item.productprice * row.numberofpacks
+        let priceing =  customRound(mrpData - mrpData * (row.margin / 100))
           if (returnDelivery.state === true) {
             return {
               ...item,
@@ -710,32 +718,35 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               returntype: row.returntype
             }
           } else {
+          
             return {
               ...item,
               numberofpacks: row.numberofpacks,
               margin: row.margin,
               mrp: item.productprice * row.numberofpacks,
-              price: mrpData - mrpData * (row.margin / 100)
+              price: priceing
             }
           }
         }
         return item
-      })
+      });
 
       const totalAmounts = updatedTempproduct.reduce((acc, item) => {
         return acc + item.price
-      }, 0)
+      }, 0);
+
       const mrpAmount = updatedTempproduct.reduce((acc, item) => {
         return acc + item.mrp
-      }, 0)
+      }, 0);
 
-      setMarginValue((pre) => ({ ...pre, amount: totalAmounts }))
+      setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
       setTotalAmount(mrpAmount)
       setOption((pre) => ({
         ...pre,
         tempproduct: updatedTempproduct,
         editingKeys: []
-      }))
+      }));
+
     } catch (e) {
       console.log(e)
     }
@@ -990,6 +1001,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
+          
 
     try {
       //setIsModalOpen(false)
@@ -997,8 +1009,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
-
+      await setOption((prev) => ({ ...prev, tempproduct: [] }));
+      
       for (const item of productItems) {
+        
         await addDoc(itemsCollectionRef, item)
         const { product, status } = await getProductById(item.id)
 
@@ -1021,7 +1035,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 numberofpacks: existingProduct.numberofpacks - item.numberofpacks
               })
             }
-            await storageUpdateMt()
+            await storageUpdateMt();
+           
           }
         }
       }
@@ -1033,25 +1048,54 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             ? 'Production return successfully'
             : 'Production added successfully'
       })
-      await deliveryUpdateMt()
+      await deliveryUpdateMt();
     } catch (error) {
       // Handle errors
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
     } finally{
-      setIsDeliverySpiner(false);
-      modelCancel();
-      setOption((prev) => ({ ...prev, tempproduct: [] }))
       setTotalAmount(0)
       setMarginValue((pre) => ({ ...pre, amount: 0 }))
       form5.resetFields(['marginvalue'])
-      form4.resetFields(['partialamount'])
+      form4.resetFields(['partialamount']);
+      await setIsDeliverySpiner(true);
+      warningModalOk()
+      await setIsDeliverySpiner(false);
     }
     // setTableLoading(false)
   }
 
   // model close
-  const modelCancel = () => {
+  const modelCancel =  async () => {
+  
+   
+    if(option.tempproduct.length > 0 && isDeliverySpiner === false){
+    setIsCloseWarning(true);
+    return
+   }else{
+    setIsModalOpen(false)
+    form2.resetFields()
+    form5.resetFields(['marginvalue'])
+    form4.resetFields(['partialamount'])
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: [],
+      flavour: [],
+      flavourstatus: true,
+      quantity: [],
+      quantitystatus: true,
+      customerstatus: true
+    }))
+    setCount(0)
+    setTotalAmount(0)
+    setMarginValue({ amount: 0, discount: 0, percentage: 0 })
+    form4.setFieldsValue({ paymentstatus: 'Unpaid' })
+   }
+    
+  };
+
+  const warningModalOk=()=>{
+    setIsCloseWarning(false);
     setIsModalOpen(false)
     form2.resetFields()
     form5.resetFields(['marginvalue'])
@@ -1209,26 +1253,39 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     particalAmount: 0
   })
 
+  // const customRound = (num) => {
+  //   const decimalPart = num % 1;
+  //   if (decimalPart <= 0.4) {
+  //     return Math.floor(num); // Round down
+  //   } else if (decimalPart >= 0.6) {
+  //     return Math.ceil(num); // Round up
+  //   }
+  //   return num;
+  // };
+
   const onPriceChange = debounce((value) => {
+    
     let marginamount = totalamount * (value.marginvalue / 100)
-    let finalamounts = totalamount - marginamount
+    let finalamounts = customRound(totalamount - marginamount)
+    
     setMarginValue((pre) => ({
       ...pre,
       amount: finalamounts,
       percentage: value.marginvalue,
       discount: marginamount
-    }))
-    let newData = option.tempproduct.map((item) => {
+    }));
+
+    let newData = option.tempproduct.map( (item) => {
       let marginamount = item.mrp * (value.marginvalue / 100)
-      let finalamounts = item.mrp - marginamount
+      let finalamounts =customRound(item.mrp - marginamount)
       return {
         ...item,
-        price: finalamounts,
+        price: finalamounts ,
         margin: value.marginvalue
       }
     })
     setOption((pre) => ({ ...pre, tempproduct: newData }))
-  },200)
+  },300)
   //form5.resetFields(['marginvalue'])
 
   const radioOnchange = debounce((e) => {
@@ -1315,10 +1372,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               quantity: pr.quantity + ' ' + pr.unit,
               margin: matchingData.margin,
               price:
-                matchingData.numberofpacks * pr.price -
-                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+                customRound(matchingData.numberofpacks * pr.price -
+                  matchingData.numberofpacks * pr.price * (matchingData.margin / 100)),
               numberofpacks: matchingData.numberofpacks,
-              producttotalamount: matchingData.numberofpacks * pr.price,
+              producttotalamount:matchingData.numberofpacks * pr.price,
               returntype: matchingData.returntype
             }
           })
@@ -1361,9 +1418,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }) => {
     const inputNode =
       inputType === 'number' ? (
-        <InputNumber className="w-[4rem]" size="small" min={0} />
+        <InputNumber className="w-[4rem]" size="small" min={0} max={100} type='number'/>
       ) : (
-        <InputNumber className="w-[4rem]" size="small" min={1} />
+        <InputNumber className="w-[4rem]" size="small" min={1} type='number' />
       )
     return (
       <td {...restProps}>
@@ -1534,11 +1591,22 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }, [invoiceDatas.isGenerate, printRef]);
 
   
+  
+const [isCloseWarning,setIsCloseWarning] = useState(false);
+const customerRef = useRef(null);
+
+useEffect(() => {
+  if (isModalOpen) {
+    setTimeout(() => {
+      if (customerRef.current) {
+        customerRef.current.focus();
+      }
+    }, 0); // Slight delay to ensure modal is fully rendered
+  }
+}, [isModalOpen]);
+
   return (
     <div>
-
-
-
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
@@ -1685,6 +1753,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       </ul>
 
       <Modal
+      
+        maskClosable={option.tempproduct.length > 0 ? false : true}
         centered
         className="relative"
         title={
@@ -1706,13 +1776,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   disabled={option.tempproduct.length > 0 && !isDeliverySpiner ? false : true}
                   form={form5}
                   onFinish={onPriceChange}
+
                 >
                   <Form.Item name="marginvalue" rules={[{ required: true, message: false }]}>
                     <InputNumber
                       min={0}
                       max={100}
-                      className="w-full"
+                      type='number'
+                      className="w-[11.5rem]"
                       prefix={<span>Margin(%)</span>}
+                      // addonBefore="Margin(%)"
                     />
                   </Form.Item>
                   <Form.Item>
@@ -1799,6 +1872,17 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               layout="vertical"
               initialValues={{ date: dayjs(), returntype: 'normal' }}
             >
+             <Form.Item
+                className="mb-3 absolute top-[-2.7rem]"
+                name="date"
+                label=""
+                rules={[{ required: true, message: false }]}
+              >
+                <DatePicker
+                  onChange={(value, i) => sendDeliveryDateOnchange(value, i)}
+                  format={'DD/MM/YY'}
+                />
+              </Form.Item>
               <Form.Item
                 className="mb-1"
                 name="customername"
@@ -1806,6 +1890,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 rules={[{ required: true, message: false }]}
               >
                 <Select
+                  autoFocus
+                  ref={customerRef}
                   showSearch
                   placeholder="Search to Select"
                   optionFilterProp="label"
@@ -1903,17 +1989,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 <InputNumber min={1} className="w-full" />
               </Form.Item>
 
-              <Form.Item
-                className="mb-3 absolute top-[-2.7rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
-              >
-                <DatePicker
-                  onChange={(value, i) => sendDeliveryDateOnchange(value, i)}
-                  format={'DD/MM/YY'}
-                />
-              </Form.Item>
+             
 
               <Form.Item className="mb-3 w-full">
                 <Button className="w-full" type="primary" htmlType="submit">
@@ -1924,7 +2000,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             </Form>
           </span>
           <span className="col-span-3 relative">
-            <Form form={temform}>
+            <Form form={temform} onFinish={tempSingleMargin}>
               <Table
                 virtual
                 className="w-full"
@@ -2119,7 +2195,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         </div>
       </Modal>
 
-      
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal"
+      >
+        <p className='text-center'>Are your sure to Cancel</p>
+      </Modal>
+
     </div>
   )
 }
