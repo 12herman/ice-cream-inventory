@@ -667,8 +667,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
+                form.setFields({paymentstatus:'Paid'});
                 form.resetFields();
-                // form.setFields({paymentstatus:'Paid'})
               }}
             >
               Add Material <IoMdAdd />

@@ -767,7 +767,7 @@ setFirstValue(null)
         <LiaHandHoldingUsdSolid size={25} />
         <span>Spending</span>
       </Button>
-      <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-bold">
+      <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-normal">
         Version : 1.0
       </span>
       {/* quick sale */}

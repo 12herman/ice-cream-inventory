@@ -62,6 +62,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
   const [tableLoading, setTableLoading] = useState(false)
+  const partialAmountRef = useRef(null)
 
   const [deliveryBill, setDeliveryBill] = useState({
     model: false,
@@ -913,7 +914,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Unpaid' })
       form5.resetFields(['marginvalue'])
       form4.resetFields(['partialamount'])
-      form4.setFieldsValue({ paymentstatus: 'Unpaid' })
+      form4.setFieldsValue({ paymentstatus: 'Paid' })
       //form2.resetFields();
     }
   },200)
@@ -924,7 +925,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     newTempProduct.length <= 0 ? setTotalAmount(0) : setTotalAmount((pre) => pre - key.price)
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    form4.setFieldsValue({ paymentstatus: 'Unpaid' })
+    form4.setFieldsValue({ paymentstatus: 'Paid' })
   }
 
   const [isDeliverySpiner,setIsDeliverySpiner] = useState(false)
@@ -982,7 +983,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             billamount: totalamount,
             paymentstatus: marginValue.paymentstaus,
             // margin: marginValue.percentage,
-            partialamount: partialamount,
+            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -994,7 +995,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             billamount: marginValue.amount,
             paymentstatus: marginValue.paymentstaus,
             // margin: marginValue.percentage,
-            partialamount: partialamount,
+            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -1088,7 +1089,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setCount(0)
     setTotalAmount(0)
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    form4.setFieldsValue({ paymentstatus: 'Unpaid' })
+    form4.setFieldsValue({ paymentstatus: 'Paid' })
    }
     
   };
@@ -1111,7 +1112,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setCount(0)
     setTotalAmount(0)
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    form4.setFieldsValue({ paymentstatus: 'Unpaid' })
+    form4.setFieldsValue({ paymentstatus: 'Paid' })
   }
 
   // export
@@ -1290,6 +1291,18 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const radioOnchange = debounce((e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
     form4.resetFields(['partialamount']);
+    if(e.target.value === 'Partial'){
+      if (partialAmountRef.current) {
+        setTimeout(() => {
+          if (partialAmountRef.current ) {
+            const inputField = form.getFieldInstance('partialamount');
+            if (inputField) {
+              inputField.focus(); // Call focus on the input element
+            }
+          }
+        }, 0);
+      }
+    };
   },200)
 
   // Ref for get items collections
@@ -1318,7 +1331,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: 'Peice Amount',
       key: 'pieceamount',
       dataIndex: 'pieceamount',
-
       render: (text) => <span>{text}</span>
     },
     {
@@ -1390,7 +1402,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }, [deliveryBill.open])
 
   const onOpenDeliveryBill = debounce( (data) => {
-    
      setDeliveryBill((pre) => ({
       ...pre,
       model: true,
@@ -1604,6 +1615,9 @@ useEffect(() => {
   }
 }, [isModalOpen]);
 
+
+
+
   return (
     <div>
       <div
@@ -1752,7 +1766,6 @@ useEffect(() => {
       </ul>
 
       <Modal
-      
         maskClosable={option.tempproduct.length > 0 ? false : true}
         centered
         className="relative"
@@ -1798,11 +1811,11 @@ useEffect(() => {
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
                 disabled={marginValue.amount === 0 || isDeliverySpiner  ? true : false}
                 form={form4}
-                initialValues={{ partialamount: 0, price: 'Price', paymentstatus: 'Unpaid' }}
+                initialValues={{ partialamount: null, price: 'Price', paymentstatus: 'Paid' }}
                 onFinish={addNewDelivery}
               >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
-                  <Form.Item name="paymentstatus">
+                  <Form.Item name="paymentstatus"  >
                     <Radio.Group
                       disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
                       buttonStyle="solid"
@@ -1813,8 +1826,8 @@ useEffect(() => {
                       <Radio.Button value="Partial">PARTIAL</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
-                  <Form.Item name="partialamount">
-                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
+                  <Form.Item name="partialamount" rules={[{ required: (marginValue.paymentstaus === 'Partial' ? true: false ), message: false }]}>
+                    <InputNumber min={0} ref={partialAmountRef} disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
                   </Form.Item>
                   <Form.Item>
                     <Button htmlType="submit" type="primary" className=" w-fit">
@@ -1828,9 +1841,8 @@ useEffect(() => {
                 className={`${returnDelivery.state === true ? '' : 'hidden'}`}
                 disabled={option.tempproduct.length <= 0 || isDeliverySpiner ? true : false}
                 form={form4}
-                initialValues={{ partialamount: 0, price: 'Price', paymentstatus: 'Unpaid' }}
-                onFinish={addNewDelivery}
-              >
+                initialValues={{ price: 'Price', paymentstatus: 'Unpaid' }}
+                onFinish={addNewDelivery}>
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
                     <Radio.Group
