@@ -598,7 +598,7 @@ export default function Storage({ datas, storageUpdateMt }) {
                 <Input disabled />
               </Form.Item>
               <Form.Item name="alertcount" label="Alert Count" rules={[{ required: true }]}>
-                <InputNumber className="w-full" />
+                <InputNumber className="w-full" type='number' />
               </Form.Item>
             </>
           )}
@@ -614,7 +614,7 @@ export default function Storage({ datas, storageUpdateMt }) {
                 <Input disabled />
               </Form.Item>
               <Form.Item name="alertcount" label="Alert Count" rules={[{ required: true }]}>
-                <InputNumber className="w-full" />
+                <InputNumber className="w-full" type='number' />
               </Form.Item>
             </>
           )}

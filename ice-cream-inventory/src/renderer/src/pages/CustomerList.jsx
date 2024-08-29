@@ -74,6 +74,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     try {
       await createCustomer({
         ...values,
+        gstin: values.gstin || '',
         vehicleorfreezerno: values.vehicleorfreezerno || '',
         createddate: TimestampJs(),
         updateddate: '',
@@ -242,6 +243,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           String(record.transport).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.gstin).toLowerCase().includes(value.toLowerCase()) ||
           String(record.vehicleorfreezerno).toLowerCase().includes(value.toLowerCase())
         )
       }
@@ -267,15 +269,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 139
     },
     {
-      title: 'Location',
-      dataIndex: 'location',
-      key: 'location',
-      editable: true,
-      // width: 180,
-      sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: { target: 'sorter-icon' }
-    },
-    {
       title: 'Mobile Number ',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
@@ -287,6 +280,22 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
       editable: true
+    },
+    {
+      title: 'GSTIN ',
+      dataIndex: 'gstin',
+      key: 'gstin',
+      width: 140,
+      editable: true
+    },
+    {
+      title: 'Address / Location',
+      dataIndex: 'location',
+      key: 'location',
+      editable: true,
+      // width: 180,
+      sorter: (a, b) => a.location.localeCompare(b.location),
+      showSorterTooltip: { target: 'sorter-icon' }
     },
     {
       title: 'Action',
@@ -438,7 +447,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         row.transport === key.transport &&
         row.location === key.location &&
         row.vehicleorfreezerno === key.vehicleorfreezerno &&
-        row.mobilenumber === key.mobilenumber
+        row.mobilenumber === key.mobilenumber &&
+        row.gstin === key.gstin
       ) {
         message.open({ type: 'info', content: 'No changes made' })
         setEditingKeys([])
@@ -683,16 +693,25 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" placeholder='Enter the Mobile Number' />
+            <InputNumber className="w-full" type='number' placeholder='Enter the Mobile Number' />
+          </Form.Item>
+
+          <Form.Item
+            className="mb-2"
+            name="gstin"
+            label="GSTIN"
+            rules={[{ required: false, message: false }]}
+          >
+            <Input placeholder='Enter the GST Number' />
           </Form.Item>
 
           <Form.Item
             className="mb-2"
             name="location"
-            label="location"
+            label="Address"
             rules={[{ required: true, message: false }]}
           >
-            <Input placeholder='Enter the Location' />
+            <TextArea rows={4} placeholder='Enter the Address / Location' />
           </Form.Item>
         </Form>
         </Spin>
@@ -721,7 +740,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Input disabled />
           </Form.Item> */}
           <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
-            <InputNumber min={0} className="w-full" placeholder="Enter the Amount" />
+            <InputNumber min={0} type='number' className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the Description" />

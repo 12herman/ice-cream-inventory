@@ -45,7 +45,7 @@ export default function Home({ datas }) {
           .filter((data) => !data.isdeleted && data.date === today.format('DD/MM/YYYY'))
           .map(async (item, index) => {
             const result = await getCustomerById(item.customerid)
-            const customerName = result.status === 200 ? result.customer.customername : 'Unknown'
+            const customerName = result.status === 200 ? result.customer.customername : item.customername
             return {
               ...item,
               sno: index + 1,
@@ -79,7 +79,7 @@ export default function Home({ datas }) {
           .filter((product) => isWithinRange(product.date))
           .map(async (item) => {
             const result = await getCustomerById(item.customerid)
-            const customerName = result.status === 200 ? result.customer.customername : 'Unknown'
+            const customerName = result.status === 200 ? result.customer.customername : item.customername
             return {
               ...item,
               key: item.id,
@@ -670,147 +670,6 @@ const totalPaid = filteredDelivery
   })}
 </ul>
 
-        {/* <li className="mt-2">
-          <Row gutter={16}>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalSales')}
-                style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Sales"
-                  value={totalSales}
-                  precision={2}
-                  valueStyle={{
-                    color: totalSales > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalSpend')}
-                style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Spending"
-                  value={totalSpend}
-                  precision={2}
-                  valueStyle={{
-                    color: totalSpend > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalProfit')}
-                style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Profit"
-                  value={totalProfit}
-                  precision={2}
-                  valueStyle={{
-                    color: totalProfit > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalCustomers')}
-                style={{
-                  cursor: 'pointer',
-                  borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-                }}
-              >
-                <Statistic
-                  title="Total Customer"
-                  value={totalCustomers}
-                  valueStyle={{
-                    color: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<IoPerson />}
-                />
-              </Card>
-            </Col>
-          </Row>
-        </li>
-        <li className="mt-2">
-          <Row gutter={16}>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalPaid')}
-                style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Paid"
-                  value={totalPaid}
-                  precision={2}
-                  valueStyle={{
-                    color: totalProfit > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalUnpaid')}
-                style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Unpaid"
-                  value={totalUnpaid}
-                  precision={2}
-                  valueStyle={{
-                    color: totalUnpaid > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalQuickSale')}
-                style={{
-                  cursor: 'pointer',
-                  borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-                }}
-              >
-                <Statistic
-                  title="Total Quick Sale"
-                  value={totalQuickSale}
-                  precision={2}
-                  valueStyle={{
-                    color: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card
-                onClick={() => handleCardClick('totalReturn')}
-                style={{ cursor: 'pointer', borderColor: totalReturn > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Return"
-                  value={totalReturn}
-                  valueStyle={{
-                    color: totalReturn > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<IoPerson />}
-                />
-              </Card>
-            </Col>
-          </Row>
-        </li> */}
-
         <li className="mt-2">
           <Table
             virtual
@@ -892,6 +751,14 @@ const totalPaid = filteredDelivery
                       : null}
                   </span>
                 </div>
+                <div>
+                  <span className="font-bold">Customer GSTIN:</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.gstin
+                      : null}
+                  </span>
+                </div>
               </li>
 
               <li className="text-end flex flex-col items-end">
@@ -964,6 +831,9 @@ const totalPaid = filteredDelivery
                   ? formatToRupee(invoiceDatas.customerdetails.partialamount)
                   : null}
               </span>
+            </p> 
+            <p className="text-end mt-24 p-4">
+              Authorised Signature
             </p>
           </section>
         </div>

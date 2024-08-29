@@ -672,7 +672,7 @@ finally{
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" placeholder='Enter the Mobile Number' />
+            <InputNumber className="w-full" type='number' placeholder='Enter the Mobile Number' />
           </Form.Item>
 
           <Form.Item
@@ -713,7 +713,7 @@ finally{
             <Input disabled />
           </Form.Item> */}
           <Form.Item rules={[{ required: true, message: false }]}  className="mb-1" name="amount" label="Amount">
-            <InputNumber min={0} className="w-full" placeholder="Enter the Amount" />
+            <InputNumber min={0} className="w-full" type='number' placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the Description" />
