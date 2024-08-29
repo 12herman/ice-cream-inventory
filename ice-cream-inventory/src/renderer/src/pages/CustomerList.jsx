@@ -74,6 +74,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     try {
       await createCustomer({
         ...values,
+        gstin: values.gstin || '',
         vehicleorfreezerno: values.vehicleorfreezerno || '',
         createddate: TimestampJs(),
         updateddate: '',
