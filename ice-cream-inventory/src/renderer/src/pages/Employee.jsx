@@ -969,7 +969,6 @@ finally{
 
       <Modal
         width={300}
-        centered={true}
         title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
         open={isCloseWarning}
         onOk={warningModalOk}

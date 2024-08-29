@@ -30,6 +30,7 @@ import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { PiWarningCircleFill } from "react-icons/pi";
+import { debounce } from 'lodash';
 
 export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt }) {
   const [isQuickSale, setIsQuickSale] = useState({
@@ -482,6 +483,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       spendingForm.resetFields()
       message.open({ type: 'success', content: 'Spending added successfully' })
       setSpendSpin(false);
+      setPersonOnchangeSt('')
     } catch (error) {
       console.log(error)
     }
@@ -700,7 +702,11 @@ setFirstValue(null)
       paymentstatus:'Paid',
       editingKeys: [],
     }))
-    quickSaleForm.resetFields()
+    quickSaleForm.resetFields();
+
+    setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
+          spendingForm.resetFields();
+          setPersonOnchangeSt('')
   };
   const productRef = useRef(null);
   useEffect(()=>{
@@ -713,7 +719,10 @@ setFirstValue(null)
     }
   },[isQuickSale.model])
 
-  
+  const [personOnchangeSt,setPersonOnchangeSt] = useState('')
+  const personOnchange = debounce((e)=>{
+    setPersonOnchangeSt(e);
+},200)
 
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
@@ -1017,7 +1026,7 @@ setFirstValue(null)
 
       {/* spendingModal */}
       <Modal
-        // maskClosable={}
+          maskClosable={personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null ? true : false}
         centered
         title={
           <div className="flex  justify-center py-3">
@@ -1028,10 +1037,18 @@ setFirstValue(null)
         open={isSpendingModalOpen.model}
         onOk={() => spendingForm.submit()}
         onCancel={() => {
+          if(personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null)
+          {
           setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
-          spendingForm.resetFields()
+          spendingForm.resetFields();
+          setPersonOnchangeSt('')
+          }
+          else{
+            setIsCloseWarning(true)
+          }
         }}
         okButtonProps={{disabled:spenditSpin}}
+        
       >
       <Spin spinning={spenditSpin} className='relative'>
         <Form
@@ -1056,6 +1073,7 @@ setFirstValue(null)
             rules={[{ required: true, message: false }]}
           >
             <Select
+              onChange={(e)=> personOnchange(e)}
               showSearch
               placeholder="Select the Person"
               options={isSpendingModalOpen.employeeoption}
