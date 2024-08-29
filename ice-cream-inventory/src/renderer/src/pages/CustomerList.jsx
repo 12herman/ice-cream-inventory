@@ -15,6 +15,7 @@ import {
   Tag,
   Spin
 } from 'antd'
+import { debounce } from 'lodash';
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -31,6 +32,7 @@ import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
+import { PiWarningCircleFill } from "react-icons/pi"
 
 export default function CustomerList({ datas, customerUpdateMt }) {
   // states
@@ -89,6 +91,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       form.resetFields()
       setIsModalOpen(false)
       setIsNewCustomerLoading(false);
+      setCustomerOnchange({
+        customername:'',
+        payamount:''
+      })
     }
   }
 
@@ -121,8 +127,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     setCustomerPayId(null)
     setIsPayModelOpen(false)
     setIsCustomerPayLoading(false)
+    setCustomerOnchange({
+      customername:'',
+      payamount:''
+    })
     }
-    
   }
 
   const showPayDetailsModal = async (record) => {
@@ -566,7 +575,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  }
+  };
 
   const handleTransportChange = (value) => {
     if (value === 'Self') {
@@ -574,7 +583,40 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     } else {
       setIsVehicleNoDisabled(false)
     }
-  }
+  };
+
+  // warning modal methods
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  const [customerOnchange,setCustomerOnchange] = useState({
+    customername:'',
+    payamount:''
+  });
+
+  const warningModalOk=()=>{
+    setIsModalOpen(false);
+    form.resetFields();
+    setIsCloseWarning(false);
+    setCustomerOnchange({
+      customername:'',
+      payamount:''
+    })
+    setIsPayModelOpen(false);
+  };
+
+  const customerOnchangeMt= debounce((e,input)=>{
+    if(input === 'customername'){
+      setCustomerOnchange({
+        customername:e.target.value,
+        payamount:''
+      })
+    }
+    else{
+      setCustomerOnchange({
+        customername:'',
+        payamount:e
+      })
+    }
+  },200);
 
   return (
     <div>
@@ -631,13 +673,24 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </ul>
 
       <Modal
+      maskClosable={customerOnchange.customername === '' || customerOnchange.customername === undefined || customerOnchange.customername === null ? true : false}
+        centered={true}
         title={<span className='flex justify-center'>NEW CUSTOMER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         okButtonProps={{disabled:isNewCustomerLoading}}
         onCancel={() => {
-          setIsModalOpen(false)
-          form.resetFields()
+          if(customerOnchange.customername === '' || customerOnchange.customername === undefined || customerOnchange.customername === null){
+            setIsModalOpen(false);
+            form.resetFields();
+            setCustomerOnchange({
+            customername:'',
+            payamount:''
+          });
+          }
+          else{
+            setIsCloseWarning(true)
+          }
         }}
       >
       <Spin spinning={isNewCustomerLoading}>
@@ -658,7 +711,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             label="Customer Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input placeholder='Enter the Customer Name' />
+            <Input onChange={(e)=> customerOnchangeMt(e,'customername')} placeholder='Enter the Customer Name' />
           </Form.Item>
 
           <Form.Item
@@ -718,6 +771,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </Modal>
 
       <Modal
+      maskClosable={customerOnchange.payamount ==='' || customerOnchange.payamount === undefined || customerOnchange.payamount === null ? true : false}
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -725,7 +779,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           </div>
         }
         open={isPayModelOpen}
-        onCancel={() => setIsPayModelOpen(false)}
+        onCancel={() => {
+          if(customerOnchange.payamount ==='' || customerOnchange.payamount === undefined || customerOnchange.payamount === null){
+            setIsPayModelOpen(false);
+          }else{
+            setIsCloseWarning(true)
+          }
+          
+        }}
         onOk={() => payForm.submit()}
         okButtonProps={{disabled:isCustomerPayLoading}}
       >
@@ -740,7 +801,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Input disabled />
           </Form.Item> */}
           <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
-            <InputNumber min={0} type='number' className="w-full" placeholder="Enter the Amount" />
+            <InputNumber onChange={(e)=> customerOnchangeMt(e,'payamount')} min={0} type='number' className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the Description" />
@@ -749,8 +810,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             className=" absolute top-[-3rem]"
             name="date"
             label=""
-            rules={[{ required: true, message: false }]}
-          >
+            rules={[{ required: true, message: false }]}>
             <DatePicker format={'DD/MM/YYYY'} />
           </Form.Item>
         </Form>
@@ -764,8 +824,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         width={1000}
         onCancel={() => {
           setIsPayDetailsModelOpen(false)
-        }}
-      >
+        }}>
         <Table
           virtual
           pagination={false}
@@ -774,6 +833,19 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           rowKey="id"
           scroll={{ y: historyHeight }}
         />
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </div>
   )
