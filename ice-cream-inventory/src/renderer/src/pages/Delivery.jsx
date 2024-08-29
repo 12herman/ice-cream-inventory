@@ -1069,8 +1069,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
    
     if(option.tempproduct.length > 0 && isDeliverySpiner === false){
     setIsCloseWarning(true);
-    return
+   
    }else{
+    setIsCloseWarning(false);
     setIsModalOpen(false)
     form2.resetFields()
     form5.resetFields(['marginvalue'])
@@ -1288,7 +1289,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   const radioOnchange = debounce((e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
-    form4.resetFields(['partialamount'])
+    form4.resetFields(['partialamount']);
   },200)
 
   // Ref for get items collections
@@ -1774,7 +1775,6 @@ useEffect(() => {
                   disabled={option.tempproduct.length > 0 && !isDeliverySpiner ? false : true}
                   form={form5}
                   onFinish={onPriceChange}
-
                 >
                   <Form.Item name="marginvalue" rules={[{ required: true, message: false }]}>
                     <InputNumber

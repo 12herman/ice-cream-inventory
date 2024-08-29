@@ -1,5 +1,5 @@
 // src/components/NavBar.js
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState,useRef } from 'react'
 import IceCreamLogo from '../assets/img/logo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
@@ -29,6 +29,7 @@ import { db } from '../firebase/firebase'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
+import { PiWarningCircleFill } from "react-icons/pi";
 
 export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt }) {
   const [isQuickSale, setIsQuickSale] = useState({
@@ -500,10 +501,10 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
   }) => {
     const inputNode =
     dataIndex === 'numberofpacks' ? (
-        <InputNumber size="small" className="w-[4rem]" min={1} />
+        <InputNumber size="small" type='number' className="w-[4rem]" min={1} />
       ) :
       dataIndex === 'margin'? 
-        <InputNumber onFocus={ (e)=> { 
+        <InputNumber type='number' onFocus={ (e)=> { 
           if (firstValue === null) {
             setFirstValue(e.target.value); // Store the first value
             setIsQuickSale(pre => ({
@@ -682,6 +683,38 @@ setFirstValue(null)
 
   const[spenditSpin,setSpendSpin] = useState(false);
 
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  
+  const warningModalOk=()=>{
+    setIsCloseWarning(false);
+    setIsQuickSale((pre) => ({
+      ...pre,
+      model: false,
+      temdata: [],
+      count: 0,
+      total: 0,
+      date: dayjs().format('DD/MM/YYYY'),
+      margin: 0,
+      billamount: 0,
+      type: 'quick',
+      paymentstatus:'Paid',
+      editingKeys: [],
+    }))
+    quickSaleForm.resetFields()
+  };
+  const productRef = useRef(null);
+  useEffect(()=>{
+    if (isQuickSale.model) {
+      setTimeout(() => {
+        if (productRef.current) {
+          productRef.current.focus();
+        }
+      }, 0); // Slight delay to ensure modal is fully rendered
+    }
+  },[isQuickSale.model])
+
+  
+
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
       <ul>
@@ -739,7 +772,7 @@ setFirstValue(null)
       </span>
       {/* quick sale */}
       <Modal
-        
+        maskClosable={isQuickSale.temdata.length > 0 ? false : true}
         footer={
           <div className="flex justify-between items-center">
             <Form
@@ -753,7 +786,7 @@ setFirstValue(null)
                 name="marginvalue"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={0} max={100} className="w-full" prefix={<span>Margin(%)</span>} />
+                <InputNumber type='number' min={0} max={100} className="w-full" prefix={<span>Margin(%)</span>} />
               </Form.Item>
               <Form.Item className="mb-0">
                 <Button type="primary" htmlType="submit">
@@ -791,6 +824,7 @@ setFirstValue(null)
                 name="partialamount"
               >
                 <InputNumber
+                type='number'
                   placeholder="Amount"
                   min={0}
                   disabled={isQuickSale.paymentstatus === 'Partial' ? false : true}
@@ -812,6 +846,7 @@ setFirstValue(null)
                 rules={[{ required: ((isQuickSale.type === 'booking') || (isQuickSale.type ==='quick' && isQuickSale !== 'Paid') ? true : false), message: false }]}
               >
                 <InputNumber
+                type='number'
                 className='w-[12rem]'
                   placeholder="Mobile Number"
                   disabled={isQuickSale.type === 'booking' || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? false :  true}
@@ -837,7 +872,11 @@ setFirstValue(null)
         open={isQuickSale.model}
         onOk={() => quickSaleForm.submit()}
         onCancel={() => {
-          setIsQuickSale((pre) => ({
+          if(isQuickSale.temdata.length > 0){
+            setIsCloseWarning(true);
+          }
+          else{
+            setIsQuickSale((pre) => ({
             ...pre,
             model: false,
             temdata: [],
@@ -851,6 +890,7 @@ setFirstValue(null)
             editingKeys: [],
           }))
           quickSaleForm.resetFields()
+          }
         }}
         
       >
@@ -864,6 +904,14 @@ setFirstValue(null)
             onFinish={QuickSaleTemAdd}
             initialValues={{ date: dayjs(), type: 'quick'}}
           >
+           <Form.Item
+              className="mb-3 absolute top-[-2.7rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker onChange={qickSaledateChange} format={'DD/MM/YY'} />
+            </Form.Item>
             <Form.Item name="type" className="mb-1 mt-3">
                 <Radio.Group
                   buttonStyle="solid"
@@ -884,6 +932,7 @@ setFirstValue(null)
               rules={[{ required: true, message: false }]}
             >
               <Select
+              ref={productRef}
                 onChange={productOnchange}
                 showSearch
                 placeholder="Select the Product"
@@ -926,17 +975,10 @@ setFirstValue(null)
               label="Number of Packs"
               rules={[{ required: true, message: false }]}
             >
-              <InputNumber min={1} className="w-full" placeholder='Enter the Number'/>
+              <InputNumber type='number' min={1} className="w-full" placeholder='Enter the Number'/>
             </Form.Item>
 
-            <Form.Item
-              className="mb-3 absolute top-[-2.7rem]"
-              name="date"
-              label=""
-              rules={[{ required: true, message: false }]}
-            >
-              <DatePicker onChange={qickSaledateChange} format={'DD/MM/YY'} />
-            </Form.Item>
+           
 
             <Form.Item className="mb-3 w-full">
               <Button className="w-full" type="primary" htmlType="submit">
@@ -975,6 +1017,7 @@ setFirstValue(null)
 
       {/* spendingModal */}
       <Modal
+        // maskClosable={}
         centered
         title={
           <div className="flex  justify-center py-3">
@@ -1030,7 +1073,7 @@ setFirstValue(null)
             className="mb-1"
             rules={[{ required: true, message: false }]}
           >
-            <InputNumber min={0} className="w-full" placeholder='Enter the Amount' />
+            <InputNumber type='number' min={0} className="w-full" placeholder='Enter the Amount' />
           </Form.Item>
 
           <Form.Item name="description" label="Description" className="mb-1">
@@ -1038,6 +1081,20 @@ setFirstValue(null)
           </Form.Item>
         </Form>
         </Spin>
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal"
+      >
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </nav>
   )
