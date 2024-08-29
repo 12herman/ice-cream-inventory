@@ -28,14 +28,12 @@
   min-width: 100%; /* Ensures the container takes up full width */
   min-height: 150px; /* Ensures vertical centering */
 }
-:where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper .ant-table-cell, :where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper .ant-table-thead>tr>th, :where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper .ant-table-tbody>tr>th, :where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper .ant-table-tbody>tr>td, :where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper tfoot>tr>th, :where(.css-dev-only-do-not-override-pbnz8n).ant-table-wrapper tfoot>tr>td{
-  padding: 8px 8px;
-}
+
 .center-buttons-modal .ant-modal-footer {
-  display: flex;
-  justify-content: center; /* Center the buttons horizontally */
+  display: flex !important;
+  justify-content: center !important; /* Center the buttons horizontally */
 }
 
 .center-buttons-modal .ant-btn {
-  margin: 0 5px; /* Optional: Add spacing between buttons */
+  margin: 0 5px !important; /* Optional: Add spacing between buttons */
 }
