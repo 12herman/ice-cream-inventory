@@ -35,6 +35,8 @@ import dayjs from 'dayjs'
 import { addDoc, collection, doc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { formatToRupee } from '../js-files/formate-to-rupee'
+import { debounce } from 'lodash';
+import { PiWarningCircleFill } from "react-icons/pi"
 
 export default function Employee({ datas, employeeUpdateMt }) {
   // states
@@ -83,6 +85,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
 finally{
   setIsModalOpen(false);
   setIsNewEmployeeLoading(false)
+  setEmployeeOnchange({
+    employeename:'',
+    payamount:''
+  })
 }
   }
 
@@ -470,6 +476,10 @@ finally{
     employeePayForm.resetFields()
     setEmployeePay((pre) => ({ ...pre, modal: false }));
     setIsEmpLoading(false)
+    setEmployeeOnchange({
+      employeename:'',
+      payamount:''
+    })
    }
   }
 
@@ -710,7 +720,45 @@ finally{
     }
   }, [])
 
-  const [empListTb, setEmpListTb] = useState(true)
+  const [empListTb, setEmpListTb] = useState(true);
+
+    // warning modal methods
+    const [isCloseWarning,setIsCloseWarning] = useState(false);
+    const [employeeOnchange,setEmployeeOnchange] = useState({
+      employeename:'',
+      payamount:''
+    });
+
+    const warningModalOk=()=>{
+      
+      setEmployeePay((pre) => ({ ...pre, modal: false }))
+      employeePayForm.resetFields()
+
+      setIsModalOpen(false)
+      form.resetFields()
+
+      setIsCloseWarning(false);
+      setEmployeeOnchange({
+        employeename:'',
+        payamount:''
+      })
+    };
+  
+    const employeeOnchangeMt= debounce((e,input)=>{
+      if(input === 'employeename'){
+        setEmployeeOnchange({
+          employeename:e.target.value,
+          payamount:''
+        })
+      }
+      else{
+        setEmployeeOnchange({
+          employeename:'',
+          payamount:e
+        })
+      }
+    },200);
+
   return (
     <div>
       <ul>
@@ -766,12 +814,20 @@ finally{
       </ul>
 
       <Modal
+      maskClosable={employeeOnchange.employeename === '' || employeeOnchange.employeename === undefined || employeeOnchange.employeename === null ? true : false}
         title={<span className='flex justify-center'>NEW EMPLOYEE</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
-          setIsModalOpen(false)
-          form.resetFields()
+          if(employeeOnchange.employeename === '' || employeeOnchange.employeename === undefined || employeeOnchange.employeename === null)
+          {
+            setIsModalOpen(false)
+            form.resetFields()
+          }
+          else{
+            setIsCloseWarning(true)
+          }
+          
         }}
         okButtonProps={{disabled:isNewEployeeLoading}}
       >
@@ -788,7 +844,7 @@ finally{
             label="Employee Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input placeholder='Enter the Employee Name'/>
+            <Input onChange={(e)=> employeeOnchangeMt(e,'employeename')} placeholder='Enter the Employee Name'/>
           </Form.Item>
 
           <Form.Item
@@ -841,10 +897,17 @@ finally{
       </Modal>
 
       <Modal
+        maskClosable={employeeOnchange.payamount === '' || employeeOnchange.payamount === undefined || employeeOnchange.payamount === null ? true : false}
         open={employeePay.modal}
         onCancel={() => {
-          setEmployeePay((pre) => ({ ...pre, modal: false }))
-          employeePayForm.resetFields()
+          if(employeeOnchange.payamount === '' || employeeOnchange.payamount === undefined || employeeOnchange.payamount === null){
+            setEmployeePay((pre) => ({ ...pre, modal: false }))
+            employeePayForm.resetFields()
+          }
+          else{
+            setIsCloseWarning(true)
+          }
+          
         }}
         onOk={() => employeePayForm.submit()}
         okButtonProps={{disabled:isEmpLoading}}
@@ -861,7 +924,7 @@ finally{
           layout="vertical"
         >
           <Form.Item className="mb-1" name="amount" label="Amount">
-            <InputNumber min={0} type='number' className="w-full" placeholder="Enter the Amount" />
+            <InputNumber  onChange={(e)=> employeeOnchangeMt(e)} min={0} type='number' className="w-full" placeholder="Enter the Amount" />
           </Form.Item>
           <Form.Item className="mb-1" name="description" label="Description">
             <TextArea rows={4} placeholder="Write the Description" />
@@ -902,6 +965,19 @@ finally{
             rowKey="id"
           />
         </Form>
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </div>
   )
