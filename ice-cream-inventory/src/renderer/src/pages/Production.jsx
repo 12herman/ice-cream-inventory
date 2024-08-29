@@ -738,7 +738,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 label="Number of Packs"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber min={0} className="w-full" placeholder='Enter the Number' />
+                <InputNumber min={0} type='number' className="w-full" placeholder='Enter the Number' />
               </Form.Item>
 
               <Form.Item

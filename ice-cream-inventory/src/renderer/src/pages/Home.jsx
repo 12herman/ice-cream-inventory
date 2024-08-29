@@ -892,6 +892,14 @@ const totalPaid = filteredDelivery
                       : null}
                   </span>
                 </div>
+                <div>
+                  <span className="font-bold">Customer GSTIN:</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.gstin
+                      : null}
+                  </span>
+                </div>
               </li>
 
               <li className="text-end flex flex-col items-end">
@@ -964,6 +972,9 @@ const totalPaid = filteredDelivery
                   ? formatToRupee(invoiceDatas.customerdetails.partialamount)
                   : null}
               </span>
+            </p> 
+            <p className="text-end mt-24 p-4">
+              Authorised Signature
             </p>
           </section>
         </div>

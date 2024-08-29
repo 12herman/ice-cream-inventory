@@ -234,7 +234,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                   style={{ margin: 0 }}
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber className="w-full" />
+                  <InputNumber className="w-full" type='number' />
                 </Form.Item>
                 <Form.Item
                   name="unit"
@@ -513,7 +513,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" placeholder='Enter the Quantity'/>
+              <InputNumber className="w-full" type='number' placeholder='Enter the Quantity'/>
             </Form.Item>
 
             <Form.Item
@@ -562,7 +562,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" placeholder='Enter the PPP' />
+            <InputNumber className="w-full" type='number' placeholder='Enter the PPP' />
           </Form.Item>
 
           <Form.Item
@@ -574,7 +574,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber className="w-full" placeholder='Enter the Amount' />
+            <InputNumber className="w-full" type='number' placeholder='Enter the Amount' />
           </Form.Item>
         </Form>
         </Spin>

@@ -1814,7 +1814,7 @@ useEffect(() => {
                     </Radio.Group>
                   </Form.Item>
                   <Form.Item name="partialamount">
-                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
+                    <InputNumber disabled={marginValue.paymentstaus === 'Partial' ? false : true} type='number' min={0} />
                   </Form.Item>
                   <Form.Item>
                     <Button htmlType="submit" type="primary" className=" w-fit">
@@ -1848,6 +1848,8 @@ useEffect(() => {
                     <InputNumber
                       className={`${returnDelivery.state === true ? 'hidden' : 'block'}`}
                       disabled={marginValue.paymentstaus === 'Partial' ? false : true}
+                      type='number'
+                      min={0}
                     />
                   </Form.Item>
                   <Form.Item>

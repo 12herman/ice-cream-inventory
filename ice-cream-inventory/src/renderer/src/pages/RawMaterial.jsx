@@ -313,7 +313,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   style={{ margin: 0 }}
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber className="w-full" />
+                  <InputNumber type='number' className="w-full" />
                 </Form.Item>
                 <Form.Item
                   name="unit"
@@ -786,7 +786,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber min={0} className="w-full" placeholder='Enter the Quantity' />
+              <InputNumber min={0} type='number' className="w-full" placeholder='Enter the Quantity' />
             </Form.Item>
 
             <Form.Item
@@ -839,7 +839,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               { type: 'number', message: false }
             ]}
           >
-            <InputNumber min={0} className="w-full" placeholder='Enter the Amount' />
+            <InputNumber min={0} className="w-full" type='number' placeholder='Enter the Amount' />
           </Form.Item>
 
           <Form.Item
@@ -875,6 +875,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               disabled={radioBtn.value === 'Partial' ? false : true}
               className="w-full"
               placeholder='Enter the Partial Amount'
+              type='number'
             />
           </Form.Item>
         </Form>
@@ -939,7 +940,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   label="Quantity"
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber min={0} className="w-full" placeholder='Enter the Quantity' />
+                  <InputNumber min={0} className="w-full" type='number' placeholder='Enter the Quantity' />
                 </Form.Item>
 
                 <Form.Item
