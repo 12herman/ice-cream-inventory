@@ -4,14 +4,19 @@
 @tailwind utilities;
 
 .ant-table-placeholder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100% !important;
+    width: 100% !important;
     min-width: 100% !important; /* Ensures the container takes up full width */
-    min-height: 150px; /* Ensures vertical centering */
+    min-height: 150px !important; /* Ensures vertical centering */
   }
-  :where(.css-dev-only-do-not-override-pbnz8n).ant-card .ant-card-body{
-    padding: 5px;
-  }
+
+.ant-table-cell{
+  padding: 8px !important;
+}
+
+.ant-card-body{
+  padding: 8px !important;
+}
