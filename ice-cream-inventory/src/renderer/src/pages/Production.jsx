@@ -27,6 +27,7 @@ import { createProduction, updateProduction } from '../firebase/data-tables/prod
 import jsonToExcel from '../js-files/json-to-excel'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { getProductById } from '../firebase/data-tables/products'
+import { PiWarningCircleFill } from "react-icons/pi"
 
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   //states
@@ -542,7 +543,18 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         await storageUpdateMt()
       }
       message.open({ type: 'success', content: 'Production added successfully' })
-      await modelCancel()
+      
+      setIsModalOpen(false)
+      form2.resetFields()
+      setOption((pre) => ({
+        ...pre,
+        tempproduct: [],
+        flavour: [],
+        flavourstatus: true,
+        quantity: [],
+        quantitystatus: true
+      }))
+      setCount(0)
     } catch (error) {
       console.error('An error occurred while adding new production:', error)
     }
@@ -552,17 +564,23 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   }
 
   const modelCancel = () => {
-    setIsModalOpen(false)
-    form2.resetFields()
-    setOption((pre) => ({
-      ...pre,
-      tempproduct: [],
-      flavour: [],
-      flavourstatus: true,
-      quantity: [],
-      quantitystatus: true
-    }))
-    setCount(0)
+    if(option.tempproduct.length > 0){
+      setIsCloseWarning(true)
+    }
+    else{
+      setIsModalOpen(false)
+      form2.resetFields()
+      setOption((pre) => ({
+        ...pre,
+        tempproduct: [],
+        flavour: [],
+        flavourstatus: true,
+        quantity: [],
+        quantitystatus: true
+      }))
+      setCount(0)
+    }
+
   }
 
   // export
@@ -587,7 +605,24 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       )
       .map((item) => ({ label: item.materialname, value: item.materialname }))
     setMtOption((pre) => ({ ...pre, material: optionsuppliers }))
-  }, [])
+  }, []);
+
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  
+  const warningModalOk=()=>{
+    setIsCloseWarning(false)
+    setIsModalOpen(false)
+      form2.resetFields()
+      setOption((pre) => ({
+        ...pre,
+        tempproduct: [],
+        flavour: [],
+        flavourstatus: true,
+        quantity: [],
+        quantitystatus: true
+      }))
+      setCount(0)
+  };
 
   return (
     <div>
@@ -641,6 +676,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       </ul>
 
       <Modal
+      maskClosable={option.tempproduct.length > 0 ? false : true}
         className="relative"
         title={
           <div className="flex  justify-center py-3">
@@ -770,6 +806,21 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         </div>
         </Spin>
       </Modal>
+
+      
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
+      </Modal>
+
     </div>
   )
 }

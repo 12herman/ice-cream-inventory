@@ -31,7 +31,9 @@ import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
+import { PiWarningCircleFill } from "react-icons/pi"
 const { Search, TextArea } = Input
+import { debounce } from 'lodash';
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
@@ -95,7 +97,7 @@ try{
 }
 catch(e){console.log(e)}
 finally{
-  
+  setSupplierOnchangeValue('')
   setSupplierModalLoading(false);
   setIsModalOpen(false);
 }
@@ -129,6 +131,7 @@ finally{
   setSupplierPayId(null)
   setIsPayModelOpen(false)
   setPayModalLoading(false)
+  setAmountOnchangeValue('')
 }
   }
 
@@ -563,7 +566,36 @@ finally{
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, [])
+  }, []);
+
+
+  // warning close btns methods
+  const [supplierOnchangeValue,setSupplierOnchangeValue] = useState('');
+  const productOnchange =debounce((value)=>{
+    setSupplierOnchangeValue(value)
+  },200)
+
+  const [amountOnchangeValue,setAmountOnchangeValue] = useState('');
+  const amountOnchange=debounce((value)=>{
+    setAmountOnchangeValue(value)
+  },200)
+
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  
+  const warningModalOk=()=>{
+
+    setIsCloseWarning(false);
+    setIsModalOpen(false)
+    form.resetFields()
+    setSupplierOnchangeValue('')
+    
+    setIsPayModelOpen(false);
+      setIsCloseWarning(false);
+      setAmountOnchangeValue('')
+  };
+
+console.log(supplierOnchangeValue);
+
 
   return (
     <div>
@@ -620,13 +652,21 @@ finally{
       </ul>
 
       <Modal
+      maskClosable={supplierOnchangeValue === undefined || supplierOnchangeValue=== null || supplierOnchangeValue ==='' ? true : false}
         title={<span className='flex justify-center'>NEW SUPPLIER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         okButtonProps={{disabled: supplierModalLoading}}
         onCancel={() => {
-          setIsModalOpen(false)
+          if(supplierOnchangeValue === undefined || supplierOnchangeValue=== null || supplierOnchangeValue ==='')
+          {
+            setIsModalOpen(false)
           form.resetFields()
+          setSupplierOnchangeValue('')
+          }
+          else{
+            setIsCloseWarning(true)
+          }
         }}
       >
       <Spin spinning={supplierModalLoading}>
@@ -642,7 +682,7 @@ finally{
             label="Supplier Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input className="w-full" placeholder='Enter the Supplier Name' />
+            <Input onChange={(e)=> productOnchange(e.target.value)} className="w-full" placeholder='Enter the Supplier Name' />
           </Form.Item>
 
           <Form.Item
@@ -691,6 +731,7 @@ finally{
       </Modal>
 
       <Modal
+      maskClosable={amountOnchangeValue === '' || amountOnchangeValue === null || amountOnchangeValue === undefined ? true : false}
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -698,7 +739,17 @@ finally{
           </div>
         }
         open={isPayModelOpen}
-        onCancel={() => setIsPayModelOpen(false)}
+        onCancel={() => {
+          if(amountOnchangeValue === '' || amountOnchangeValue === null || amountOnchangeValue === undefined)
+          {
+            setIsPayModelOpen(false);
+            setSupplierOnchangeValue('')
+          }
+          else{
+            setIsCloseWarning(true)
+          }
+          
+        }}
         okButtonProps={{disabled:payModalLoading}}
         onOk={() => payForm.submit()}
       >
@@ -709,16 +760,7 @@ finally{
           initialValues={{ date: dayjs() }}
           layout="vertical"
         >
-          {/* <Form.Item name="customername" label="Customer Name">
-            <Input disabled />
-          </Form.Item> */}
-          <Form.Item rules={[{ required: true, message: false }]}  className="mb-1" name="amount" label="Amount">
-            <InputNumber min={0} className="w-full" type='number' placeholder="Enter the Amount" />
-          </Form.Item>
-          <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the Description" />
-          </Form.Item>
-          <Form.Item
+        <Form.Item
             className=" absolute top-[-3rem]"
             name="date"
             label=""
@@ -726,6 +768,16 @@ finally{
           >
             <DatePicker format={'DD/MM/YYYY'} />
           </Form.Item>
+          {/* <Form.Item name="customername" label="Customer Name">
+            <Input disabled />
+          </Form.Item> */}
+          <Form.Item rules={[{ required: true, message: false }]}  className="mb-1" name="amount" label="Amount">
+            <InputNumber onChange={(e)=> amountOnchange(e)} min={0} className="w-full" type='number' placeholder="Enter the Amount" />
+          </Form.Item>
+          <Form.Item className="mb-1" name="description" label="Description">
+            <TextArea rows={4} placeholder="Write the Description" />
+          </Form.Item>
+          
         </Form>
         </Spin>
       </Modal>
@@ -747,6 +799,19 @@ finally{
           rowKey="id"
           scroll={{ y: historyHeight }}
         />
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </div>
   )

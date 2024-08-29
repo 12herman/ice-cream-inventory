@@ -1841,7 +1841,7 @@ useEffect(() => {
                 className={`${returnDelivery.state === true ? '' : 'hidden'}`}
                 disabled={option.tempproduct.length <= 0 || isDeliverySpiner ? true : false}
                 form={form4}
-                initialValues={{ price: 'Price', paymentstatus: 'Unpaid' }}
+                initialValues={{ price: 'Price', paymentstatus: 'Paid' }}
                 onFinish={addNewDelivery}>
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">

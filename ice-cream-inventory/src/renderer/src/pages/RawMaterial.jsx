@@ -28,6 +28,7 @@ import dayjs from 'dayjs'
 import { getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
 const { RangePicker } = DatePicker
+import { PiWarningCircleFill } from "react-icons/pi";
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
@@ -156,6 +157,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         rawmaterialUpdateMt()
         setIsModalOpen(false)
         setRadioBtn({ status: true, value: '' })
+        setSelectedSupplierName(null);
       }
     }catch(error){
       console.log(error)
@@ -568,7 +570,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       isdeleted: false,
       quantity: values.quantity + ' ' + values.unit
     }
-    console.log(mtOption.tempproduct, newMaterial)
+    // console.log(mtOption.tempproduct, newMaterial)
     
     const checkExist = mtOption.tempproduct.find((item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date)
 
@@ -619,9 +621,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       }
     })
    await rawmaterialUpdateMt()
-    materialModelCancel()
+   setUsedMaterialModal(false)
+   usedmaterialform.resetFields()
+   setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
     message.open({ type: 'success', content: 'Added Successfully' });
-  } 
+    } 
     catch (error) {
       console.log(error)
     }
@@ -632,11 +636,32 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // model cancel
   const materialModelCancel = () => {
-    setUsedMaterialModal(false)
-    usedmaterialform.resetFields()
-    setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
-  }
+    if(mtOption.tempproduct.length > 0){
+      setIsCloseWarning(true)
+    }else{
+      setUsedMaterialModal(false)
+      usedmaterialform.resetFields()
+      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
+    }
+  };
 
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  
+  const warningModalOk=()=>{
+    if(mtOption.tempproduct.length > 0){
+      setUsedMaterialModal(false)
+      usedmaterialform.resetFields()
+      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }));
+      setIsCloseWarning(false)
+    }
+    else{
+      setIsCloseWarning(false);
+      setIsModalOpen(false)
+      setRadioBtn({ status: true, value: '' })
+      form.resetFields();
+      setSelectedSupplierName(null);
+    }
+  }
   
   return (
     <div>
@@ -706,10 +731,18 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         onOk={() => form.submit()}
         okButtonProps={{ disabled: isLoadingModal }}
         onCancel={() => {
-          setIsModalOpen(false)
+          if(selectedSupplierName !== null){
+            setIsCloseWarning(true)
+          }
+          else{
+            setIsModalOpen(false)
           setRadioBtn({ status: true, value: '' })
-          form.resetFields()
+          form.resetFields();
+          setSelectedSupplierName(null);
+          }
+          
         }}
+        maskClosable={selectedSupplierName !== null ? false : true}
       >
       <Spin spinning={isLoadingModal}>
         <Form
@@ -884,6 +917,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
       {/* material used model */}
       <Modal
+      maskClosable={(mtOption.tempproduct.length > 0 ? false : true)}
         className="relative"
         title={
           <div className="flex  justify-center py-3">
@@ -995,6 +1029,20 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </span>
         </div>
         </Spin>
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal"
+      >
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </div>
   )

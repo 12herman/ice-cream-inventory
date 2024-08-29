@@ -23,6 +23,8 @@ import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createStorage } from '../firebase/data-tables/storage'
 import { formatToRupee } from '../js-files/formate-to-rupee'
+import { PiWarningCircleFill } from "react-icons/pi"
+
 const { Search } = Input
 
 export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
@@ -93,6 +95,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     finally{
       setIsProductLoading(false);
       setIsModalOpen(false)
+      setProductOnchangeValue('')
     }
   }
 
@@ -420,6 +423,21 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     setEditingKey('')
   }
 
+  const [productOnchangeValue,setProductOnchangeValue] = useState('');
+  const productOnchange =(value)=>{
+    setProductOnchangeValue(value)
+  };
+
+  const [isCloseWarning,setIsCloseWarning] = useState(false);
+  
+  const warningModalOk=()=>{
+    setIsCloseWarning(false);
+    setIsModalOpen(false)
+    form.resetFields()
+    setProductOnchangeValue('')
+    
+  };
+
   return (
     <div>
       <ul>
@@ -445,6 +463,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               onClick={() => {
                 setIsModalOpen(true)
                 form.resetFields()
+                setProductOnchangeValue('')
               }}
             >
               New Product <IoMdAdd />
@@ -474,13 +493,21 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       </ul>
 
       <Modal
+        maskClosable={productOnchangeValue === '' || productOnchangeValue === undefined || productOnchangeValue === null ? true : false}
         title={<span className='flex justify-center'>NEW PRODUCT</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         okButtonProps={{disabled:isProductLoading}}  
         onCancel={() => {
-          setIsModalOpen(false)
-          form.resetFields()
+          if(productOnchangeValue === '' || productOnchangeValue === undefined || productOnchangeValue === null)
+          {
+            setIsModalOpen(false)
+            form.resetFields()
+          }
+          else{
+            setIsCloseWarning(true)
+          }
+         
         }}
       >
       <Spin spinning={isProductLoading}>
@@ -491,7 +518,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             label="Product Name"
             rules={[{ required: true, message: false }]}
           >
-            <Input placeholder='Enter the Product Name' />
+            <Input onChange={(e)=>productOnchange(e.target.value)} placeholder='Enter the Product Name' />
           </Form.Item>
 
           <Form.Item
@@ -578,6 +605,19 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
           </Form.Item>
         </Form>
         </Spin>
+      </Modal>
+
+      <Modal
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
       </Modal>
     </div>
   )
