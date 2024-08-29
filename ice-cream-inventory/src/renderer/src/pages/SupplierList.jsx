@@ -594,7 +594,6 @@ finally{
       setAmountOnchangeValue('')
   };
 
-console.log(supplierOnchangeValue);
 
 
   return (
