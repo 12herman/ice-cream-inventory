@@ -10,6 +10,7 @@ import { PiUserListBold } from 'react-icons/pi'
 import { GrUserWorker } from 'react-icons/gr'
 import { LuMilk } from 'react-icons/lu'
 import { notification } from 'antd'
+import { FaBoxesPacking } from "react-icons/fa6";
 import Pages from './components/Pages'
 import { getproduct } from './firebase/data-tables/products'
 import { getSupplier } from './firebase/data-tables/supplier'
@@ -219,6 +220,7 @@ const App = () => {
           record.date === dayAfterTomorrow) {
           notification.info({
             message: 'Alert',
+            icon: (<FaBoxesPacking style={{color: '#f26723'}} />),
             duration: 0,
             description: `${record.customername} have a booking on ${record.date}!`
           })
