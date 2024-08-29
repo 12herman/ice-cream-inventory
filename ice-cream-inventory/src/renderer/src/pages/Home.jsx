@@ -204,76 +204,6 @@ const totalPaid = filteredDelivery
     setSelectedTableData(newSelectedTableData)
   }
 
- 
-
-  // const handlePrint = async (record) => {
-  //   const { items, status } = await fetchItemsForDelivery(record.id)
-  //   if (status === 200) {
-  //     let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-  //     let prItems = await prData.map((pr, i) => {
-  //       let matchingData = items.find((item, i) => item.id === pr.id)
-  //       return {
-  //         sno: i + 1,
-  //         ...pr,
-  //         pieceamount: pr.price,
-  //         quantity: pr.quantity + ' ' + pr.unit,
-  //         margin: matchingData.margin,
-  //         price:
-  //           matchingData.numberofpacks * pr.price -
-  //           matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-  //         numberofpacks: matchingData.numberofpacks,
-  //         producttotalamount: matchingData.numberofpacks * pr.price,
-  //         returntype: matchingData.returntype
-  //       }
-  //     });
-
-  //     const printContent = `
-  //       <div>
-  //         <h1>Invoice</h1>
-  //         <p>Customer Details: ${record.customerName}</p>
-  //         <table>
-  //           <thead>
-  //             <tr>
-  //               <th>S.No</th>
-  //               <th>Product Name</th>
-  //               <th>Piece Amount</th>
-  //               <th>Quantity</th>
-  //               <th>Margin</th>
-  //               <th>Price</th>
-  //               <th>Number of Packs</th>
-  //               <th>Total Amount</th>
-  //               <th>Return Type</th>
-  //             </tr>
-  //           </thead>
-  //           <tbody>
-  //             ${prItems.map((item) => `
-  //               <tr>
-  //                 <td>${item.sno}</td>
-  //                 <td>${item.name}</td>
-  //                 <td>${item.pieceamount}</td>
-  //                 <td>${item.quantity}</td>
-  //                 <td>${item.margin}</td>
-  //                 <td>${item.price}</td>
-  //                 <td>${item.numberofpacks}</td>
-  //                 <td>${item.producttotalamount}</td>
-  //                 <td>${item.returntype}</td>
-  //               </tr>
-  //             `).join('')}
-  //           </tbody>
-  //         </table>
-  //       </div>
-  //     `;
-
-  //     const printWindow = window.open('', '', 'height=600,width=800');
-  //     printWindow.document.write('<html><head><title>Invoice</title>');
-  //     printWindow.document.write('</head><body>');
-  //     printWindow.document.write(printContent);
-  //     printWindow.document.write('</body></html>');
-  //     printWindow.document.close();
-  //     printWindow.print();
-  //   }
-  // }
-
   const componentRef = useRef()
   const printRef = useRef()
   const [isPrinting, setIsPrinting] = useState(false);
@@ -287,6 +217,9 @@ const totalPaid = filteredDelivery
 
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
+    const result = await getCustomerById(record.customerid)
+    const gstin = result.customer?.gstin || '';
+    const location = result.customer?.location || '';
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -309,13 +242,20 @@ const totalPaid = filteredDelivery
         ...pre,
         data: prItems,
         isGenerate: true,
-        customerdetails: record
+        customerdetails: {
+          ...record,
+          gstin: gstin,
+          location: location,
+        }
       }))
     }
   }
 
   const handlePrint = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
+    const result = await getCustomerById(record.customerid)
+    const gstin = result.customer?.gstin || '';
+    const location = result.customer?.location || '';
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -331,14 +271,18 @@ const totalPaid = filteredDelivery
             matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
           numberofpacks: matchingData.numberofpacks,
           producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
+          returntype: matchingData.returntype,
         }
       })
       await setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
         isGenerate: false,
-        customerdetails: record
+        customerdetails: {
+          ...record,
+          gstin: gstin,
+          location: location,
+        }
       }))
     }
   }
@@ -517,130 +461,6 @@ const totalPaid = filteredDelivery
           </span>
         </li>
 
-        {/* <li  className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
-        <Card onClick={() => handleCardClick('totalSales')}
-             style={{ cursor: 'pointer', borderColor: totalSales > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-              
-                  title="Total Sales"
-                  value={totalSales}
-                  precision={2}
-                  valueStyle={{
-                    color: totalSales > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-
-          <Card
-            onClick={() => handleCardClick('totalSpend')}
-            style={{ cursor: 'pointer', borderColor: totalSpend > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Spending"
-              value={totalSpend}
-              precision={2}
-              valueStyle={{
-                color: totalSpend > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
-
-          <Card
-            onClick={() => handleCardClick('totalProfit')}
-            style={{ cursor: 'pointer', borderColor: totalProfit > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Profit"
-              value={totalProfit}
-              precision={2}
-              valueStyle={{
-                color: totalProfit > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
-
-          <Card
-            onClick={() => handleCardClick('totalCustomers')}
-            style={{
-              cursor: 'pointer',
-              borderColor: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-            }}
-          >
-            <Statistic
-              title="Total Customer"
-              value={totalCustomers}
-              valueStyle={{
-                color: totalCustomers > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<IoPerson />}
-            />
-          </Card>
-
-          <Card
-            onClick={() => handleCardClick('totalPaid')}
-            style={{ cursor: 'pointer', borderColor: totalPaid > 0 ? '#3f8600' : '#cf1322' }}
-          >
-            <Statistic
-              title="Total Paid"
-              value={totalPaid}
-              precision={2}
-              valueStyle={{
-                color: totalPaid > 0 ? '#3f8600' : '#cf1322'
-              }}
-              prefix={<FaRupeeSign />}
-            />
-          </Card>
-
-              <Card
-                onClick={() => handleCardClick('totalUnpaid')}
-                style={{ cursor: 'pointer', borderColor: totalUnpaid > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Unpaid"
-                  value={totalUnpaid}
-                  precision={2}
-                  valueStyle={{
-                    color: totalUnpaid > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-              <Card
-                onClick={() => handleCardClick('totalQuickSale')}
-                style={{
-                  cursor: 'pointer',
-                  borderColor: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-                }}
-              >
-                <Statistic
-                  title="Total Quick Sale"
-                  value={totalQuickSale}
-                  precision={2}
-                  valueStyle={{
-                    color: totalQuickSale > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<FaRupeeSign />}
-                />
-              </Card>
-              <Card
-                onClick={() => handleCardClick('totalBooking')}
-                style={{ cursor: 'pointer', borderColor: totalBooking > 0 ? '#3f8600' : '#cf1322' }}
-              >
-                <Statistic
-                  title="Total Booking"
-                  value={totalBooking}
-                  valueStyle={{
-                    color: totalBooking > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={<IoPerson />}
-                />
-              </Card>
-        </li> */}
-
         <ul className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
   {cardsData.map(card => {
     const isActive = activeCard === card.key;
@@ -716,7 +536,7 @@ const totalPaid = filteredDelivery
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <div ref={componentRef}>
-          <section className="w-[90%] mx-auto mt-14">
+          <section className="w-[90%] mx-auto mt-8">
             <ul className="flex justify-center items-center gap-x-5">
               <li>
                 {' '}
@@ -743,20 +563,24 @@ const totalPaid = filteredDelivery
                       : null}
                   </span>
                 </div>
-                <div>
-                  <span className="font-bold">Name:</span>{' '}
+                <div className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}>
+                  <span className="font-bold">Customer Name:</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.customername
                       : null}
                   </span>
                 </div>
-                <div>
+                <div className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}>
                   <span className="font-bold">Customer GSTIN:</span>{' '}
                   <span>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.gstin
-                      : null}
+                    {invoiceDatas.customerdetails.gstin ? invoiceDatas.customerdetails.gstin : 'N/A'}
+                  </span>
+                </div>
+                <div className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}>
+                  <span className="font-bold">Customer Address:</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.location ? invoiceDatas.customerdetails.location : 'N/A'}
                   </span>
                 </div>
               </li>
@@ -832,7 +656,7 @@ const totalPaid = filteredDelivery
                   : null}
               </span>
             </p> 
-            <p className="text-end mt-24 p-4">
+            <p className="text-end mt-28 p-2">
               Authorised Signature
             </p>
           </section>
