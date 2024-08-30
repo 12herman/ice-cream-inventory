@@ -161,7 +161,7 @@ finally{
       dataIndex: 'sno',
       key: 'sno',
       render: (text, record, index) => <span>{index + 1}</span>,
-      width: 80
+      width: 50
     },
     {
       title: 'Date',
@@ -176,7 +176,7 @@ finally{
       width: 115
     },
     {
-      title: 'Material Name',
+      title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
       render: (text, record) => {
@@ -243,7 +243,7 @@ finally{
     {
       title: 'S.No',
       key: 'sno',
-      width: 80,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -257,7 +257,7 @@ finally{
       }
     },
     {
-      title: 'Supplier Name',
+      title: 'Supplier',
       dataIndex: 'suppliername',
       key: 'suppliername',
       editable: true,
@@ -266,7 +266,7 @@ finally{
       defaultSortOrder: 'ascend'
     },
     {
-      title: 'Material Name',
+      title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
       editable: true,
@@ -282,7 +282,7 @@ finally{
       showSorterTooltip: { target: 'sorter-icon' }
     },
     {
-      title: 'Mobile Number',
+      title: 'Mobile',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,

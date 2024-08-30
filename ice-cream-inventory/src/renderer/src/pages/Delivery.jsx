@@ -135,7 +135,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      width: 80,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -170,7 +170,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       editable: false
     },
     {
-      title: 'Mobile Number',
+      title: 'Mobile',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: false,

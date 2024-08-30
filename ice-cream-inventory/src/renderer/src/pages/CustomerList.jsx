@@ -161,7 +161,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width: 90,
+      width: 50,
       render: (record, _, i) => <span>{i + 1}</span>
     },
 
@@ -243,7 +243,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      width: 80,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -258,7 +258,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       }
     },
     {
-      title: 'Customer Name',
+      title: 'Customer',
       dataIndex: 'customername',
       key: 'customername',
       editable: true,
@@ -278,7 +278,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 139
     },
     {
-      title: 'Mobile Number ',
+      title: 'Mobile',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
@@ -298,7 +298,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       editable: true
     },
     {
-      title: 'Address / Location',
+      title: 'Address',
       dataIndex: 'location',
       key: 'location',
       editable: true,

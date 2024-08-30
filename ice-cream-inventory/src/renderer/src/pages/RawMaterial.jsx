@@ -171,7 +171,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {

@@ -96,7 +96,7 @@ finally{
     {
       title: 'S.No',
       key: 'sno',
-      width: 80,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
@@ -110,7 +110,7 @@ finally{
       }
     },
     {
-      title: 'Employee Name',
+      title: 'Employee',
       dataIndex: 'employeename',
       key: 'employeename',
       editable: true,
@@ -136,7 +136,7 @@ finally{
       showSorterTooltip: { target: 'sorter-icon' }
     },
     {
-      title: 'Mobile Number',
+      title: 'Mobile',
       dataIndex: 'mobilenumber',
       key: 'mobilenumber',
       editable: true,
@@ -496,7 +496,7 @@ finally{
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width: 90,
+      width: 50,
       render: (_, record, index) => <span>{index + 1}</span>
     },
     {

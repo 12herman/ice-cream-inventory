@@ -92,7 +92,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     {
       title: 'S.No',
       key: 'sno',
-      width: 70,
+      width: 50,
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {

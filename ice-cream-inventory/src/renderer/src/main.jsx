@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { getDate } from './firebase/companyfirebase'
-import { ConfigProvider, App as AntdApp } from 'antd'
-import { Modal, Spin } from 'antd'
+import { ConfigProvider, Modal , App as AntdApp } from 'antd'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 
@@ -26,13 +25,13 @@ const Main = () => {
         const expirydateStr = expirydata[0].date
         const expirydate = dayjs(expirydateStr, 'DD/MM/YYYY')
         const today = dayjs()
-        if (expirydate.isSame(today, 'day') || expirydate.isAfter(today)) {
+        if (expirydate.isAfter(today)) {
           setIsValidDate(true)
         } else {
           Modal.info({
-            title: 'Info',
-            content: 'Expiry date is not after today.',
-            centered,
+            title: 'Expired',
+            content: `Application expired on ${expirydate.format('DD/MM/YYYY')}`,
+            centered: true,
             onOk: () => window.location.reload()
           })
         }
