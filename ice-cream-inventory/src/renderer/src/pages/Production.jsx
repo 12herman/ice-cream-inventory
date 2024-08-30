@@ -809,6 +809,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
       
       <Modal
+      zIndex={1001}
         width={300}
         centered={true}
         title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}

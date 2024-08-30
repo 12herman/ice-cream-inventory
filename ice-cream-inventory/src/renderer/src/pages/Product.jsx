@@ -440,6 +440,19 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
 
   return (
     <div>
+    <Modal
+    zIndex={1001}
+        width={300}
+        centered={true}
+        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        open={isCloseWarning}
+        onOk={warningModalOk}
+        onCancel={()=>setIsCloseWarning(false)}
+        okText="ok"
+        cancelText="Cancel"
+        className="center-buttons-modal">
+        <p className='text-center'>Are your sure to Cancel</p>
+      </Modal>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
           <Search
@@ -607,18 +620,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         </Spin>
       </Modal>
 
-      <Modal
-        width={300}
-        centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
-        open={isCloseWarning}
-        onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
-        okText="ok"
-        cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
-      </Modal>
+      
     </div>
   )
 }
