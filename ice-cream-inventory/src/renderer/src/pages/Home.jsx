@@ -552,11 +552,11 @@ const totalPaid = filteredDelivery
             <ul className="mt-5 flex justify-between">
               <li>
                 <div>
-                  <span className="font-bold">GSTIN:</span> 33AAIFN6367K1ZV
+                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
                 <div>
                   {' '}
-                  <span className="font-bold">Date:</span>{' '}
+                  <span className="font-bold">Date :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.date
@@ -564,7 +564,7 @@ const totalPaid = filteredDelivery
                   </span>
                 </div>
                 <div className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}>
-                  <span className="font-bold">Customer Name:</span>{' '}
+                  <span className="font-bold">Customer Name :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.customername
@@ -572,13 +572,13 @@ const totalPaid = filteredDelivery
                   </span>
                 </div>
                 <div className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}>
-                  <span className="font-bold">Customer GSTIN:</span>{' '}
+                  <span className="font-bold">Customer GSTIN :</span>{' '}
                   <span>
                     {invoiceDatas.customerdetails.gstin ? invoiceDatas.customerdetails.gstin : 'N/A'}
                   </span>
                 </div>
                 <div className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}>
-                  <span className="font-bold">Customer Address:</span>{' '}
+                  <span className="font-bold">Customer Address :</span>{' '}
                   <span>
                     {invoiceDatas.customerdetails.location ? invoiceDatas.customerdetails.location : 'N/A'}
                   </span>
@@ -588,7 +588,7 @@ const totalPaid = filteredDelivery
               <li className="text-end flex flex-col items-end">
                 <span>
                   {' '}
-                  <span className="font-bold">Cell:</span> 7373674757
+                  <span className="font-bold">Cell :</span> 7373674757
                 </span>
                 <span>8056848361</span>
               </li>
@@ -631,7 +631,7 @@ const totalPaid = filteredDelivery
               </tbody>
             </table>
             <p className="text-end mt-5">
-              Total Amount:{' '}
+              Total Amount :{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.total)
@@ -639,7 +639,7 @@ const totalPaid = filteredDelivery
               </span>{' '}
             </p>
             <p className="text-end">
-              Billing Amount:{' '}
+              Billing Amount :{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.billamount)
@@ -649,7 +649,7 @@ const totalPaid = filteredDelivery
             <p
               className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
             >
-              Partial Amount:{' '}
+              Partial Amount :{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.partialamount)

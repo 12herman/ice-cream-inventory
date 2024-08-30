@@ -1,19 +1,58 @@
 import './assets/main.css'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { getDate } from './firebase/companyfirebase'
 import { ConfigProvider, App as AntdApp } from 'antd'
+import { Modal, Spin } from 'antd'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+dayjs.extend(customParseFormat)
+
 const theme = {
   token: {
     colorPrimary: '#f26723'
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  // <React.StrictMode>
-  <ConfigProvider theme={theme} getPopupContainer={() => document.getElementById('root')}>
-    <AntdApp>
-      <App />
-    </AntdApp>
-  </ConfigProvider>
-)
+const Main = () => {
+  const [isValidDate, setIsValidDate] = useState(false)
+
+  useEffect(() => {
+    const checkDate = async () => {
+      const { expirydata, status } = await getDate()
+      if (status === 200 && expirydata.length > 0) {
+        const expirydateStr = expirydata[0].date
+        const expirydate = dayjs(expirydateStr, 'DD/MM/YYYY')
+        const today = dayjs()
+        if (expirydate.isSame(today, 'day') || expirydate.isAfter(today)) {
+          setIsValidDate(true)
+        } else {
+          Modal.info({
+            title: 'Info',
+            content: 'Expiry date is not after today.',
+            centered,
+            onOk: () => window.location.reload()
+          })
+        }
+      } else {
+        Modal.error({
+          title: 'Error',
+          content: 'Internet Issue or Contact Admin.',
+          onOk: () => window.location.reload()
+        })
+      }
+    }
+
+    checkDate()
+  }, [])
+
+  return (
+    <ConfigProvider theme={theme} getPopupContainer={() => document.getElementById('root')}>
+      <AntdApp>{isValidDate ? <App /> : null}</AntdApp>
+    </ConfigProvider>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Main />)
