@@ -599,14 +599,14 @@ const totalPaid = filteredDelivery
               <thead>
                 <tr>
                   <th className="p-4 text-left border-b">S.No</th>
-                  <th className="p-4 border-b text-left">Product Name</th>
+                  <th className="p-4 border-b text-left">Product</th>
                   <th className="p-4 border-b text-left">Flavour</th>
-                  <th className="p-4 border-b text-left">Quantity</th>
-                  <th className="p-4 border-b text-left">Piece Amount</th>
-                  <th className="p-4 border-b text-left">Number of Packs</th>
+                  <th className="p-4 border-b text-left">Size</th>
+                  <th className="p-4 border-b text-left">Rate</th>
+                  <th className="p-4 border-b text-left">Qty</th>
                   <th className="p-4 border-b text-left">MRP</th>
                   <th className="p-4 border-b text-left">Margin</th>
-                  <th className="p-4 border-b text-left">Total Amount</th>
+                  <th className="p-4 border-b text-left">Amount</th>
                 </tr>
               </thead>
               <tbody>
