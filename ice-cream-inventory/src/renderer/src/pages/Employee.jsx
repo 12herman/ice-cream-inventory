@@ -827,6 +827,7 @@ finally{
       </ul>
 
       <Modal
+      centered={true}
       maskClosable={employeeOnchange.employeename === '' || employeeOnchange.employeename === undefined || employeeOnchange.employeename === null ? true : false}
         title={<span className='flex justify-center'>NEW EMPLOYEE</span>}
         open={isModalOpen}
@@ -910,6 +911,7 @@ finally{
       </Modal>
 
       <Modal
+        centered={true}
         maskClosable={employeeOnchange.payamount === '' || employeeOnchange.payamount === undefined || employeeOnchange.payamount === null ? true : false}
         open={employeePay.modal}
         onCancel={() => {
@@ -949,7 +951,7 @@ finally{
             label=""
             rules={[{ required: true, message: false }]}
           >
-            <DatePicker format={'DD/MM/YY'} />
+            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
           </Form.Item>
         </Form>
         </Spin>

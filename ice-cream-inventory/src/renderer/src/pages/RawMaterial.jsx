@@ -676,7 +676,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker onChange={(dates) => setDateRange(dates)} />
+            <RangePicker className='w-[16rem]' onChange={(dates) => setDateRange(dates)} />
             <Button disabled={editingKey === ''}>
               Export <PiExport />
             </Button>
@@ -736,6 +736,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       </Modal>
 
       <Modal
+      centered={true}
         title={
           <div className="flex  justify-center py-3">
             <h1>ADD MATERIAL</h1>
@@ -754,7 +755,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           form.resetFields();
           setSelectedSupplierName(null);
           }
-          
         }}
         maskClosable={selectedSupplierName !== null ? false : true}
       >
@@ -796,12 +796,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </Form.Item>
 
           <Form.Item
-            className="mb-3 absolute top-[-3rem]"
+            className=" absolute top-[-3rem]"
             name="date"
             label=""
             rules={[{ required: true, message: false }]}
           >
-            <DatePicker format={'DD/MM/YY'} />
+            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
           </Form.Item>
 
           <Form.Item
@@ -940,6 +940,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </div>
         }
         width={1000}
+        centered={true}
         open={usedMaterialModal}
         onCancel={materialModelCancel}
         okButtonProps={{ disabled: true }}
@@ -963,7 +964,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               layout="vertical"
               initialValues={{ date: dayjs() }}
             >
+             <Form.Item
+                className=" absolute top-[-3rem]"
+                name="date"
+                label=""
+                rules={[{ required: true, message: false }]}
+              >
+                <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
+              </Form.Item>
               <Form.Item
+              className='mb-2'
                 name="materialname"
                 label="Material Name"
                 rules={[{ required: true, message: false }]}
@@ -1016,14 +1026,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 </Form.Item>
               </span>
 
-              <Form.Item
-                className=" absolute top-[-3rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
-              >
-                <DatePicker format={'DD/MM/YYYY'} />
-              </Form.Item>
+             
 
               <Form.Item className=" w-full">
                 <Button className="w-full" type="primary" htmlType="submit">

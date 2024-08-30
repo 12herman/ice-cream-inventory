@@ -784,6 +784,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </Modal>
 
       <Modal
+      centered={true}
       maskClosable={customerOnchange.payamount ==='' || customerOnchange.payamount === undefined || customerOnchange.payamount === null ? true : false}
         title={
           <div className="flex  justify-center py-3">
@@ -824,7 +825,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             name="date"
             label=""
             rules={[{ required: true, message: false }]}>
-            <DatePicker format={'DD/MM/YYYY'} />
+            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
           </Form.Item>
         </Form>
         </Spin>

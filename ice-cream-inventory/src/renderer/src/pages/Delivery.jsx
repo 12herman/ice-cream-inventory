@@ -1728,7 +1728,7 @@ useEffect(() => {
           />
 
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker onChange={(dates) => setDateRange(dates)} />
+            <RangePicker format="DD/MM/YYYY" className='w-[16rem]' onChange={(dates) => setDateRange(dates)} />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
               Export <PiExport />
             </Button>
@@ -1905,8 +1905,9 @@ useEffect(() => {
                 rules={[{ required: true, message: false }]}
               >
                 <DatePicker
+                  className='w-[8.5rem]'
                   onChange={(value, i) => sendDeliveryDateOnchange(value, i)}
-                  format={'DD/MM/YY'}
+                  format={'DD/MM/YYYY'}
                 />
               </Form.Item>
               <Form.Item

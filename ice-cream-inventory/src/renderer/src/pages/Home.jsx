@@ -454,6 +454,7 @@ const totalPaid = filteredDelivery
           <h1 className='font-bold text-base invisible'>Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
+              className='w-[16rem]'
               onChange={handleDateChange}
               defaultValue={[today, today]}
               format="DD/MM/YYYY"

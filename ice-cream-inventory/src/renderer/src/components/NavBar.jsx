@@ -796,6 +796,7 @@ setFirstValue(null)
       </span>
       {/* quick sale */}
       <Modal
+      centered={true}
         maskClosable={isQuickSale.temdata.length > 0 ? false : true}
         footer={
           <div className="flex justify-between items-center">
@@ -934,7 +935,7 @@ setFirstValue(null)
               label=""
               rules={[{ required: true, message: false }]}
             >
-              <DatePicker onChange={qickSaledateChange} format={'DD/MM/YY'} />
+              <DatePicker className='w-[8.5rem]' onChange={qickSaledateChange} format={'DD/MM/YYYY'} />
             </Form.Item>
             <Form.Item name="type" className="mb-1 mt-3">
                 <Radio.Group
@@ -1042,7 +1043,7 @@ setFirstValue(null)
       {/* spendingModal */}
       <Modal
           maskClosable={personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null ? true : false}
-        centered
+        centered={true}
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -1078,7 +1079,7 @@ setFirstValue(null)
             label=""
             rules={[{ required: true, message: false }]}
           >
-            <DatePicker format={'DD/MM/YY'} />
+            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
           </Form.Item>
 
           <Form.Item

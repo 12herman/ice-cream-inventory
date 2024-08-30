@@ -638,7 +638,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           />
 
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker onChange={(dates) => setDateRange(dates)} />
+            <RangePicker className='w-[16rem]' format="DD/MM/YYYY" onChange={(dates) => setDateRange(dates)} />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
               Export <PiExport />
             </Button>
@@ -684,6 +684,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             <h2>ADD PRODUCT</h2>{' '}
           </div>
         }
+        centered={true}
         width={1000}
         open={isModalOpen}
         onOk={addNewProduction}
@@ -783,7 +784,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 label=""
                 rules={[{ required: true, message: false }]}
               >
-                <DatePicker format={'DD/MM/YY'} />
+                <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
               </Form.Item>
 
               <div className="mb-3 w-full">
