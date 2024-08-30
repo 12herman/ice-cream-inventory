@@ -506,6 +506,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       </ul>
 
       <Modal
+        centered={true}
         maskClosable={productOnchangeValue === '' || productOnchangeValue === undefined || productOnchangeValue === null ? true : false}
         title={<span className='flex justify-center'>NEW PRODUCT</span>}
         open={isModalOpen}

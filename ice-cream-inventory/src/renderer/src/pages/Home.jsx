@@ -60,6 +60,8 @@ export default function Home({ datas }) {
     fetchData()
   }, [datas])
 
+
+
   useEffect(() => {
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
@@ -107,6 +109,10 @@ export default function Home({ datas }) {
           })
       )
       setFilteredRawmaterials(newFilteredRawmaterials)
+      
+      // let newSelectedTableData = []
+      // newSelectedTableData = newFilteredDelivery.filter((product) => product.type === 'order')
+      setSelectedTableData(newFilteredDelivery)
     }
 
     fetchFilteredData()
@@ -139,13 +145,11 @@ export default function Home({ datas }) {
   .filter((material) => material.type === 'Added')
   .reduce((total, material) => total + material.price, 0)
 
-const totalProfit = totalSales - totalSpend
+  const totalProfit = totalSales - totalSpend
 
+  const totalCustomers = filteredDelivery.length
 
-const totalCustomers = filteredDelivery.length
-
-
-const totalQuickSale = filteredDelivery
+  const totalQuickSale = filteredDelivery
   .filter((product) => product.type === 'quick')
   .reduce((total, product) => total + product.billamount, 0)
 
@@ -189,14 +193,10 @@ const totalPaid = filteredDelivery
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'booking')
         break
       case 'totalPaid':
-        newSelectedTableData = filteredDelivery.filter(
-          (product) => product.paymentstatus === 'Paid'
-        )
+        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Paid')
         break
       case 'totalUnpaid':
-        newSelectedTableData = filteredDelivery.filter(
-          (product) => product.paymentstatus === 'Unpaid'
-        )
+        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Unpaid')
         break
       default:
         newSelectedTableData = filteredDelivery
@@ -454,6 +454,7 @@ const totalPaid = filteredDelivery
           <h1 className='font-bold text-base invisible'>Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
+              className='w-[16rem]'
               onChange={handleDateChange}
               defaultValue={[today, today]}
               format="DD/MM/YYYY"

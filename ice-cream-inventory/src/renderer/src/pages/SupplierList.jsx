@@ -664,6 +664,7 @@ finally{
       </ul>
 
       <Modal
+      centered={true}
       maskClosable={supplierOnchangeValue === undefined || supplierOnchangeValue=== null || supplierOnchangeValue ==='' ? true : false}
         title={<span className='flex justify-center'>NEW SUPPLIER</span>}
         open={isModalOpen}
@@ -743,6 +744,7 @@ finally{
       </Modal>
 
       <Modal
+      centered={true}
       maskClosable={amountOnchangeValue === '' || amountOnchangeValue === null || amountOnchangeValue === undefined ? true : false}
         title={
           <div className="flex  justify-center py-3">
@@ -778,7 +780,7 @@ finally{
             label=""
             rules={[{ required: true, message: false }]}
           >
-            <DatePicker format={'DD/MM/YYYY'} />
+            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
           </Form.Item>
           {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
