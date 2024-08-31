@@ -46,16 +46,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [customerPayId, setCustomerPayId] = useState(null)
   const [payDetailsData, setPayDetailsData] = useState([])
   const [isVehicleNoDisabled, setIsVehicleNoDisabled] = useState(true)
+  const [customerTbLoading, setCustomerTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.customers.length > 0
-        ? datas.customers
+    setCustomerTbLoading(true)
+      const filteredData = datas.customers
             .filter((data) => data.isdeleted === false)
             .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-        : []
-    )
+        setData(filteredData)
+    setCustomerTbLoading(false)
   }, [datas])
 
   // search
@@ -676,7 +676,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length <= 0 ? true : false}
+              loading={customerTbLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}

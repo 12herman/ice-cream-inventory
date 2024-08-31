@@ -37,10 +37,13 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
   const [dateRange, setDateRange] = useState([null, null])
+  const [isProductionTbLoading, setIsProductionTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
     const fetchData = async () => {
+      setIsProductionTbLoading(true)
+
       const filteredProductions = await Promise.all(
         datas.productions
           .filter((data) => !data.isdeleted && isWithinRange(data.date))
@@ -60,6 +63,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           })
       )
       setData(filteredProductions)
+      setIsProductionTbLoading(false)
     }
 
     fetchData();
@@ -666,7 +670,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length === 0 ? true : false}
+              loading={isProductionTbLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}

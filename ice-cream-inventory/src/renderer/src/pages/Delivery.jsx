@@ -61,7 +61,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
-  const [tableLoading, setTableLoading] = useState(false)
+  const [tableLoading, setTableLoading] = useState(true)
   const partialAmountRef = useRef(null)
 
   const [deliveryBill, setDeliveryBill] = useState({

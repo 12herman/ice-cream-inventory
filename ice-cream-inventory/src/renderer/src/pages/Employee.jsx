@@ -35,8 +35,8 @@ import dayjs from 'dayjs'
 import { addDoc, collection, doc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { formatToRupee } from '../js-files/formate-to-rupee'
-import { debounce } from 'lodash';
-import { PiWarningCircleFill } from "react-icons/pi"
+import { debounce } from 'lodash'
+import { PiWarningCircleFill } from 'react-icons/pi'
 
 export default function Employee({ datas, employeeUpdateMt }) {
   // states
@@ -44,16 +44,16 @@ export default function Employee({ datas, employeeUpdateMt }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
+  const [employeeTbLoading, setEmployeeTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.employees.length > 0
-        ? datas.employees
-            .filter((data) => data.isdeleted === false)
-            .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-        : []
-    )
+    setEmployeeTbLoading(true)
+    const filteredData = datas.employees
+      .filter((data) => data.isdeleted === false)
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    setData(filteredData)
+    setEmployeeTbLoading(false)
   }, [datas])
 
   // search
@@ -67,29 +67,30 @@ export default function Employee({ datas, employeeUpdateMt }) {
     }
   }
 
-  const [isNewEployeeLoading,setIsNewEmployeeLoading] = useState(false)
+  const [isNewEployeeLoading, setIsNewEmployeeLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
     setIsNewEmployeeLoading(true)
-   try{ await createEmployee({
-    ...values,
-    createddate: TimestampJs(),
-    updateddate: '',
-    isdeleted: false
-  })
-  form.resetFields()
-  employeeUpdateMt()
-  message.open({ type: 'success', content: 'Created Successfully' })
-  
-}catch(e){console.log(e)}
-finally{
-  setIsModalOpen(false);
-  setIsNewEmployeeLoading(false)
-  setEmployeeOnchange({
-    employeename:'',
-    payamount:''
-  })
-}
+    try {
+      await createEmployee({
+        ...values,
+        createddate: TimestampJs(),
+        updateddate: '',
+        isdeleted: false
+      })
+      form.resetFields()
+      employeeUpdateMt()
+      message.open({ type: 'success', content: 'Created Successfully' })
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setIsModalOpen(false)
+      setIsNewEmployeeLoading(false)
+      setEmployeeOnchange({
+        employeename: '',
+        payamount: ''
+      })
+    }
   }
 
   const columns = [
@@ -173,8 +174,8 @@ finally{
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
-            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={() => {
                 setEmployeePay((pre) => ({ ...pre, modal: true, name: record }))
               }}
@@ -183,8 +184,8 @@ finally{
               <MdOutlinePayments />
             </Button>
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
-            disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
                 setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
@@ -449,7 +450,7 @@ finally{
     data: dayjs().format('DD/MMM/YYYY')
   })
 
-  const [isEmpLoading,setIsEmpLoading] =useState(false);
+  const [isEmpLoading, setIsEmpLoading] = useState(false)
   const empPayMt = async (value) => {
     setIsEmpLoading(true)
     let { date, description, ...Datas } = value
@@ -471,16 +472,15 @@ finally{
       message.open({ type: 'success', content: 'Pay Added Successfully' })
     } catch (e) {
       console.log(e)
+    } finally {
+      employeePayForm.resetFields()
+      setEmployeePay((pre) => ({ ...pre, modal: false }))
+      setIsEmpLoading(false)
+      setEmployeeOnchange({
+        employeename: '',
+        payamount: ''
+      })
     }
-   finally{
-    employeePayForm.resetFields()
-    setEmployeePay((pre) => ({ ...pre, modal: false }));
-    setIsEmpLoading(false)
-    setEmployeeOnchange({
-      employeename:'',
-      payamount:''
-    })
-   }
   }
 
   // employee pay details
@@ -720,59 +720,62 @@ finally{
     }
   }, [])
 
-  const [empListTb, setEmpListTb] = useState(true);
+  const [empListTb, setEmpListTb] = useState(true)
 
-    // warning modal methods
-    const [isCloseWarning,setIsCloseWarning] = useState(false);
-    const [employeeOnchange,setEmployeeOnchange] = useState({
-      employeename:'',
-      payamount:''
-    });
+  // warning modal methods
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+  const [employeeOnchange, setEmployeeOnchange] = useState({
+    employeename: '',
+    payamount: ''
+  })
 
-    const warningModalOk=()=>{
-      
-      setEmployeePay((pre) => ({ ...pre, modal: false }))
-      employeePayForm.resetFields()
+  const warningModalOk = () => {
+    setEmployeePay((pre) => ({ ...pre, modal: false }))
+    employeePayForm.resetFields()
 
-      setIsModalOpen(false)
-      form.resetFields()
+    setIsModalOpen(false)
+    form.resetFields()
 
-      setIsCloseWarning(false);
+    setIsCloseWarning(false)
+    setEmployeeOnchange({
+      employeename: '',
+      payamount: ''
+    })
+  }
+
+  const employeeOnchangeMt = debounce((e, input) => {
+    if (input === 'employeename') {
       setEmployeeOnchange({
-        employeename:'',
-        payamount:''
+        employeename: e.target.value,
+        payamount: ''
       })
-    };
-  
-    const employeeOnchangeMt= debounce((e,input)=>{
-      if(input === 'employeename'){
-        setEmployeeOnchange({
-          employeename:e.target.value,
-          payamount:''
-        })
-      }
-      else{
-        setEmployeeOnchange({
-          employeename:'',
-          payamount:e
-        })
-      }
-    },200);
+    } else {
+      setEmployeeOnchange({
+        employeename: '',
+        payamount: e
+      })
+    }
+  }, 200)
 
   return (
     <div>
-    <Modal
-    zIndex={1001}
-    centered={true}
+      <Modal
+        zIndex={1001}
+        centered={true}
         width={300}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
+        className="center-buttons-modal"
+      >
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -817,7 +820,7 @@ finally{
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length >= 0 ? false : true}
+              loading={employeeTbLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
@@ -827,133 +830,157 @@ finally{
       </ul>
 
       <Modal
-      centered={true}
-      maskClosable={employeeOnchange.employeename === '' || employeeOnchange.employeename === undefined || employeeOnchange.employeename === null ? true : false}
-        title={<span className='flex justify-center'>NEW EMPLOYEE</span>}
+        centered={true}
+        maskClosable={
+          employeeOnchange.employeename === '' ||
+          employeeOnchange.employeename === undefined ||
+          employeeOnchange.employeename === null
+            ? true
+            : false
+        }
+        title={<span className="flex justify-center">NEW EMPLOYEE</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         onCancel={() => {
-          if(employeeOnchange.employeename === '' || employeeOnchange.employeename === undefined || employeeOnchange.employeename === null)
-          {
+          if (
+            employeeOnchange.employeename === '' ||
+            employeeOnchange.employeename === undefined ||
+            employeeOnchange.employeename === null
+          ) {
             setIsModalOpen(false)
             form.resetFields()
-          }
-          else{
+          } else {
             setIsCloseWarning(true)
           }
-          
         }}
-        okButtonProps={{disabled:isNewEployeeLoading}}
+        okButtonProps={{ disabled: isNewEployeeLoading }}
       >
-      <Spin spinning={isNewEployeeLoading}>
-        <Form
-          initialValues={{ gender: 'Male', position: 'Worker' }}
-          onFinish={createNewProject}
-          form={form}
-          layout="vertical"
-        >
-          <Form.Item
-            className="mb-2"
-            name="employeename"
-            label="Employee Name"
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={isNewEployeeLoading}>
+          <Form
+            initialValues={{ gender: 'Male', position: 'Worker' }}
+            onFinish={createNewProject}
+            form={form}
+            layout="vertical"
           >
-            <Input onChange={(e)=> employeeOnchangeMt(e,'employeename')} placeholder='Enter the Employee Name'/>
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="employeename"
+              label="Employee Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                onChange={(e) => employeeOnchangeMt(e, 'employeename')}
+                placeholder="Enter the Employee Name"
+              />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="gender"
-            label="Gender"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group>
-              <Radio value={'Male'}>Male</Radio>
-              <Radio value={'Female'}>Female</Radio>
-            </Radio.Group>
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="gender"
+              label="Gender"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group>
+                <Radio value={'Male'}>Male</Radio>
+                <Radio value={'Female'}>Female</Radio>
+              </Radio.Group>
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="position"
-            label="Position"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group>
-              <Radio value={'Owner'}>Owner</Radio>
-              <Radio value={'Office Admin'}>Office Admin</Radio>
-              <Radio value={'Worker'}>Worker</Radio>
-            </Radio.Group>
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="position"
+              label="Position"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group>
+                <Radio value={'Owner'}>Owner</Radio>
+                <Radio value={'Office Admin'}>Office Admin</Radio>
+                <Radio value={'Worker'}>Worker</Radio>
+              </Radio.Group>
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2 w-full"
-            name="mobilenumber"
-            label="Mobile Number"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber className="w-full" type='number' placeholder='Enter the Mobile Number' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2 w-full"
+              name="mobilenumber"
+              label="Mobile Number"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber className="w-full" type="number" placeholder="Enter the Mobile Number" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="location"
-            label="Location"
-            rules={[{ required: true, message: false }]}
-          >
-            <Input placeholder='Enter the Location' />
-          </Form.Item>
-        </Form>
+            <Form.Item
+              className="mb-2"
+              name="location"
+              label="Location"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input placeholder="Enter the Location" />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
       <Modal
         centered={true}
-        maskClosable={employeeOnchange.payamount === '' || employeeOnchange.payamount === undefined || employeeOnchange.payamount === null ? true : false}
+        maskClosable={
+          employeeOnchange.payamount === '' ||
+          employeeOnchange.payamount === undefined ||
+          employeeOnchange.payamount === null
+            ? true
+            : false
+        }
         open={employeePay.modal}
         onCancel={() => {
-          if(employeeOnchange.payamount === '' || employeeOnchange.payamount === undefined || employeeOnchange.payamount === null){
+          if (
+            employeeOnchange.payamount === '' ||
+            employeeOnchange.payamount === undefined ||
+            employeeOnchange.payamount === null
+          ) {
             setEmployeePay((pre) => ({ ...pre, modal: false }))
             employeePayForm.resetFields()
-          }
-          else{
+          } else {
             setIsCloseWarning(true)
           }
-          
         }}
         onOk={() => employeePayForm.submit()}
-        okButtonProps={{disabled:isEmpLoading}}
+        okButtonProps={{ disabled: isEmpLoading }}
       >
-      <Spin spinning={isEmpLoading}>
-        <span className="block w-full text-center mb-7 text-2xl font-bold">PAY</span>
-        <span className="w-full text-center block text-sm font-medium uppercase">
-          {employeePay.name.employeename}
-        </span>
-        <Form
-          onFinish={empPayMt}
-          form={employeePayForm}
-          initialValues={{ date: dayjs() }}
-          layout="vertical"
-        >
-          <Form.Item className="mb-1" name="amount" label="Amount">
-            <InputNumber  onChange={(e)=> employeeOnchangeMt(e)} min={0} type='number' className="w-full" placeholder="Enter the Amount" />
-          </Form.Item>
-          <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the Description" />
-          </Form.Item>
-
-          <Form.Item
-            className=" absolute top-5"
-            name="date"
-            label=""
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={isEmpLoading}>
+          <span className="block w-full text-center mb-7 text-2xl font-bold">PAY</span>
+          <span className="w-full text-center block text-sm font-medium uppercase">
+            {employeePay.name.employeename}
+          </span>
+          <Form
+            onFinish={empPayMt}
+            form={employeePayForm}
+            initialValues={{ date: dayjs() }}
+            layout="vertical"
           >
-            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-          </Form.Item>
-        </Form>
+            <Form.Item className="mb-1" name="amount" label="Amount">
+              <InputNumber
+                onChange={(e) => employeeOnchangeMt(e)}
+                min={0}
+                type="number"
+                className="w-full"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
+            <Form.Item className="mb-1" name="description" label="Description">
+              <TextArea rows={4} placeholder="Write the Description" />
+            </Form.Item>
+
+            <Form.Item
+              className=" absolute top-5"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
@@ -981,8 +1008,6 @@ finally{
           />
         </Form>
       </Modal>
-
-      
     </div>
   )
 }

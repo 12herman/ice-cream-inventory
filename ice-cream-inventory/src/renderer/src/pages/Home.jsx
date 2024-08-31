@@ -35,11 +35,12 @@ export default function Home({ datas }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [selectedTableData, setSelectedTableData] = useState([])
-  const [tableLoading, setTableLoading] = useState(false)
+  const [tableLoading, setTableLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true)
+
       const initialData = await Promise.all(
         datas.delivery
           .filter((data) => !data.isdeleted && data.date === today.format('DD/MM/YYYY'))
@@ -54,6 +55,7 @@ export default function Home({ datas }) {
             }
           })
       )
+
       setSelectedTableData(initialData)
       setTableLoading(false)
     }

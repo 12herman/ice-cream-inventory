@@ -31,9 +31,9 @@ import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
-import { PiWarningCircleFill } from "react-icons/pi"
+import { PiWarningCircleFill } from 'react-icons/pi'
 const { Search, TextArea } = Input
-import { debounce } from 'lodash';
+import { debounce } from 'lodash'
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
@@ -46,16 +46,16 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   const [isPayDetailsModelOpen, setIsPayDetailsModelOpen] = useState(false)
   const [supplierPayId, setSupplierPayId] = useState(null)
   const [payDetailsData, setPayDetailsData] = useState([])
+  const [supplierTbLoading, setSupplierTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.suppliers.length > 0
-        ? datas.suppliers
-            .filter((data) => data.isdeleted === false)
-            .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-        : []
-    )
+    setSupplierTbLoading(true)
+    const filteredData = datas.suppliers
+      .filter((data) => data.isdeleted === false)
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    setData(filteredData)
+    setSupplierTbLoading(false)
   }, [datas])
 
   // search
@@ -69,38 +69,40 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     }
   }
 
-  const [supplierModalLoading,setSupplierModalLoading] = useState(false)
+  const [supplierModalLoading, setSupplierModalLoading] = useState(false)
   // create new project
   const createNewSupplier = async (values) => {
-    setSupplierModalLoading(true);
-try{
-  const materialExists = datas.storage.find((storageItem) => storageItem.materialname === values.materialname)
-  await createSupplier({
-    ...values,
-    createddate: TimestampJs(),
-    updateddate: '',
-    isdeleted: false
-  });
-  if (!materialExists) {
-    await createStorage({
-      materialname: values.materialname,
-      alertcount: 0,
-      quantity: 0,
-      category: 'Material List',
-      createddate: TimestampJs()
-    })
-    storageUpdateMt()
-  }
-  form.resetFields()
-  supplierUpdateMt()
-  message.open({ type: 'success', content: 'Supplier Added Successfully' })
-}
-catch(e){console.log(e)}
-finally{
-  setSupplierOnchangeValue('')
-  setSupplierModalLoading(false);
-  setIsModalOpen(false);
-}
+    setSupplierModalLoading(true)
+    try {
+      const materialExists = datas.storage.find(
+        (storageItem) => storageItem.materialname === values.materialname
+      )
+      await createSupplier({
+        ...values,
+        createddate: TimestampJs(),
+        updateddate: '',
+        isdeleted: false
+      })
+      if (!materialExists) {
+        await createStorage({
+          materialname: values.materialname,
+          alertcount: 0,
+          quantity: 0,
+          category: 'Material List',
+          createddate: TimestampJs()
+        })
+        storageUpdateMt()
+      }
+      form.resetFields()
+      supplierUpdateMt()
+      message.open({ type: 'success', content: 'Supplier Added Successfully' })
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setSupplierOnchangeValue('')
+      setSupplierModalLoading(false)
+      setIsModalOpen(false)
+    }
   }
 
   const showPayModal = (record) => {
@@ -113,9 +115,9 @@ finally{
     setIsPayModelOpen(true)
   }
 
-  const [payModalLoading,setPayModalLoading] = useState(false)
+  const [payModalLoading, setPayModalLoading] = useState(false)
   const supplierPay = async (value) => {
-    setPayModalLoading(true);
+    setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
     const payData = { ...Datas, date: formateDate, description: description || '' }
@@ -125,14 +127,13 @@ finally{
       await addDoc(payDetailsRef, payData)
     } catch (e) {
       console.log(e)
+    } finally {
+      payForm.resetFields()
+      setSupplierPayId(null)
+      setIsPayModelOpen(false)
+      setPayModalLoading(false)
+      setAmountOnchangeValue('')
     }
-finally{
-  payForm.resetFields()
-  setSupplierPayId(null)
-  setIsPayModelOpen(false)
-  setPayModalLoading(false)
-  setAmountOnchangeValue('')
-}
   }
 
   const showPayDetailsModal = async (record) => {
@@ -319,7 +320,7 @@ finally{
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
+              className="py-0 text-[0.7rem] h-[1.7rem]"
               onClick={() => showPayModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -327,7 +328,7 @@ finally{
               <MdOutlinePayments />
             </Button>
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
+              className="py-0 text-[0.7rem] h-[1.7rem]"
               onClick={() => showPayDetailsModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -566,50 +567,51 @@ finally{
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
-
+  }, [])
 
   // warning close btns methods
-  const [supplierOnchangeValue,setSupplierOnchangeValue] = useState('');
-  const productOnchange =debounce((value)=>{
+  const [supplierOnchangeValue, setSupplierOnchangeValue] = useState('')
+  const productOnchange = debounce((value) => {
     setSupplierOnchangeValue(value)
-  },200)
+  }, 200)
 
-  const [amountOnchangeValue,setAmountOnchangeValue] = useState('');
-  const amountOnchange=debounce((value)=>{
+  const [amountOnchangeValue, setAmountOnchangeValue] = useState('')
+  const amountOnchange = debounce((value) => {
     setAmountOnchangeValue(value)
-  },200)
+  }, 200)
 
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  
-  const warningModalOk=()=>{
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
 
-    setIsCloseWarning(false);
+  const warningModalOk = () => {
+    setIsCloseWarning(false)
     setIsModalOpen(false)
     form.resetFields()
     setSupplierOnchangeValue('')
-    
-    setIsPayModelOpen(false);
-      setIsCloseWarning(false);
-      setAmountOnchangeValue('')
-  };
 
-
+    setIsPayModelOpen(false)
+    setIsCloseWarning(false)
+    setAmountOnchangeValue('')
+  }
 
   return (
     <div>
-    <Modal
-    zIndex={1001}
-    centered={true}
-        width={300}    
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+      <Modal
+        zIndex={1001}
+        centered={true}
+        width={300}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
+        className="center-buttons-modal"
+      >
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -654,7 +656,7 @@ finally{
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length >= 0 ? false : true}
+              loading={supplierTbLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
@@ -664,88 +666,106 @@ finally{
       </ul>
 
       <Modal
-      centered={true}
-      maskClosable={supplierOnchangeValue === undefined || supplierOnchangeValue=== null || supplierOnchangeValue ==='' ? true : false}
-        title={<span className='flex justify-center'>NEW SUPPLIER</span>}
+        centered={true}
+        maskClosable={
+          supplierOnchangeValue === undefined ||
+          supplierOnchangeValue === null ||
+          supplierOnchangeValue === ''
+            ? true
+            : false
+        }
+        title={<span className="flex justify-center">NEW SUPPLIER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
-        okButtonProps={{disabled: supplierModalLoading}}
+        okButtonProps={{ disabled: supplierModalLoading }}
         onCancel={() => {
-          if(supplierOnchangeValue === undefined || supplierOnchangeValue=== null || supplierOnchangeValue ==='')
-          {
+          if (
+            supplierOnchangeValue === undefined ||
+            supplierOnchangeValue === null ||
+            supplierOnchangeValue === ''
+          ) {
             setIsModalOpen(false)
-          form.resetFields()
-          setSupplierOnchangeValue('')
-          }
-          else{
+            form.resetFields()
+            setSupplierOnchangeValue('')
+          } else {
             setIsCloseWarning(true)
           }
         }}
       >
-      <Spin spinning={supplierModalLoading}>
-        <Form
-          initialValues={{ gender: 'Male' }}
-          onFinish={createNewSupplier}
-          form={form}
-          layout="vertical"
-        >
-          <Form.Item
-            className="mb-2"
-            name="suppliername"
-            label="Supplier Name"
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={supplierModalLoading}>
+          <Form
+            initialValues={{ gender: 'Male' }}
+            onFinish={createNewSupplier}
+            form={form}
+            layout="vertical"
           >
-            <Input onChange={(e)=> productOnchange(e.target.value)} className="w-full" placeholder='Enter the Supplier Name' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="suppliername"
+              label="Supplier Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                onChange={(e) => productOnchange(e.target.value)}
+                className="w-full"
+                placeholder="Enter the Supplier Name"
+              />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="location"
-            label="location"
-            rules={[{ required: true, message: false }]}
-          >
-            <Input placeholder='Enter the Location' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="location"
+              label="location"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input placeholder="Enter the Location" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="materialname"
-            label="Material Name"
-            rules={[{ required: true, message: false }]}
-          >
-            <Input placeholder='Enter the Material Name' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="materialname"
+              label="Material Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input placeholder="Enter the Material Name" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2 w-full"
-            name="mobilenumber"
-            label="Mobile Number"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber className="w-full" type='number' placeholder='Enter the Mobile Number' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2 w-full"
+              name="mobilenumber"
+              label="Mobile Number"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber className="w-full" type="number" placeholder="Enter the Mobile Number" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="gender"
-            label="Gender"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group>
-              <Radio value={'Male'}>Male</Radio>
-              <Radio value={'Female'}>Female</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Form>
+            <Form.Item
+              className="mb-2"
+              name="gender"
+              label="Gender"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group>
+                <Radio value={'Male'}>Male</Radio>
+                <Radio value={'Female'}>Female</Radio>
+              </Radio.Group>
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
       <Modal
-      centered={true}
-      maskClosable={amountOnchangeValue === '' || amountOnchangeValue === null || amountOnchangeValue === undefined ? true : false}
+        centered={true}
+        maskClosable={
+          amountOnchangeValue === '' ||
+          amountOnchangeValue === null ||
+          amountOnchangeValue === undefined
+            ? true
+            : false
+        }
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -754,45 +774,56 @@ finally{
         }
         open={isPayModelOpen}
         onCancel={() => {
-          if(amountOnchangeValue === '' || amountOnchangeValue === null || amountOnchangeValue === undefined)
-          {
-            setIsPayModelOpen(false);
+          if (
+            amountOnchangeValue === '' ||
+            amountOnchangeValue === null ||
+            amountOnchangeValue === undefined
+          ) {
+            setIsPayModelOpen(false)
             setSupplierOnchangeValue('')
-          }
-          else{
+          } else {
             setIsCloseWarning(true)
           }
-          
         }}
-        okButtonProps={{disabled:payModalLoading}}
+        okButtonProps={{ disabled: payModalLoading }}
         onOk={() => payForm.submit()}
       >
-      <Spin className='relative' spinning={payModalLoading}>
-        <Form
-          onFinish={supplierPay}
-          form={payForm}
-          initialValues={{ date: dayjs() }}
-          layout="vertical"
-        >
-        <Form.Item
-            className=" absolute top-[-3rem]"
-            name="date"
-            label=""
-            rules={[{ required: true, message: false }]}
+        <Spin className="relative" spinning={payModalLoading}>
+          <Form
+            onFinish={supplierPay}
+            form={payForm}
+            initialValues={{ date: dayjs() }}
+            layout="vertical"
           >
-            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-          </Form.Item>
-          {/* <Form.Item name="customername" label="Customer Name">
+            <Form.Item
+              className=" absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
+            {/* <Form.Item name="customername" label="Customer Name">
             <Input disabled />
           </Form.Item> */}
-          <Form.Item rules={[{ required: true, message: false }]}  className="mb-1" name="amount" label="Amount">
-            <InputNumber onChange={(e)=> amountOnchange(e)} min={0} className="w-full" type='number' placeholder="Enter the Amount" />
-          </Form.Item>
-          <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the Description" />
-          </Form.Item>
-          
-        </Form>
+            <Form.Item
+              rules={[{ required: true, message: false }]}
+              className="mb-1"
+              name="amount"
+              label="Amount"
+            >
+              <InputNumber
+                onChange={(e) => amountOnchange(e)}
+                min={0}
+                className="w-full"
+                type="number"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
+            <Form.Item className="mb-1" name="description" label="Description">
+              <TextArea rows={4} placeholder="Write the Description" />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
@@ -814,8 +845,6 @@ finally{
           scroll={{ y: historyHeight }}
         />
       </Modal>
-
-      
     </div>
   )
 }

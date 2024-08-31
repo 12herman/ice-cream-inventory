@@ -23,7 +23,7 @@ import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createStorage } from '../firebase/data-tables/storage'
 import { formatToRupee } from '../js-files/formate-to-rupee'
-import { PiWarningCircleFill } from "react-icons/pi"
+import { PiWarningCircleFill } from 'react-icons/pi'
 
 const { Search } = Input
 
@@ -33,14 +33,16 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
+  const [productTbLoading, setProductTbLoading] = useState(true)
 
   // side effect
   useEffect(() => {
-    setData(
-      datas.product
-        .filter((data) => data.isdeleted === false)
-        .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    )
+    setProductTbLoading(true)
+    const filteredData = datas.product
+      .filter((data) => data.isdeleted === false)
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    setData(filteredData)
+    setProductTbLoading(false)
   }, [datas])
 
   // search
@@ -54,11 +56,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     }
   }
 
-  const [isProductLoading,setIsProductLoading] = useState(false)
+  const [isProductLoading, setIsProductLoading] = useState(false)
   // create new project
   const createNewProduct = async (values) => {
     setIsProductLoading(true)
-    try{
+    try {
       const productExists = datas.product.find(
         (storageItem) =>
           storageItem.productname === values.productname &&
@@ -71,17 +73,17 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         updateddate: '',
         isdeleted: false
       })
-      const productId = productRef.res.id;
-    console.log(productId,productRef);
-    if (!productExists) {
+      const productId = productRef.res.id
+      console.log(productId, productRef)
+      if (!productExists) {
         await createStorage({
           productname: values.productname,
           flavour: values.flavour,
           quantity: values.quantity,
           unit: values.unit,
           productperpack: values.productperpack,
-        productid: productId,
-        alertcount: 0,
+          productid: productId,
+          alertcount: 0,
           numberofpacks: 0,
           category: 'Product List',
           createddate: TimestampJs()
@@ -90,10 +92,10 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       }
       form.resetFields()
       productUpdateMt()
-    }
-    catch(e) {console.log(e);}
-    finally{
-      setIsProductLoading(false);
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setIsProductLoading(false)
       setIsModalOpen(false)
       setProductOnchangeValue('')
     }
@@ -166,8 +168,9 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       title: 'Pack Price',
       width: 100,
       key: 'packprice',
-      render: (_, record) =>  <span>{formatToRupee(record.price * record.productperpack,true)}</span>,
-      
+      render: (_, record) => (
+        <span>{formatToRupee(record.price * record.productperpack, true)}</span>
+      )
     },
     {
       title: 'Action',
@@ -237,7 +240,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                   style={{ margin: 0 }}
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber className="w-full" type='number' />
+                  <InputNumber className="w-full" type="number" />
                 </Form.Item>
                 <Form.Item
                   name="unit"
@@ -423,35 +426,39 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     setEditingKey('')
   }
 
-  const [productOnchangeValue,setProductOnchangeValue] = useState('');
-  const productOnchange =(value)=>{
+  const [productOnchangeValue, setProductOnchangeValue] = useState('')
+  const productOnchange = (value) => {
     setProductOnchangeValue(value)
-  };
+  }
 
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  
-  const warningModalOk=()=>{
-    setIsCloseWarning(false);
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+
+  const warningModalOk = () => {
+    setIsCloseWarning(false)
     setIsModalOpen(false)
     form.resetFields()
     setProductOnchangeValue('')
-    
-  };
+  }
 
   return (
     <div>
-    <Modal
-    zIndex={1001}
+      <Modal
+        zIndex={1001}
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
+        className="center-buttons-modal"
+      >
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -496,7 +503,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={data.length === 0 ? true : false}
+              loading={productTbLoading}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
@@ -507,121 +514,129 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
 
       <Modal
         centered={true}
-        maskClosable={productOnchangeValue === '' || productOnchangeValue === undefined || productOnchangeValue === null ? true : false}
-        title={<span className='flex justify-center'>NEW PRODUCT</span>}
+        maskClosable={
+          productOnchangeValue === '' ||
+          productOnchangeValue === undefined ||
+          productOnchangeValue === null
+            ? true
+            : false
+        }
+        title={<span className="flex justify-center">NEW PRODUCT</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
-        okButtonProps={{disabled:isProductLoading}}  
+        okButtonProps={{ disabled: isProductLoading }}
         onCancel={() => {
-          if(productOnchangeValue === '' || productOnchangeValue === undefined || productOnchangeValue === null)
-          {
+          if (
+            productOnchangeValue === '' ||
+            productOnchangeValue === undefined ||
+            productOnchangeValue === null
+          ) {
             setIsModalOpen(false)
             form.resetFields()
-          }
-          else{
+          } else {
             setIsCloseWarning(true)
           }
-         
         }}
       >
-      <Spin spinning={isProductLoading}>
-        <Form onFinish={createNewProduct} form={form} layout="vertical">
-          <Form.Item
-            className="mb-2"
-            name="productname"
-            label="Product Name"
-            rules={[{ required: true, message: false }]}
-          >
-            <Input onChange={(e)=>productOnchange(e.target.value)} placeholder='Enter the Product Name' />
-          </Form.Item>
-
-          <Form.Item
-            className="mb-2"
-            name="flavour"
-            label="Flavour Name"
-            rules={[{ required: true, message: false }]}
-          >
-            <Input placeholder='Enter the Flavour Name'/>
-          </Form.Item>
-
-          <span className="flex gap-x-2">
+        <Spin spinning={isProductLoading}>
+          <Form onFinish={createNewProduct} form={form} layout="vertical">
             <Form.Item
-              className="mb-2 w-full"
-              name="quantity"
-              label="Quantity"
+              className="mb-2"
+              name="productname"
+              label="Product Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                onChange={(e) => productOnchange(e.target.value)}
+                placeholder="Enter the Product Name"
+              />
+            </Form.Item>
+
+            <Form.Item
+              className="mb-2"
+              name="flavour"
+              label="Flavour Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input placeholder="Enter the Flavour Name" />
+            </Form.Item>
+
+            <span className="flex gap-x-2">
+              <Form.Item
+                className="mb-2 w-full"
+                name="quantity"
+                label="Quantity"
+                rules={[
+                  { required: true, message: false },
+                  { type: 'number', message: false }
+                ]}
+              >
+                <InputNumber className="w-full" type="number" placeholder="Enter the Quantity" />
+              </Form.Item>
+
+              <Form.Item
+                className="mb-2"
+                name="unit"
+                label="Unit"
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Select the Unit"
+                  optionFilterProp="label"
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? '')
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? '').toLowerCase())
+                  }
+                  options={[
+                    {
+                      value: 'gm',
+                      label: 'GM'
+                    },
+                    {
+                      value: 'kg',
+                      label: 'KG'
+                    },
+                    {
+                      value: 'ml',
+                      label: 'ML'
+                    },
+                    {
+                      value: 'lt',
+                      label: 'LT'
+                    }
+                  ]}
+                />
+              </Form.Item>
+            </span>
+
+            <Form.Item
+              className="mb-2"
+              name="productperpack"
+              label="Product Per Pack"
               rules={[
                 { required: true, message: false },
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" type='number' placeholder='Enter the Quantity'/>
+              <InputNumber className="w-full" type="number" placeholder="Enter the PPP" />
             </Form.Item>
 
             <Form.Item
               className="mb-2"
-              name="unit"
-              label="Unit"
-              rules={[{ required: true, message: false }]}
+              name="price"
+              label="Price"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
             >
-              <Select
-                showSearch
-                placeholder="Select the Unit"
-                optionFilterProp="label"
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? '')
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? '').toLowerCase())
-                }
-                options={[
-                  {
-                    value: 'gm',
-                    label: 'GM'
-                  },
-                  {
-                    value: 'kg',
-                    label: 'KG'
-                  },
-                  {
-                    value: 'ml',
-                    label: 'ML'
-                  },
-                  {
-                    value: 'lt',
-                    label: 'LT'
-                  }
-                ]}
-              />
+              <InputNumber className="w-full" type="number" placeholder="Enter the Amount" />
             </Form.Item>
-          </span>
-
-          <Form.Item
-            className="mb-2"
-            name="productperpack"
-            label="Product Per Pack"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber className="w-full" type='number' placeholder='Enter the PPP' />
-          </Form.Item>
-
-          <Form.Item
-            className="mb-2"
-            name="price"
-            label="Price"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber className="w-full" type='number' placeholder='Enter the Amount' />
-          </Form.Item>
-        </Form>
+          </Form>
         </Spin>
       </Modal>
-
-      
     </div>
   )
 }

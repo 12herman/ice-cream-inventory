@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import {
   Input,
-  Button,
   Table,
   Segmented,
   Modal,
@@ -11,16 +10,12 @@ import {
   Typography,
   message
 } from 'antd'
-import { MdAccessAlarm } from 'react-icons/md'
-import { LiaUndoAltSolid } from 'react-icons/lia'
 import { LuMilk, LuIceCream } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
-import { AiOutlineDelete } from 'react-icons/ai'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
-import { useForm } from 'antd/es/form/Form'
 const { Search } = Input
 
 export default function Storage({ datas, storageUpdateMt }) {
@@ -31,7 +26,8 @@ export default function Storage({ datas, storageUpdateMt }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState(null)
   const [editingKeys, setEditingKeys] = useState([])
-  const [tableLoading, setTableLoading] = useState(false)
+  const [tableLoading, setTableLoading] = useState(true)
+
   useEffect(() => {
     setTableLoading(true)
     const rawData = datas.storage.filter((data) => data.category === selectedSegment)
@@ -575,7 +571,6 @@ export default function Storage({ datas, storageUpdateMt }) {
               columns={mergedColumns}
               components={{ body: { cell: EditableCell } }}
               dataSource={data}
-              // loading={data.length === 0}
               loading={tableLoading}
               pagination={false}
               scroll={{ x: false, y: false }}
