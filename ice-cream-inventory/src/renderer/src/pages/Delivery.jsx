@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { debounce } from 'lodash';
+import { debounce } from 'lodash'
 import {
   Button,
   Input,
@@ -15,10 +15,9 @@ import {
   Radio,
   Tag,
   Segmented,
-  Spin,
-  
-} from 'antd';
-import { PiWarningCircleFill } from "react-icons/pi";
+  Spin
+} from 'antd'
+import { PiWarningCircleFill } from 'react-icons/pi'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
@@ -44,15 +43,11 @@ import { TbFileDownload } from 'react-icons/tb'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf';
-import companyLogo from '../assets/img/companylogo.png';
-import { customRound } from '../js-files/round-amount';
-
-// tempSingleMargin
-// onPriceChange
+import jsPDF from 'jspdf'
+import companyLogo from '../assets/img/companylogo.png'
+import { customRound } from '../js-files/round-amount'
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
-  //states
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [form4] = Form.useForm()
@@ -80,7 +75,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     billingamount: 0,
     returnmodeltable: false
   })
-  // side effect
+
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true)
@@ -176,14 +171,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       editable: false,
       render: (text, record) => {
         return <span>{text === undefined ? '-' : text}</span>
-      },
+      }
     },
     {
       title: 'Price',
       dataIndex: 'billamount',
       key: 'billamount',
       width: 150,
-      // editable: true,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
@@ -254,16 +248,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               size={17}
               className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer text-green-500'}`}
             />
-            {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-              <MdOutlineModeEditOutline size={20} />
-            </Typography.Link> */}
-
-            {/* <TbFileDownload
-              onClick={() => handleDownloadPdf(record)}
-              size={19}
-              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}
-            /> */}
-
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to download pdf?"
@@ -455,19 +439,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }
 
   const columns2 = [
-    // {
-    //   title: 'S.No',
-    //   dataIndex: 'sno',
-    //   key: 'sno',
-    //   width: 70,
-    // },
-    // {
-    //   title: 'Date',
-    //   dataIndex: 'date',
-    //   key: 'date',
-    //   width: 300,
-    //   editable: false
-    // },
     {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
@@ -488,7 +459,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'quantity',
       key: 'quantity',
       editable: false,
-      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -496,14 +466,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      // width: 100,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -511,7 +479,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
@@ -524,9 +492,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
-      // width: 80,
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -592,7 +559,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'quantity',
       key: 'quantity',
       editable: false,
-      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -600,22 +566,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      // width: 80,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      // width: 100,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text,true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Return Type</span>,
@@ -676,7 +640,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         )
       }
     }
-  ];
+  ]
 
   const tempSingleMargin = async (data) => {
     try {
@@ -702,13 +666,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         message.open({ type: 'info', content: 'No Changes found' })
       } else {
         message.open({ type: 'success', content: 'Updated successfully' })
-      };
+      }
 
       // Update the item in the array while maintaining the order
-      const updatedTempproduct = oldtemDatas.map( (item) => {
+      const updatedTempproduct = oldtemDatas.map((item) => {
         if (item.key === data.key) {
-        let mrpData = item.productprice * row.numberofpacks
-        let priceing =  customRound(mrpData - mrpData * (row.margin / 100))
+          let mrpData = item.productprice * row.numberofpacks
+          let priceing = customRound(mrpData - mrpData * (row.margin / 100))
           if (returnDelivery.state === true) {
             return {
               ...item,
@@ -717,7 +681,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               returntype: row.returntype
             }
           } else {
-          
             return {
               ...item,
               numberofpacks: row.numberofpacks,
@@ -728,15 +691,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           }
         }
         return item
-      });
+      })
 
       const totalAmounts = updatedTempproduct.reduce((acc, item) => {
         return acc + item.price
-      }, 0);
+      }, 0)
 
       const mrpAmount = updatedTempproduct.reduce((acc, item) => {
         return acc + item.mrp
-      }, 0);
+      }, 0)
 
       setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
       setTotalAmount(mrpAmount)
@@ -744,8 +707,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         ...pre,
         tempproduct: updatedTempproduct,
         editingKeys: []
-      }));
-
+      }))
     } catch (e) {
       console.log(e)
     }
@@ -793,7 +755,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     form5.resetFields(['marginvalue'])
   }
   // customer onchange value
-  const customerOnchange = debounce ((value, i) => {
+  const customerOnchange = debounce((value, i) => {
     form2.resetFields(['productname'])
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
@@ -802,16 +764,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setTotalAmount(0)
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-  },300)
+  }, 300)
 
   //product onchange value
-  const productOnchange = debounce ( (value, i) => {
+  const productOnchange = debounce((value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    const flavourOp =  Array.from(
+    const flavourOp = Array.from(
       new Set(
         datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
@@ -819,14 +781,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       )
     ).map((flavour) => ({ label: flavour, value: flavour }))
 
-     setOption((pre) => ({
+    setOption((pre) => ({
       ...pre,
       flavourstatus: false,
       flavour: flavourOp,
       productvalue: value,
       quantitystatus: true
     }))
-  },300)
+  }, 300)
 
   //flavour onchange value
   const flavourOnchange = debounce(async (value, i) => {
@@ -845,7 +807,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       )
     ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
     await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
-  },300)
+  }, 300)
 
   // create add tem product
   const [count, setCount] = useState(0)
@@ -902,12 +864,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     } else if (checkSamePacks) {
       message.open({ type: 'warning', content: 'Product is already added' })
       return
-    }
-    // else if (dbCheck){
-    //   message.open({ type: 'warning', content: 'Product is already added' })
-    //   return
-    // }
-    else {
+    } else {
       setTotalAmount((pre) => pre + findPrice * values.numberofpacks)
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
       deliveryUpdateMt()
@@ -915,9 +872,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       form5.resetFields(['marginvalue'])
       form4.resetFields(['partialamount'])
       form4.setFieldsValue({ paymentstatus: 'Paid' })
-      //form2.resetFields();
     }
-  },200)
+  }, 200)
 
   // remove temp product
   const removeTemProduct = (key) => {
@@ -928,12 +884,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     form4.setFieldsValue({ paymentstatus: 'Paid' })
   }
 
-  const [isDeliverySpiner,setIsDeliverySpiner] = useState(false)
+  const [isDeliverySpiner, setIsDeliverySpiner] = useState(false)
   // add new delivery
   const addNewDelivery = async () => {
     setIsDeliverySpiner(true)
-    // setTableLoading(true)
-    // Filter product datas
     let findPr = datas.product.filter((pr) =>
       option.tempproduct.find(
         (temp) =>
@@ -982,8 +936,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             total: totalamount,
             billamount: totalamount,
             paymentstatus: marginValue.paymentstaus,
-            // margin: marginValue.percentage,
-            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount:
+              partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -994,24 +948,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             total: totalamount,
             billamount: marginValue.amount,
             paymentstatus: marginValue.paymentstaus,
-            // margin: marginValue.percentage,
-            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount:
+              partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
-          
 
     try {
-      //setIsModalOpen(false)
-      //Create new delivery document
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
-      await setOption((prev) => ({ ...prev, tempproduct: [] }));
-      
+      await setOption((prev) => ({ ...prev, tempproduct: [] }))
+
       for (const item of productItems) {
-        
         await addDoc(itemsCollectionRef, item)
         const { product, status } = await getProductById(item.id)
 
@@ -1034,8 +984,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                 numberofpacks: existingProduct.numberofpacks - item.numberofpacks
               })
             }
-            await storageUpdateMt();
-           
+            await storageUpdateMt()
           }
         }
       }
@@ -1047,55 +996,51 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             ? 'Production return successfully'
             : 'Production added successfully'
       })
-      await deliveryUpdateMt();
+      await deliveryUpdateMt()
     } catch (error) {
       // Handle errors
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
-    } finally{
+    } finally {
       setTotalAmount(0)
       setMarginValue((pre) => ({ ...pre, amount: 0 }))
       form5.resetFields(['marginvalue'])
-      form4.resetFields(['partialamount']);
-      await setIsDeliverySpiner(true);
+      form4.resetFields(['partialamount'])
+      await setIsDeliverySpiner(true)
       warningModalOk()
-      await setIsDeliverySpiner(false);
+      await setIsDeliverySpiner(false)
     }
     // setTableLoading(false)
   }
 
   // model close
-  const modelCancel =  async () => {
-  
-   
-    if(option.tempproduct.length > 0 && isDeliverySpiner === false){
-    setIsCloseWarning(true);
-   
-   }else{
-    setIsCloseWarning(false);
-    setIsModalOpen(false)
-    form2.resetFields()
-    form5.resetFields(['marginvalue'])
-    form4.resetFields(['partialamount'])
-    setOption((pre) => ({
-      ...pre,
-      tempproduct: [],
-      flavour: [],
-      flavourstatus: true,
-      quantity: [],
-      quantitystatus: true,
-      customerstatus: true
-    }))
-    setCount(0)
-    setTotalAmount(0)
-    setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    form4.setFieldsValue({ paymentstatus: 'Paid' })
-   }
-    
-  };
+  const modelCancel = async () => {
+    if (option.tempproduct.length > 0 && isDeliverySpiner === false) {
+      setIsCloseWarning(true)
+    } else {
+      setIsCloseWarning(false)
+      setIsModalOpen(false)
+      form2.resetFields()
+      form5.resetFields(['marginvalue'])
+      form4.resetFields(['partialamount'])
+      setOption((pre) => ({
+        ...pre,
+        tempproduct: [],
+        flavour: [],
+        flavourstatus: true,
+        quantity: [],
+        quantitystatus: true,
+        customerstatus: true
+      }))
+      setCount(0)
+      setTotalAmount(0)
+      setMarginValue({ amount: 0, discount: 0, percentage: 0 })
+      form4.setFieldsValue({ paymentstatus: 'Paid' })
+    }
+  }
 
-  const warningModalOk=()=>{
-    setIsCloseWarning(false);
+  const warningModalOk = () => {
+    setIsCloseWarning(false)
     setIsModalOpen(false)
     form2.resetFields()
     form5.resetFields(['marginvalue'])
@@ -1214,9 +1159,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       return
     } else {
       setMtOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newMaterial] }))
-      // form5.resetFields();
-      // form4.resetFields(['partialamount']);
-      // setMarginValue({amount:0,discount:0,percentage:0, paymentstaus:''})
     }
   }
 
@@ -1253,57 +1195,45 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     particalAmount: 0
   })
 
-  // const customRound = (num) => {
-  //   const decimalPart = num % 1;
-  //   if (decimalPart <= 0.4) {
-  //     return Math.floor(num); // Round down
-  //   } else if (decimalPart >= 0.6) {
-  //     return Math.ceil(num); // Round up
-  //   }
-  //   return num;
-  // };
-
   const onPriceChange = debounce((value) => {
-    
     let marginamount = totalamount * (value.marginvalue / 100)
     let finalamounts = customRound(totalamount - marginamount)
-    
+
     setMarginValue((pre) => ({
       ...pre,
       amount: finalamounts,
       percentage: value.marginvalue,
       discount: marginamount
-    }));
+    }))
 
-    let newData = option.tempproduct.map( (item) => {
+    let newData = option.tempproduct.map((item) => {
       let marginamount = item.mrp * (value.marginvalue / 100)
-      let finalamounts =customRound(item.mrp - marginamount)
+      let finalamounts = customRound(item.mrp - marginamount)
       return {
         ...item,
-        price: finalamounts ,
+        price: finalamounts,
         margin: value.marginvalue
       }
     })
     setOption((pre) => ({ ...pre, tempproduct: newData }))
-  },300)
-  //form5.resetFields(['marginvalue'])
+  }, 300)
 
   const radioOnchange = debounce((e) => {
     setMarginValue((pre) => ({ ...pre, paymentstaus: e.target.value }))
-    form4.resetFields(['partialamount']);
-    if(e.target.value === 'Partial'){
+    form4.resetFields(['partialamount'])
+    if (e.target.value === 'Partial') {
       if (partialAmountRef.current) {
         setTimeout(() => {
-          if (partialAmountRef.current ) {
-            const inputField = form.getFieldInstance('partialamount');
+          if (partialAmountRef.current) {
+            const inputField = form.getFieldInstance('partialamount')
             if (inputField) {
-              inputField.focus(); // Call focus on the input element
+              inputField.focus()
             }
           }
-        }, 0);
+        }, 0)
       }
-    };
-  },200)
+    }
+  }, 200)
 
   // Ref for get items collections
   const deliveryColumns = [
@@ -1382,11 +1312,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               pieceamount: pr.price,
               quantity: pr.quantity + ' ' + pr.unit,
               margin: matchingData.margin,
-              price:
-                customRound(matchingData.numberofpacks * pr.price -
-                  matchingData.numberofpacks * pr.price * (matchingData.margin / 100)),
+              price: customRound(
+                matchingData.numberofpacks * pr.price -
+                  matchingData.numberofpacks * pr.price * (matchingData.margin / 100)
+              ),
               numberofpacks: matchingData.numberofpacks,
-              producttotalamount:matchingData.numberofpacks * pr.price,
+              producttotalamount: matchingData.numberofpacks * pr.price,
               returntype: matchingData.returntype
             }
           })
@@ -1401,15 +1332,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     getItems()
   }, [deliveryBill.open])
 
-  const onOpenDeliveryBill = debounce( (data) => {
-     setDeliveryBill((pre) => ({
+  const onOpenDeliveryBill = debounce((data) => {
+    setDeliveryBill((pre) => ({
       ...pre,
       model: true,
       prdata: data,
       open: !deliveryBill.open,
       returnmodeltable: data.type === 'return' ? true : false
     }))
-  },200)
+  }, 200)
 
   // return
   const [returnDelivery, setReturnDelivery] = useState({
@@ -1428,9 +1359,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   }) => {
     const inputNode =
       inputType === 'number' ? (
-        <InputNumber className="w-[4rem]" size="small" min={0} max={100} type='number'/>
+        <InputNumber className="w-[4rem]" size="small" min={0} max={100} type="number" />
       ) : (
-        <InputNumber className="w-[4rem]" size="small" min={1} type='number' />
+        <InputNumber className="w-[4rem]" size="small" min={1} type="number" />
       )
     return (
       <td {...restProps}>
@@ -1550,9 +1481,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   // html to pdf
   const printRef = useRef()
-  const [invoiceDatas, setInvoiceDatas] = useState({ data: [], isGenerate: false,customerdetails:{} })
+  const [invoiceDatas, setInvoiceDatas] = useState({
+    data: [],
+    isGenerate: false,
+    customerdetails: {}
+  })
   const handleDownloadPdf = async (record) => {
-    
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
@@ -1598,123 +1532,156 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       }
     }
     generatePDF()
-  }, [invoiceDatas.isGenerate, printRef]);
+  }, [invoiceDatas.isGenerate, printRef])
 
-  
-  
-const [isCloseWarning,setIsCloseWarning] = useState(false);
-const customerRef = useRef(null);
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+  const customerRef = useRef(null)
 
-useEffect(() => {
-  if (isModalOpen) {
-    setTimeout(() => {
-      if (customerRef.current) {
-        customerRef.current.focus();
-      }
-    }, 0); // Slight delay to ensure modal is fully rendered
-  }
-}, [isModalOpen]);
-
-
-
+  useEffect(() => {
+    if (isModalOpen) {
+      setTimeout(() => {
+        if (customerRef.current) {
+          customerRef.current.focus()
+        }
+      }, 0) // Slight delay to ensure modal is fully rendered
+    }
+  }, [isModalOpen])
 
   return (
     <div>
-    <Modal
+      <Modal
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         zIndex={1001}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
         className="center-buttons-modal"
       >
-        <p className='text-center'>Are your sure to Cancel</p>
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
-      <section className='w-[90%] mx-auto mt-14'>
-      <ul className='flex justify-center items-center gap-x-5'>
-          <li> <img className='w-[6rem]' src={companyLogo} alt='comapanylogo'/> </li>
-          <li className='text-center'> <h1 className='text-xl font-bold'>NEW SARANYA ICE COMPANY</h1> <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p> </li>
-        </ul>
+        <section className="w-[90%] mx-auto mt-14">
+          <ul className="flex justify-center items-center gap-x-5">
+            <li>
+              {' '}
+              <img className="w-[6rem]" src={companyLogo} alt="comapanylogo" />{' '}
+            </li>
+            <li className="text-center">
+              {' '}
+              <h1 className="text-xl font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
+              <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p>{' '}
+            </li>
+          </ul>
 
-        <ul className='mt-5 flex justify-between'>
-        <li> 
-        <div><span className='font-bold'>GSTIN:</span>  33AAIFN6367K1ZV</div> 
-        <div> <span className='font-bold'>Date:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.date : null}</span></div> 
-        <div><span className='font-bold'>Name:</span> <span>{(Object.keys(invoiceDatas.customerdetails).length !== 0) ? invoiceDatas.customerdetails.customername : null}</span></div>
-        </li>
-        
-        <li className='text-end flex flex-col items-end'> 
-        <span> <span className='font-bold'>Cell:</span> 7373674757</span> 
-        <span>8056848361</span> 
-        </li>
-       </ul>
+          <ul className="mt-5 flex justify-between">
+            <li>
+              <div>
+                <span className="font-bold">GSTIN:</span> 33AAIFN6367K1ZV
+              </div>
+              <div>
+                {' '}
+                <span className="font-bold">Date:</span>{' '}
+                <span>
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.date
+                    : null}
+                </span>
+              </div>
+              <div>
+                <span className="font-bold">Name:</span>{' '}
+                <span>
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.customername
+                    : null}
+                </span>
+              </div>
+            </li>
 
-        {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr>
-            <th className="p-4 text-left border-b">S.No</th>
-              <th className="p-4 border-b text-center">Product Name</th>
-              <th className="p-4 border-b text-center">Flavour</th>
-              <th className="p-4 border-b text-center">Quantity</th>
-              <th className="p-4 border-b text-center">Piece Amount</th>
-              <th className="p-4 border-b text-center">Number of Packs</th>
-              <th className="p-4 border-b text-center">MRP</th>
-              <th className="p-4 border-b text-center">Margin</th>
-              <th className="p-4 border-b text-center">Total Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoiceDatas.data.length > 0
-              ? invoiceDatas.data.map((item, i) => (
-                  <tr key={i}>
-                    <td className="p-4 border-b">{i+1}</td>
-                    <td className="p-4 border-b">{item.productname}</td>
-                    <td className="p-4 border-b">{item.flavour}</td>
-                    <td className="p-4 border-b">{item.quantity}</td>
-                    <td className="p-4 border-b">{item.pieceamount}</td>
-                    <td className="p-4 border-b">{item.numberofpacks}</td>
-                    <td className="p-4 border-b">{item.producttotalamount}</td>
-                    <td className="p-4 border-b">{item.margin}</td>
-                    <td className="p-4 border-b">
-                      {item.numberofpacks * item.pieceamount -
-                        (item.numberofpacks * item.pieceamount * item.margin) / 100}
-                    </td>
-                  </tr>
-                ))
-              : 'No Data'}
-          </tbody>
-        </table>
-        <p className="text-end mt-5">
-          Total Amount:{' '}
-          <span className=" font-bold">
-          {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.total) : null}
-          </span>{' '}
-        </p>
-        <p className="text-end">
-          Billing Amount:{' '}
-          <span className=" font-bold">
-           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.billamount) : null}
-          </span>
-        </p>
-        <p className={` ${invoiceDatas.customerdetails.partialamount !==0 ? 'block text-end':'hidden'}`}>
-          Partial Amount:{' '}
-          <span className=" font-bold">
-           {(Object.keys(invoiceDatas.customerdetails).length !== 0) ? formatToRupee(invoiceDatas.customerdetails.partialamount) : null}
-          </span>
-        </p>
+            <li className="text-end flex flex-col items-end">
+              <span>
+                {' '}
+                <span className="font-bold">Cell:</span> 7373674757
+              </span>
+              <span>8056848361</span>
+            </li>
+          </ul>
+
+          {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="p-4 text-left border-b">S.No</th>
+                <th className="p-4 border-b text-center">Product Name</th>
+                <th className="p-4 border-b text-center">Flavour</th>
+                <th className="p-4 border-b text-center">Quantity</th>
+                <th className="p-4 border-b text-center">Piece Amount</th>
+                <th className="p-4 border-b text-center">Number of Packs</th>
+                <th className="p-4 border-b text-center">MRP</th>
+                <th className="p-4 border-b text-center">Margin</th>
+                <th className="p-4 border-b text-center">Total Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoiceDatas.data.length > 0
+                ? invoiceDatas.data.map((item, i) => (
+                    <tr key={i}>
+                      <td className="p-4 border-b">{i + 1}</td>
+                      <td className="p-4 border-b">{item.productname}</td>
+                      <td className="p-4 border-b">{item.flavour}</td>
+                      <td className="p-4 border-b">{item.quantity}</td>
+                      <td className="p-4 border-b">{item.pieceamount}</td>
+                      <td className="p-4 border-b">{item.numberofpacks}</td>
+                      <td className="p-4 border-b">{item.producttotalamount}</td>
+                      <td className="p-4 border-b">{item.margin}</td>
+                      <td className="p-4 border-b">
+                        {item.numberofpacks * item.pieceamount -
+                          (item.numberofpacks * item.pieceamount * item.margin) / 100}
+                      </td>
+                    </tr>
+                  ))
+                : 'No Data'}
+            </tbody>
+          </table>
+          <p className="text-end mt-5">
+            Total Amount:{' '}
+            <span className=" font-bold">
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                ? formatToRupee(invoiceDatas.customerdetails.total)
+                : null}
+            </span>{' '}
+          </p>
+          <p className="text-end">
+            Billing Amount:{' '}
+            <span className=" font-bold">
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                : null}
+            </span>
+          </p>
+          <p
+            className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+          >
+            Partial Amount:{' '}
+            <span className=" font-bold">
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                ? formatToRupee(invoiceDatas.customerdetails.partialamount)
+                : null}
+            </span>
+          </p>
         </section>
       </div>
-     
 
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -1726,9 +1693,12 @@ useEffect(() => {
             onChange={onSearchChange}
             enterButton
           />
-
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker format="DD/MM/YYYY" className='w-[16rem]' onChange={(dates) => setDateRange(dates)} />
+            <RangePicker
+              format="DD/MM/YYYY"
+              className="w-[16rem]"
+              onChange={(dates) => setDateRange(dates)}
+            />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
               Export <PiExport />
             </Button>
@@ -1807,10 +1777,9 @@ useEffect(() => {
                     <InputNumber
                       min={0}
                       max={100}
-                      type='number'
+                      type="number"
                       className="w-[11.5rem]"
                       prefix={<span>Margin(%)</span>}
-                      // addonBefore="Margin(%)"
                     />
                   </Form.Item>
                   <Form.Item>
@@ -1823,13 +1792,13 @@ useEffect(() => {
 
               <Form
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
-                disabled={marginValue.amount === 0 || isDeliverySpiner  ? true : false}
+                disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
                 form={form4}
                 initialValues={{ partialamount: null, price: 'Price', paymentstatus: 'Paid' }}
                 onFinish={addNewDelivery}
               >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
-                  <Form.Item name="paymentstatus"  >
+                  <Form.Item name="paymentstatus">
                     <Radio.Group
                       disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
                       buttonStyle="solid"
@@ -1840,8 +1809,21 @@ useEffect(() => {
                       <Radio.Button value="Partial">PARTIAL</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
-                  <Form.Item name="partialamount" rules={[{ required: (marginValue.paymentstaus === 'Partial' ? true: false ), message: false }]}>
-                    <InputNumber type='number' min={0} ref={partialAmountRef} disabled={marginValue.paymentstaus === 'Partial' ? false : true} />
+                  <Form.Item
+                    name="partialamount"
+                    rules={[
+                      {
+                        required: marginValue.paymentstaus === 'Partial' ? true : false,
+                        message: false
+                      }
+                    ]}
+                  >
+                    <InputNumber
+                      type="number"
+                      min={0}
+                      ref={partialAmountRef}
+                      disabled={marginValue.paymentstaus === 'Partial' ? false : true}
+                    />
                   </Form.Item>
                   <Form.Item>
                     <Button htmlType="submit" type="primary" className=" w-fit">
@@ -1856,7 +1838,8 @@ useEffect(() => {
                 disabled={option.tempproduct.length <= 0 || isDeliverySpiner ? true : false}
                 form={form4}
                 initialValues={{ price: 'Price', paymentstatus: 'Paid' }}
-                onFinish={addNewDelivery}>
+                onFinish={addNewDelivery}
+              >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
                     <Radio.Group
@@ -1874,7 +1857,7 @@ useEffect(() => {
                     <InputNumber
                       className={`${returnDelivery.state === true ? 'hidden' : 'block'}`}
                       disabled={marginValue.paymentstaus === 'Partial' ? false : true}
-                      type='number'
+                      type="number"
                       min={0}
                     />
                   </Form.Item>
@@ -1889,291 +1872,177 @@ useEffect(() => {
           </div>
         }
       >
-      <Spin spinning={isDeliverySpiner}>
-        <div className="grid grid-cols-4 gap-x-3">
-          <span className="col-span-1">
-            <Form
-              onFinish={createTemDeliveryMt}
-              form={form2}
-              layout="vertical"
-              initialValues={{ date: dayjs(), returntype: 'normal' }}
-            >
-             <Form.Item
-                className="mb-3 absolute top-[-2.7rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
+        <Spin spinning={isDeliverySpiner}>
+          <div className="grid grid-cols-4 gap-x-3">
+            <span className="col-span-1">
+              <Form
+                onFinish={createTemDeliveryMt}
+                form={form2}
+                layout="vertical"
+                initialValues={{ date: dayjs(), returntype: 'normal' }}
               >
-                <DatePicker
-                  className='w-[8.5rem]'
-                  onChange={(value, i) => sendDeliveryDateOnchange(value, i)}
-                  format={'DD/MM/YYYY'}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="customername"
-                label="Customer Name"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  autoFocus
-                  ref={customerRef}
-                  showSearch
-                  placeholder="Select the Customer"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.customer}
-                  onChange={(value, i) => customerOnchange(value, i)}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="productname"
-                label="Product Name"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.customerstatus}
-                  showSearch
-                  placeholder="Select the Product"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.product}
-                  onChange={(value, i) => productOnchange(value, i)}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="flavour"
-                label="Flavour"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.flavourstatus}
-                  onChange={(value, i) => flavourOnchange(value, i)}
-                  showSearch
-                  placeholder="Select the Flavour"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.flavour}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1 w-full"
-                name="quantity"
-                label="Quantity"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.quantitystatus}
-                  showSearch
-                  placeholder="Select the Quantity"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.quantity}
-                />
-              </Form.Item>
-
-              <Form.Item
-                className={`mb-1 w-full text-[0.7rem] ${returnDelivery.state === true ? 'block' : 'hidden'}`}
-                name="returntype"
-                label="Return Type"
-                rules={[{ required: returnDelivery.state === true ? true : false, message: false }]}
-              >
-                <Segmented
-                  block
-                  size="middle"
-                  options={[
-                    { label: 'Normal', value: 'normal' },
-                    { label: 'Damage', value: 'damage' }
-                  ]}
-                />
-              </Form.Item>
-
-              <Form.Item
-                className="mb-3"
-                name="numberofpacks"
-                label="Number of Packs"
-                rules={[{ required: true, message: false }]}
-              >
-                <InputNumber type='number' min={1} className="w-full" placeholder='Enter the Number'/>
-              </Form.Item>
-
-             
-
-              <Form.Item className="mb-3 w-full">
-                <Button className="w-full" type="primary" htmlType="submit">
-                  Add To List
-                </Button>
-              </Form.Item>
-              {/* <Button disabled={option.tempproduct.length > 0 ? false:true} onClick={addNewDelivery} className=' w-full'>Add</Button> */}
-            </Form>
-          </span>
-          <span className="col-span-3 relative">
-            <Form form={temform} onFinish={tempSingleMargin}>
-              <Table
-                virtual
-                className="w-full"
-                components={{ body: { cell: EditableCellTem } }}
-                columns={tempMergedColumns}
-                dataSource={option.tempproduct}
-                pagination={{ pageSize: 4 }}
-                scroll={{ x: false, y: false }}
-              />
-            </Form>
-            {/* <div className={ `${option.tempproduct.length > 0 ? 'hidden' : 'w-full flex flex-col justify-center items-center gap-y-1 absolute top-32 '}`}>
-         <LuClipboardList className='text-gray-400' style={{ fontSize: '2rem' }} />
-         <p className='text-[0.6rem] text-gray-400'>No data</p>
-       </div> */}
-          </span>
-        </div>
-
-        <span
-          className={`absolute top-[-2.7rem] right-10 ${marginValue.amount === 0 ? 'hidden' : 'block'}`}
-        >
-          <Tag color="blue">MRP Amount:  <span className="text-sm">{formatToRupee(totalamount)}</span></Tag>
-          {/* <Tag color='yellow'>Discount Amount: {formatToRupee(marginValue.discount)}</Tag> */}
-          {/* <Tag color="orange">Margin: {marginValue.percentage}%</Tag> */}
-          <Tag
-            color="green"
-            className={`${returnDelivery.state === true ? 'hidden' : 'inline-block'}`}
-          >
-            Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
-          </Tag>
-        </span>
-        </Spin>
-      </Modal>
-
-      {/* material used model */}
-      {/* <Modal
-        className="relative"
-        title={
-          <div className="flex  justify-center py-3">
-            {' '}
-            <h2>Add Products</h2>{' '}
-          </div>
-        }
-        width={1000}
-        open={isMaterialModalOpen}
-        onCancel={materialModelCancel}
-        okButtonProps={{ disabled: true }}
-        footer={
-          <Button
-            type="primary"
-            disabled={mtOption.tempproduct.length > 0 ? false : true}
-            onClick={addNewTemMaterial}
-            className=" w-fit"
-          >
-            Add
-          </Button>
-        }
-      >
-        <div className="grid grid-cols-3 gap-x-3">
-          <span className="col-span-1 ">
-            <Form
-              onFinish={createTemMaterial}
-              form={form3}
-              layout="vertical"
-              initialValues={{ date: dayjs() }}
-            >
-              <Form.Item
-                name="material"
-                label="Material Name"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  showSearch
-                  placeholder="Search to Select"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={mtOption.material}
-                  onChange={(value, i) => productOnchange(value, i)}
-                />
-              </Form.Item>
-
-              <span className="flex gap-x-2 ">
                 <Form.Item
-                  className="mb-1 w-full"
-                  name="quantity"
-                  label="Quantity"
+                  className="mb-3 absolute top-[-2.7rem]"
+                  name="date"
+                  label=""
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber className="w-full" />
+                  <DatePicker
+                    className="w-[8.5rem]"
+                    onChange={(value, i) => sendDeliveryDateOnchange(value, i)}
+                    format={'DD/MM/YYYY'}
+                  />
                 </Form.Item>
-
                 <Form.Item
-                  className=""
-                  name="unit"
-                  label="Unit"
+                  className="mb-1"
+                  name="customername"
+                  label="Customer Name"
                   rules={[{ required: true, message: false }]}
                 >
                   <Select
-                    onChange={(value, i) => flavourOnchange(value, i)}
+                    autoFocus
+                    ref={customerRef}
                     showSearch
-                    placeholder="Search to Select"
+                    placeholder="Select the Customer"
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
                         .toLowerCase()
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
+                    options={option.customer}
+                    onChange={(value, i) => customerOnchange(value, i)}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="productname"
+                  label="Product Name"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.customerstatus}
+                    showSearch
+                    placeholder="Select the Product"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.product}
+                    onChange={(value, i) => productOnchange(value, i)}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="flavour"
+                  label="Flavour"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.flavourstatus}
+                    onChange={(value, i) => flavourOnchange(value, i)}
+                    showSearch
+                    placeholder="Select the Flavour"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.flavour}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1 w-full"
+                  name="quantity"
+                  label="Quantity"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.quantitystatus}
+                    showSearch
+                    placeholder="Select the Quantity"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.quantity}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  className={`mb-1 w-full text-[0.7rem] ${returnDelivery.state === true ? 'block' : 'hidden'}`}
+                  name="returntype"
+                  label="Return Type"
+                  rules={[
+                    { required: returnDelivery.state === true ? true : false, message: false }
+                  ]}
+                >
+                  <Segmented
+                    block
+                    size="middle"
                     options={[
-                      { label: 'Liter', value: 'Liter' },
-                      { label: 'MM', value: 'MM' },
-                      { label: 'GM', value: 'GM' },
-                      { label: 'KG', value: 'KG' }
+                      { label: 'Normal', value: 'normal' },
+                      { label: 'Damage', value: 'damage' }
                     ]}
                   />
                 </Form.Item>
-              </span>
 
-              <Form.Item
-                className=" absolute top-8"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
-              >
-                <DatePicker format={'DD/MM/YY'} />
-              </Form.Item>
+                <Form.Item
+                  className="mb-3"
+                  name="numberofpacks"
+                  label="Number of Packs"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <InputNumber
+                    type="number"
+                    min={1}
+                    className="w-full"
+                    placeholder="Enter the Number"
+                  />
+                </Form.Item>
 
-              <Form.Item className=" w-full">
-                <Button className="w-full" type="primary" htmlType="submit">
-                  Add To List
-                </Button>
-              </Form.Item>
-              
-            </Form>
+                <Form.Item className="mb-3 w-full">
+                  <Button className="w-full" type="primary" htmlType="submit">
+                    Add To List
+                  </Button>
+                </Form.Item>
+              </Form>
+            </span>
+            <span className="col-span-3 relative">
+              <Form form={temform} onFinish={tempSingleMargin}>
+                <Table
+                  virtual
+                  className="w-full"
+                  components={{ body: { cell: EditableCellTem } }}
+                  columns={tempMergedColumns}
+                  dataSource={option.tempproduct}
+                  pagination={{ pageSize: 4 }}
+                  scroll={{ x: false, y: false }}
+                />
+              </Form>
+            </span>
+          </div>
+
+          <span
+            className={`absolute top-[-2.7rem] right-10 ${marginValue.amount === 0 ? 'hidden' : 'block'}`}
+          >
+            <Tag color="blue">
+              MRP Amount: <span className="text-sm">{formatToRupee(totalamount)}</span>
+            </Tag>
+            <Tag
+              color="green"
+              className={`${returnDelivery.state === true ? 'hidden' : 'inline-block'}`}
+            >
+              Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
+            </Tag>
           </span>
-          <span className="col-span-2">
-            <Table
-              columns={columns3}
-              dataSource={mtOption.tempproduct}
-              pagination={{ pageSize: 4 }}
-            />
-          </span>
-        </div>
-      </Modal> */}
+        </Spin>
+      </Modal>
 
       {/* Delivery bill model */}
       <Modal
@@ -2197,7 +2066,7 @@ useEffect(() => {
           pagination={false}
           scroll={{ y: tableHeight }}
         />
-        {/* <span>Partialamount Amount: <Tag className='text-[1.1rem]' color='orange'>{formatToRupee(deliveryBill.data.partialamount === undefined ? 0 : deliveryBill.data.partialamount)}</Tag></span> */}
+
         <div className="mt-5">
           <span>
             Total Amount:
@@ -2205,12 +2074,7 @@ useEffect(() => {
               {formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.total)}
             </Tag>
           </span>
-          {/* <span>
-          Margin:{' '}
-          <Tag className="text-[1.1rem]" color="blue">
-            {deliveryBill.data.margin === undefined ? 0 : deliveryBill.data.margin}%
-          </Tag>
-        </span> */}
+
           <span className={`${deliveryBill.returnmodeltable === true ? 'hidden' : 'inline-block'}`}>
             Billing Amount:
             <Tag className="text-[1.1rem]" color="green">
@@ -2221,9 +2085,6 @@ useEffect(() => {
           </span>
         </div>
       </Modal>
-
-      
-
     </div>
   )
 }

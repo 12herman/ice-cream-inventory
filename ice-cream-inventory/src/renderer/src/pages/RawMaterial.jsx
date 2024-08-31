@@ -28,7 +28,7 @@ import dayjs from 'dayjs'
 import { getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
 const { RangePicker } = DatePicker
-import { PiWarningCircleFill } from "react-icons/pi";
+import { PiWarningCircleFill } from 'react-icons/pi'
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
@@ -115,32 +115,30 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
   }
 
-  const [isLoadingModal,setIsLoadingModal] = useState(false)
-  
-  const createAddMaterial = async (values) => {
-    setIsLoadingModal(true);
-    try{
+  const [isLoadingModal, setIsLoadingModal] = useState(false)
 
+  const createAddMaterial = async (values) => {
+    setIsLoadingModal(true)
+    try {
       if (form.getFieldValue('partialamount') === '0') {
         return message.open({ type: 'warning', content: 'Please enter a valid amount' })
       } else {
-        
         const { date, materialname, suppliername, ...otherValues } = await values
         const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
         const findSupplierId = await datas.suppliers.find(
           (supplier) =>
             supplier.materialname === materialname && supplier.suppliername === suppliername
         ).id
-  
+
         await createRawmaterial({
           supplierid: findSupplierId,
           ...otherValues,
           date: formattedDate,
-          partialamount:otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
+          partialamount: otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
           createddate: TimestampJs(),
           isdeleted: false,
           type: 'Added'
-        });
+        })
 
         const existingMaterial = await datas.storage.find(
           (storageItem) =>
@@ -151,18 +149,17 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           await updateStorage(existingMaterial.id, {
             quantity: existingMaterial.quantity + otherValues.quantity
           })
-          storageUpdateMt();
+          storageUpdateMt()
         }
         form.resetFields()
         rawmaterialUpdateMt()
         setIsModalOpen(false)
         setRadioBtn({ status: true, value: '' })
-        setSelectedSupplierName(null);
+        setSelectedSupplierName(null)
       }
-    }catch(error){
+    } catch (error) {
       console.log(error)
-    }
-    finally{
+    } finally {
       setIsLoadingModal(false)
     }
   }
@@ -190,25 +187,23 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'createddate',
       sorter: (a, b) => {
         const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format);
-        const dateB = dayjs(b.createddate, format);
-        return dateB.isAfter(dateA) ? -1 : 1;
+        const dateA = dayjs(a.createddate, format)
+        const dateB = dayjs(b.createddate, format)
+        return dateB.isAfter(dateA) ? -1 : 1
       },
       defaultSortOrder: 'descend',
-      width: 115,
+      width: 115
     },
     {
       title: 'Supplier',
       dataIndex: 'suppliername',
       key: 'suppliername',
-      // width: 150,
       editable: true
     },
     {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      // width: 150,
       editable: true
     },
     {
@@ -216,24 +211,24 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'quantity',
       key: 'quantity',
       editable: true,
-       width: 120,
+      width: 120,
       render: (_, record) => {
         return record.quantity + ' ' + record.unit
-      },
+      }
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       editable: true,
-       width: 120
+      width: 120
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       editable: false,
-       width: 80,
+      width: 80,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text) => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
@@ -243,11 +238,16 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       editable: false,
-       width: 140,
+      width: 140,
       sorter: (a, b) => a.paymentstatus.localeCompare(b.paymentstatus),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text,record) => (
-        <span className='flex gap-x-0'><Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>{text} </Tag> {text === 'Partial' ? <Tag color='blue'>{record.partialamount}</Tag> : null}</span>
+      render: (text, record) => (
+        <span className="flex gap-x-0">
+          <Tag color={text === 'Paid' ? 'green' : text === 'Partial' ? 'yellow' : 'red'}>
+            {text}{' '}
+          </Tag>{' '}
+          {text === 'Partial' ? <Tag color="blue">{record.partialamount}</Tag> : null}
+        </span>
       )
     },
     {
@@ -273,9 +273,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-              <MdOutlineModeEditOutline size={20} />
-            </Typography.Link> */}
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -291,7 +288,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )
       }
     }
-  ];
+  ]
 
   const EditableCell = ({
     editing,
@@ -315,7 +312,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   style={{ margin: 0 }}
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber type='number' className="w-full" />
+                  <InputNumber type="number" className="w-full" />
                 </Form.Item>
                 <Form.Item
                   name="unit"
@@ -354,10 +351,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         )}
       </td>
     )
-  };
-  
-
-
+  }
 
   const isEditing = (record) => record.key === editingKey
   const edit = (record) => {
@@ -571,8 +565,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       quantity: values.quantity + ' ' + values.unit
     }
     // console.log(mtOption.tempproduct, newMaterial)
-    
-    const checkExist = mtOption.tempproduct.find((item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date)
+
+    const checkExist = mtOption.tempproduct.find(
+      (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
+    )
 
     const dbcheckExsit = datas.rawmaterials.find(
       (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
@@ -596,73 +592,69 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // add new material to data base
   const addNewTemMaterial = async () => {
-    setIsLoadMaterialUsedModal(true);
-    try{
-    
-    mtOption.tempproduct.map(async (item) => {
-      let { key, quantity, ...newMaterial } = item
-      let quantityNumber = Number(quantity.split(' ')[0])
-      await createRawmaterial({
-        ...newMaterial,
-        quantity: quantityNumber,
-        type: 'Used',
-        paymentstatus: 'Used'
-      })
-      const existingMaterial = datas.storage.find(
-        (storageItem) =>
-          storageItem.materialname === newMaterial.materialname &&
-          storageItem.category === 'Material List'
-      )
-      if (existingMaterial) {
-        await updateStorage(existingMaterial.id, {
-          quantity: existingMaterial.quantity - quantityNumber
+    setIsLoadMaterialUsedModal(true)
+    try {
+      mtOption.tempproduct.map(async (item) => {
+        let { key, quantity, ...newMaterial } = item
+        let quantityNumber = Number(quantity.split(' ')[0])
+        await createRawmaterial({
+          ...newMaterial,
+          quantity: quantityNumber,
+          type: 'Used',
+          paymentstatus: 'Used'
         })
-        storageUpdateMt()
-      }
-    })
-   await rawmaterialUpdateMt()
-   setUsedMaterialModal(false)
-   usedmaterialform.resetFields()
-   setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
-    message.open({ type: 'success', content: 'Added Successfully' });
-    } 
-    catch (error) {
+        const existingMaterial = datas.storage.find(
+          (storageItem) =>
+            storageItem.materialname === newMaterial.materialname &&
+            storageItem.category === 'Material List'
+        )
+        if (existingMaterial) {
+          await updateStorage(existingMaterial.id, {
+            quantity: existingMaterial.quantity - quantityNumber
+          })
+          storageUpdateMt()
+        }
+      })
+      await rawmaterialUpdateMt()
+      setUsedMaterialModal(false)
+      usedmaterialform.resetFields()
+      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
+      message.open({ type: 'success', content: 'Added Successfully' })
+    } catch (error) {
       console.log(error)
-    }
-    finally {
-     await setIsLoadMaterialUsedModal(false);
+    } finally {
+      await setIsLoadMaterialUsedModal(false)
     }
   }
 
   // model cancel
   const materialModelCancel = () => {
-    if(mtOption.tempproduct.length > 0){
+    if (mtOption.tempproduct.length > 0) {
       setIsCloseWarning(true)
-    }else{
+    } else {
       setUsedMaterialModal(false)
       usedmaterialform.resetFields()
       setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
     }
-  };
+  }
 
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  
-  const warningModalOk=()=>{
-    if(mtOption.tempproduct.length > 0){
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+
+  const warningModalOk = () => {
+    if (mtOption.tempproduct.length > 0) {
       setUsedMaterialModal(false)
       usedmaterialform.resetFields()
-      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }));
+      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
       setIsCloseWarning(false)
-    }
-    else{
-      setIsCloseWarning(false);
+    } else {
+      setIsCloseWarning(false)
       setIsModalOpen(false)
       setRadioBtn({ status: true, value: '' })
-      form.resetFields();
-      setSelectedSupplierName(null);
+      form.resetFields()
+      setSelectedSupplierName(null)
     }
   }
-  
+
   return (
     <div>
       <ul>
@@ -676,7 +668,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker className='w-[16rem]' onChange={(dates) => setDateRange(dates)} />
+            <RangePicker className="w-[16rem]" onChange={(dates) => setDateRange(dates)} />
             <Button disabled={editingKey === ''}>
               Export <PiExport />
             </Button>
@@ -688,12 +680,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               Material Used <IoMdRemove />
             </Button>
             <Button
-            disabled={editingKey !== ''}
+              disabled={editingKey !== ''}
               type="primary"
               onClick={() => {
                 setIsModalOpen(true)
-                form.setFields({paymentstatus:'Paid'});
-                form.resetFields();
+                form.setFields({ paymentstatus: 'Paid' })
+                form.resetFields()
               }}
             >
               Add Material <IoMdAdd />
@@ -721,22 +713,26 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         </li>
       </ul>
       <Modal
-       zIndex={1001}
+        zIndex={1001}
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
         className="center-buttons-modal"
       >
-        <p className='text-center'>Are your sure to Cancel</p>
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
 
       <Modal
-      centered={true}
+        centered={true}
         title={
           <div className="flex  justify-center py-3">
             <h1>ADD MATERIAL</h1>
@@ -746,192 +742,197 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         onOk={() => form.submit()}
         okButtonProps={{ disabled: isLoadingModal }}
         onCancel={() => {
-          if(selectedSupplierName !== null){
+          if (selectedSupplierName !== null) {
             setIsCloseWarning(true)
-          }
-          else{
+          } else {
             setIsModalOpen(false)
-          setRadioBtn({ status: true, value: '' })
-          form.resetFields();
-          setSelectedSupplierName(null);
+            setRadioBtn({ status: true, value: '' })
+            form.resetFields()
+            setSelectedSupplierName(null)
           }
         }}
         maskClosable={selectedSupplierName !== null ? false : true}
       >
-      <Spin spinning={isLoadingModal}>
-        <Form
-          onFinish={createAddMaterial}
-          form={form}
-          layout="vertical"
-          initialValues={{ date: dayjs(),paymentstatus: 'Paid'}}
-        >
-          <Form.Item
-            className="mb-0"
-            name="suppliername"
-            label="Supplier Name"
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={isLoadingModal}>
+          <Form
+            onFinish={createAddMaterial}
+            form={form}
+            layout="vertical"
+            initialValues={{ date: dayjs(), paymentstatus: 'Paid' }}
           >
-            <Select
-              showSearch
-              placeholder="Select the Supplier"
-              optionFilterProp="label"
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? '')
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? '').toLowerCase())
-              }
-              options={Array.from(
-                new Map(
-                  datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
-                ).values()
-              ).map((supplier, index) => {
-                return {
-                  value: supplier.suppliername,
-                  label: supplier.suppliername,
-                  key: index
-                }
-              })}
-              onChange={(value) => setSelectedSupplierName(value)}
-            />
-          </Form.Item>
-
-          <Form.Item
-            className=" absolute top-[-3rem]"
-            name="date"
-            label=""
-            rules={[{ required: true, message: false }]}
-          >
-            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-          </Form.Item>
-
-          <Form.Item
-            className="mb-0"
-            name="materialname"
-            label="Material Name"
-            rules={[{ required: true, message: false }]}
-          >
-            <Select
-              showSearch
-              placeholder="Select the Material"
-              optionFilterProp="label"
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? '')
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? '').toLowerCase())
-              }
-              options={materials}
-            />
-          </Form.Item>
-
-          <span className="flex gap-x-2">
-            <Form.Item
-              className="mb-0 w-full"
-              name="quantity"
-              label="Quantity"
-              rules={[
-                { required: true, message: false },
-                { type: 'number', message: false }
-              ]}
-            >
-              <InputNumber min={0} type='number' className="w-full" placeholder='Enter the Quantity' />
-            </Form.Item>
-
             <Form.Item
               className="mb-0"
-              name="unit"
-              label="Unit"
+              name="suppliername"
+              label="Supplier Name"
               rules={[{ required: true, message: false }]}
             >
               <Select
                 showSearch
-                placeholder="Select the Unit"
+                placeholder="Select the Supplier"
                 optionFilterProp="label"
                 filterSort={(optionA, optionB) =>
                   (optionA?.label ?? '')
                     .toLowerCase()
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
-                options={[
-                  {
-                    value: 'gm',
-                    label: 'GM'
-                  },
-                  {
-                    value: 'ml',
-                    label: 'ML'
-                  },
-                  {
-                    value: 'kg',
-                    label: 'KG'
-                  },
-                  {
-                    value: 'lt',
-                    label: 'LT'
+                options={Array.from(
+                  new Map(
+                    datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
+                  ).values()
+                ).map((supplier, index) => {
+                  return {
+                    value: supplier.suppliername,
+                    label: supplier.suppliername,
+                    key: index
                   }
-                ]}
+                })}
+                onChange={(value) => setSelectedSupplierName(value)}
               />
             </Form.Item>
-          </span>
 
-          {/* <Form.Item className='mb-0' name='productperpack' label="Product Per Pack" rules={[{ required: true, message: false }, { type: 'number', message: false }]}>
-            <InputNumber className='w-full' />
-          </Form.Item> */}
+            <Form.Item
+              className=" absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-0"
-            name="price"
-            label="Price"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber min={0} className="w-full" type='number' placeholder='Enter the Amount' />
-          </Form.Item>
+            <Form.Item
+              className="mb-0"
+              name="materialname"
+              label="Material Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Select
+                showSearch
+                placeholder="Select the Material"
+                optionFilterProp="label"
+                filterSort={(optionA, optionB) =>
+                  (optionA?.label ?? '')
+                    .toLowerCase()
+                    .localeCompare((optionB?.label ?? '').toLowerCase())
+                }
+                options={materials}
+              />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-1"
-            name="paymentstatus"
-            label="Status"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
-              <Radio.Button value="Paid">PAID</Radio.Button>
-              <Radio.Button value="Unpaid">UNPAID</Radio.Button>
-              <Radio.Button value="Partial">PARTIAL</Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+            <span className="flex gap-x-2">
+              <Form.Item
+                className="mb-0 w-full"
+                name="quantity"
+                label="Quantity"
+                rules={[
+                  { required: true, message: false },
+                  { type: 'number', message: false }
+                ]}
+              >
+                <InputNumber
+                  min={0}
+                  type="number"
+                  className="w-full"
+                  placeholder="Enter the Quantity"
+                />
+              </Form.Item>
 
-          <Form.Item
-            className="mb-0"
-            name="partialamount"
-            label="Partial Amount"
-            rules={[
-              {
-                required:
-                  radioBtn.value === 'Partial' || form.getFieldValue('partialamount') === 0
-                    ? true
-                    : false,
-                message: false
-              },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber
-              formatter={(value) => `${value}`}
-              disabled={radioBtn.value === 'Partial' ? false : true}
-              className="w-full"
-              placeholder='Enter the Partial Amount'
-              type='number'
-            />
-          </Form.Item>
-        </Form>
+              <Form.Item
+                className="mb-0"
+                name="unit"
+                label="Unit"
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Select the Unit"
+                  optionFilterProp="label"
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? '')
+                      .toLowerCase()
+                      .localeCompare((optionB?.label ?? '').toLowerCase())
+                  }
+                  options={[
+                    {
+                      value: 'gm',
+                      label: 'GM'
+                    },
+                    {
+                      value: 'ml',
+                      label: 'ML'
+                    },
+                    {
+                      value: 'kg',
+                      label: 'KG'
+                    },
+                    {
+                      value: 'lt',
+                      label: 'LT'
+                    }
+                  ]}
+                />
+              </Form.Item>
+            </span>
+
+            <Form.Item
+              className="mb-0"
+              name="price"
+              label="Price"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber
+                min={0}
+                className="w-full"
+                type="number"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
+
+            <Form.Item
+              className="mb-1"
+              name="paymentstatus"
+              label="Status"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
+                <Radio.Button value="Paid">PAID</Radio.Button>
+                <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+                <Radio.Button value="Partial">PARTIAL</Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+
+            <Form.Item
+              className="mb-0"
+              name="partialamount"
+              label="Partial Amount"
+              rules={[
+                {
+                  required:
+                    radioBtn.value === 'Partial' || form.getFieldValue('partialamount') === 0
+                      ? true
+                      : false,
+                  message: false
+                },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber
+                formatter={(value) => `${value}`}
+                disabled={radioBtn.value === 'Partial' ? false : true}
+                className="w-full"
+                placeholder="Enter the Partial Amount"
+                type="number"
+              />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
       {/* material used model */}
       <Modal
-      maskClosable={(mtOption.tempproduct.length > 0 ? false : true)}
+        maskClosable={mtOption.tempproduct.length > 0 ? false : true}
         className="relative"
         title={
           <div className="flex  justify-center py-3">
@@ -955,100 +956,101 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </Button>
         }
       >
-      <Spin spinning={isLoadMaterialUsedModal}>
-        <div className="grid grid-cols-4 gap-x-3">
-          <span className="col-span-1 ">
-            <Form
-              onFinish={createUsedMaterial}
-              form={usedmaterialform}
-              layout="vertical"
-              initialValues={{ date: dayjs() }}
-            >
-             <Form.Item
-                className=" absolute top-[-3rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
+        <Spin spinning={isLoadMaterialUsedModal}>
+          <div className="grid grid-cols-4 gap-x-3">
+            <span className="col-span-1 ">
+              <Form
+                onFinish={createUsedMaterial}
+                form={usedmaterialform}
+                layout="vertical"
+                initialValues={{ date: dayjs() }}
               >
-                <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-              </Form.Item>
-              <Form.Item
-              className='mb-2'
-                name="materialname"
-                label="Material Name"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  showSearch
-                  placeholder="Select the Material"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={mtOption.material}
-                />
-              </Form.Item>
-
-              <span className="flex gap-x-2 ">
                 <Form.Item
-                  className="mb-1 w-full"
-                  name="quantity"
-                  label="Quantity"
+                  className=" absolute top-[-3rem]"
+                  name="date"
+                  label=""
                   rules={[{ required: true, message: false }]}
                 >
-                  <InputNumber min={0} className="w-full" type='number' placeholder='Enter the Quantity' />
+                  <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
                 </Form.Item>
-
                 <Form.Item
-                  className=""
-                  name="unit"
-                  label="Unit"
+                  className="mb-2"
+                  name="materialname"
+                  label="Material Name"
                   rules={[{ required: true, message: false }]}
                 >
                   <Select
                     showSearch
-                    placeholder="Select"
+                    placeholder="Select the Material"
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
                         .toLowerCase()
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
-                    options={[
-                      { label: 'GM', value: 'gm' },
-                      { label: 'KG', value: 'kg' },
-                      { label: 'LT', value: 'lt' },
-                      { label: 'ML', value: 'ml' },
-                    ]}
+                    options={mtOption.material}
                   />
                 </Form.Item>
-              </span>
 
-             
+                <span className="flex gap-x-2 ">
+                  <Form.Item
+                    className="mb-1 w-full"
+                    name="quantity"
+                    label="Quantity"
+                    rules={[{ required: true, message: false }]}
+                  >
+                    <InputNumber
+                      min={0}
+                      className="w-full"
+                      type="number"
+                      placeholder="Enter the Quantity"
+                    />
+                  </Form.Item>
 
-              <Form.Item className=" w-full">
-                <Button className="w-full" type="primary" htmlType="submit">
-                  Add To List
-                </Button>
-              </Form.Item>
-            </Form>
-          </span>
-          <span className="col-span-3">
-            <Table
-              virtual
-              columns={usedmaterialcolumns}
-              dataSource={mtOption.tempproduct}
-              pagination={{ pageSize: 4 }}
-              scroll={{ x: false, y: false }}
-            />
-          </span>
-        </div>
+                  <Form.Item
+                    className=""
+                    name="unit"
+                    label="Unit"
+                    rules={[{ required: true, message: false }]}
+                  >
+                    <Select
+                      showSearch
+                      placeholder="Select"
+                      optionFilterProp="label"
+                      filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? '')
+                          .toLowerCase()
+                          .localeCompare((optionB?.label ?? '').toLowerCase())
+                      }
+                      options={[
+                        { label: 'GM', value: 'gm' },
+                        { label: 'KG', value: 'kg' },
+                        { label: 'LT', value: 'lt' },
+                        { label: 'ML', value: 'ml' }
+                      ]}
+                    />
+                  </Form.Item>
+                </span>
+
+                <Form.Item className=" w-full">
+                  <Button className="w-full" type="primary" htmlType="submit">
+                    Add To List
+                  </Button>
+                </Form.Item>
+              </Form>
+            </span>
+            <span className="col-span-3">
+              <Table
+                virtual
+                columns={usedmaterialcolumns}
+                dataSource={mtOption.tempproduct}
+                pagination={{ pageSize: 4 }}
+                scroll={{ x: false, y: false }}
+              />
+            </span>
+          </div>
         </Spin>
       </Modal>
-
-     
     </div>
   )
 }

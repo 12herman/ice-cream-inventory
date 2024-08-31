@@ -107,10 +107,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
 
   const showPayModal = (record) => {
     payForm.resetFields()
-    // payForm.setFieldValue({
-    //   amount: record.amount || 'N/A',
-    //   description: record.description || 'N/A'
-    // })
     setSupplierPayId(record.id)
     setIsPayModelOpen(true)
   }
@@ -803,9 +799,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             >
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
-            {/* <Form.Item name="customername" label="Customer Name">
-            <Input disabled />
-          </Form.Item> */}
             <Form.Item
               rules={[{ required: true, message: false }]}
               className="mb-1"

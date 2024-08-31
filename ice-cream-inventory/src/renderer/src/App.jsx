@@ -10,7 +10,7 @@ import { PiUserListBold } from 'react-icons/pi'
 import { GrUserWorker } from 'react-icons/gr'
 import { LuMilk } from 'react-icons/lu'
 import { notification } from 'antd'
-import { FaBoxesPacking } from "react-icons/fa6";
+import { FaBoxesPacking } from 'react-icons/fa6'
 import Pages from './components/Pages'
 import { getproduct } from './firebase/data-tables/products'
 import { getSupplier } from './firebase/data-tables/supplier'
@@ -23,7 +23,6 @@ import { getStorage } from './firebase/data-tables/storage'
 import dayjs from 'dayjs'
 
 const App = () => {
-  // nav state
   const [navPages, setNavPages] = useState({
     pages: [
       'Home',
@@ -51,11 +50,6 @@ const App = () => {
     pagecount: 0
   })
 
-  // theme
-  const toggleDarkMode = () => {
-    document.documentElement.classList.toggle('dark')
-  }
-
   const [datas, setDatas] = useState({
     product: [],
     projectupdatestaus: false,
@@ -75,7 +69,7 @@ const App = () => {
     usedmaterialupdatestaus: false,
     storage: [],
     storageupdatestaus: false
-  });
+  })
 
   const productUpdateMt = () =>
     setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
@@ -146,8 +140,7 @@ const App = () => {
     const fetchData = async () => {
       const { status, delivery } = await getDelivery()
       if (status) {
-        
-        setDatas((pre) => ({ ...pre, delivery }));
+        setDatas((pre) => ({ ...pre, delivery }))
       }
     }
     fetchData()
@@ -210,17 +203,15 @@ const App = () => {
   }, [datas.storage])
 
   useEffect(() => {
-    const today = dayjs().format('DD/MM/YYYY');
-    const tomorrow = dayjs().add(1, 'day').format('DD/MM/YYYY');
-    const dayAfterTomorrow = dayjs().add(2, 'day').format('DD/MM/YYYY');
+    const today = dayjs().format('DD/MM/YYYY')
+    const tomorrow = dayjs().add(1, 'day').format('DD/MM/YYYY')
+    const dayAfterTomorrow = dayjs().add(2, 'day').format('DD/MM/YYYY')
     datas.delivery.forEach((record) => {
       if (record.type === 'booking') {
-        if (record.date === today ||
-          record.date === tomorrow ||
-          record.date === dayAfterTomorrow) {
+        if (record.date === today || record.date === tomorrow || record.date === dayAfterTomorrow) {
           notification.info({
             message: 'Alert',
-            icon: (<FaBoxesPacking style={{color: '#f26723'}} />),
+            icon: <FaBoxesPacking style={{ color: '#f26723' }} />,
             duration: 0,
             description: `${record.customername} have a booking on ${record.date}!`
           })
@@ -231,7 +222,6 @@ const App = () => {
 
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
-      {/* <Button onClick={toggleDarkMode}>Dark</Button> */}
       <NavBar
         deliveryUpdateMt={deliveryUpdateMt}
         datas={datas}

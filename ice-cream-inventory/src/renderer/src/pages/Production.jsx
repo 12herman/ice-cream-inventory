@@ -15,7 +15,6 @@ import {
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
-import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
@@ -27,10 +26,9 @@ import { createProduction, updateProduction } from '../firebase/data-tables/prod
 import jsonToExcel from '../js-files/json-to-excel'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { getProductById } from '../firebase/data-tables/products'
-import { PiWarningCircleFill } from "react-icons/pi"
+import { PiWarningCircleFill } from 'react-icons/pi'
 
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
-  //states
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -43,7 +41,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   useEffect(() => {
     const fetchData = async () => {
       setIsProductionTbLoading(true)
-
       const filteredProductions = await Promise.all(
         datas.productions
           .filter((data) => !data.isdeleted && isWithinRange(data.date))
@@ -65,8 +62,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       setData(filteredProductions)
       setIsProductionTbLoading(false)
     }
-
-    fetchData();
+    fetchData()
   }, [datas.productions, dateRange])
 
   const isWithinRange = (date) => {
@@ -115,9 +111,9 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       key: 'createddate',
       sorter: (a, b) => {
         const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format);
-        const dateB = dayjs(b.createddate, format);
-        return dateB.isAfter(dateA) ? -1 : 1;
+        const dateA = dayjs(a.createddate, format)
+        const dateB = dayjs(b.createddate, format)
+        return dateB.isAfter(dateA) ? -1 : 1
       },
       defaultSortOrder: 'descend',
       editable: false,
@@ -172,9 +168,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           </span>
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
-            {/* <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-              <MdOutlineModeEditOutline size={20} />
-            </Typography.Link> */}
             <Popconfirm
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -366,21 +359,21 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true,
+      editable: true
       //width: 120
     },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true,
+      editable: true
       //width: 80
     },
     {
       title: 'Action',
       dataIndex: 'operation',
       fixed: 'right',
-       width: 80,
+      width: 80,
       render: (_, record) => {
         return (
           <Popconfirm
@@ -502,7 +495,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     } else {
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
       productionUpdateMt()
-      //form2.resetFields();
     }
   }
 
@@ -512,10 +504,10 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     setOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
   }
 
-  const [isAddProductModal,setIsAddProductModal] = useState(false)
+  const [isAddProductModal, setIsAddProductModal] = useState(false)
   // add new production
   const addNewProduction = async () => {
-    setIsAddProductModal(true);
+    setIsAddProductModal(true)
     try {
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
@@ -547,7 +539,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         await storageUpdateMt()
       }
       message.open({ type: 'success', content: 'Production added successfully' })
-      
+
       setIsModalOpen(false)
       form2.resetFields()
       setOption((pre) => ({
@@ -561,17 +553,15 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       setCount(0)
     } catch (error) {
       console.error('An error occurred while adding new production:', error)
-    }
-    finally{
-      setIsAddProductModal(false);
+    } finally {
+      setIsAddProductModal(false)
     }
   }
 
   const modelCancel = () => {
-    if(option.tempproduct.length > 0){
+    if (option.tempproduct.length > 0) {
       setIsCloseWarning(true)
-    }
-    else{
+    } else {
       setIsModalOpen(false)
       form2.resetFields()
       setOption((pre) => ({
@@ -584,7 +574,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       }))
       setCount(0)
     }
-
   }
 
   // export
@@ -609,24 +598,24 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       )
       .map((item) => ({ label: item.materialname, value: item.materialname }))
     setMtOption((pre) => ({ ...pre, material: optionsuppliers }))
-  }, []);
+  }, [])
 
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  
-  const warningModalOk=()=>{
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+
+  const warningModalOk = () => {
     setIsCloseWarning(false)
     setIsModalOpen(false)
-      form2.resetFields()
-      setOption((pre) => ({
-        ...pre,
-        tempproduct: [],
-        flavour: [],
-        flavourstatus: true,
-        quantity: [],
-        quantitystatus: true
-      }))
-      setCount(0)
-  };
+    form2.resetFields()
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: [],
+      flavour: [],
+      flavourstatus: true,
+      quantity: [],
+      quantitystatus: true
+    }))
+    setCount(0)
+  }
 
   return (
     <div>
@@ -642,7 +631,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           />
 
           <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker className='w-[16rem]' format="DD/MM/YYYY" onChange={(dates) => setDateRange(dates)} />
+            <RangePicker
+              className="w-[16rem]"
+              format="DD/MM/YYYY"
+              onChange={(dates) => setDateRange(dates)}
+            />
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
               Export <PiExport />
             </Button>
@@ -680,7 +673,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       </ul>
 
       <Modal
-      maskClosable={option.tempproduct.length > 0 ? false : true}
+        maskClosable={option.tempproduct.length > 0 ? false : true}
         className="relative"
         title={
           <div className="flex  justify-center py-3">
@@ -705,128 +698,135 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           </Button>
         }
       >
-      <Spin spinning={isAddProductModal}>
-        <div className="grid grid-cols-4 gap-x-3">
-          <span className="col-span-1">
-            <Form
-              onFinish={createTemProduction}
-              form={form2}
-              layout="vertical"
-              initialValues={{ date: dayjs() }}
-            >
-              <Form.Item
-                className="mb-1"
-                name="productname"
-                label="Product Name"
-                rules={[{ required: true, message: false }]}
+        <Spin spinning={isAddProductModal}>
+          <div className="grid grid-cols-4 gap-x-3">
+            <span className="col-span-1">
+              <Form
+                onFinish={createTemProduction}
+                form={form2}
+                layout="vertical"
+                initialValues={{ date: dayjs() }}
               >
-                <Select
-                  onChange={(value, i) => productOnchange(value, i)}
-                  showSearch
-                  placeholder="Select the Product"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.product}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="flavour"
-                label="Flavour"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.flavourstatus}
-                  onChange={(value, i) => flavourOnchange(value, i)}
-                  showSearch
-                  placeholder="Select the Flavour"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.flavour}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1 w-full"
-                name="quantity"
-                label="Quantity"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.quantitystatus}
-                  showSearch
-                  placeholder="Select the Quantity"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={option.quantity}
-                />
-              </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="productname"
+                  label="Product Name"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    onChange={(value, i) => productOnchange(value, i)}
+                    showSearch
+                    placeholder="Select the Product"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.product}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="flavour"
+                  label="Flavour"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.flavourstatus}
+                    onChange={(value, i) => flavourOnchange(value, i)}
+                    showSearch
+                    placeholder="Select the Flavour"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.flavour}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1 w-full"
+                  name="quantity"
+                  label="Quantity"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.quantitystatus}
+                    showSearch
+                    placeholder="Select the Quantity"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.quantity}
+                  />
+                </Form.Item>
 
-              <Form.Item
-                className="mb-3"
-                name="numberofpacks"
-                label="Number of Packs"
-                rules={[{ required: true, message: false }]}
-              >
-                <InputNumber min={0} type='number' className="w-full" placeholder='Enter the Number' />
-              </Form.Item>
+                <Form.Item
+                  className="mb-3"
+                  name="numberofpacks"
+                  label="Number of Packs"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <InputNumber
+                    min={0}
+                    type="number"
+                    className="w-full"
+                    placeholder="Enter the Number"
+                  />
+                </Form.Item>
 
-              <Form.Item
-                className=" absolute top-[-2.8rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
-              >
-                <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-              </Form.Item>
+                <Form.Item
+                  className=" absolute top-[-2.8rem]"
+                  name="date"
+                  label=""
+                  rules={[{ required: true, message: false }]}
+                >
+                  <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+                </Form.Item>
 
-              <div className="mb-3 w-full">
-                <Button className="w-full" type="primary" htmlType="submit">
-                  Add To List
-                </Button>
-              </div>
-            </Form>
-          </span>
-          <span className="col-span-3">
-            <Table
-              virtual
-              className='w-full'
-              columns={columns2}
-              dataSource={option.tempproduct}
-              pagination={{ pageSize: 4 }}
-              scroll={{ x:false, y: false }}
-            />
-          </span>
-        </div>
+                <div className="mb-3 w-full">
+                  <Button className="w-full" type="primary" htmlType="submit">
+                    Add To List
+                  </Button>
+                </div>
+              </Form>
+            </span>
+            <span className="col-span-3">
+              <Table
+                virtual
+                className="w-full"
+                columns={columns2}
+                dataSource={option.tempproduct}
+                pagination={{ pageSize: 4 }}
+                scroll={{ x: false, y: false }}
+              />
+            </span>
+          </div>
         </Spin>
       </Modal>
-
-      
       <Modal
-      zIndex={1001}
+        zIndex={1001}
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
+        className="center-buttons-modal"
+      >
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
-
     </div>
   )
 }

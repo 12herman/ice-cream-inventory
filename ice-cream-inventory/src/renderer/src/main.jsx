@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { getDate } from './firebase/companyfirebase'
-import { ConfigProvider, Modal , App as AntdApp } from 'antd'
+import { ConfigProvider, Modal, App as AntdApp } from 'antd'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 

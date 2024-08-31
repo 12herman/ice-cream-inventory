@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { PrinterOutlined, DownloadOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import {
   Card,
-  Col,
-  Row,
   Statistic,
   DatePicker,
   Tag,
@@ -46,7 +44,8 @@ export default function Home({ datas }) {
           .filter((data) => !data.isdeleted && data.date === today.format('DD/MM/YYYY'))
           .map(async (item, index) => {
             const result = await getCustomerById(item.customerid)
-            const customerName = result.status === 200 ? result.customer.customername : item.customername
+            const customerName =
+              result.status === 200 ? result.customer.customername : item.customername
             return {
               ...item,
               sno: index + 1,
@@ -61,8 +60,6 @@ export default function Home({ datas }) {
     }
     fetchData()
   }, [datas])
-
-
 
   useEffect(() => {
     const fetchFilteredData = async () => {
@@ -83,7 +80,8 @@ export default function Home({ datas }) {
           .filter((product) => isWithinRange(product.date))
           .map(async (item) => {
             const result = await getCustomerById(item.customerid)
-            const customerName = result.status === 200 ? result.customer.customername : item.customername
+            const customerName =
+              result.status === 200 ? result.customer.customername : item.customername
             return {
               ...item,
               key: item.id,
@@ -111,9 +109,6 @@ export default function Home({ datas }) {
           })
       )
       setFilteredRawmaterials(newFilteredRawmaterials)
-      
-      // let newSelectedTableData = []
-      // newSelectedTableData = newFilteredDelivery.filter((product) => product.type === 'order')
       setSelectedTableData(newFilteredDelivery)
     }
 
@@ -140,33 +135,32 @@ export default function Home({ datas }) {
   }
 
   const totalSales = filteredDelivery
-  .filter((product) => product.type === 'order')
-  .reduce((total, product) => total + product.billamount, 0)
+    .filter((product) => product.type === 'order')
+    .reduce((total, product) => total + product.billamount, 0)
 
   const totalSpend = filteredRawmaterials
-  .filter((material) => material.type === 'Added')
-  .reduce((total, material) => total + material.price, 0)
+    .filter((material) => material.type === 'Added')
+    .reduce((total, material) => total + material.price, 0)
 
   const totalProfit = totalSales - totalSpend
 
   const totalCustomers = filteredDelivery.length
 
   const totalQuickSale = filteredDelivery
-  .filter((product) => product.type === 'quick')
-  .reduce((total, product) => total + product.billamount, 0)
+    .filter((product) => product.type === 'quick')
+    .reduce((total, product) => total + product.billamount, 0)
 
-  //const totalReturn = filteredDelivery.filter((product) => product.type === 'return').length
-const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
+  const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
 
-const totalPaid = filteredDelivery
-  .filter((product) => product.paymentstatus === 'Paid')
-  .reduce((total, product) => total + product.billamount, 0)
+  const totalPaid = filteredDelivery
+    .filter((product) => product.paymentstatus === 'Paid')
+    .reduce((total, product) => total + product.billamount, 0)
 
   const totalUnpaid = filteredDelivery
-  .filter((product) => product.paymentstatus === 'Unpaid')
-  .reduce((total, product) => total + product.billamount, 0)
+    .filter((product) => product.paymentstatus === 'Unpaid')
+    .reduce((total, product) => total + product.billamount, 0)
 
-  const [activeCard, setActiveCard] = useState('totalCustomers');
+  const [activeCard, setActiveCard] = useState('totalCustomers')
   const cardsData = [
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
     { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
@@ -174,12 +168,17 @@ const totalPaid = filteredDelivery
     { key: 'totalCustomers', title: 'Total Customer', value: totalCustomers, prefix: <IoPerson /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
-    { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
-    { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> },
-  ];
+    {
+      key: 'totalQuickSale',
+      title: 'Total Quick Sale',
+      value: totalQuickSale,
+      prefix: <FaRupeeSign />
+    },
+    { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
+  ]
 
   const handleCardClick = (type) => {
-    setActiveCard(type);
+    setActiveCard(type)
     let newSelectedTableData = []
     switch (type) {
       case 'totalSales':
@@ -195,10 +194,14 @@ const totalPaid = filteredDelivery
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'booking')
         break
       case 'totalPaid':
-        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Paid')
+        newSelectedTableData = filteredDelivery.filter(
+          (product) => product.paymentstatus === 'Paid'
+        )
         break
       case 'totalUnpaid':
-        newSelectedTableData = filteredDelivery.filter((product) => product.paymentstatus === 'Unpaid')
+        newSelectedTableData = filteredDelivery.filter(
+          (product) => product.paymentstatus === 'Unpaid'
+        )
         break
       default:
         newSelectedTableData = filteredDelivery
@@ -208,8 +211,8 @@ const totalPaid = filteredDelivery
 
   const componentRef = useRef()
   const printRef = useRef()
-  const [isPrinting, setIsPrinting] = useState(false);
-  const promiseResolveRef = useRef(null);
+  const [isPrinting, setIsPrinting] = useState(false)
+  const promiseResolveRef = useRef(null)
 
   const [invoiceDatas, setInvoiceDatas] = useState({
     data: [],
@@ -220,8 +223,8 @@ const totalPaid = filteredDelivery
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     const result = await getCustomerById(record.customerid)
-    const gstin = result.customer?.gstin || '';
-    const location = result.customer?.location || '';
+    const gstin = result.customer?.gstin || ''
+    const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -247,7 +250,7 @@ const totalPaid = filteredDelivery
         customerdetails: {
           ...record,
           gstin: gstin,
-          location: location,
+          location: location
         }
       }))
     }
@@ -256,8 +259,8 @@ const totalPaid = filteredDelivery
   const handlePrint = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     const result = await getCustomerById(record.customerid)
-    const gstin = result.customer?.gstin || '';
-    const location = result.customer?.location || '';
+    const gstin = result.customer?.gstin || ''
+    const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -273,7 +276,7 @@ const totalPaid = filteredDelivery
             matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
           numberofpacks: matchingData.numberofpacks,
           producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype,
+          returntype: matchingData.returntype
         }
       })
       await setInvoiceDatas((pre) => ({
@@ -283,7 +286,7 @@ const totalPaid = filteredDelivery
         customerdetails: {
           ...record,
           gstin: gstin,
-          location: location,
+          location: location
         }
       }))
     }
@@ -291,9 +294,9 @@ const totalPaid = filteredDelivery
 
   useEffect(() => {
     if (isPrinting && promiseResolveRef.current) {
-      promiseResolveRef.current();
+      promiseResolveRef.current()
     }
-  }, [isPrinting]);
+  }, [isPrinting])
 
   useEffect(() => {
     const generatePDF = async () => {
@@ -380,37 +383,37 @@ const totalPaid = filteredDelivery
       render: (_, record) => (
         <span>
           <Button
-          className='py-0 text-[0.7rem] h-[1.7rem]'
+            className="py-0 text-[0.7rem] h-[1.7rem]"
             icon={<UnorderedListOutlined />}
             style={{ marginRight: 8 }}
             onClick={() => showModal(record)}
           />
-          <Popconfirm title="Sure to download pdf?" 
-          onConfirm={() => handleDownloadPdf(record)}>
-          <Button
-          className='py-0 text-[0.7rem] h-[1.7rem]'
-            icon={<DownloadOutlined />}
-            style={{ marginRight: 8 }}
-          />
+          <Popconfirm title="Sure to download pdf?" onConfirm={() => handleDownloadPdf(record)}>
+            <Button
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              icon={<DownloadOutlined />}
+              style={{ marginRight: 8 }}
+            />
           </Popconfirm>
 
           <ReactToPrint
-            trigger={() => <Button className='py-0 text-[0.7rem] h-[1.7rem]' icon={<PrinterOutlined />} />}
+            trigger={() => (
+              <Button className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
+            )}
             onBeforeGetContent={async () => {
               return new Promise((resolve) => {
-                promiseResolveRef.current = resolve;
+                promiseResolveRef.current = resolve
                 handlePrint(record).then(() => {
-                  setIsPrinting(true);
+                  setIsPrinting(true)
                 })
-              });
+              })
             }}
             content={() => componentRef.current}
-            onAfterPrint={ () => {
-              promiseResolveRef.current = null;
-              setIsPrinting(false);
+            onAfterPrint={() => {
+              promiseResolveRef.current = null
+              setIsPrinting(false)
             }}
           />
-
         </span>
       )
     }
@@ -453,10 +456,10 @@ const totalPaid = filteredDelivery
     <div>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
-          <h1 className='font-bold text-base invisible'>Dashboard</h1>
+          <h1 className="font-bold text-base invisible">Dashboard</h1>
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker
-              className='w-[16rem]'
+              className="w-[16rem]"
               onChange={handleDateChange}
               defaultValue={[today, today]}
               format="DD/MM/YYYY"
@@ -464,34 +467,40 @@ const totalPaid = filteredDelivery
           </span>
         </li>
 
-        <ul className='card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2'>
-  {cardsData.map(card => {
-    const isActive = activeCard === card.key;
-    return (
-      <Card
-        key={card.key}
-        onClick={() => handleCardClick(card.key)}
-        style={{
-          cursor: 'pointer',
-          borderColor: isActive ? '#f26723' : (card.value > 0 ? '#3f8600' : '#cf1322'),
-          borderWidth: 2,
-          background: isActive ? '#f26723' : '',
-          color: isActive ? '#ffffff' : '',
-        }}
-      >
-        <Statistic
-          title={isActive ? <span className='text-white'>{card.title}</span> : <span>{card.title}</span>}
-          value={card.value}
-          precision={card.key === 'totalCustomers' || card.key === 'totalBooking'  ? 0 : 2}
-          valueStyle={{
-            color: isActive ? '#ffffff' : (card.value > 0 ? '#3f8600' : '#cf1322'),
-          }}
-          prefix={card.prefix}
-        />
-      </Card>
-    );
-  })}
-</ul>
+        <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
+          {cardsData.map((card) => {
+            const isActive = activeCard === card.key
+            return (
+              <Card
+                key={card.key}
+                onClick={() => handleCardClick(card.key)}
+                style={{
+                  cursor: 'pointer',
+                  borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
+                  borderWidth: 2,
+                  background: isActive ? '#f26723' : '',
+                  color: isActive ? '#ffffff' : ''
+                }}
+              >
+                <Statistic
+                  title={
+                    isActive ? (
+                      <span className="text-white">{card.title}</span>
+                    ) : (
+                      <span>{card.title}</span>
+                    )
+                  }
+                  value={card.value}
+                  precision={card.key === 'totalCustomers' || card.key === 'totalBooking' ? 0 : 2}
+                  valueStyle={{
+                    color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
+                  }}
+                  prefix={card.prefix}
+                />
+              </Card>
+            )
+          })}
+        </ul>
 
         <li className="mt-2">
           <Table
@@ -566,7 +575,9 @@ const totalPaid = filteredDelivery
                       : null}
                   </span>
                 </div>
-                <div className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}>
+                <div
+                  className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}
+                >
                   <span className="font-bold">Customer Name :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -574,16 +585,24 @@ const totalPaid = filteredDelivery
                       : null}
                   </span>
                 </div>
-                <div className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}>
+                <div
+                  className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
+                >
                   <span className="font-bold">Customer GSTIN :</span>{' '}
                   <span>
-                    {invoiceDatas.customerdetails.gstin ? invoiceDatas.customerdetails.gstin : 'N/A'}
+                    {invoiceDatas.customerdetails.gstin
+                      ? invoiceDatas.customerdetails.gstin
+                      : 'N/A'}
                   </span>
                 </div>
-                <div className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}>
+                <div
+                  className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
+                >
                   <span className="font-bold">Customer Address :</span>{' '}
                   <span>
-                    {invoiceDatas.customerdetails.location ? invoiceDatas.customerdetails.location : 'N/A'}
+                    {invoiceDatas.customerdetails.location
+                      ? invoiceDatas.customerdetails.location
+                      : 'N/A'}
                   </span>
                 </div>
               </li>
@@ -597,7 +616,6 @@ const totalPaid = filteredDelivery
               </li>
             </ul>
 
-            {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
             <table className="min-w-full border-collapse">
               <thead>
                 <tr>
@@ -658,10 +676,8 @@ const totalPaid = filteredDelivery
                   ? formatToRupee(invoiceDatas.customerdetails.partialamount)
                   : null}
               </span>
-            </p> 
-            <p className="text-end mt-28 p-2">
-              Authorised Signature
             </p>
+            <p className="text-end mt-28 p-2">Authorised Signature</p>
           </section>
         </div>
       </div>

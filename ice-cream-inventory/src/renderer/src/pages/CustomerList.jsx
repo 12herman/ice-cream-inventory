@@ -15,7 +15,7 @@ import {
   Tag,
   Spin
 } from 'antd'
-import { debounce } from 'lodash';
+import { debounce } from 'lodash'
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -32,7 +32,7 @@ import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
-import { PiWarningCircleFill } from "react-icons/pi"
+import { PiWarningCircleFill } from 'react-icons/pi'
 
 export default function CustomerList({ datas, customerUpdateMt }) {
   // states
@@ -51,10 +51,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   // side effect
   useEffect(() => {
     setCustomerTbLoading(true)
-      const filteredData = datas.customers
-            .filter((data) => data.isdeleted === false)
-            .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-        setData(filteredData)
+    const filteredData = datas.customers
+      .filter((data) => data.isdeleted === false)
+      .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
+    setData(filteredData)
     setCustomerTbLoading(false)
   }, [datas])
 
@@ -69,10 +69,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     }
   }
 
-  const[isNewCustomerLoading,setIsNewCustomerLoading] = useState(false)
+  const [isNewCustomerLoading, setIsNewCustomerLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
-    setIsNewCustomerLoading(true);
+    setIsNewCustomerLoading(true)
     try {
       await createCustomer({
         ...values,
@@ -86,29 +86,24 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       message.open({ type: 'success', content: 'Customer Added Successfully' })
     } catch (error) {
       message.open({ type: 'error', content: 'Failed to add customer' })
-    }
-    finally{
+    } finally {
       form.resetFields()
       setIsModalOpen(false)
-      setIsNewCustomerLoading(false);
+      setIsNewCustomerLoading(false)
       setCustomerOnchange({
-        customername:'',
-        payamount:''
+        customername: '',
+        payamount: ''
       })
     }
   }
 
   const showPayModal = (record) => {
-    // payForm.setFieldValue({
-    //   amount: record.amount || 'N/A',
-    //   description: record.description || 'N/A'
-    // })
     payForm.resetFields()
     setCustomerPayId(record.id)
     setIsPayModelOpen(true)
   }
 
-  const [isCustomerPayLoading,setIsCustomerPayLoading] = useState(false) 
+  const [isCustomerPayLoading, setIsCustomerPayLoading] = useState(false)
   const customerPay = async (value) => {
     setIsCustomerPayLoading(true)
     let { date, description, ...Datas } = value
@@ -121,16 +116,15 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       message.open({ type: 'success', content: 'Pay Added Successfully' })
     } catch (e) {
       console.log(e)
-    }
-    finally{
+    } finally {
       payForm.resetFields()
-    setCustomerPayId(null)
-    setIsPayModelOpen(false)
-    setIsCustomerPayLoading(false)
-    setCustomerOnchange({
-      customername:'',
-      payamount:''
-    })
+      setCustomerPayId(null)
+      setIsPayModelOpen(false)
+      setIsCustomerPayLoading(false)
+      setCustomerOnchange({
+        customername: '',
+        payamount: ''
+      })
     }
   }
 
@@ -262,7 +256,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'customername',
       key: 'customername',
       editable: true,
-      // width: 180,
       sorter: (a, b) => a.customername.localeCompare(b.customername),
       showSorterTooltip: { target: 'sorter-icon' },
       defaultSortOrder: 'ascend'
@@ -272,7 +265,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'transport',
       key: 'transport',
       editable: true,
-      // width: 180,
       sorter: (a, b) => a.transport.localeCompare(b.transport),
       showSorterTooltip: { target: 'sorter-icon' },
       width: 139
@@ -302,7 +294,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'location',
       key: 'location',
       editable: true,
-      // width: 180,
       sorter: (a, b) => a.location.localeCompare(b.location),
       showSorterTooltip: { target: 'sorter-icon' }
     },
@@ -330,7 +321,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         ) : (
           <span className="flex gap-x-2 justify-center items-center">
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
+              className="py-0 text-[0.7rem] h-[1.7rem]"
               onClick={() => showPayModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -338,7 +329,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               <MdOutlinePayments />
             </Button>
             <Button
-            className='py-0 text-[0.7rem] h-[1.7rem]'
+              className="py-0 text-[0.7rem] h-[1.7rem]"
               onClick={() => showPayDetailsModal(record)}
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
@@ -575,7 +566,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  };
+  }
 
   const handleTransportChange = (value) => {
     if (value === 'Self') {
@@ -583,55 +574,59 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     } else {
       setIsVehicleNoDisabled(false)
     }
-  };
+  }
 
   // warning modal methods
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  const [customerOnchange,setCustomerOnchange] = useState({
-    customername:'',
-    payamount:''
-  });
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+  const [customerOnchange, setCustomerOnchange] = useState({
+    customername: '',
+    payamount: ''
+  })
 
-  const warningModalOk=()=>{
-    setIsModalOpen(false);
-    form.resetFields();
-    setIsCloseWarning(false);
+  const warningModalOk = () => {
+    setIsModalOpen(false)
+    form.resetFields()
+    setIsCloseWarning(false)
     setCustomerOnchange({
-      customername:'',
-      payamount:''
+      customername: '',
+      payamount: ''
     })
-    setIsPayModelOpen(false);
-  };
+    setIsPayModelOpen(false)
+  }
 
-  const customerOnchangeMt= debounce((e,input)=>{
-    if(input === 'customername'){
+  const customerOnchangeMt = debounce((e, input) => {
+    if (input === 'customername') {
       setCustomerOnchange({
-        customername:e.target.value,
-        payamount:''
+        customername: e.target.value,
+        payamount: ''
+      })
+    } else {
+      setCustomerOnchange({
+        customername: '',
+        payamount: e
       })
     }
-    else{
-      setCustomerOnchange({
-        customername:'',
-        payamount:e
-      })
-    }
-  },200);
+  }, 200)
 
   return (
     <div>
-     <Modal
+      <Modal
         zIndex={1001}
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
-        className="center-buttons-modal">
-        <p className='text-center'>Are your sure to Cancel</p>
+        className="center-buttons-modal"
+      >
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
       <ul>
         <li className="flex gap-x-3 justify-between items-center">
@@ -686,106 +681,128 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </ul>
 
       <Modal
-      maskClosable={customerOnchange.customername === '' || customerOnchange.customername === undefined || customerOnchange.customername === null ? true : false}
+        maskClosable={
+          customerOnchange.customername === '' ||
+          customerOnchange.customername === undefined ||
+          customerOnchange.customername === null
+            ? true
+            : false
+        }
         centered={true}
-        title={<span className='flex justify-center'>NEW CUSTOMER</span>}
+        title={<span className="flex justify-center">NEW CUSTOMER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
-        okButtonProps={{disabled:isNewCustomerLoading}}
+        okButtonProps={{ disabled: isNewCustomerLoading }}
         onCancel={() => {
-          if(customerOnchange.customername === '' || customerOnchange.customername === undefined || customerOnchange.customername === null){
-            setIsModalOpen(false);
-            form.resetFields();
+          if (
+            customerOnchange.customername === '' ||
+            customerOnchange.customername === undefined ||
+            customerOnchange.customername === null
+          ) {
+            setIsModalOpen(false)
+            form.resetFields()
             setCustomerOnchange({
-            customername:'',
-            payamount:''
-          });
-          }
-          else{
+              customername: '',
+              payamount: ''
+            })
+          } else {
             setIsCloseWarning(true)
           }
         }}
       >
-      <Spin spinning={isNewCustomerLoading}>
-        <Form
-          initialValues={{ transport: 'Self' }}
-          onFinish={createNewProject}
-          form={form}
-          layout="vertical"
-          onValuesChange={(changedValues) => {
-            if (changedValues.transport) {
-              handleTransportChange(changedValues.transport)
-            }
-          }}
-        >
-          <Form.Item
-            className="mb-2"
-            name="customername"
-            label="Customer Name"
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={isNewCustomerLoading}>
+          <Form
+            initialValues={{ transport: 'Self' }}
+            onFinish={createNewProject}
+            form={form}
+            layout="vertical"
+            onValuesChange={(changedValues) => {
+              if (changedValues.transport) {
+                handleTransportChange(changedValues.transport)
+              }
+            }}
           >
-            <Input onChange={(e)=> customerOnchangeMt(e,'customername')} placeholder='Enter the Customer Name' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="customername"
+              label="Customer Name"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                onChange={(e) => customerOnchangeMt(e, 'customername')}
+                placeholder="Enter the Customer Name"
+              />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="transport"
-            label="Transport Type"
-            rules={[{ required: true, message: false }]}
-          >
-            <Radio.Group>
-              <Radio value={'Self'}>Self</Radio>
-              <Radio value={'Company'}>Company</Radio>
-              <Radio value={'Freezer Box'}>Freezer Box</Radio>
-              <Radio value={'Mini Box'}>Mini Box</Radio>
-            </Radio.Group>
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="transport"
+              label="Transport Type"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group>
+                <Radio value={'Self'}>Self</Radio>
+                <Radio value={'Company'}>Company</Radio>
+                <Radio value={'Freezer Box'}>Freezer Box</Radio>
+                <Radio value={'Mini Box'}>Mini Box</Radio>
+              </Radio.Group>
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="vehicleorfreezerno"
-            label="Vehicle No / Freezer No"
-            rules={[{ required: false, message: 'Vehicle or Freezer No is required' }]}
-          >
-            <Input className="w-full" disabled={isVehicleNoDisabled} placeholder='Enter the Vehicle / Box Number'/>
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="vehicleorfreezerno"
+              label="Vehicle No / Freezer No"
+              rules={[{ required: false, message: 'Vehicle or Freezer No is required' }]}
+            >
+              <Input
+                className="w-full"
+                disabled={isVehicleNoDisabled}
+                placeholder="Enter the Vehicle / Box Number"
+              />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2 w-full"
-            name="mobilenumber"
-            label="Mobile Number"
-            rules={[
-              { required: true, message: false },
-              { type: 'number', message: false }
-            ]}
-          >
-            <InputNumber className="w-full" type='number' placeholder='Enter the Mobile Number' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2 w-full"
+              name="mobilenumber"
+              label="Mobile Number"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber className="w-full" type="number" placeholder="Enter the Mobile Number" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="gstin"
-            label="GSTIN"
-            rules={[{ required: false, message: false }]}
-          >
-            <Input placeholder='Enter the GST Number' />
-          </Form.Item>
+            <Form.Item
+              className="mb-2"
+              name="gstin"
+              label="GSTIN"
+              rules={[{ required: false, message: false }]}
+            >
+              <Input placeholder="Enter the GST Number" />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-2"
-            name="location"
-            label="Address"
-            rules={[{ required: true, message: false }]}
-          >
-            <TextArea rows={4} placeholder='Enter the Address / Location' />
-          </Form.Item>
-        </Form>
+            <Form.Item
+              className="mb-2"
+              name="location"
+              label="Address"
+              rules={[{ required: true, message: false }]}
+            >
+              <TextArea rows={4} placeholder="Enter the Address / Location" />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
       <Modal
-      centered={true}
-      maskClosable={customerOnchange.payamount ==='' || customerOnchange.payamount === undefined || customerOnchange.payamount === null ? true : false}
+        centered={true}
+        maskClosable={
+          customerOnchange.payamount === '' ||
+          customerOnchange.payamount === undefined ||
+          customerOnchange.payamount === null
+            ? true
+            : false
+        }
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -794,40 +811,52 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }
         open={isPayModelOpen}
         onCancel={() => {
-          if(customerOnchange.payamount ==='' || customerOnchange.payamount === undefined || customerOnchange.payamount === null){
-            setIsPayModelOpen(false);
-          }else{
+          if (
+            customerOnchange.payamount === '' ||
+            customerOnchange.payamount === undefined ||
+            customerOnchange.payamount === null
+          ) {
+            setIsPayModelOpen(false)
+          } else {
             setIsCloseWarning(true)
           }
-          
         }}
         onOk={() => payForm.submit()}
-        okButtonProps={{disabled:isCustomerPayLoading}}
+        okButtonProps={{ disabled: isCustomerPayLoading }}
       >
         <Spin spinning={isCustomerPayLoading}>
-        <Form
-          onFinish={customerPay}
-          form={payForm}
-          initialValues={{ date: dayjs() }}
-          layout="vertical"
-        >
-          {/* <Form.Item name="customername" label="Customer Name">
-            <Input disabled />
-          </Form.Item> */}
-          <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
-            <InputNumber onChange={(e)=> customerOnchangeMt(e,'payamount')} min={0} type='number' className="w-full" placeholder="Enter the Amount" />
-          </Form.Item>
-          <Form.Item className="mb-1" name="description" label="Description">
-            <TextArea rows={4} placeholder="Write the Description" />
-          </Form.Item>
-          <Form.Item
-            className=" absolute top-[-3rem]"
-            name="date"
-            label=""
-            rules={[{ required: true, message: false }]}>
-            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-          </Form.Item>
-        </Form>
+          <Form
+            onFinish={customerPay}
+            form={payForm}
+            initialValues={{ date: dayjs() }}
+            layout="vertical"
+          >
+            <Form.Item
+              className="mb-1"
+              name="amount"
+              label="Amount"
+              rules={[{ required: true, message: false }]}
+            >
+              <InputNumber
+                onChange={(e) => customerOnchangeMt(e, 'payamount')}
+                min={0}
+                type="number"
+                className="w-full"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
+            <Form.Item className="mb-1" name="description" label="Description">
+              <TextArea rows={4} placeholder="Write the Description" />
+            </Form.Item>
+            <Form.Item
+              className=" absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
 
@@ -838,7 +867,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         width={1000}
         onCancel={() => {
           setIsPayDetailsModelOpen(false)
-        }}>
+        }}
+      >
         <Table
           virtual
           pagination={false}
@@ -848,8 +878,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           scroll={{ y: historyHeight }}
         />
       </Modal>
-
-     
     </div>
   )
 }
