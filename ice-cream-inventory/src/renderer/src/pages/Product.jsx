@@ -646,8 +646,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               columns={mergedColumns}
               pagination={false}
               loading={{
-
-              productTbLoading,
+              spinning: productTbLoading,
+              // productTbLoading,
               indicator: 
                <Spin indicator={<img className='opacity-80' src={loadingGif} alt="loading"  />} />,
               }}
