@@ -20,3 +20,11 @@
 .ant-card-body{
   padding: 8px !important;
 }
+.ant-spin .ant-spin-dot{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+ width: 9rem;
+ height: 8rem;
+}

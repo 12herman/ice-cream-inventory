@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Button,
   Input,
@@ -10,7 +10,9 @@ import {
   Popconfirm,
   message,
   Select,
-  Spin
+  Spin,
+  Dropdown,
+  Menu
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -24,6 +26,12 @@ import jsonToExcel from '../js-files/json-to-excel'
 import { createStorage } from '../firebase/data-tables/storage'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import { PiWarningCircleFill } from 'react-icons/pi'
+import { DatestampJs } from '../js-files/date-stamp'
+import companyLogo from '../assets/img/companylogo.png'
+import { generatPDF } from '../js-files/pdf-generator'
+// import loadingGif from '../assets/Loopy-ezgif.com-gif-maker.gif'
+// import loadingGif from '../assets/Dessertanyone_Steemit-ezgif.com-effects.gif'
+import loadingGif from '../assets/Dessertanyone_Steemit-ezgif.com-effects.gif'
 
 const { Search } = Input
 
@@ -420,11 +428,62 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
 
   // export
   const exportExcel = async () => {
-    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Product-List-${TimestampJs()}`)
-    setSelectedRowKeys([])
-    setEditingKey('')
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key));
+    const excelDatas = exportDatas.map((pr,i)=>({
+      sno:i+1,
+      product:pr.productname,
+      flavour:pr.flavour,
+      size:pr.quantity+' '+ pr.unit,
+      rate:pr.price,
+      qty:pr.productperpack,
+      packprice:pr.productperpack * pr.price
+    }))
+    
+    jsonToExcel(excelDatas, `Product-List-${TimestampJs()}`)
+    setSelectedRowKeys([]);
+    // setEditingKey('')
   }
+
+  const pdfRef = useRef();
+  const [pdf,setPdf] = useState({
+    data:[],
+    isGenerate:false,
+    name:`Product List ${DatestampJs()}`,
+  });
+  const items = [
+    {
+      key: '1',
+      label: <span onClick={()=> exportPdf('gst')} className='w-full text-[0.7rem] m-0 block'>PDF(.pdf)</span>,
+    },
+    // {
+    //   key: '2',
+    //   label: <span onClick={()=> exportPdf('withoutgst')} className='w-full text-[0.7rem] m-0'>Without GST</span>,
+    // },
+    {
+      key: '2',
+      label: <span className='w-full text-[0.7rem] m-0 block' onClick={exportExcel}>Excel(.xlsx)</span>,
+    }
+  ];
+  const menu = (
+    <Menu items={items} />
+  );
+  const exportPdf = async () => {
+    const exportDatas = await data.filter((item) => selectedRowKeys.includes(item.key))
+    await setPdf(pre=>({...pre,data:exportDatas,isGenerate:true}))
+   await generatPDF(pdfRef,pdf.name);
+   await setSelectedRowKeys([])
+  };
+
+  // useEffect( ()=>{
+  // const pdfOperation = async ()=>{
+  //   if(pdf.isGenerate === true){
+  //    await generatPDF(pdfRef,pdf.name);
+  //     await setPdf(pre=>({...pre,isGenerate:false}))
+  //   }
+  // }
+  // pdfOperation();
+  // },[pdf.isGenerate]);
+
 
   const [productOnchangeValue, setProductOnchangeValue] = useState('')
   const productOnchange = (value) => {
@@ -441,7 +500,83 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   }
 
   return (
-    <div>
+    
+    <div className='relative'>
+    
+    <div
+        ref={pdfRef}
+        className="absolute -top-[40rem] w-[75%] mx-auto mt-0"
+        style={{  backgroundColor: '#ffff' }}
+      >
+        <section className="w-[100%] mx-auto mt-0">
+          <ul className="flex justify-center items-center gap-x-5">
+            <li>
+              {' '}
+              <img className="w-[6rem]" src={companyLogo} alt="comapanylogo" />{' '}
+            </li>
+            <li className="text-center">
+              {' '}
+              <h1 className="text-xl font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
+              <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p>{' '}
+            </li>
+          </ul>
+
+          <ul className="mt-5 flex justify-between">
+            <li>
+              {/* <div className={`${pdf.gst ? 'block': 'hidden'}`}>
+                <span className="font-bold">GSTIN:</span> 33AAIFN6367K1ZV
+              </div> */}
+              <div>
+                {' '}
+                <span className="font-bold">Date:</span>{' '}
+                <span>
+                  {TimestampJs().split(',')[0]}
+                </span>
+              </div>
+            </li>
+
+            <li className="text-end flex flex-col items-end">
+              <span>
+                {' '}
+                <span className="font-bold">Cell:</span> 7373674757
+              </span>
+              <span>8056848361</span>
+            </li>
+          </ul>
+
+          {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="p-1 text-left border-b">S.No</th>
+                <th className="p-1 border-b text-left">Product</th>
+                <th className="p-1 border-b text-left">Flavour</th>
+                <th className="p-1 border-b text-left">Size</th>
+                <th className="p-1 border-b text-left">Price</th>
+                {/* <th className="p-1 border-b text-center">Qty</th>
+                <th className="p-1 border-b text-center">Pack Price</th> */}
+                
+              </tr>
+            </thead>
+            <tbody>
+              {pdf.data.length > 0
+                ? pdf.data.map((item, i) => (
+                    <tr key={i}>
+                      <td className="p-1 border-b">{i + 1}</td>
+                      <td className="p-1 border-b">{item.productname}</td>
+                      <td className="p-1 border-b">{item.flavour}</td>
+                      <td className="p-1 border-b">{item.quantity + item.unit}</td>
+                      <td className="p-1 border-b">{item.price}</td>
+                      {/* <td className="p-1 border-b">{item.productperpack}</td>
+                      <td className="p-4 border-b">{item.productperpack * item.price}</td> */}
+                    </tr>
+                  ))
+                : 'No Data'}
+            </tbody>
+          </table>
+        </section>
+      </div>
+     
       <Modal
         zIndex={1001}
         width={300}
@@ -471,12 +606,19 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-            <Button
+            {/* <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
               onClick={exportExcel}
             >
               Export <PiExport />
-            </Button>
+            </Button> */}
+            {/* <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0} title="Sure to cancel?" onConfirm={()=>exportExcel('GST')} onCancel={exportExcel}>
+            <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}>Export <PiExport /></Button>
+            </Popconfirm> */}
+            <Dropdown disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0} overlay={menu} placement="bottom">
+  <Button>Export <PiExport /></Button>
+</Dropdown>
+
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               type="primary"
@@ -503,7 +645,12 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               dataSource={data}
               columns={mergedColumns}
               pagination={false}
-              loading={productTbLoading}
+              loading={{
+
+              productTbLoading,
+              indicator: 
+               <Spin indicator={<img className='opacity-80' src={loadingGif} alt="loading"  />} />,
+              }}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
