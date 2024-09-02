@@ -1488,6 +1488,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   })
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
+    const result = await getCustomerById(record.customerid)
+    const gstin = result.customer?.gstin || ''
+    const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -1510,7 +1513,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         ...pre,
         data: prItems,
         isGenerate: true,
-        customerdetails: record
+        customerdetails: {
+          ...record,
+          gstin: gstin,
+          location: location
+        }
       }))
     }
   }
@@ -1572,7 +1579,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
-        <section className="w-[90%] mx-auto mt-14">
+        <section className="w-[90%] mx-auto mt-5">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
               {' '}
@@ -1599,14 +1606,34 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                     : null}
                 </span>
               </div>
-              <div>
-                <span className="font-bold">Name:</span>{' '}
+              <div className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}>
+                <span className="font-bold">Customer Name:</span>{' '}
                 <span>
                   {Object.keys(invoiceDatas.customerdetails).length !== 0
                     ? invoiceDatas.customerdetails.customername
                     : null}
                 </span>
               </div>
+              <div
+                  className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Customer GSTIN :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.gstin
+                      ? invoiceDatas.customerdetails.gstin
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div
+                  className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Customer Address :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.location
+                      ? invoiceDatas.customerdetails.location
+                      : 'N/A'}
+                  </span>
+                </div>
             </li>
 
             <li className="text-end flex flex-col items-end">
@@ -1623,14 +1650,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             <thead>
               <tr>
                 <th className="p-4 text-left border-b">S.No</th>
-                <th className="p-4 border-b text-center">Product Name</th>
+                <th className="p-4 border-b text-center">Product</th>
                 <th className="p-4 border-b text-center">Flavour</th>
-                <th className="p-4 border-b text-center">Quantity</th>
-                <th className="p-4 border-b text-center">Piece Amount</th>
-                <th className="p-4 border-b text-center">Number of Packs</th>
+                <th className="p-4 border-b text-center">Size</th>
+                <th className="p-4 border-b text-center">Rate</th>
+                <th className="p-4 border-b text-center">Qty</th>
                 <th className="p-4 border-b text-center">MRP</th>
                 <th className="p-4 border-b text-center">Margin</th>
-                <th className="p-4 border-b text-center">Total Amount</th>
+                <th className="p-4 border-b text-center">Amount</th>
               </tr>
             </thead>
             <tbody>
