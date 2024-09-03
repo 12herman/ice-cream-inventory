@@ -396,7 +396,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               <Form.Item
                 name={dataIndex}
                 style={{ margin: 0 }}
-                rules={[{ required: true, message: false }]}
+                rules={[{ required: (dataIndex === 'vehicleorfreezerno' || dataIndex === 'gstin' ? false : true), message: false }]}
               >
                 {inputNode}
               </Form.Item>
@@ -438,7 +438,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
 
   const save = async (key) => {
     try {
-      const row = await form.validateFields()
+      setCustomerTbLoading(true)
+      const row = await form.validateFields();
       const newData = [...data]
       const index = newData.findIndex((item) => key.id === item.key)
       if (
@@ -460,6 +461,9 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
+    }
+    finally{
+      setCustomerTbLoading(false)
     }
   }
 
