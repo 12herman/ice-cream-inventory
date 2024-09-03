@@ -9,9 +9,15 @@ import {
   Button,
   Modal,
   Descriptions,
-  Popconfirm
+  Popconfirm,
+  Form,
+  message,
+  Radio,
+  Select,
+  InputNumber
 } from 'antd'
 import { FaRupeeSign } from 'react-icons/fa'
+import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
 import { fetchItemsForDelivery } from '../firebase/data-tables/delivery'
@@ -19,7 +25,9 @@ import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
 const { RangePicker } = DatePicker
+import { debounce } from 'lodash'
 import dayjs from 'dayjs'
+import { TimestampJs } from '../js-files/time-stamp'
 import companyLogo from '../assets/img/companylogo.png'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import html2canvas from 'html2canvas'
@@ -34,6 +42,18 @@ export default function Home({ datas }) {
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [selectedTableData, setSelectedTableData] = useState([])
   const [tableLoading, setTableLoading] = useState(true)
+  const [form] = Form.useForm()
+  const [form2] = Form.useForm()
+  const [quotationModalOpen, setQuotationModalOpen] = useState(false)
+  const [quotationData, setQuotationData] = useState({
+    date: dayjs(),
+    type: 'withGST',
+    productname: '',
+    flavour: '',
+    quantity: '',
+    numberofpacks: 1,
+  })
+ 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -292,6 +312,22 @@ export default function Home({ datas }) {
     }
   }
 
+  const handleQuotationPrint = async () =>{
+    await setInvoiceDatas((pre) => ({
+      ...pre,
+      data: prItems,
+    }))
+    message.open({ type: 'success', content: 'Quotation Created' })
+  }
+
+  const handleQuotationDownload = async () =>{
+    await setInvoiceDatas((pre) => ({
+      ...pre,
+      data: prItems,
+    }))
+    message.open({ type: 'success', content: 'Quotation Created' })
+  }
+
   useEffect(() => {
     if (isPrinting && promiseResolveRef.current) {
       promiseResolveRef.current()
@@ -419,6 +455,149 @@ export default function Home({ datas }) {
     }
   ]
 
+  const quotationColumns = [
+    {
+      title: 'Product',
+      key: 'productname',
+      dataIndex: 'productname'
+    },
+    {
+      title: 'Flavour',
+      key: 'flavour',
+      dataIndex: 'flavour'
+    },
+    {
+      title: 'Size',
+      key: 'quantity',
+      dataIndex: 'quantity'
+    },
+    {
+      title: 'Rate',
+      key: 'pieceamount',
+      dataIndex: 'pieceamount',
+    },
+    {
+      title: 'Qty',
+      key: 'numberofpacks',
+      dataIndex: 'numberofpacks'
+    },
+    {
+      title: 'MRP',
+      key: 'producttotalamount',
+      dataIndex: 'producttotalamount',
+    },
+    {
+      title: 'Amount',
+      key: 'price',
+      dataIndex: 'price',
+    }
+  ]
+
+  const [option, setOption] = useState({
+    flavour: [],
+    flavourstatus: true,
+    product: [],
+    productvalue: '',
+    quantity: [],
+    quantitystatus: true,
+    tempproduct: []
+  })
+
+  //product initial value
+  useEffect(() => {
+    const productOp = datas.product
+      .filter(
+        (item, i, s) =>
+          item.isdeleted === false &&
+          s.findIndex((item2) => item2.productname === item.productname) === i
+      )
+      .map((data) => ({ label: data.productname, value: data.productname }))
+    setOption((pre) => ({ ...pre, product: productOp }))
+  }, [datas])
+
+  const productOnchange = async (value, i) => {
+    form.resetFields(['flavour'])
+    form.resetFields(['quantity'])
+    form.resetFields(['numberofpacks'])
+    const flavourOp = await Array.from(
+      new Set(
+        datas.product
+          .filter((item) => item.isdeleted === false && item.productname === value)
+          .map((data) => data.flavour)
+      )
+    ).map((flavour) => ({ label: flavour, value: flavour }))
+    await setOption((pre) => ({
+      ...pre,
+      flavourstatus: false,
+      flavour: flavourOp,
+      productvalue: value,
+      quantitystatus: true
+    }))
+  }
+
+   //flavour onchange value
+   const flavourOnchange = async (value, i) => {
+    form.resetFields(['quantity'])
+    form.resetFields(['numberofpacks'])
+    const quantityOp = await Array.from(
+      new Set(
+        datas.product.filter(
+          (item) =>
+            item.isdeleted === false &&
+            item.flavour === value &&
+            item.productname === option.productvalue
+        )
+      )
+    ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
+    await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
+  }
+
+  // create add temp product
+  const [count, setCount] = useState(0)
+  const addTempProduct = async (values) => {
+    setCount(count + 1)
+    const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
+    const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs() }
+    const checkExsit = option.tempproduct.some(
+      (item) =>
+        item.productname === newProduct.productname &&
+        item.flavour === newProduct.flavour &&
+        item.quantity === newProduct.quantity &&
+        item.numberofpacks === newProduct.numberofpacks &&
+        item.date === newProduct.date
+    )
+    const checkSamePacks = option.tempproduct.some(
+      (item) =>
+        item.productname === newProduct.productname &&
+        item.flavour === newProduct.flavour &&
+        item.quantity === newProduct.quantity &&
+        item.numberofpacks !== newProduct.numberofpacks &&
+        item.date === newProduct.date &&
+        item.key !== newProduct.key
+    )
+    const temVales = { ...values, date: formattedDate }
+    const dbCheck = datas.productions.some(
+      (item) =>
+        item.productname === temVales.productname &&
+        item.flavour === temVales.flavour &&
+        item.quantity === temVales.quantity &&
+        item.date === temVales.date
+    )
+    if (checkExsit) {
+      message.open({ type: 'warning', content: 'Product is already added' })
+      return
+    } else if (checkSamePacks) {
+      message.open({ type: 'warning', content: 'Product is already added' })
+      return
+    } else if (dbCheck) {
+      message.open({ type: 'warning', content: 'Product is already added' })
+      return
+    } else {
+      setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
+    }
+  }
+
+
   const itemColumns = [
     {
       title: 'Item Name',
@@ -455,16 +634,22 @@ export default function Home({ datas }) {
   return (
     <div>
       <ul>
-        <li className="flex gap-x-3 justify-between items-center">
-          <h1 className="font-bold text-base invisible">Dashboard</h1>
-          <span className="flex gap-x-3 justify-center items-center">
-            <RangePicker
-              className="w-[16rem]"
-              onChange={handleDateChange}
-              defaultValue={[today, today]}
-              format="DD/MM/YYYY"
-            />
-          </span>
+        <li className="flex gap-x-3 items-center justify-end">
+          <RangePicker
+            className="w-[16rem]"
+            onChange={handleDateChange}
+            defaultValue={[today, today]}
+            format="DD/MM/YYYY"
+          />
+          <Button
+            type="primary"
+            onClick={() => {
+              setQuotationModalOpen(true)
+              form.resetFields()
+            }}
+          >
+            Quotation <FaRegFilePdf />
+          </Button>
         </li>
 
         <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
@@ -542,13 +727,199 @@ export default function Home({ datas }) {
         )}
       </Modal>
 
+      <Modal
+        className="relative"
+        width={1000}
+        title={
+          <span className="w-full flex justify-center items-center text-sm py-2">QUOTATION</span>
+        }
+        open={quotationModalOpen}
+        onCancel={() => {
+          setQuotationModalOpen(false)
+        }}
+        footer={
+          <div>
+            <section className="flex gap-x-3 justify-between items-center">
+              <span className="flex gap-x-3 m-0 justify-center">
+                <Form
+                 className="flex gap-x-2 justify-center items-center"
+                  form={form2}
+                  onFinish={() => {console.log('Margin')}}
+                >
+                  <Form.Item name="marginvalue" rules={[{ required: true, message: false }]}>
+                    <InputNumber
+                      min={0}
+                      max={100}
+                      type="number"
+                      className="w-[11.5rem]"
+                      prefix={<span>Margin(%)</span>}
+                    />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                      Enter
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </span>
+              <span className="flex gap-x-3 justify-center items-center">
+                <Button htmlType="submit" type="primary" className=" w-fit" onClick={() => handleQuotationPrint()}>
+                <PrinterOutlined />Print 
+                </Button>
+                <Button htmlType="submit" type="primary" className=" w-fit" onClick={() => handleQuotationDownload()}>
+                  <DownloadOutlined />Download
+                </Button>
+              </span>
+            </section>
+          </div>
+        }
+      >
+        <div className="relative">
+          <div className="grid grid-cols-4 gap-x-2">
+            <Form
+              className="col-span-1"
+              form={form}
+              layout="vertical"
+              onFinish={addTempProduct}
+              initialValues={{ date: dayjs(), type: 'withGST' }}
+            >
+              <Form.Item
+                className="mb-3 absolute top-[-2.7rem]"
+                name="date"
+                label=""
+                rules={[{ required: true, message: false }]}
+              >
+                <DatePicker
+                  className="w-[8.5rem]"
+                  format={'DD/MM/YYYY'}
+                />
+              </Form.Item>
+              <Form.Item name="type" className="mb-1 mt-3">
+                <Radio.Group
+                  buttonStyle="solid"
+                  style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  onChange={(e) => {
+                    form.resetFields();
+                  }}
+                >
+                  <Radio.Button value="withGST" style={{ width: '50%' }}>
+                    With GST
+                  </Radio.Button>
+                  <Radio.Button value="withoutGST" style={{ width: '50%' }}>
+                    Without GST
+                  </Radio.Button>
+                </Radio.Group>
+              </Form.Item>
+              <Form.Item
+                className="mb-1"
+                name="productname"
+                label="Product Name"
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  onChange={(value, i) => productOnchange(value, i)}
+                  showSearch
+                  placeholder="Select the Product"
+                  optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                  options={option.product}
+                />
+              </Form.Item>
+              <Form.Item
+                className="mb-1"
+                name="flavour"
+                label="Flavour"
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  disabled={option.flavourstatus}
+                  onChange={(value, i) => flavourOnchange(value, i)}
+                  showSearch
+                  placeholder="Select the Flavour"
+                  optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.flavour}
+                />
+              </Form.Item>
+              <Form.Item
+                className="mb-1"
+                name="quantity"
+                label="Quantity"
+                rules={[{ required: true, message: false }]}
+              >
+                <Select
+                  disabled={option.quantitystatus}
+                  showSearch
+                  placeholder="Select the Quantity"
+                  optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                      (optionA?.label ?? '')
+                        .toLowerCase()
+                        .localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    options={option.quantity}
+                />
+              </Form.Item>
+              <Form.Item
+                className="mb-3"
+                name="numberofpacks"
+                label="Number of Packs"
+                rules={[{ required: true, message: false }]}
+              >
+                <InputNumber
+                  type="number"
+                  min={1}
+                  className="w-full"
+                  placeholder="Enter the Number"
+                />
+              </Form.Item>
+              <div className="mb-3 w-full">
+                <Button className="w-full" type="primary" htmlType="submit">
+                  Add To List
+                </Button>
+                    </div>
+            </Form>
+
+              <Table
+                virtual
+                columns={quotationColumns}
+                // components={{ body: { cell: EditableCellTem } }}
+                pagination={{ pageSize: 4 }}
+                className="col-span-3"
+                dataSource={option.tempproduct}
+                scroll={{ x: false, y: false }}
+              />
+          </div>
+
+          <span
+            className={`absolute top-[-2.7rem] right-10 ${option.margin === 0 ? 'hidden' : 'block'}`}
+          >
+            <Tag color="blue">
+              MRP Amount: <span className="text-sm">{option.price}</span>
+            </Tag>
+            <Tag color="green">
+              Net Amount: <span className="text-sm">{option.amount}</span>
+            </Tag>
+          </span>
+          
+        </div>
+      </Modal>
+
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <div ref={componentRef}>
-          <section className="w-[90%] mx-auto mt-8">
+          <section className="w-[90%] mx-auto mt-5">
             <ul className="flex justify-center items-center gap-x-5">
               <li>
                 {' '}
