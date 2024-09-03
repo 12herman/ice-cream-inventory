@@ -507,10 +507,12 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   const [isAddProductModal, setIsAddProductModal] = useState(false)
   // add new production
   const addNewProduction = async () => {
+  
     setIsAddProductModal(true)
     try {
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
+        
         let quantityNumber = Number(quantity.split(' ')[0])
         
         const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname && productItem.flavour === newProduction.flavour &&  productItem.quantity === quantityNumber )
@@ -527,6 +529,8 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
         const existingProduct = datas.storage.find((storageItem) => storageItem.productid === existingProductList.id  && storageItem.category === 'Product List' )
         
+        console.log(existingProduct);
+        setIsAddProductModal(false)
         await updateStorage(existingProduct.id, {
           numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks,
           updateddate:TimestampJs()

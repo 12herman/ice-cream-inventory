@@ -271,7 +271,7 @@ export default function Storage({ datas, storageUpdateMt }) {
     ...restProps
   }) => {
     const inputNode =
-      dataIndex === 'quantity' || dataIndex === 'alertcount' ? <InputNumber /> : <Input />
+      dataIndex === 'quantity' || dataIndex === 'alertcount' || dataIndex === 'numberofpacks' ? <InputNumber type='number'/> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
