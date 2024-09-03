@@ -11,6 +11,7 @@ import { GrUserWorker } from 'react-icons/gr'
 import { LuMilk } from 'react-icons/lu'
 import { notification } from 'antd'
 import { FaBoxesPacking } from 'react-icons/fa6'
+import { TbFileSpreadsheet } from "react-icons/tb";
 import Pages from './components/Pages'
 import { getproduct } from './firebase/data-tables/products'
 import { getSupplier } from './firebase/data-tables/supplier'
@@ -21,6 +22,7 @@ import { getEmployee } from './firebase/data-tables/employee'
 import { getProduction } from './firebase/data-tables/production'
 import { getStorage } from './firebase/data-tables/storage'
 import dayjs from 'dayjs'
+import { getBalanceSheet } from './firebase/data-tables/balancesheet'
 
 const App = () => {
   const [navPages, setNavPages] = useState({
@@ -33,7 +35,8 @@ const App = () => {
       'Product List',
       'Supplier List',
       'Customer List',
-      'Employee List'
+      'Employee List',
+      'Balance Sheet'
     ],
     icons: [
       <GoHome size={19} />,
@@ -44,11 +47,12 @@ const App = () => {
       <LuIceCream size={17} />,
       <MdOutlinePeopleAlt size={17} />,
       <PiUserListBold size={17} />,
-      <GrUserWorker size={17} />
+      <GrUserWorker size={17} />,
+      <TbFileSpreadsheet size={17}/>
     ],
     currentpage: 'Home',
     pagecount: 0
-  })
+  });
 
   const [datas, setDatas] = useState({
     product: [],
@@ -68,27 +72,21 @@ const App = () => {
     usedmaterials: [],
     usedmaterialupdatestaus: false,
     storage: [],
-    storageupdatestaus: false
-  })
+    storageupdatestaus: false,
+    balancesheet:[],
+    balancesheetstatus:false
+  });
 
-  const productUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
-  const supplierUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, supplierupdatestaus: !pre.supplierupdatestaus }))
-  const customerUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, customerupdatestaus: !pre.customerupdatestaus }))
-  const rawmaterialUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, rawmaterialupdatestaus: !pre.rawmaterialupdatestaus }))
-  const deliveryUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, deliveryupdatestaus: !pre.deliveryupdatestaus }))
-  const employeeUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, employeeupdatestaus: !pre.employeeupdatestaus }))
-  const productionUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, productionupdatestaus: !pre.productionupdatestaus }))
-  const usedmaterialUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
-  const storageUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
+  const productUpdateMt = () =>setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
+  const supplierUpdateMt = () =>setDatas((pre) => ({ ...pre, supplierupdatestaus: !pre.supplierupdatestaus }))
+  const customerUpdateMt = () =>setDatas((pre) => ({ ...pre, customerupdatestaus: !pre.customerupdatestaus }))
+  const rawmaterialUpdateMt = () =>setDatas((pre) => ({ ...pre, rawmaterialupdatestaus: !pre.rawmaterialupdatestaus }))
+  const deliveryUpdateMt = () => setDatas((pre) => ({ ...pre, deliveryupdatestaus: !pre.deliveryupdatestaus }))
+  const employeeUpdateMt = () =>setDatas((pre) => ({ ...pre, employeeupdatestaus: !pre.employeeupdatestaus }))
+  const productionUpdateMt = () =>setDatas((pre) => ({ ...pre, productionupdatestaus: !pre.productionupdatestaus }))
+  const usedmaterialUpdateMt = () =>setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
+  const storageUpdateMt = () => setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
+  const balanceSheetUpdateMt =()=> setDatas(pre =>({...pre,balancesheetstatus:!pre.balancesheetstatus}))
 
   // get table datas 'project list'
   useEffect(() => {
@@ -179,6 +177,17 @@ const App = () => {
     fetchData()
   }, [datas.storageupdatestaus])
 
+    // get table datas 'balace sheet'
+    useEffect(() => {
+      const fetchData = async () => {
+        const { balancesheet, status } = await getBalanceSheet()
+        if (status) {
+          setDatas((pre) => ({ ...pre, balancesheet:balancesheet }))
+        }
+      }
+      fetchData()
+    }, [datas.balancesheetstatus])
+
   // Notification logic
   useEffect(() => {
     datas.storage.forEach((record) => {
@@ -220,6 +229,8 @@ const App = () => {
     })
   }, [datas.delivery])
 
+  
+
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
       <NavBar
@@ -239,6 +250,7 @@ const App = () => {
         productionUpdateMt={productionUpdateMt}
         usedmaterialUpdateMt={usedmaterialUpdateMt}
         storageUpdateMt={storageUpdateMt}
+        balanceSheetUpdateMt={balanceSheetUpdateMt}
         navPages={navPages}
       />
     </main>

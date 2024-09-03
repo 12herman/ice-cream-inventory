@@ -727,7 +727,7 @@ setFirstValue(null)
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
       <ul>
-        <li className="flex flex-col justify-center items-center gap-y-1 my-8">
+        <li className="flex flex-col justify-center items-center gap-y-1 my-4">
           <img className="w-full" src={IceCreamLogo} />
         </li>
         {navPages.pages.map((page, i) => (

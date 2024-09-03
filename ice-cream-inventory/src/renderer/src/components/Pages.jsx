@@ -8,8 +8,9 @@ import Delivery from '../pages/Delivery'
 import SupplierList from '../pages/SupplierList'
 import CustomerList from '../pages/CustomerList'
 import Employee from '../pages/Employee'
+import BalanceSheet from '../pages/BalanceSheet'
 
-export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt,usedmaterialUpdateMt,storageUpdateMt}) {
+export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt,usedmaterialUpdateMt,storageUpdateMt,balanceSheetUpdateMt}) {
     const PageLists = [
         <Home datas={datas}/>,
         <RawMaterial datas={datas} rawmaterialUpdateMt={rawmaterialUpdateMt} storageUpdateMt={storageUpdateMt}/>,
@@ -19,7 +20,8 @@ export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,c
         <Product datas={datas} productUpdateMt={productUpdateMt} storageUpdateMt={storageUpdateMt}/>,
         <SupplierList datas={datas} supplierUpdateMt={supplierUpdateMt} storageUpdateMt={storageUpdateMt}/>,
         <CustomerList datas={datas} customerUpdateMt={customerUpdateMt}/>,
-        <Employee datas={datas} employeeUpdateMt={employeeUpdateMt}/>
+        <Employee datas={datas} employeeUpdateMt={employeeUpdateMt}/>,
+        <BalanceSheet datas={datas} balanceSheetUpdateMt={balanceSheetUpdateMt}/>
     ];
   return (
     <div className="col-span-6 lg:col-span-10 p-2 overflow-y-hidden" style={{height: '100vh'}}>
