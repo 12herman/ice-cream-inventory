@@ -31,8 +31,9 @@ import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { PiWarningCircleFill } from "react-icons/pi";
 import { debounce } from 'lodash';
+import { updateStorage } from '../firebase/data-tables/storage'
 
-export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt }) {
+export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,storageUpdateMt }) {
   const [isQuickSale, setIsQuickSale] = useState({
     model: false,
     temdata: [],
@@ -329,12 +330,9 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
   }
 
   const quicksaleMt = async () => {
-    
     // if(isQuickSale.type === 'booking'){
     // }
-
     // setIsQuickSale((pre) => ({ ...pre, model: false }))
-    
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue()
     
     if (
@@ -368,23 +366,34 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
       }
     else {
       setIsSpinners(true)
-      setIsQuickSale(pre => ({...pre}))
-      console.log('close the model');
+      // setIsQuickSale(pre => ({...pre}))
+      
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
         margin: data.margin
-      }))
+      }));
+
+      if(isQuickSale.type === 'quick'){
+       await productItems.map(async data =>{
+          const existingProduct = datas.storage.find((storageItem) => storageItem.productid === data.id  && storageItem.category === 'Product List' );
+         
+          // console.log(existingProduct.id,{numberofpacks: existingProduct.numberofpacks - data.numberofpacks,updateddate:TimestampJs()});
+          await updateStorage(existingProduct.id, {
+            numberofpacks: existingProduct.numberofpacks - data.numberofpacks,
+            updateddate:TimestampJs()
+          })
+        })
+        await storageUpdateMt()
+      };
+
       const newDelivery = {
         customername: qickSaleForm3Value.customername || 'Quick Sale',
         mobilenumber: qickSaleForm3Value.mobilenumber || '',
         billamount: isQuickSale.billamount,
         // margin:isQuickSale.margin,
-        partialamount:
-          qickSaleForm3Value.partialamount === undefined ||
-          qickSaleForm3Value.partialamount === null
-            ? 0
-            : qickSaleForm3Value.partialamount,
+        partialamount:qickSaleForm3Value.partialamount === undefined ||
+        qickSaleForm3Value.partialamount === null ? 0 : qickSaleForm3Value.partialamount,
         paymentstatus: qickSaleForm3Value.paymentstatus,
         total: isQuickSale.total,
         type: isQuickSale.type,
@@ -392,6 +401,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt 
         createddate: TimestampJs(),
         date: isQuickSale.date
       }
+
       try {
         const deliveryCollectionRef = collection(db, 'delivery')
         const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)

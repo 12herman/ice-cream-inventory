@@ -512,34 +512,28 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
         let quantityNumber = Number(quantity.split(' ')[0])
-        const existingProductList = datas.product.find(
-          (productItem) =>
-            productItem.productname === newProduction.productname &&
-            productItem.flavour === newProduction.flavour &&
-            productItem.quantity === quantityNumber
-        )
+        
+        const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname && productItem.flavour === newProduction.flavour &&  productItem.quantity === quantityNumber )
+        
         await createProduction({
           date: newProduction.date,
           createddate: newProduction.createddate,
           productid: existingProductList.id,
           isdeleted: false,
           numberofpacks: newProduction.numberofpacks
-        })
-        await productionUpdateMt()
-        const existingProduct = datas.storage.find(
-          (storageItem) =>
-            storageItem.productname === newProduction.productname &&
-            storageItem.flavour === newProduction.flavour &&
-            storageItem.quantity === quantityNumber &&
-            storageItem.category === 'Product List'
-        )
+        });
+        
+        await productionUpdateMt();
+
+        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === existingProductList.id  && storageItem.category === 'Product List' )
+        
         await updateStorage(existingProduct.id, {
-          numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks
+          numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks,
+          updateddate:TimestampJs()
         })
         await storageUpdateMt()
       }
       message.open({ type: 'success', content: 'Production added successfully' })
-
       setIsModalOpen(false)
       form2.resetFields()
       setOption((pre) => ({

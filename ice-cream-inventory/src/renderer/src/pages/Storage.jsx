@@ -39,7 +39,8 @@ export default function Storage({ datas, storageUpdateMt }) {
           rawData.map(async (data) => {
             const { product, status } = await getProductById(data.productid);
             if (status) {
-              return { ...data, ...product };
+              const {id, ...filterpr} = product
+              return { ...data, ...filterpr};
             }
             // return data; // Return the original data if status is false or undefined
           })
@@ -302,8 +303,10 @@ export default function Storage({ datas, storageUpdateMt }) {
     
     try {
       const row = await ediablefForm.validateFields()
+      
       if (selectedSegment === 'Material List') {
-        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.quantity === row.quantity && item.alertcount === row.alertcount)
+        
+        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.alertcount === row.alertcount)
         
         if (exsitingData) {
           message.open({ type: 'info', content: 'Data already exists'})
@@ -320,17 +323,12 @@ export default function Storage({ datas, storageUpdateMt }) {
           setTableLoading(false)
         }
       } else {
-        const exsitingData = await datas.storage.some(
-          (item) =>
-            item.id === record.id &&
-            item.numberofpacks === row.numberofpacks &&
-            item.alertcount === row.alertcount
-        )
+        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.numberofpacks === row.numberofpacks && item.alertcount === row.alertcount)
+
         if (exsitingData) {
           message.open({
             type: 'info',
             content: 'Data already exists',
-            duration: 2
           })
           setEditingKeys([])
         } else {

@@ -884,9 +884,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     form4.setFieldsValue({ paymentstatus: 'Paid' })
   }
 
-  const [isDeliverySpiner, setIsDeliverySpiner] = useState(false)
+  const [isDeliverySpiner, setIsDeliverySpiner] = useState(false);
+
   // add new delivery
   const addNewDelivery = async () => {
+    setEditingKey('')
     setIsDeliverySpiner(true)
     let findPr = datas.product.filter((pr) =>
       option.tempproduct.find(
@@ -899,16 +901,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     )
 
     // List
-    let productItems = findPr.map((pr) => {
-      let matchingTempProduct = option.tempproduct.find(
-        (temp) =>
-          temp.productname === pr.productname &&
-          temp.flavour === pr.flavour &&
-          pr.quantity == temp.quantity.split(' ')[0] &&
-          pr.unit === temp.quantity.split(' ')[1]
-      )
-
+    let productItems = await Promise.all(findPr.map( async (pr) => {
+      let matchingTempProduct = option.tempproduct.find((temp) =>temp.productname === pr.productname && temp.flavour === pr.flavour && pr.quantity == temp.quantity.split(' ')[0] && pr.unit === temp.quantity.split(' ')[1] )
+      
       if (returnDelivery.state === true) {
+        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List' );
+        await updateStorage(existingProduct.id, {
+          numberofpacks: existingProduct.numberofpacks + matchingTempProduct.numberofpacks,
+          updateddate:TimestampJs()
+        })
+        await storageUpdateMt()
         return {
           id: pr.id,
           numberofpacks: matchingTempProduct.numberofpacks,
@@ -916,13 +918,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           margin: 0
         }
       } else {
+        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List' );
+        await updateStorage(existingProduct.id, {
+          numberofpacks: existingProduct.numberofpacks - matchingTempProduct.numberofpacks,
+          updateddate:TimestampJs()
+        })
+        await storageUpdateMt()
         return {
           id: pr.id,
           numberofpacks: matchingTempProduct.numberofpacks,
           margin: matchingTempProduct.margin
         }
       }
-    })
+    }))
 
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue()
@@ -954,6 +962,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
+
 
     try {
       const deliveryCollectionRef = collection(db, 'delivery')
@@ -1010,7 +1019,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       warningModalOk()
       await setIsDeliverySpiner(false)
     }
-    // setTableLoading(false)
+    setTableLoading(false)
   }
 
   // model close
@@ -1488,9 +1497,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   })
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
-    const result = await getCustomerById(record.customerid)
-    const gstin = result.customer?.gstin || ''
-    const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       let prItems = await prData.map((pr, i) => {
@@ -1513,11 +1519,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         ...pre,
         data: prItems,
         isGenerate: true,
-        customerdetails: {
-          ...record,
-          gstin: gstin,
-          location: location
-        }
+        customerdetails: record
       }))
     }
   }
@@ -1579,7 +1581,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         className="absolute top-[-200rem]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
-        <section className="w-[90%] mx-auto mt-5">
+        <section className="w-[90%] mx-auto mt-14">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
               {' '}
@@ -1606,34 +1608,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                     : null}
                 </span>
               </div>
-              <div className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}>
-                <span className="font-bold">Customer Name:</span>{' '}
+              <div>
+                <span className="font-bold">Name:</span>{' '}
                 <span>
                   {Object.keys(invoiceDatas.customerdetails).length !== 0
                     ? invoiceDatas.customerdetails.customername
                     : null}
                 </span>
               </div>
-              <div
-                  className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
-                >
-                  <span className="font-bold">Customer GSTIN :</span>{' '}
-                  <span>
-                    {invoiceDatas.customerdetails.gstin
-                      ? invoiceDatas.customerdetails.gstin
-                      : 'N/A'}
-                  </span>
-                </div>
-                <div
-                  className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
-                >
-                  <span className="font-bold">Customer Address :</span>{' '}
-                  <span>
-                    {invoiceDatas.customerdetails.location
-                      ? invoiceDatas.customerdetails.location
-                      : 'N/A'}
-                  </span>
-                </div>
             </li>
 
             <li className="text-end flex flex-col items-end">
@@ -1650,14 +1632,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             <thead>
               <tr>
                 <th className="p-4 text-left border-b">S.No</th>
-                <th className="p-4 border-b text-center">Product</th>
+                <th className="p-4 border-b text-center">Product Name</th>
                 <th className="p-4 border-b text-center">Flavour</th>
-                <th className="p-4 border-b text-center">Size</th>
-                <th className="p-4 border-b text-center">Rate</th>
-                <th className="p-4 border-b text-center">Qty</th>
+                <th className="p-4 border-b text-center">Quantity</th>
+                <th className="p-4 border-b text-center">Piece Amount</th>
+                <th className="p-4 border-b text-center">Number of Packs</th>
                 <th className="p-4 border-b text-center">MRP</th>
                 <th className="p-4 border-b text-center">Margin</th>
-                <th className="p-4 border-b text-center">Amount</th>
+                <th className="p-4 border-b text-center">Total Amount</th>
               </tr>
             </thead>
             <tbody>

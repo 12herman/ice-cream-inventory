@@ -238,6 +238,7 @@ const App = () => {
         datas={datas}
         navPages={navPages}
         setNavPages={setNavPages}
+        storageUpdateMt={storageUpdateMt}
       />
       <Pages
         datas={datas}
