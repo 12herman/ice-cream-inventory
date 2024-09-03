@@ -85,11 +85,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       console.log(productId, productRef)
       if (!productExists) {
         await createStorage({
-          productname: values.productname,
-          flavour: values.flavour,
-          quantity: values.quantity,
-          unit: values.unit,
-          productperpack: values.productperpack,
+          // productname: values.productname,
+          // flavour: values.flavour,
+          // quantity: values.quantity,
+          // unit: values.unit,
+          //productperpack: values.productperpack,
           productid: productId,
           alertcount: 0,
           numberofpacks: 0,

@@ -368,7 +368,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     children,
     ...restProps
   }) => {
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    const inputNode = inputType === 'number' ? <InputNumber type='number'/> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
@@ -396,7 +396,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               <Form.Item
                 name={dataIndex}
                 style={{ margin: 0 }}
-                rules={[{ required: (dataIndex === 'vehicleorfreezerno' || dataIndex === 'gstin' ? false : true), message: false }]}
+                rules={[{ required: dataIndex === 'vehicleorfreezerno' || dataIndex === 'gstin' ? false : true, message: false,whitespace:true }]}
               >
                 {inputNode}
               </Form.Item>
@@ -437,9 +437,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   }
 
   const save = async (key) => {
+    const row = await form.validateFields();
+    console.log(row);
     try {
       setCustomerTbLoading(true)
-      const row = await form.validateFields();
       const newData = [...data]
       const index = newData.findIndex((item) => key.id === item.key)
       if (
