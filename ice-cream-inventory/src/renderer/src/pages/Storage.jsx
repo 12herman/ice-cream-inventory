@@ -337,6 +337,26 @@ export default function Storage({ datas, storageUpdateMt }) {
     }
   }
 
+  // Table Height Auto Adjustment (***Do not touch this code***)
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+      setTableHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
+
   return (
     <div>
       <ul>
@@ -396,7 +416,7 @@ export default function Storage({ datas, storageUpdateMt }) {
               dataSource={data}
               loading={tableLoading}
               pagination={false}
-              scroll={{ x: false, y: false }}
+              scroll={{ x: 900, y: tableHeight }}
               rowKey="id"
             />
           </Form>
