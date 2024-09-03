@@ -231,7 +231,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       width: 80,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text) => <Tag color={text === 'Added' ? 'green' : 'red'}>{text}</Tag>
+      render: (text) => <Tag color={text === 'Added' ? 'green' : text === 'Return' ? 'yellow' : 'red'}>{text}</Tag>
     },
     {
       title: 'Status',
@@ -331,7 +331,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     options={[
                       { value: 'gm', label: 'GM' },
                       { value: 'mm', label: 'MM' },
-                      { value: 'kg', label: 'KG' }
+                      { value: 'kg', label: 'KG' },
+                      { value: 'lt', label: 'LT' },
+                      { label: 'Box', value: 'box' },
+                      { label: 'Piece', value: 'piece' }
                     ]}
                   />
                 </Form.Item>
@@ -569,15 +572,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     const checkExist = mtOption.tempproduct.find(
       (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
     )
-
-    const dbcheckExsit = datas.rawmaterials.find(
-      (item) => item.materialname === newMaterial.materialname && item.date === newMaterial.date
-    )
     if (checkExist) {
       message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else if (dbcheckExsit) {
-      message.open({ type: 'warning', content: 'Product is alreadyy added' })
       return
     } else {
       setMtOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newMaterial] }))
@@ -595,13 +591,13 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     setIsLoadMaterialUsedModal(true)
     try {
       mtOption.tempproduct.map(async (item) => {
-        let { key, quantity, ...newMaterial } = item
+        let { key, quantity, type, ...newMaterial } = item
         let quantityNumber = Number(quantity.split(' ')[0])
         await createRawmaterial({
           ...newMaterial,
           quantity: quantityNumber,
-          type: 'Used',
-          paymentstatus: 'Used'
+          type: type,
+          paymentstatus: type === 'Return' ? 'Returned' : 'Used'
         })
         const existingMaterial = datas.storage.find(
           (storageItem) =>
@@ -609,9 +605,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             storageItem.category === 'Material List'
         )
         if (existingMaterial) {
-          await updateStorage(existingMaterial.id, {
-            quantity: existingMaterial.quantity - quantityNumber
-          })
+          if (type === 'Return') {
+            await updateStorage(existingMaterial.id, {
+              quantity: existingMaterial.quantity + quantityNumber
+            })
+          } else {
+            await updateStorage(existingMaterial.id, {
+              quantity: existingMaterial.quantity - quantityNumber
+            })
+          }
           storageUpdateMt()
         }
       })
@@ -623,7 +625,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     } catch (error) {
       console.log(error)
     } finally {
-      await setIsLoadMaterialUsedModal(false)
+      setIsLoadMaterialUsedModal(false)
     }
   }
 
@@ -739,7 +741,33 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           </div>
         }
         open={isModalOpen}
-        onOk={() => form.submit()}
+        onOk={async () => {
+          form.submit()
+
+          const formValues = form.getFieldsValue()
+          const { materialname, quantity } = formValues
+          const quantityNumber = parseFloat(quantity)
+          const existingMaterial = datas.storage.find(
+            (storageItem) =>
+              storageItem.materialname === materialname && storageItem.category === 'Material List'
+          )
+
+          if (existingMaterial) {
+            // Update the storage with the new quantity
+            await updateStorage(existingMaterial.id, {
+              quantity: existingMaterial.quantity + quantityNumber
+            })
+            // Call a function to refresh or update the storage data
+            storageUpdateMt()
+          }
+
+          if (!selectedSupplierName) {
+            setIsModalOpen(false)
+            setRadioBtn({ status: true, value: '' })
+            form.resetFields()
+            setSelectedSupplierName(null)
+          }
+        }}
         okButtonProps={{ disabled: isLoadingModal }}
         onCancel={() => {
           if (selectedSupplierName !== null) {
@@ -867,7 +895,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     {
                       value: 'lt',
                       label: 'LT'
-                    }
+                    },
+                    {
+                      label: 'Box',
+                      value: 'box'
+                    },
+                    { label: 'Piece', value: 'piece' }
                   ]}
                 />
               </Form.Item>
@@ -963,7 +996,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 onFinish={createUsedMaterial}
                 form={usedmaterialform}
                 layout="vertical"
-                initialValues={{ date: dayjs() }}
+                initialValues={{ date: dayjs(), type: 'Used' }}
               >
                 <Form.Item
                   className=" absolute top-[-3rem]"
@@ -973,6 +1006,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 >
                   <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
                 </Form.Item>
+
+                <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  >
+                    <Radio.Button value="Used" style={{ width: '50%' }}>
+                      USED
+                    </Radio.Button>
+                    <Radio.Button value="Return" style={{ width: '50%' }}>
+                      RETURN
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
                 <Form.Item
                   className="mb-2"
                   name="materialname"
@@ -1026,7 +1074,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                         { label: 'GM', value: 'gm' },
                         { label: 'KG', value: 'kg' },
                         { label: 'LT', value: 'lt' },
-                        { label: 'ML', value: 'ml' }
+                        { label: 'ML', value: 'ml' },
+                        { label: 'Box', value: 'box' },
+                        { label: 'Piece', value: 'piece' }
                       ]}
                     />
                   </Form.Item>

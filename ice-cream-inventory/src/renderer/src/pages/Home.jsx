@@ -155,7 +155,7 @@ export default function Home({ datas }) {
   }
 
   const totalSales = filteredDelivery
-    .filter((product) => product.type === 'order')
+    .filter((product) => product.type !== 'return')
     .reduce((total, product) => total + product.billamount, 0)
 
   const totalSpend = filteredRawmaterials
