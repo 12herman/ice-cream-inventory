@@ -41,7 +41,7 @@ export default function Storage({ datas, storageUpdateMt }) {
             if (status) {
               return { ...data, ...product };
             }
-            return data; // Return the original data if status is false or undefined
+            // return data; // Return the original data if status is false or undefined
           })
         );
         setData(idCompareData); // Use the resolved data
@@ -298,26 +298,20 @@ export default function Storage({ datas, storageUpdateMt }) {
   }
 
   const storageSave = async (record) => {
+    console.log(record);
+    
     try {
       const row = await ediablefForm.validateFields()
       if (selectedSegment === 'Material List') {
-        const exsitingData = await datas.storage.some(
-          (item) =>
-            item.id === record.id &&
-            item.quantity === row.quantity &&
-            item.alertcount === row.alertcount
-        )
+        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.quantity === row.quantity && item.alertcount === row.alertcount)
+        
         if (exsitingData) {
-          message.open({
-            type: 'info',
-            content: 'Data already exists',
-            duration: 2
-          })
+          message.open({ type: 'info', content: 'Data already exists'})
           setEditingKeys([])
         } else {
           setTableLoading(true)
           await updateStorage(record.id, {
-            alertcount: row.alertcount,
+            alertcount: row.alertcount, 
             quantity: row.quantity,
             updateddate: TimestampJs()
           })
