@@ -16,6 +16,7 @@ import { updateStorage } from '../firebase/data-tables/storage'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
+import { getProductById } from '../firebase/data-tables/products'
 const { Search } = Input
 
 export default function Storage({ datas, storageUpdateMt }) {
@@ -29,11 +30,29 @@ export default function Storage({ datas, storageUpdateMt }) {
   const [tableLoading, setTableLoading] = useState(true)
 
   useEffect(() => {
-    setTableLoading(true)
-    const rawData = datas.storage.filter((data) => data.category === selectedSegment)
-    setData(rawData)
-    setTableLoading(false)
-  }, [datas, selectedSegment])
+    const fetchData = async () => {
+      setTableLoading(true);
+      const rawData = datas.storage.filter((data) => data.category === selectedSegment);
+      const checkCategory = rawData.some((data) => data.category === 'Product List');
+      if (checkCategory) {
+        const idCompareData = await Promise.all(
+          rawData.map(async (data) => {
+            const { product, status } = await getProductById(data.productid);
+            if (status) {
+              return { ...data, ...product };
+            }
+            return data; // Return the original data if status is false or undefined
+          })
+        );
+        setData(idCompareData); // Use the resolved data
+      } else {
+        setData(rawData); // If not Product List, just set rawData
+      }
+      setTableLoading(false);
+    };
+    fetchData(); // Call the async function
+  }, [datas, selectedSegment]);
+  
 
   // search
   const [searchText, setSearchText] = useState('')
