@@ -106,6 +106,7 @@ export default function Storage({ datas, storageUpdateMt }) {
       key: 'materialname',
       sorter: (a, b) => a.materialname.localeCompare(b.materialname),
       showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend',
       editable: false
     },
     {
@@ -169,7 +170,8 @@ export default function Storage({ datas, storageUpdateMt }) {
       dataIndex: 'productname',
       key: 'productname',
       sorter: (a, b) => a.productname.localeCompare(b.productname),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Flavor',
