@@ -216,7 +216,7 @@ const App = () => {
         }
       }
     })
-  }, [])
+  }, [datas.storage])
 
   useEffect(() => {
     const today = dayjs().format('DD/MM/YYYY')
@@ -234,7 +234,7 @@ const App = () => {
         }
       }
     })
-  }, [])
+  }, [datas.delivery])
 
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
