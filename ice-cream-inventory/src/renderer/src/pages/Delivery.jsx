@@ -903,14 +903,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     // List
     let productItems = await Promise.all(findPr.map( async (pr) => {
       let matchingTempProduct = option.tempproduct.find((temp) =>temp.productname === pr.productname && temp.flavour === pr.flavour && pr.quantity == temp.quantity.split(' ')[0] && pr.unit === temp.quantity.split(' ')[1] )
-      
+
       if (returnDelivery.state === true) {
-        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List' );
+        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List');
+        if(matchingTempProduct.returntype === 'damage'){
+          console.log('damage');
+        }
+        else{
         await updateStorage(existingProduct.id, {
           numberofpacks: existingProduct.numberofpacks + matchingTempProduct.numberofpacks,
           updateddate:TimestampJs()
         })
         await storageUpdateMt()
+        }
         return {
           id: pr.id,
           numberofpacks: matchingTempProduct.numberofpacks,
@@ -918,7 +923,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           margin: 0
         }
       } else {
-        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List' );
+        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List');
         await updateStorage(existingProduct.id, {
           numberofpacks: existingProduct.numberofpacks - matchingTempProduct.numberofpacks,
           updateddate:TimestampJs()
@@ -962,7 +967,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
-
 
     try {
       const deliveryCollectionRef = collection(db, 'delivery')

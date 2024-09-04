@@ -104,7 +104,7 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      sorter: (a, b) => a.materialname.localeCompare(b.materialname),
+      // sorter: (a, b) => a.materialname.localeCompare(b.materialname),
       showSorterTooltip: { target: 'sorter-icon' },
       defaultSortOrder: 'ascend',
       editable: false
