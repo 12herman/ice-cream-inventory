@@ -154,7 +154,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         const dateB = dayjs(b.createddate, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
-      defaultSortOrder: 'descend',
+      // defaultSortOrder: 'descend',
       width: 115,
       editable: false
     },
@@ -812,6 +812,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   // create add tem product
   const [count, setCount] = useState(0)
   const [totalamount, setTotalAmount] = useState(0)
+  
   const createTemDeliveryMt = debounce(async (values) => {
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
@@ -843,32 +844,34 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
         item.numberofpacks === newProduct.numberofpacks &&
-        item.date === newProduct.date
+        item.date === newProduct.date && 
+        item.returntype === newProduct.returntype
     )
 
-    const checkSamePacks = option.tempproduct.some(
-      (item) =>
-        item.customername === newProduct.customername &&
-        item.productname === newProduct.productname &&
-        item.flavour === newProduct.flavour &&
-        item.quantity === newProduct.quantity &&
-        item.numberofpacks !== newProduct.numberofpacks &&
-        item.date === newProduct.date &&
-        item.key !== newProduct.key
-    )
+    // const checkSamePacks = option.tempproduct.some(
+    //   (item) =>
+    //     item.customername === newProduct.customername &&
+    //     item.productname === newProduct.productname &&
+    //     item.flavour === newProduct.flavour &&
+    //     item.quantity === newProduct.quantity &&
+    //     item.numberofpacks !== newProduct.numberofpacks &&
+    //     item.date === newProduct.date &&
+    //     item.key !== newProduct.key
+    // )
 
     //const dbCheck = datas.delivery.some(item => item.isdeleted === false && item.customername ===newProduct.customername && item.productname === newProduct.productname && item.flavour === newProduct.flavour && item.date === newProduct.date && newProduct.quantity === item.quantity );
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else if (checkSamePacks) {
-      message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else {
+    } 
+    // else if (checkSamePacks) {
+    //   message.open({ type: 'warning', content: 'Product is already added' })
+    //   return
+    // } 
+    else {
       setTotalAmount((pre) => pre + findPrice * values.numberofpacks)
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
       deliveryUpdateMt()
-      setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Unpaid' })
+      setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Paid' })
       form5.resetFields(['marginvalue'])
       form4.resetFields(['partialamount'])
       form4.setFieldsValue({ paymentstatus: 'Paid' })
@@ -890,52 +893,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const addNewDelivery = async () => {
     setEditingKey('')
     setIsDeliverySpiner(true)
-    let findPr = datas.product.filter((pr) =>
-      option.tempproduct.find(
-        (temp) =>
+    let productItems = option.tempproduct.flatMap((temp) => datas.product
+        .filter((pr) =>
           temp.productname === pr.productname &&
           temp.flavour === pr.flavour &&
           pr.quantity == temp.quantity.split(' ')[0] &&
           pr.unit === temp.quantity.split(' ')[1]
-      )
-    )
-
-    // List
-    let productItems = await Promise.all(findPr.map( async (pr) => {
-      let matchingTempProduct = option.tempproduct.find((temp) =>temp.productname === pr.productname && temp.flavour === pr.flavour && pr.quantity == temp.quantity.split(' ')[0] && pr.unit === temp.quantity.split(' ')[1] )
-
-      if (returnDelivery.state === true) {
-        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List');
-        if(matchingTempProduct.returntype === 'damage'){
-          console.log('damage');
-        }
-        else{
-        await updateStorage(existingProduct.id, {
-          numberofpacks: existingProduct.numberofpacks + matchingTempProduct.numberofpacks,
-          updateddate:TimestampJs()
-        })
-        await storageUpdateMt()
-        }
-        return {
+        )
+        .map((pr) => ({
+          numberofpacks: temp.numberofpacks,
           id: pr.id,
-          numberofpacks: matchingTempProduct.numberofpacks,
-          returntype: matchingTempProduct.returntype,
-          margin: 0
-        }
-      } else {
-        const existingProduct = datas.storage.find((storageItem) => storageItem.productid === pr.id  && storageItem.category === 'Product List');
-        await updateStorage(existingProduct.id, {
-          numberofpacks: existingProduct.numberofpacks - matchingTempProduct.numberofpacks,
-          updateddate:TimestampJs()
-        })
-        await storageUpdateMt()
-        return {
-          id: pr.id,
-          numberofpacks: matchingTempProduct.numberofpacks,
-          margin: matchingTempProduct.margin
-        }
-      }
-    }))
+          returntype: temp.returntype,
+          margin: temp.margin
+        }))
+    );
 
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue()
@@ -950,7 +921,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             billamount: totalamount,
             paymentstatus: marginValue.paymentstaus,
             partialamount:
-              partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -962,12 +933,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             billamount: marginValue.amount,
             paymentstatus: marginValue.paymentstaus,
             partialamount:
-              partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
           }
 
+          console.log(newDelivery);
     try {
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
@@ -975,33 +947,31 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       await setOption((prev) => ({ ...prev, tempproduct: [] }))
 
       for (const item of productItems) {
+
         await addDoc(itemsCollectionRef, item)
-        const { product, status } = await getProductById(item.id)
+
+        const { product, status } = await getProductById(item.id);
 
         if (status === 200) {
-          const existingProduct = datas.storage.find(
-            (storageItem) =>
-              storageItem.productname === product.productname &&
-              storageItem.flavour === product.flavour &&
-              storageItem.quantity === product.quantity &&
-              storageItem.category === 'Product List'
-          )
-
-          if (existingProduct) {
-            if (returnDelivery.state === true) {
+          const existingProduct = datas.storage.find( (storageItem) => storageItem.productid === product.id && storageItem.category === 'Product List' )
+          
+          if (returnDelivery.state === true && item.returntype === 'normal') {
               await updateStorage(existingProduct.id, {
                 numberofpacks: existingProduct.numberofpacks + item.numberofpacks
               })
-            } else {
+            }
+            else if(returnDelivery.state === true && item.returntype === 'damage')
+            {
+
+            }
+            else {
               await updateStorage(existingProduct.id, {
                 numberofpacks: existingProduct.numberofpacks - item.numberofpacks
               })
             }
             await storageUpdateMt()
-          }
         }
       }
-
       message.open({
         type: 'success',
         content:
@@ -1011,10 +981,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       })
       await deliveryUpdateMt()
     } catch (error) {
-      // Handle errors
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
-    } finally {
+    } 
+    finally {
       setTotalAmount(0)
       setMarginValue((pre) => ({ ...pre, amount: 0 }))
       form5.resetFields(['marginvalue'])
@@ -1024,7 +994,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       await setIsDeliverySpiner(false)
     }
     setTableLoading(false)
-  }
+  };
 
   // model close
   const modelCancel = async () => {
@@ -1132,6 +1102,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     tempproduct: [],
     count: 0
   })
+
   useEffect(() => {
     const optionsuppliers = datas.suppliers
       .filter(
@@ -1204,7 +1175,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     amount: 0,
     discount: 0,
     percentage: 0,
-    paymentstaus: '',
+    paymentstaus: 'Paid',
     particalAmount: 0
   })
 
@@ -1253,7 +1224,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     {
       title: 'S.No',
       key: 'sno',
-      dataIndex: 'sno'
+      dataIndex: 'sno',
+      width:80,
     },
     {
       title: 'Product Name',
@@ -1268,24 +1240,27 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     {
       title: 'Quantity',
       key: 'quantity',
-      dataIndex: 'quantity'
+      dataIndex: 'quantity',
+      width:100,
     },
     {
       title: 'Peice Amount',
       key: 'pieceamount',
       dataIndex: 'pieceamount',
+      width:120,
       render: (text) => <span>{text}</span>
     },
     {
       title: 'Number of Packs',
       key: 'numberofpacks',
-      dataIndex: 'numberofpacks'
+      dataIndex: 'numberofpacks',
+      width:140,
     },
     {
       title: 'MRP',
       key: 'producttotalamount',
       dataIndex: 'producttotalamount',
-
+width:100,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
@@ -1298,7 +1273,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         } else {
           return text === 'damage' ? <Tag color="red">Damage</Tag> : <Tag color="blue">Normal</Tag>
         }
-      }
+      },
+      width:80,
     },
     {
       title: 'Total Amount',
@@ -1314,31 +1290,33 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         await setDeliveryBill((pre) => ({ ...pre, loading: true }))
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
         if (status === 200) {
-          let prData = datas.product.filter((item, i) =>
-            items.find((item2) => item.id === item2.id)
-          )
-          let prItems = await prData.map((pr, i) => {
-            let matchingData = items.find((item, i) => item.id === pr.id)
-            return {
-              sno: i + 1,
-              ...pr,
-              pieceamount: pr.price,
-              quantity: pr.quantity + ' ' + pr.unit,
-              margin: matchingData.margin,
-              price: customRound(
-                matchingData.numberofpacks * pr.price -
-                  matchingData.numberofpacks * pr.price * (matchingData.margin / 100)
-              ),
-              numberofpacks: matchingData.numberofpacks,
-              producttotalamount: matchingData.numberofpacks * pr.price,
-              returntype: matchingData.returntype
-            }
-          })
+          
+          let prItems = datas.product.flatMap((item) =>
+            items.filter((item2) => item.id === item2.id)
+              .map((item2, i) => {
+                return {
+                  sno: i + 1,
+                  ...item,
+                  returntype: item2.returntype,
+                  pieceamount: item.price,
+                  quantity: `${item.quantity} ${item.unit}`,
+                  margin: item2.margin,
+                  price: customRound(
+                    item2.numberofpacks * item.price -
+                    item2.numberofpacks * item.price * (item2.margin / 100)
+                  ),
+                  numberofpacks: item2.numberofpacks,
+                  producttotalamount: item2.numberofpacks * item.price,
+                };
+              })
+          );
+
           await setDeliveryBill((pre) => ({
             ...pre,
             data: { items: prItems, ...deliveryBill.prdata }
           }))
         }
+
         await setDeliveryBill((pre) => ({ ...pre, loading: false }))
       }
     }
@@ -1490,6 +1468,25 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
+  }, []);
+
+  const [historyHeight, setHistoryHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 300 // Adjust this value based on your layout needs
+      setHistoryHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
   }, [])
 
   // html to pdf
@@ -1549,6 +1546,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
   const [isCloseWarning, setIsCloseWarning] = useState(false)
   const customerRef = useRef(null)
+
 
   useEffect(() => {
     if (isModalOpen) {
@@ -2060,7 +2058,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       {/* Delivery bill model */}
       <Modal
         className="relative"
-        width={1000}
+        width={1200}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">
             {deliveryBill.returnmodeltable === true ? 'RETURN' : 'DELIVERED'} ON{' '}
@@ -2077,7 +2075,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           dataSource={deliveryBill.data.items}
           loading={deliveryBill.loading}
           pagination={false}
-          scroll={{ y: tableHeight }}
+          scroll={{ x:200,y: historyHeight }}
         />
 
         <div className="mt-5">
@@ -2094,6 +2092,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
               {formatToRupee(
                 deliveryBill.data.billamount === undefined ? 0 : deliveryBill.data.billamount
               )}
+            </Tag>
+          </span>
+
+          <span className={`${deliveryBill.data.partialamount === 0 ? 'hidden': 'inline-block'}`}>
+            Partial Amount:
+            <Tag className="text-[1.1rem]" color="blue">
+              {formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.partialamount)}
             </Tag>
           </span>
         </div>

@@ -136,13 +136,20 @@ const App = () => {
   // get table datas 'delivery list'
   useEffect(() => {
     const fetchData = async () => {
-      const { status, delivery } = await getDelivery()
+      const { status, delivery } = await getDelivery();
       if (status) {
-        setDatas((pre) => ({ ...pre, delivery }))
+        // Sort the delivery data by createddate
+        const sortedDelivery = delivery.sort((a, b) => {
+          const dateA = new Date(a.createddate.split(',')[0].split('/').reverse().join('-') + 'T' + a.createddate.split(',')[1].replace('.', ':'));
+          const dateB = new Date(b.createddate.split(',')[0].split('/').reverse().join('-') + 'T' + b.createddate.split(',')[1].replace('.', ':'));
+          return dateB - dateA;
+        });
+        setDatas((pre) => ({ ...pre, delivery: sortedDelivery }));
       }
-    }
-    fetchData()
-  }, [datas.deliveryupdatestaus])
+    };
+    fetchData();
+  }, [datas.deliveryupdatestaus]);
+  
 
   // get table datas 'employee list'
   useEffect(() => {
