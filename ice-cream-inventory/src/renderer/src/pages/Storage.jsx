@@ -34,25 +34,40 @@ export default function Storage({ datas, storageUpdateMt }) {
       setTableLoading(true);
       const rawData = datas.storage.filter((data) => data.category === selectedSegment);
       const checkCategory = rawData.some((data) => data.category === 'Product List');
+      
+      let sortedData = [];
+  
       if (checkCategory) {
         const idCompareData = await Promise.all(
           rawData.map(async (data) => {
             const { product, status } = await getProductById(data.productid);
             if (status) {
-              const {id, ...filterpr} = product
-              return { ...data, ...filterpr};
+              const { id, ...filterpr } = product;
+              return { ...data, ...filterpr };
             }
-            // return data; // Return the original data if status is false or undefined
+            return data; // Return original data if status is false or undefined
           })
         );
-        setData(idCompareData); // Use the resolved data
+        sortedData = idCompareData.sort((a, b) => {
+          if (!a.productname) return 1;
+          if (!b.productname) return -1;
+          return a.productname.localeCompare(b.productname);
+        });
       } else {
-        setData(rawData); // If not Product List, just set rawData
+        sortedData = rawData.sort((a, b) => {
+          if (!a.materialname) return 1;
+          if (!b.materialname) return -1;
+          return a.materialname.localeCompare(b.materialname);
+        });
       }
+  
+      setData(sortedData); // Set the sorted data
       setTableLoading(false);
     };
+  
     fetchData(); // Call the async function
   }, [datas, selectedSegment]);
+  
   
 
   // search
@@ -104,9 +119,9 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      // sorter: (a, b) => a.materialname.localeCompare(b.materialname),
+      sorter: (a, b) =>a.materialname.localeCompare(b.materialname),
       showSorterTooltip: { target: 'sorter-icon' },
-      defaultSortOrder: 'ascend',
+      // defaultSortOrder: 'ascend',
       editable: false
     },
     {
@@ -163,27 +178,31 @@ export default function Storage({ datas, storageUpdateMt }) {
           String(record.alertcount).toLowerCase().includes(value.toLowerCase()) ||
           String(record.numberofpacks).toLowerCase().includes(value.toLowerCase())
         )
-      }
+      },
+      editable:false
     },
     {
       title: 'Product',
       dataIndex: 'productname',
       key: 'productname',
-      sorter: (a, b) => a.productname.localeCompare(b.productname),
+      sorter:  (a, b) => a.productname.localeCompare(b.productname),
       showSorterTooltip: { target: 'sorter-icon' },
-      defaultSortOrder: 'ascend'
+      // defaultSortOrder: 'ascend',
+      editable:false
     },
     {
       title: 'Flavor',
       dataIndex: 'flavour',
       key: 'flavour',
       sorter: (a, b) => a.flavour.localeCompare(b.flavour),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      editable:false
     },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
-      key: 'quantity'
+      key: 'quantity',
+      editable:false
     },
     {
       title: 'Box',
@@ -236,7 +255,8 @@ export default function Storage({ datas, storageUpdateMt }) {
     }
   ]
 
-  const columns = selectedSegment === 'Material List' ? materialColumns : productColumns
+  const columns = selectedSegment === 'Material List' ? materialColumns : productColumns;
+
   const edit = (record) => {
     ediablefForm.setFieldsValue({ ...record })
     setEditingKeys([record.id])
