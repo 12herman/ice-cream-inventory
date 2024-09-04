@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Button, Statistic, Table, Timeline, List } from 'antd'
+import { Card, Button, Statistic, Table, Timeline, List, message, Popconfirm } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { RiFileCloseLine } from 'react-icons/ri'
 import { MdOutlinePendingActions } from 'react-icons/md'
+import { TimestampJs } from '../js-files/time-stamp'
+import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
+import { db } from '../firebase/firebase'
+import { createBalanceSheet, updateBalanceSheet } from '../firebase/data-tables/balancesheet'
+import dayjs from 'dayjs';
 
 export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const [data, setData] = useState([])
@@ -11,6 +16,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const [balanceTbLoading, setBalanceTbLoading] = useState(true)
   const [filteredData, setFilteredData] = useState([])
   const [deliveryList, setDeliveryList] = useState([])
+  const [payDetailsList, setPayDetailsList] = useState([])
   const [activeCard, setActiveCard] = useState(null)
 
   useEffect(() => {
@@ -59,7 +65,6 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
       )
       setDeliveryData(filteredData)
       setBalanceTbLoading(false)
-      console.log(filteredData)
     }
     fetchData()
   }, [datas])
@@ -95,18 +100,70 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
       title: 'Action',
       dataIndex: 'action',
       width: 120,
-      render: (_, render) => (
+      render: (_, record) => (
         <span>
-          <Button>
-            <MdOutlinePendingActions />
-          </Button>
-          <Button className="mx-1">
-            <RiFileCloseLine />
-          </Button>
+          <Popconfirm
+            title="Are you sure to set this as pending?"
+            onConfirm={() => handlePendingBtn(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button>
+              <MdOutlinePendingActions />
+            </Button>
+          </Popconfirm>
+          <Popconfirm
+            title="Are you sure to set this as closed?"
+            onConfirm={() => handleClosedBtn(record)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button className="mx-1">
+              <RiFileCloseLine />
+            </Button>
+          </Popconfirm>
         </span>
       )
     }
   ]
+
+  const handlePendingBtn = async (record) => {
+    const { id, balance } = record
+    const newBalanceEntry = {
+      customerid: id,
+      balance,
+      date: dayjs().format('DD/MM/YYYY'),
+      createddate: TimestampJs(),
+      currentstatus: 'pending'
+    }
+    try {
+      await createBalanceSheet(newBalanceEntry)
+      message.success('Balance added successfully!')
+      balanceSheetUpdateMt()
+    } catch (error) {
+      console.error('Error adding balance entry:', error)
+      message.error('Failed to add balance entry.')
+    }
+  }
+
+  const handleClosedBtn = async (record) => {
+    const { id, balance } = record
+    const newBalanceEntry = {
+      customerid: id,
+      balance,
+      createddate: TimestampJs(),
+      date: dayjs().format('DD/MM/YYYY'),
+      currentstatus: 'closed'
+    }
+    try {
+      await createBalanceSheet(newBalanceEntry)
+      message.success('Balance Closed successfully!')
+      balanceSheetUpdateMt()
+    } catch (error) {
+      console.error('Error adding balance entry:', error)
+      message.error('Failed to add balance entry.')
+    }
+  }
 
   const totalSelf = data.filter((item) => item.transport === 'Self').length
   const totalCompany = data.filter((item) => item.transport === 'Company').length
@@ -118,12 +175,29 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     setFilteredData(filtered)
   }
 
-  const handleRowClick = (record) => {
-    const deliveries = deliveryData.filter((delivery) => delivery.customerid === record.id && !delivery.isdeleted)
+  const handleRowClick = async (record) => {
+    const deliveries = deliveryData.filter(
+      (delivery) => delivery.customerid === record.id && !delivery.isdeleted
+    )
     setDeliveryList(deliveries)
+
+    try {
+      const customerDocRef = doc(db, 'customer', record.id)
+      const payDetailsRef = collection(customerDocRef, 'paydetails')
+      const payDetailsSnapshot = await getDocs(payDetailsRef)
+      const payDetails = payDetailsSnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id
+      }))
+      setPayDetailsList(payDetails)
+    } catch (e) {
+      console.log(e)
+    }
   }
 
-  const totalBalance = deliveryList.reduce((acc, item) => acc + (Number(item.billamount) || 0), 0);
+  const totalBalance = deliveryList.reduce((acc, item) => acc + (Number(item.billamount) || 0), 0)
+
+  const totalPayment = payDetailsList.reduce((acc, item) => acc + (Number(item.amount) || 0), 0)
 
   const handleCardClick = (key) => {
     setActiveCard(key)
@@ -146,7 +220,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
           </Button>
         </li>
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
-           {cardsData.map((card) => {
+          {cardsData.map((card) => {
             const isActive = activeCard === card.key
             return (
               <Card
@@ -163,9 +237,9 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                 <Statistic
                   title={
                     isActive ? (
-                      <span className="text-white">{card.title}</span>
+                      <span className="text-white font-semibold">{card.title}</span>
                     ) : (
-                      <span>{card.title}</span>
+                      <span className='font-semibold'>{card.title}</span>
                     )
                   }
                   value={card.value}
@@ -193,14 +267,14 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
             />
           </div>
           <div className="w-1/2 pl-2 border border-gray-300 rounded-lg p-4">
-          <List
+            <List
               size="small"
-              header={<div>Delivery List</div>}
+              header={<div style={{ fontWeight: '600' }}>Order Details</div>}
               footer={
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div>Total Deliveries: {deliveryList.length}</div>
-                <div>Total Balance: ${totalBalance.toFixed(2)}</div>
-              </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                  <div>Total Deliveries: {deliveryList.length}</div>
+                  <div>Total Balance: ${totalBalance.toFixed(2)}</div>
+                </div>
               }
               bordered
               dataSource={deliveryList}
@@ -213,7 +287,29 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   <div>Status: {item.paymentstatus}</div>
                 </List.Item>
               )}
-              />
+            />
+
+              <List
+              className='mt-2'
+              size="small"
+              header={<div style={{ fontWeight: '600' }}>Payment Details</div>}
+              footer={
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                  <div>Total Deliveries: {payDetailsList.length}</div>
+                  <div>Total Payment: ${totalPayment.toFixed(2)}</div>
+                </div>
+              }
+              bordered
+              dataSource={payDetailsList}
+              renderItem={(item) => (
+                <List.Item>
+                  <div>Date: {item.date}</div>
+                  <div>Bill: ${item.amount}</div>
+                  <div>Reason: {item.description}</div>
+                </List.Item>
+              )}
+            />
+
           </div>
         </li>
       </ul>

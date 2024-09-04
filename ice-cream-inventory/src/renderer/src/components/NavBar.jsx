@@ -17,7 +17,8 @@ import {
   Tag,
   Radio,
   Typography,
-  Spin
+  Spin,
+  TimePicker 
 } from 'antd'
 const { TextArea } = Input
 import dayjs from 'dayjs'
@@ -391,7 +392,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
         customername: qickSaleForm3Value.customername || 'Quick Sale',
         mobilenumber: qickSaleForm3Value.mobilenumber || '',
         billamount: isQuickSale.billamount,
-        // margin:isQuickSale.margin,
+        time: qickSaleForm3Value.time ? qickSaleForm3Value.time.format('HH:mm') : '',
         partialamount:qickSaleForm3Value.partialamount === undefined ||
         qickSaleForm3Value.partialamount === null ? 0 : qickSaleForm3Value.partialamount,
         paymentstatus: qickSaleForm3Value.paymentstatus,
@@ -426,6 +427,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
         setIsSpinners(false);
       } catch (error) {
         console.log(error)
+        setIsSpinners(false);
       }
     }
   };
@@ -882,11 +884,20 @@ setFirstValue(null)
               >
                 <InputNumber
                 type='number'
-                className='w-[12rem]'
+                className='w-[10rem]'
                   placeholder="Mobile Number"
                   disabled={isQuickSale.type === 'booking' || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? false :  true}
                 />
                 </Form.Item>
+
+                <Form.Item
+                className="mb-0 absolute top-[2rem] left-40"
+                name="time"
+                rules={[{ required: ((isQuickSale.type === 'booking') ? true : false), message: false }]}
+              >
+                <TimePicker use12Hours format="h:mm a" className='w-[90%]' disabled={isQuickSale.type === 'booking'  ? false :  true} />
+                </Form.Item>
+
             </Form>
             <Button
               onClick={quicksaleMt}
@@ -927,7 +938,6 @@ setFirstValue(null)
           quickSaleForm.resetFields()
           }
         }}
-        
       >
       <Spin  spinning={isSpinners}>
       <div className="relative"> 
@@ -1013,8 +1023,6 @@ setFirstValue(null)
               <InputNumber type='number' min={1} className="w-full" placeholder='Enter the Number'/>
             </Form.Item>
 
-           
-
             <Form.Item className="mb-3 w-full">
               <Button className="w-full" type="primary" htmlType="submit">
                 Add To List
@@ -1034,7 +1042,6 @@ setFirstValue(null)
           </Form>
         </div>
        
-
         <span
           className={`absolute top-[-2.7rem] right-10 ${isQuickSale.marginstate === false ? 'hidden' : 'block'}`}
         >
@@ -1127,7 +1134,6 @@ setFirstValue(null)
         </Spin>
       </Modal>
 
-      
     </nav>
   )
 }

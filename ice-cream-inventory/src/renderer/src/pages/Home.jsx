@@ -32,6 +32,9 @@ import companyLogo from '../assets/img/companylogo.png'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import html2canvas from 'html2canvas'
 import ReactToPrint from 'react-to-print'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+
+dayjs.extend(isSameOrAfter)
 
 export default function Home({ datas }) {
   const today = dayjs(DatestampJs(), 'DD/MM/YYYY')
@@ -45,6 +48,7 @@ export default function Home({ datas }) {
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
+  const [deliveryData, setDeliveryData] = useState([])
   const [quotationData, setQuotationData] = useState({
     date: dayjs(),
     type: 'withGST',
@@ -77,6 +81,25 @@ export default function Home({ datas }) {
 
       setSelectedTableData(initialData)
       setTableLoading(false)
+
+      const initialDeliveryData = await Promise.all(
+        datas.delivery
+          .filter((data) => !data.isdeleted)
+          .map(async (item, index) => {
+            const result = await getCustomerById(item.customerid)
+            const customerName =
+              result.status === 200 ? result.customer.customername : item.customername
+            return {
+              ...item,
+              sno: index + 1,
+              key: item.id || index,
+              customername: customerName
+            }
+          })
+      )
+
+      setDeliveryData(initialDeliveryData)
+
     }
     fetchData()
   }, [datas])
@@ -170,7 +193,12 @@ export default function Home({ datas }) {
     .filter((product) => product.type === 'quick')
     .reduce((total, product) => total + product.billamount, 0)
 
-  const totalBooking = filteredDelivery.filter((product) => product.type === 'booking').length
+  const totalBooking = deliveryData.filter((product) => {
+    return (
+      product.type === 'booking' &&
+      dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+    )
+  }).length
 
   const totalPaid = filteredDelivery
     .filter((product) => product.paymentstatus === 'Paid')
@@ -202,7 +230,7 @@ export default function Home({ datas }) {
     let newSelectedTableData = []
     switch (type) {
       case 'totalSales':
-        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'order')
+        newSelectedTableData = filteredDelivery.filter((product) => product.type !== 'return')
         break
       case 'totalSpend':
         newSelectedTableData = filteredRawmaterials.filter((material) => material.type === 'Added')
@@ -211,7 +239,19 @@ export default function Home({ datas }) {
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'quick')
         break
       case 'totalBooking':
-        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'booking')
+        newSelectedTableData = deliveryData.filter((product) => {
+          return (
+            product.type === 'booking' &&
+            dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+          )
+        }).map((product) => {
+            const dateTimeString = `${product.date} ${product.time}`
+            //const productDateTime = dayjs(dateTimeString, 'DD/MM/YYYY HH:mm')
+            return {
+              ...product,
+              date: dateTimeString
+            }
+        })
         break
       case 'totalPaid':
         newSelectedTableData = filteredDelivery.filter(
