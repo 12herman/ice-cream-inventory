@@ -870,7 +870,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     else {
       setTotalAmount((pre) => pre + findPrice * values.numberofpacks)
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
-      deliveryUpdateMt()
+      // deliveryUpdateMt()
       setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Paid' })
       form5.resetFields(['marginvalue'])
       form4.resetFields(['partialamount'])
