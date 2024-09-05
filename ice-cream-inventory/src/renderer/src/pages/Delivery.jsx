@@ -1310,7 +1310,7 @@ width:100,
                 };
               })
           );
-          // console.log(deliveryBill.prdata);
+          console.log(deliveryBill.prdata);
           await setDeliveryBill((pre) => ({
             ...pre,
             data: { items: prItems, ...deliveryBill.prdata }
@@ -2064,6 +2064,7 @@ width:100,
           <span className="w-full flex justify-center items-center text-sm py-2">
             {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : 'BOOKING'} ON{' '}
             {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}
+            <span className={`${deliveryBill.prdata.type === 'booking' ? 'pl-1 inline-block text-gray-600': 'hidden'}`}>{deliveryBill.prdata.time}</span>
           </span>
         }
         footer={false}
