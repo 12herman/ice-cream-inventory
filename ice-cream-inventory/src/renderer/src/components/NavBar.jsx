@@ -346,7 +346,10 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
        isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '' ||
         qickSaleForm3Value.mobilenumber === undefined ||
         qickSaleForm3Value.mobilenumber === null ||
-        qickSaleForm3Value.mobilenumber === '')
+        qickSaleForm3Value.mobilenumber === '' ||
+        qickSaleForm3Value.time === undefined || 
+        qickSaleForm3Value.time === null ||
+        qickSaleForm3Value.time === '')
     ) {
       message.open({ type: 'warning', content: 'Please fill the required fields' })
       quickSaleForm3.submit();
