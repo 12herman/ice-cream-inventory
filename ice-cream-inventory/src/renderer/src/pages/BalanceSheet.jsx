@@ -1,23 +1,39 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Button, Statistic, Table, Timeline, List, message, Popconfirm } from 'antd'
+import {
+  Card,
+  Button,
+  Statistic,
+  Table,
+  Modal,
+  List,
+  message,
+  Popconfirm,
+  Radio,
+  Input,
+  DatePicker,
+  Form
+} from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { getCustomerById } from '../firebase/data-tables/customer'
-import { RiFileCloseLine } from 'react-icons/ri'
-import { MdOutlinePendingActions } from 'react-icons/md'
+import { LuFileX2, LuFileClock, LuFileCheck2, LuFileCog } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
+import { addDoc, collection, doc, getDocs, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { createBalanceSheet, updateBalanceSheet } from '../firebase/data-tables/balancesheet'
-import dayjs from 'dayjs';
+import dayjs from 'dayjs'
 
 export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const [data, setData] = useState([])
+  const [payForm] = Form.useForm()
   const [deliveryData, setDeliveryData] = useState([])
   const [balanceTbLoading, setBalanceTbLoading] = useState(true)
   const [filteredData, setFilteredData] = useState([])
   const [deliveryList, setDeliveryList] = useState([])
   const [payDetailsList, setPayDetailsList] = useState([])
   const [activeCard, setActiveCard] = useState(null)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [customerPayId, setCustomerPayId] = useState(null)
+  const [customerName, setCustomerName] = useState('')
 
   useEffect(() => {
     const filteredData = datas.customers
@@ -99,69 +115,96 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     {
       title: 'Action',
       dataIndex: 'action',
-      width: 120,
+      width: 70,
       render: (_, record) => (
         <span>
-          <Popconfirm
+          <Button onClick={() => showPayModel(record)}>
+            <LuFileCog />
+          </Button>
+          {/* <Popconfirm
             title="Are you sure to set this as pending?"
             onConfirm={() => handlePendingBtn(record)}
             okText="Yes"
             cancelText="No"
           >
-            <Button>
-              <MdOutlinePendingActions />
+            <Button className='mx-1'>
+              <LuFileClock />
             </Button>
-          </Popconfirm>
-          <Popconfirm
+          </Popconfirm> */}
+          {/* <Popconfirm
             title="Are you sure to set this as closed?"
             onConfirm={() => handleClosedBtn(record)}
             okText="Yes"
             cancelText="No"
           >
             <Button className="mx-1">
-              <RiFileCloseLine />
+              <LuFileX2 />
             </Button>
-          </Popconfirm>
+          </Popconfirm> */}
         </span>
       )
     }
   ]
 
-  const handlePendingBtn = async (record) => {
-    const { id, balance } = record
-    const newBalanceEntry = {
-      customerid: id,
-      balance,
-      date: dayjs().format('DD/MM/YYYY'),
-      createddate: TimestampJs(),
-      currentstatus: 'pending'
-    }
-    try {
-      await createBalanceSheet(newBalanceEntry)
-      message.success('Balance added successfully!')
-      balanceSheetUpdateMt()
-    } catch (error) {
-      console.error('Error adding balance entry:', error)
-      message.error('Failed to add balance entry.')
-    }
+  const showPayModel = (record) => {
+    payForm.resetFields()
+    setCustomerPayId(record.id)
+    setIsModalVisible(true)
   }
 
-  const handleClosedBtn = async (record) => {
-    const { id, balance } = record
-    const newBalanceEntry = {
-      customerid: id,
-      balance,
-      createddate: TimestampJs(),
-      date: dayjs().format('DD/MM/YYYY'),
-      currentstatus: 'closed'
-    }
+  // const handlePendingBtn = async (record) => {
+  //   const { id, balance } = record
+  //   const newBalanceEntry = {
+  //     customerid: id,
+  //     balance,
+  //     date: dayjs().format('DD/MM/YYYY'),
+  //     createddate: TimestampJs(),
+  //     currentstatus: 'pending'
+  //   }
+  //   try {
+  //     await createBalanceSheet(newBalanceEntry)
+  //     message.success('Balance added successfully!')
+  //     balanceSheetUpdateMt()
+  //   } catch (error) {
+  //     console.error('Error adding balance entry:', error)
+  //     message.error('Failed to add balance entry.')
+  //   }
+  // }
+
+  // const handleClosedBtn = async (record) => {
+  //   const { id, balance } = record
+  //   const newBalanceEntry = {
+  //     customerid: id,
+  //     balance,
+  //     createddate: TimestampJs(),
+  //     date: dayjs().format('DD/MM/YYYY'),
+  //     currentstatus: 'closed'
+  //   }
+  //   try {
+  //     await createBalanceSheet(newBalanceEntry)
+  //     message.success('Balance Closed successfully!')
+  //     balanceSheetUpdateMt()
+  //   } catch (error) {
+  //     console.error('Error adding balance entry:', error)
+  //     message.error('Failed to add balance entry.')
+  //   }
+  // }
+
+  const balancesheetPay = async (value) => {
+    let { date, ...Datas } = value
+    let formateDate = dayjs(date).format('DD/MM/YYYY')
+    const payData = { ...Datas, date: formateDate, createddate: TimestampJs() }
     try {
-      await createBalanceSheet(newBalanceEntry)
-      message.success('Balance Closed successfully!')
-      balanceSheetUpdateMt()
-    } catch (error) {
-      console.error('Error adding balance entry:', error)
-      message.error('Failed to add balance entry.')
+      const customerDocRef = doc(db, 'customer', customerPayId)
+      const payDetailsRef = collection(customerDocRef, 'paydetails')
+      await addDoc(payDetailsRef, payData)
+      message.open({ type: 'success', content: 'Pay Status Added Successfully' })
+    } catch (e) {
+      console.log(e)
+    } finally {
+      payForm.resetFields()
+      setCustomerPayId(null)
+      setIsModalVisible(false)
     }
   }
 
@@ -176,20 +219,46 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   }
 
   const handleRowClick = async (record) => {
-    const deliveries = deliveryData.filter(
-      (delivery) => delivery.customerid === record.id && !delivery.isdeleted
-    )
-    setDeliveryList(deliveries)
-
     try {
       const customerDocRef = doc(db, 'customer', record.id)
+      const customerDoc = await getDoc(customerDocRef)
+    if (customerDoc.exists()) {
+      const customerData = customerDoc.data()
+      setCustomerName(customerData.customername)
+    }
       const payDetailsRef = collection(customerDocRef, 'paydetails')
       const payDetailsSnapshot = await getDocs(payDetailsRef)
       const payDetails = payDetailsSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
       }))
+
+      const openEntry = payDetails
+      .filter((payDetail) => payDetail.description === 'Open')
+      .sort((a, b) => new Date(b.createddate) - new Date(a.createddate))[0]
+
+      let filteredPayDetails = payDetails
+
+      if (openEntry) {
+        filteredPayDetails = payDetails.filter(
+          (payDetail) => new Date(payDetail.createddate) > new Date(openEntry.createddate)
+        )
+      }
+
       setPayDetailsList(payDetails)
+
+      const deliveries = deliveryData.filter(
+        (delivery) => delivery.customerid === record.id && !delivery.isdeleted
+      )
+  
+      if (openEntry) {
+        const filteredDeliveries = deliveries.filter(
+          (delivery) => new Date(delivery.createddate) > new Date(openEntry.createddate)
+        )
+        setDeliveryList(filteredDeliveries)
+      } else {
+        setDeliveryList(deliveries)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -211,14 +280,34 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     { key: 'Mini Box', title: 'Mini Box', value: totalMiniBox }
   ]
 
+  // Table Height Auto Adjustment (***Do not touch this code***)
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+      setTableHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
+
   return (
     <div>
       <ul>
-        <li className="flex gap-x-3 items-center justify-end">
+        {/* <li className="flex gap-x-3 items-center justify-end">
           <Button>
             Export <PiExport />
           </Button>
-        </li>
+        </li> */}
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
             const isActive = activeCard === card.key
@@ -239,7 +328,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                     isActive ? (
                       <span className="text-white font-semibold">{card.title}</span>
                     ) : (
-                      <span className='font-semibold'>{card.title}</span>
+                      <span className="font-semibold">{card.title}</span>
                     )
                   }
                   value={card.value}
@@ -261,17 +350,46 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
               dataSource={filteredData}
               loading={balanceTbLoading}
               rowKey="id"
+              scroll={{ y: tableHeight }}
               onRow={(record) => ({
                 onClick: () => handleRowClick(record)
               })}
             />
           </div>
           <div className="w-1/2 pl-2 border border-gray-300 rounded-lg p-4">
-            <List
+          <List
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Order Details</div>}
+              header={<div style={{ fontWeight: '600' }}>Payment Details - {customerName}</div>}
               footer={
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
+                >
+                  <div>Total Deliveries: {payDetailsList.length}</div>
+                  <div>Total Payment: ${totalPayment.toFixed(2)}</div>
+                </div>
+              }
+              bordered
+              dataSource={payDetailsList}
+              renderItem={(item) => (
+                <List.Item>
+                  <div>Date: {item.date}</div>
+                  <div>Bill: ${item.amount}</div>
+                  <div>Reason: {item.description}</div>
+                </List.Item>
+              )}
+              style={{
+                maxHeight: '40vh',
+                overflowY: 'auto'
+              }}
+            />
+            <List
+              className="mt-2"
+              size="small"
+              header={<div style={{ fontWeight: '600' }}>Order Details - {customerName}</div>}
+              footer={
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
+                >
                   <div>Total Deliveries: {deliveryList.length}</div>
                   <div>Total Balance: ${totalBalance.toFixed(2)}</div>
                 </div>
@@ -287,32 +405,68 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   <div>Status: {item.paymentstatus}</div>
                 </List.Item>
               )}
+              style={{
+                maxHeight: '40vh',
+                overflowY: 'auto'
+              }}
             />
-
-              <List
-              className='mt-2'
-              size="small"
-              header={<div style={{ fontWeight: '600' }}>Payment Details</div>}
-              footer={
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
-                  <div>Total Deliveries: {payDetailsList.length}</div>
-                  <div>Total Payment: ${totalPayment.toFixed(2)}</div>
-                </div>
-              }
-              bordered
-              dataSource={payDetailsList}
-              renderItem={(item) => (
-                <List.Item>
-                  <div>Date: {item.date}</div>
-                  <div>Bill: ${item.amount}</div>
-                  <div>Reason: {item.description}</div>
-                </List.Item>
-              )}
-            />
-
           </div>
         </li>
       </ul>
+
+      <Modal
+        title={<div className="flex justify-center">PAYMENT</div>}
+        name="bookstatus"
+        centered={true}
+        open={isModalVisible}
+        onOk={() => {
+          payForm.submit()
+        }}
+        onCancel={() => {
+          setIsModalVisible(false)
+        }}
+      >
+        <Form
+          initialValues={{ description: 'Open', date: dayjs() }}
+          layout="vertical"
+          form={payForm}
+          onFinish={balancesheetPay}
+        >
+          <Form.Item
+            className=" absolute top-[0.75rem]"
+            name="date"
+            label=""
+            rules={[{ required: true, message: false }]}
+          >
+            <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Book Status"
+            rules={[{ required: true, message: false }]}
+          >
+            <Radio.Group
+              buttonStyle="solid"
+              style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+            >
+              <Radio.Button value="Open" style={{ width: '50%' }}>
+                OPEN
+              </Radio.Button>
+              <Radio.Button value="Close" style={{ width: '50%' }}>
+                CLOSE
+              </Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            className="mt-2"
+            name="amount"
+            label="Amount"
+            rules={[{ required: true, message: false }]}
+          >
+            <Input type="number" min={0} placeholder="Enter Amount" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

@@ -681,7 +681,7 @@ export default function Home({ datas }) {
             defaultValue={[today, today]}
             format="DD/MM/YYYY"
           />
-          <Button
+          {/* <Button
             type="primary"
             onClick={() => {
               setQuotationModalOpen(true)
@@ -689,7 +689,7 @@ export default function Home({ datas }) {
             }}
           >
             Quotation <FaRegFilePdf />
-          </Button>
+          </Button> */}
         </li>
 
         <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
