@@ -1310,12 +1310,13 @@ width:100,
                 };
               })
           );
-
+          // console.log(deliveryBill.prdata);
           await setDeliveryBill((pre) => ({
             ...pre,
             data: { items: prItems, ...deliveryBill.prdata }
           }))
         }
+
 
         await setDeliveryBill((pre) => ({ ...pre, loading: false }))
       }
@@ -2061,7 +2062,7 @@ width:100,
         width={1200}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">
-            {deliveryBill.returnmodeltable === true ? 'RETURN' : 'DELIVERED'} ON{' '}
+            {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : 'BOOKING'} ON{' '}
             {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}
           </span>
         }
