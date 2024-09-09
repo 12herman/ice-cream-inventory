@@ -1,5 +1,5 @@
 // src/components/NavBar.js
-import React, { useEffect, useState,useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import IceCreamLogo from '../assets/img/logo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
@@ -18,7 +18,7 @@ import {
   Radio,
   Typography,
   Spin,
-  TimePicker 
+  TimePicker
 } from 'antd'
 const { TextArea } = Input
 import dayjs from 'dayjs'
@@ -30,11 +30,17 @@ import { db } from '../firebase/firebase'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
-import { PiWarningCircleFill } from "react-icons/pi";
-import { debounce } from 'lodash';
+import { PiWarningCircleFill } from 'react-icons/pi'
+import { debounce } from 'lodash'
 import { updateStorage } from '../firebase/data-tables/storage'
 
-export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,storageUpdateMt }) {
+export default function NavBar({
+  navPages,
+  setNavPages,
+  datas,
+  deliveryUpdateMt,
+  storageUpdateMt
+}) {
   const [isQuickSale, setIsQuickSale] = useState({
     model: false,
     temdata: [],
@@ -55,13 +61,13 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     paymentstatus: 'Paid',
     customeroption: [],
     editingKeys: [],
-    temtableedit:{
-      margin:true,
-      price:true,
+    temtableedit: {
+      margin: true,
+      price: true
     },
-    spinning: false,
-  });
-  const [isSpinners,setIsSpinners] = useState(false)
+    spinning: false
+  })
+  const [isSpinners, setIsSpinners] = useState(false)
 
   const [quickSaleForm] = Form.useForm()
   const [quickSaleForm2] = Form.useForm()
@@ -71,19 +77,6 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
   const [editingKey, setEditingKey] = useState('')
   // tem table column
   const temTableCl = [
-    // {
-    //   title: 'S.No',
-    //   dataIndex: 'sno',
-    //   key: 'sno',
-    //   width: 70,
-    // },
-    // {
-    //   title: 'Date',
-    //   dataIndex: 'date',
-    //   key: 'date',
-    //   width: 300,
-    //   editable: false
-    // },
     {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
@@ -103,20 +96,19 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
+      title: <span className="text-[0.7rem]">Piece Price</span>,
+      dataIndex: 'productprice',
+      key: 'productprice',
+      editable: true,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Piece Price</span>,
-      dataIndex: 'productprice',
-      key: 'productprice',
-
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
@@ -127,7 +119,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      editable: (isQuickSale.temtableedit.margin),
+      editable: isQuickSale.temtableedit.margin,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -135,7 +127,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable: (isQuickSale.temtableedit.price),
+      editable: isQuickSale.temtableedit.price
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -286,7 +278,7 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     setIsQuickSale((pre) => ({
       ...pre,
       total: totalMultiprTotalPr,
-      marginstate: false,
+      marginstate: false
     }))
     quickSaleForm2.resetFields()
     quickSaleForm3.resetFields()
@@ -314,11 +306,11 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     quickSaleForm.resetFields(['flavour'])
     quickSaleForm.resetFields(['numberofpacks'])
 
-    const isFutureDate = value && dayjs(value).isAfter(dayjs());
+    const isFutureDate = value && dayjs(value).isAfter(dayjs())
 
     quickSaleForm.setFieldsValue({
-      type : isFutureDate ? 'booking' : 'quick'
-    });
+      type: isFutureDate ? 'booking' : 'quick'
+    })
 
     setIsQuickSale((pre) => ({
       ...pre,
@@ -335,69 +327,80 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     // }
     // setIsQuickSale((pre) => ({ ...pre, model: false }))
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue()
-    
+
     if (
-      ( isQuickSale.type === 'booking') &&
+      isQuickSale.type === 'booking' &&
       (qickSaleForm3Value.customername === '' ||
         qickSaleForm3Value.customername === undefined ||
         qickSaleForm3Value.customername === null ||
-       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === undefined ||
-       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null ||
-       isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '' ||
+        (isQuickSale.paymentstatus === 'Partial' &&
+          qickSaleForm3Value.partialamount === undefined) ||
+        (isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null) ||
+        (isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '') ||
         qickSaleForm3Value.mobilenumber === undefined ||
         qickSaleForm3Value.mobilenumber === null ||
         qickSaleForm3Value.mobilenumber === '' ||
-        qickSaleForm3Value.time === undefined || 
+        qickSaleForm3Value.time === undefined ||
         qickSaleForm3Value.time === null ||
         qickSaleForm3Value.time === '')
     ) {
       message.open({ type: 'warning', content: 'Please fill the required fields' })
-      quickSaleForm3.submit();
-      return;
-    }
-    else if ((isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid') && (qickSaleForm3Value.customername === '' ||
-      qickSaleForm3Value.customername === undefined ||
-      qickSaleForm3Value.customername === null ||
-      qickSaleForm3Value.mobilenumber === undefined ||
-      qickSaleForm3Value.mobilenumber === null ||
-      qickSaleForm3Value.mobilenumber === '' ||
-     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === undefined ||
-     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null ||
-     isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === '' ) ){
-        message.open({ type: 'warning', content: 'Please fill the required fields' })
-        quickSaleForm3.submit();
-        return;
-      }
-    else {
+      quickSaleForm3.submit()
+      return
+    } else if (
+      isQuickSale.type === 'quick' &&
+      isQuickSale.paymentstatus !== 'Paid' &&
+      (qickSaleForm3Value.customername === '' ||
+        qickSaleForm3Value.customername === undefined ||
+        qickSaleForm3Value.customername === null ||
+        qickSaleForm3Value.mobilenumber === undefined ||
+        qickSaleForm3Value.mobilenumber === null ||
+        qickSaleForm3Value.mobilenumber === '' ||
+        (isQuickSale.paymentstatus === 'Partial' &&
+          qickSaleForm3Value.partialamount === undefined) ||
+        (isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === null) ||
+        (isQuickSale.paymentstatus === 'Partial' && qickSaleForm3Value.partialamount === ''))
+    ) {
+      message.open({ type: 'warning', content: 'Please fill the required fields' })
+      quickSaleForm3.submit()
+      return
+    } else {
       setIsSpinners(true)
       // setIsQuickSale(pre => ({...pre}))
-      
+
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
-        margin: data.margin
-      }));
+        margin: data.margin? data.margin : '',
+        productprice: data.productprice
+      }))
+      console.log(productItems)
+      if (isQuickSale.type === 'quick') {
+        await productItems.map(async (data) => {
+          const existingProduct = datas.storage.find(
+            (storageItem) =>
+              storageItem.productid === data.id && storageItem.category === 'Product List'
+          )
 
-      if(isQuickSale.type === 'quick'){
-       await productItems.map(async data =>{
-          const existingProduct = datas.storage.find((storageItem) => storageItem.productid === data.id  && storageItem.category === 'Product List' );
-         
           // console.log(existingProduct.id,{numberofpacks: existingProduct.numberofpacks - data.numberofpacks,updateddate:TimestampJs()});
           await updateStorage(existingProduct.id, {
             numberofpacks: existingProduct.numberofpacks - data.numberofpacks,
-            updateddate:TimestampJs()
+            updateddate: TimestampJs()
           })
         })
         await storageUpdateMt()
-      };
+      }
 
       const newDelivery = {
         customername: qickSaleForm3Value.customername || 'Quick Sale',
         mobilenumber: qickSaleForm3Value.mobilenumber || '',
         billamount: isQuickSale.billamount,
         time: qickSaleForm3Value.time ? qickSaleForm3Value.time.format('HH:mm') : '',
-        partialamount:qickSaleForm3Value.partialamount === undefined ||
-        qickSaleForm3Value.partialamount === null ? 0 : qickSaleForm3Value.partialamount,
+        partialamount:
+          qickSaleForm3Value.partialamount === undefined ||
+          qickSaleForm3Value.partialamount === null
+            ? 0
+            : qickSaleForm3Value.partialamount,
         paymentstatus: qickSaleForm3Value.paymentstatus,
         total: isQuickSale.total,
         type: isQuickSale.type,
@@ -424,16 +427,16 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
           date: dayjs().format('DD/MM/YYYY'),
           margin: 0,
           billamount: 0,
-          type: 'quick',
-        }));
-        quickSaleForm.resetFields();
-        setIsSpinners(false);
+          type: 'quick'
+        }))
+        quickSaleForm.resetFields()
+        setIsSpinners(false)
       } catch (error) {
         console.log(error)
-        setIsSpinners(false);
+        setIsSpinners(false)
       }
     }
-  };
+  }
 
   const marginMt = (value) => {
     let marginCal = (isQuickSale.total * value.marginvalue) / 100
@@ -451,8 +454,8 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
       billamount: marignAn,
       marginstate: true,
       temdata: newData
-    }));
-  };
+    }))
+  }
 
   // const customerOnchange = (value)=>{
   //   console.log(value);
@@ -464,14 +467,14 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     parentid: '',
     employeeoption: []
   })
-  const [spendingForm] = Form.useForm();
+  const [spendingForm] = Form.useForm()
 
   useEffect(() => {
     let employeeOtSet = datas.employees
       .filter((data) => data.isdeleted === false)
       .map((data) => ({ label: data.employeename, value: data.id }))
     setIsSpendingModalOpen((pre) => ({ ...pre, employeeoption: employeeOtSet }))
-  }, [!isSpendingModalOpen.model]);
+  }, [!isSpendingModalOpen.model])
 
   // sepending method
   const handleSpendingFinish = async (values) => {
@@ -490,21 +493,21 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
       date: dayjs(spendDatas.date).format('DD/MM/YYYY')
     }
     try {
-      setSpendSpin(true);
+      setSpendSpin(true)
       const employeeDocRef = doc(db, 'employee', empid)
       const payDetialsRef = collection(employeeDocRef, 'paydetails')
       await addDoc(payDetialsRef, newSpendingData)
       setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
       spendingForm.resetFields()
       message.open({ type: 'success', content: 'Spending added successfully' })
-      setSpendSpin(false);
+      setSpendSpin(false)
       setPersonOnchangeSt('')
     } catch (error) {
       console.log(error)
     }
-  };
-  
-  const [firstValue, setFirstValue] = useState(null);
+  }
+
+  const [firstValue, setFirstValue] = useState(null)
 
   const EditableCellTem = ({
     editing,
@@ -517,28 +520,41 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     ...restProps
   }) => {
     const inputNode =
-    dataIndex === 'numberofpacks' ? (
-        <InputNumber size="small" type='number' className="w-[4rem]" min={1} />
-      ) :
-      dataIndex === 'margin'? 
-        <InputNumber type='number' onFocus={ (e)=> { 
-          if (firstValue === null) {
-            setFirstValue(e.target.value); // Store the first value
-            setIsQuickSale(pre => ({
-            ...pre,
-            temtableedit: { ...pre.temtableedit, margin: true, price: false }
-        }));
-        }
-         }} size="small" className="w-[4rem]" min={0} max={100}/>
-        : <InputNumber onFocus={ (e)=> { 
-          if (firstValue === null) {
-            setFirstValue(e.target.value); // Store the first value
-            setIsQuickSale(pre => ({
-            ...pre,
-            temtableedit: { ...pre.temtableedit, margin: false, price: true }
-        }));
-        };
-         }} size="small" className="w-[4rem]" min={0}/>
+      dataIndex === 'numberofpacks' ? (
+        <InputNumber size="small" type="number" className="w-[4rem]" min={1} />
+      ) : dataIndex === 'margin' ? (
+        <InputNumber
+          type="number"
+          onFocus={(e) => {
+            if (firstValue === null) {
+              setFirstValue(e.target.value) // Store the first value
+              setIsQuickSale((pre) => ({
+                ...pre,
+                temtableedit: { ...pre.temtableedit, margin: true, price: false }
+              }))
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+          max={100}
+        />
+      ) : (
+        <InputNumber
+          onFocus={(e) => {
+            if (firstValue === null) {
+              setFirstValue(e.target.value) // Store the first value
+              setIsQuickSale((pre) => ({
+                ...pre,
+                temtableedit: { ...pre.temtableedit, margin: false, price: true }
+              }))
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+        />
+      )
     return (
       <td {...restProps}>
         {editing ? (
@@ -596,114 +612,72 @@ export default function NavBar({ navPages, setNavPages, datas, deliveryUpdateMt,
     try {
       const row = await form.validateFields()
       const oldtemDatas = isQuickSale.temdata
-      // Check if the margin already exists for the same key
-      const checkDatas = oldtemDatas.some((item) =>item.key === data.key && item.margin === row.margin &&  item.numberofpacks === row.numberofpacks && item.price === row.price);
+      const checkDatas = oldtemDatas.some(
+        (item) =>
+          item.key === data.key &&
+          item.margin === row.margin &&
+          item.productprice === row.productprice &&
+          item.numberofpacks === row.numberofpacks &&
+          item.price === row.price
+      )
       if (checkDatas) {
-        message.open({ type: 'info', content: 'No Changes made' });
+        message.open({ type: 'info', content: 'No Changes made' })
         setIsQuickSale((pre) => ({
           ...pre,
           editingKeys: [],
-          temtableedit:{margin:true,price:true}
-        }));
+          temtableedit: { margin: true, price: true }
+        }))
         setFirstValue(null)
-        return;
-      } else {
-        message.open({ type: 'success', content: 'Updated successfully' })
-      };
-
-      if(isQuickSale.temtableedit.margin === true ){
-// Update the item in the array while maintaining the order
-const updatedTempproduct = oldtemDatas.map((item) => {
-  if (item.key === data.key) {
-    let mrpData = item.productprice * row.numberofpacks
-    return {
-      ...item,
-      numberofpacks: row.numberofpacks,
-      margin: row.margin,
-      mrp: item.productprice * row.numberofpacks,
-      price: mrpData - mrpData * (row.margin / 100)
-    }
-  }
-  return item
-});
-
-const totalAmounts = updatedTempproduct.reduce((acc, item) => {
-  return acc + item.price
-}, 0);
-
-const mrpAmount = updatedTempproduct.reduce((acc, item) => {
-  return acc + item.mrp
-}, 0);
-
-setIsQuickSale((pre) => ({
-  ...pre,
-  billamount: totalAmounts,
-  total: mrpAmount,
-  editingKeys: [],
-  temdata: updatedTempproduct,
-  marginstate: true,
-  temtableedit:{margin:true,price:true}
-}));
-setFirstValue(null)
+        return
       }
-      else{
-
-        const updatedTempproduct = oldtemDatas.map((item) => {
-          if (item.key === data.key) {
-            let mrpData = item.productprice * row.numberofpacks;
-            let price = mrpData - mrpData * (row.margin / 100);
-        
-            // Automatically calculate margin if price is updated
-            let calculatedMargin = 0;
-            if (row.price !== undefined) {
-              price = row.price;
-              calculatedMargin = ((mrpData - price) / mrpData) * 100;
-            } else {
-              calculatedMargin = row.margin;
-            }
-        
-            return {
-              ...item,
-              numberofpacks: row.numberofpacks,
-              margin: calculatedMargin,
-              mrp: mrpData,
-              price: price,
-            };
+      const updatedTempproduct = oldtemDatas.map((item) => {
+        if (item.key === data.key) {
+          let mrpData = row.productprice * row.numberofpacks
+          let price = mrpData - mrpData * (row.margin / 100)
+          let calculatedMargin = row.margin
+          if (row.price !== undefined) {
+            price = row.price
+            calculatedMargin = ((mrpData - price) / mrpData) * 100
           }
-          return item;
-        });
-        
-        const totalAmounts = updatedTempproduct.reduce((acc, item) => {
-          return acc + item.price;
-        }, 0);
-        
-        const mrpAmount = updatedTempproduct.reduce((acc, item) => {
-          return acc + item.mrp;
-        }, 0);
-
-        setIsQuickSale((pre) => ({
-          ...pre,
-          billamount: totalAmounts,
-          total: mrpAmount,
-          editingKeys: [],
-          temdata: updatedTempproduct,
-          marginstate: true,
-          temtableedit:{margin:true,price:true}
-        }));
-        setFirstValue(null)
-      }
-    } 
-    catch (e) {
+          return {
+            ...item,
+            productprice: row.productprice,
+            numberofpacks: row.numberofpacks,
+            margin: row.margin,
+            mrp: mrpData,
+            price: price
+          }
+        }
+        return item
+      })
+      const totalAmounts = updatedTempproduct.reduce((acc, item) => {
+        return acc + item.price
+      }, 0)
+      const mrpAmount = updatedTempproduct.reduce((acc, item) => {
+        return acc + item.mrp
+      }, 0)
+      setIsQuickSale((pre) => ({
+        ...pre,
+        billamount: totalAmounts,
+        total: mrpAmount,
+        editingKeys: [],
+        temdata: updatedTempproduct,
+        marginstate: true,
+        temtableedit: { margin: true, price: true }
+      }))
+      setFirstValue(null)
+      message.open({ type: 'success', content: 'Updated successfully' })
+    } catch (e) {
       console.log(e)
     }
-  };
+  }
 
-  const[spenditSpin,setSpendSpin] = useState(false);
+  const [spenditSpin, setSpendSpin] = useState(false)
 
-  const [isCloseWarning,setIsCloseWarning] = useState(false);
-  
-  const warningModalOk=()=>{
-    setIsCloseWarning(false);
+  const [isCloseWarning, setIsCloseWarning] = useState(false)
+
+  const warningModalOk = () => {
+    setIsCloseWarning(false)
     setIsQuickSale((pre) => ({
       ...pre,
       model: false,
@@ -714,30 +688,30 @@ setFirstValue(null)
       margin: 0,
       billamount: 0,
       type: 'quick',
-      paymentstatus:'Paid',
-      editingKeys: [],
+      paymentstatus: 'Paid',
+      editingKeys: []
     }))
-    quickSaleForm.resetFields();
+    quickSaleForm.resetFields()
 
     setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
-          spendingForm.resetFields();
-          setPersonOnchangeSt('')
-  };
-  const productRef = useRef(null);
-  useEffect(()=>{
+    spendingForm.resetFields()
+    setPersonOnchangeSt('')
+  }
+  const productRef = useRef(null)
+  useEffect(() => {
     if (isQuickSale.model) {
       setTimeout(() => {
         if (productRef.current) {
-          productRef.current.focus();
+          productRef.current.focus()
         }
-      }, 0); // Slight delay to ensure modal is fully rendered
+      }, 0) // Slight delay to ensure modal is fully rendered
     }
-  },[isQuickSale.model])
+  }, [isQuickSale.model])
 
-  const [personOnchangeSt,setPersonOnchangeSt] = useState('')
-  const personOnchange = debounce((e)=>{
-    setPersonOnchangeSt(e);
-},200)
+  const [personOnchangeSt, setPersonOnchangeSt] = useState('')
+  const personOnchange = debounce((e) => {
+    setPersonOnchangeSt(e)
+  }, 200)
 
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
@@ -758,18 +732,22 @@ setFirstValue(null)
       </ul>
 
       <Modal
-      zIndex={1001}
+        zIndex={1001}
         width={300}
         centered={true}
-        title={<span className='flex gap-x-1 justify-center items-center'><PiWarningCircleFill className='text-yellow-500 text-xl'/> Warning</span>}
+        title={
+          <span className="flex gap-x-1 justify-center items-center">
+            <PiWarningCircleFill className="text-yellow-500 text-xl" /> Warning
+          </span>
+        }
         open={isCloseWarning}
         onOk={warningModalOk}
-        onCancel={()=>setIsCloseWarning(false)}
+        onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
         className="center-buttons-modal"
       >
-        <p className='text-center'>Are your sure to Cancel</p>
+        <p className="text-center">Are your sure to Cancel</p>
       </Modal>
 
       <Button
@@ -811,7 +789,7 @@ setFirstValue(null)
       </span>
       {/* quick sale */}
       <Modal
-      centered={true}
+        centered={true}
         maskClosable={isQuickSale.temdata.length > 0 ? false : true}
         footer={
           <div className="flex justify-between items-center">
@@ -826,7 +804,13 @@ setFirstValue(null)
                 name="marginvalue"
                 rules={[{ required: true, message: false }]}
               >
-                <InputNumber type='number' min={0} max={100} className="w-full" prefix={<span>Margin(%)</span>} />
+                <InputNumber
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="w-full"
+                  prefix={<span>Margin(%)</span>}
+                />
               </Form.Item>
               <Form.Item className="mb-0">
                 <Button type="primary" htmlType="submit">
@@ -846,9 +830,13 @@ setFirstValue(null)
                   disabled={isQuickSale.marginstate ? false : true}
                   buttonStyle="solid"
                   onChange={(e) => {
-                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value }));
-                    if(e.target.value === 'Paid') {quickSaleForm3.resetFields() }
-                    if(e.target.value === 'Unpaid') {quickSaleForm3.resetFields(['partialamount']) }
+                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value }))
+                    if (e.target.value === 'Paid') {
+                      quickSaleForm3.resetFields()
+                    }
+                    if (e.target.value === 'Unpaid') {
+                      quickSaleForm3.resetFields(['partialamount'])
+                    }
                     // quickSaleForm3.resetFields(['partialamount'])
                     //  isQuickSale.type === 'booking' ? '' : quickSaleForm3.resetFields(['customername'])
                   }}
@@ -859,12 +847,17 @@ setFirstValue(null)
                 </Radio.Group>
               </Form.Item>
               <Form.Item
-                rules={[{ required: ((isQuickSale.paymentstatus === 'Partial')  ? true : false), message: false }]}
+                rules={[
+                  {
+                    required: isQuickSale.paymentstatus === 'Partial' ? true : false,
+                    message: false
+                  }
+                ]}
                 className="mb-0"
                 name="partialamount"
               >
                 <InputNumber
-                type='number'
+                  type="number"
                   placeholder="Amount"
                   min={0}
                   disabled={isQuickSale.paymentstatus === 'Partial' ? false : true}
@@ -873,38 +866,73 @@ setFirstValue(null)
               <Form.Item
                 className="mb-0"
                 name="customername"
-                rules={[{ required: ( (isQuickSale.type === 'booking') || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? true : false), message: false }]}
+                rules={[
+                  {
+                    required:
+                      isQuickSale.type === 'booking' ||
+                      (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')
+                        ? true
+                        : false,
+                    message: false
+                  }
+                ]}
               >
                 <Input
                   placeholder="Customer name"
-                  disabled={isQuickSale.paymentstatus === 'Partial' || isQuickSale.type === 'booking' || (isQuickSale.paymentstatus === 'Unpaid' && isQuickSale.type === 'quick') ? false : true}
+                  disabled={
+                    isQuickSale.paymentstatus === 'Partial' ||
+                    isQuickSale.type === 'booking' ||
+                    (isQuickSale.paymentstatus === 'Unpaid' && isQuickSale.type === 'quick')
+                      ? false
+                      : true
+                  }
                 />
               </Form.Item>
               <Form.Item
                 className="mb-0"
                 name="mobilenumber"
-                rules={[{ required: ((isQuickSale.type === 'booking') || (isQuickSale.type ==='quick' && isQuickSale !== 'Paid') ? true : false), message: false }]}
+                rules={[
+                  {
+                    required:
+                      isQuickSale.type === 'booking' ||
+                      (isQuickSale.type === 'quick' && isQuickSale !== 'Paid')
+                        ? true
+                        : false,
+                    message: false
+                  }
+                ]}
               >
                 <InputNumber
-                type='number'
-                className='w-[10rem]'
+                  type="number"
+                  className="w-[10rem]"
                   placeholder="Mobile Number"
-                  disabled={isQuickSale.type === 'booking' || (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')  ? false :  true}
+                  disabled={
+                    isQuickSale.type === 'booking' ||
+                    (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')
+                      ? false
+                      : true
+                  }
                 />
-                </Form.Item>
+              </Form.Item>
 
-                <Form.Item
+              <Form.Item
                 className="mb-0 absolute top-[2rem] left-40"
                 name="time"
-                rules={[{ required: ((isQuickSale.type === 'booking') ? true : false), message: false }]}
+                rules={[
+                  { required: isQuickSale.type === 'booking' ? true : false, message: false }
+                ]}
               >
-                <TimePicker use12Hours format="h:mm a" className='w-[90%]' disabled={isQuickSale.type === 'booking'  ? false :  true} />
-                </Form.Item>
-
+                <TimePicker
+                  use12Hours
+                  format="h:mm a"
+                  className="w-[90%]"
+                  disabled={isQuickSale.type === 'booking' ? false : true}
+                />
+              </Form.Item>
             </Form>
             <Button
               onClick={quicksaleMt}
-              disabled={isQuickSale.marginstate && isSpinners === false ? false  :  true   }
+              disabled={isQuickSale.marginstate && isSpinners === false ? false : true}
               type="primary"
             >
               Sale
@@ -915,154 +943,176 @@ setFirstValue(null)
         title={
           <div className="flex  justify-center py-3">
             {' '}
-            <h1 style={{ fontWeight: "bold" }}>{isQuickSale.type === "booking" ? "BOOKING" : "QUICK SALE" } </h1>{' '}
+            <h1 style={{ fontWeight: 'bold' }}>
+              {isQuickSale.type === 'booking' ? 'BOOKING' : 'QUICK SALE'}{' '}
+            </h1>{' '}
           </div>
         }
         open={isQuickSale.model}
         onOk={() => quickSaleForm.submit()}
         onCancel={() => {
-          if(isQuickSale.temdata.length > 0){
-            setIsCloseWarning(true);
-          }
-          else{
+          if (isQuickSale.temdata.length > 0) {
+            setIsCloseWarning(true)
+          } else {
             setIsQuickSale((pre) => ({
-            ...pre,
-            model: false,
-            temdata: [],
-            count: 0,
-            total: 0,
-            date: dayjs().format('DD/MM/YYYY'),
-            margin: 0,
-            billamount: 0,
-            type: 'quick',
-            paymentstatus:'Paid',
-            editingKeys: [],
-          }))
-          quickSaleForm.resetFields()
+              ...pre,
+              model: false,
+              temdata: [],
+              count: 0,
+              total: 0,
+              date: dayjs().format('DD/MM/YYYY'),
+              margin: 0,
+              billamount: 0,
+              type: 'quick',
+              paymentstatus: 'Paid',
+              editingKeys: []
+            }))
+            quickSaleForm.resetFields()
           }
         }}
       >
-      <Spin  spinning={isSpinners}>
-      <div className="relative"> 
-        <div className="grid grid-cols-4 gap-x-2">
-          <Form
-            className="col-span-1"
-            form={quickSaleForm}
-            layout="vertical"
-            onFinish={QuickSaleTemAdd}
-            initialValues={{ date: dayjs(), type: 'quick'}}
-          >
-           <Form.Item
-              className="mb-3 absolute top-[-2.7rem]"
-              name="date"
-              label=""
-              rules={[{ required: true, message: false }]}
-            >
-              <DatePicker className='w-[8.5rem]' onChange={qickSaledateChange} format={'DD/MM/YYYY'} />
-            </Form.Item>
-            <Form.Item name="type" className="mb-1 mt-3">
-                <Radio.Group
-                  buttonStyle="solid"
-                  style={{ width: '100%',textAlign: 'center', fontWeight: '600' }}
-                  onChange={(e) => {
-                    quickSaleForm3.resetFields()
-                    setIsQuickSale((pre) => ({ ...pre, type: e.target.value,paymentstatus:'Paid' }));
-                  }}
+        <Spin spinning={isSpinners}>
+          <div className="relative">
+            <div className="grid grid-cols-4 gap-x-2">
+              <Form
+                className="col-span-1"
+                form={quickSaleForm}
+                layout="vertical"
+                onFinish={QuickSaleTemAdd}
+                initialValues={{ date: dayjs(), type: 'quick' }}
+              >
+                <Form.Item
+                  className="mb-3 absolute top-[-2.7rem]"
+                  name="date"
+                  label=""
+                  rules={[{ required: true, message: false }]}
                 >
-                  <Radio.Button value="quick" style={{ width: '50%' }}>QUICK</Radio.Button>
-                  <Radio.Button value="booking" style={{ width: '50%' }}>BOOKING</Radio.Button>
-                </Radio.Group>
-              </Form.Item>
-            <Form.Item
-              className="mb-1"
-              name="productname"
-              label="Product Name"
-              rules={[{ required: true, message: false }]}
-            >
-              <Select
-              ref={productRef}
-                onChange={productOnchange}
-                showSearch
-                placeholder="Select the Product"
-                options={isQuickSale.proption}
-              />
-            </Form.Item>
+                  <DatePicker
+                    className="w-[8.5rem]"
+                    onChange={qickSaledateChange}
+                    format={'DD/MM/YYYY'}
+                  />
+                </Form.Item>
+                <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                    onChange={(e) => {
+                      quickSaleForm3.resetFields()
+                      setIsQuickSale((pre) => ({
+                        ...pre,
+                        type: e.target.value,
+                        paymentstatus: 'Paid'
+                      }))
+                    }}
+                  >
+                    <Radio.Button value="quick" style={{ width: '50%' }}>
+                      QUICK
+                    </Radio.Button>
+                    <Radio.Button value="booking" style={{ width: '50%' }}>
+                      BOOKING
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="productname"
+                  label="Product Name"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    ref={productRef}
+                    onChange={productOnchange}
+                    showSearch
+                    placeholder="Select the Product"
+                    options={isQuickSale.proption}
+                  />
+                </Form.Item>
 
-            <Form.Item
-              className="mb-1"
-              name="flavour"
-              label="Flavour"
-              rules={[{ required: true, message: false }]}
-            >
-              <Select
-                disabled={isQuickSale.flavourinputstatus}
-                onChange={flavourOnchange}
-                showSearch
-                placeholder="Select the Flavour"
-                options={isQuickSale.flaveroption}
-              />
-            </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="flavour"
+                  label="Flavour"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={isQuickSale.flavourinputstatus}
+                    onChange={flavourOnchange}
+                    showSearch
+                    placeholder="Select the Flavour"
+                    options={isQuickSale.flaveroption}
+                  />
+                </Form.Item>
 
-            <Form.Item
-              className="mb-1"
-              name="quantity"
-              label="Quantity"
-              rules={[{ required: true, message: false }]}
-            >
-              <Select
-                disabled={isQuickSale.quantityinputstatus}
-                showSearch
-                placeholder="Select the Quantity"
-                options={isQuickSale.quntityoption}
-              />
-            </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="quantity"
+                  label="Quantity"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={isQuickSale.quantityinputstatus}
+                    showSearch
+                    placeholder="Select the Quantity"
+                    options={isQuickSale.quntityoption}
+                  />
+                </Form.Item>
 
-            <Form.Item
-              className="mb-3"
-              name="numberofpacks"
-              label="Number of Packs"
-              rules={[{ required: true, message: false }]}
-            >
-              <InputNumber type='number' min={1} className="w-full" placeholder='Enter the Number'/>
-            </Form.Item>
+                <Form.Item
+                  className="mb-3"
+                  name="numberofpacks"
+                  label="Number of Packs"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <InputNumber
+                    type="number"
+                    min={1}
+                    className="w-full"
+                    placeholder="Enter the Number"
+                  />
+                </Form.Item>
 
-            <Form.Item className="mb-3 w-full">
-              <Button className="w-full" type="primary" htmlType="submit">
-                Add To List
-              </Button>
-            </Form.Item>
-          </Form>
-          <Form form={form} component={false}>
-            <Table
-              virtual
-              columns={tempMergedColumns}
-              components={{ body: { cell: EditableCellTem } }}
-              pagination={{ pageSize: 4 }}
-              className="col-span-3"
-              dataSource={isQuickSale.temdata}
-              scroll={{ x: false, y: false }}
-            />
-          </Form>
-        </div>
-       
-        <span
-          className={`absolute top-[-2.7rem] right-10 ${isQuickSale.marginstate === false ? 'hidden' : 'block'}`}
-        >
-          <Tag color="blue">
-            MRP Amount: <span className="text-sm">{formatToRupee(isQuickSale.total)}</span>
-          </Tag>
-          {/* <Tag color='orange'>Margin: <span className='text-sm'>{isQuickSale.margin}</span>%</Tag> */}
-          <Tag color="green">
-            Net Amount: <span className="text-sm">{formatToRupee(isQuickSale.billamount)}</span>
-          </Tag>
-        </span>
-        </div>
+                <Form.Item className="mb-3 w-full">
+                  <Button className="w-full" type="primary" htmlType="submit">
+                    Add To List
+                  </Button>
+                </Form.Item>
+              </Form>
+              <Form form={form} component={false}>
+                <Table
+                  virtual
+                  columns={tempMergedColumns}
+                  components={{ body: { cell: EditableCellTem } }}
+                  pagination={{ pageSize: 4 }}
+                  className="col-span-3"
+                  dataSource={isQuickSale.temdata}
+                  scroll={{ x: false, y: false }}
+                />
+              </Form>
+            </div>
+
+            <span
+              className={`absolute top-[-2.7rem] right-10 ${isQuickSale.marginstate === false ? 'hidden' : 'block'}`}
+            >
+              <Tag color="blue">
+                MRP Amount: <span className="text-sm">{formatToRupee(isQuickSale.total)}</span>
+              </Tag>
+              {/* <Tag color='orange'>Margin: <span className='text-sm'>{isQuickSale.margin}</span>%</Tag> */}
+              <Tag color="green">
+                Net Amount: <span className="text-sm">{formatToRupee(isQuickSale.billamount)}</span>
+              </Tag>
+            </span>
+          </div>
         </Spin>
       </Modal>
 
       {/* spendingModal */}
       <Modal
-          maskClosable={personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null ? true : false}
+        maskClosable={
+          personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null
+            ? true
+            : false
+        }
         centered={true}
         title={
           <div className="flex  justify-center py-3">
@@ -1073,70 +1123,75 @@ setFirstValue(null)
         open={isSpendingModalOpen.model}
         onOk={() => spendingForm.submit()}
         onCancel={() => {
-          if(personOnchangeSt === '' || personOnchangeSt === undefined || personOnchangeSt === null)
-          {
-          setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
-          spendingForm.resetFields();
-          setPersonOnchangeSt('')
-          }
-          else{
+          if (
+            personOnchangeSt === '' ||
+            personOnchangeSt === undefined ||
+            personOnchangeSt === null
+          ) {
+            setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
+            spendingForm.resetFields()
+            setPersonOnchangeSt('')
+          } else {
             setIsCloseWarning(true)
           }
         }}
-        okButtonProps={{disabled:spenditSpin}}
-        
+        okButtonProps={{ disabled: spenditSpin }}
       >
-      <Spin spinning={spenditSpin} className='relative'>
-        <Form
-          form={spendingForm}
-          layout="vertical"
-          onFinish={handleSpendingFinish}
-          initialValues={{ date: dayjs() }}
-        >
-          <Form.Item
-            className="absolute top-[-3rem]"
-            name="date"
-            label=""
-            rules={[{ required: true, message: false }]}
+        <Spin spinning={spenditSpin} className="relative">
+          <Form
+            form={spendingForm}
+            layout="vertical"
+            onFinish={handleSpendingFinish}
+            initialValues={{ date: dayjs() }}
           >
-            <DatePicker className='w-[8.5rem]' format={'DD/MM/YYYY'} />
-          </Form.Item>
+            <Form.Item
+              className="absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
 
-          <Form.Item
-            className="mb-1"
-            name="empid"
-            label="Person"
-            rules={[{ required: true, message: false }]}
-          >
-            <Select
-              onChange={(e)=> personOnchange(e)}
-              showSearch
-              placeholder="Select the Person"
-              options={isSpendingModalOpen.employeeoption}
-              filterSort={(optionA, optionB) =>
-                (optionA?.label ?? '')
-                  .toLowerCase()
-                  .localeCompare((optionB?.label ?? '').toLowerCase())
-              }
-            />
-          </Form.Item>
+            <Form.Item
+              className="mb-1"
+              name="empid"
+              label="Person"
+              rules={[{ required: true, message: false }]}
+            >
+              <Select
+                onChange={(e) => personOnchange(e)}
+                showSearch
+                placeholder="Select the Person"
+                options={isSpendingModalOpen.employeeoption}
+                filterSort={(optionA, optionB) =>
+                  (optionA?.label ?? '')
+                    .toLowerCase()
+                    .localeCompare((optionB?.label ?? '').toLowerCase())
+                }
+              />
+            </Form.Item>
 
-          <Form.Item
-            name="amount"
-            label="Amount"
-            className="mb-1"
-            rules={[{ required: true, message: false }]}
-          >
-            <InputNumber type='number' min={0} className="w-full" placeholder='Enter the Amount' />
-          </Form.Item>
+            <Form.Item
+              name="amount"
+              label="Amount"
+              className="mb-1"
+              rules={[{ required: true, message: false }]}
+            >
+              <InputNumber
+                type="number"
+                min={0}
+                className="w-full"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
 
-          <Form.Item name="description" label="Description" className="mb-1">
-            <TextArea rows={4} placeholder='Write the Description'/>
-          </Form.Item>
-        </Form>
+            <Form.Item name="description" label="Description" className="mb-1">
+              <TextArea rows={4} placeholder="Write the Description" />
+            </Form.Item>
+          </Form>
         </Spin>
       </Modal>
-
     </nav>
   )
 }
