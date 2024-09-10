@@ -11,10 +11,10 @@ import { GrUserWorker } from 'react-icons/gr'
 import { LuMilk } from 'react-icons/lu'
 import { notification } from 'antd'
 import { FaBoxesPacking } from 'react-icons/fa6'
-import { TbFileSpreadsheet } from "react-icons/tb";
+import { TbFileSpreadsheet } from 'react-icons/tb'
 import Pages from './components/Pages'
-import { getproduct } from './firebase/data-tables/products'
 import { getMaterialDetailsById, getSupplier } from './firebase/data-tables/supplier'
+import { getproduct, getProductById } from './firebase/data-tables/products'
 import { getCustomer } from './firebase/data-tables/customer'
 import { getRawmaterial } from './firebase/data-tables/rawmaterial'
 import { getDelivery } from './firebase/data-tables/delivery'
@@ -48,11 +48,11 @@ const App = () => {
       <MdOutlinePeopleAlt size={17} />,
       <PiUserListBold size={17} />,
       <GrUserWorker size={17} />,
-      <TbFileSpreadsheet size={17}/>
+      <TbFileSpreadsheet size={17} />
     ],
     currentpage: 'Home',
     pagecount: 0
-  });
+  })
 
   const [datas, setDatas] = useState({
     product: [],
@@ -73,20 +73,30 @@ const App = () => {
     usedmaterialupdatestaus: false,
     storage: [],
     storageupdatestaus: false,
-    balancesheet:[],
-    balancesheetstatus:false
-  });
+    balancesheet: [],
+    balancesheetstatus: false
+  })
 
-  const productUpdateMt = () =>setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
-  const supplierUpdateMt = () =>setDatas((pre) => ({ ...pre, supplierupdatestaus: !pre.supplierupdatestaus }))
-  const customerUpdateMt = () =>setDatas((pre) => ({ ...pre, customerupdatestaus: !pre.customerupdatestaus }))
-  const rawmaterialUpdateMt = () =>setDatas((pre) => ({ ...pre, rawmaterialupdatestaus: !pre.rawmaterialupdatestaus }))
-  const deliveryUpdateMt = () => setDatas((pre) => ({ ...pre, deliveryupdatestaus: !pre.deliveryupdatestaus }))
-  const employeeUpdateMt = () =>setDatas((pre) => ({ ...pre, employeeupdatestaus: !pre.employeeupdatestaus }))
-  const productionUpdateMt = () =>setDatas((pre) => ({ ...pre, productionupdatestaus: !pre.productionupdatestaus }))
-  const usedmaterialUpdateMt = () =>setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
-  const storageUpdateMt = () => setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
-  const balanceSheetUpdateMt =()=> setDatas(pre =>({...pre,balancesheetstatus:!pre.balancesheetstatus}))
+  const productUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, projectupdatestaus: !pre.projectupdatestaus }))
+  const supplierUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, supplierupdatestaus: !pre.supplierupdatestaus }))
+  const customerUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, customerupdatestaus: !pre.customerupdatestaus }))
+  const rawmaterialUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, rawmaterialupdatestaus: !pre.rawmaterialupdatestaus }))
+  const deliveryUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, deliveryupdatestaus: !pre.deliveryupdatestaus }))
+  const employeeUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, employeeupdatestaus: !pre.employeeupdatestaus }))
+  const productionUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, productionupdatestaus: !pre.productionupdatestaus }))
+  const usedmaterialUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
+  const storageUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
+  const balanceSheetUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, balancesheetstatus: !pre.balancesheetstatus }))
 
   // get table datas 'project list'
   useEffect(() => {
@@ -137,20 +147,27 @@ const App = () => {
   // get table datas 'delivery list'
   useEffect(() => {
     const fetchData = async () => {
-      const { status, delivery } = await getDelivery();
+      const { status, delivery } = await getDelivery()
       if (status) {
         // Sort the delivery data by createddate
         const sortedDelivery = delivery.sort((a, b) => {
-          const dateA = new Date(a.createddate.split(',')[0].split('/').reverse().join('-') + 'T' + a.createddate.split(',')[1].replace('.', ':'));
-          const dateB = new Date(b.createddate.split(',')[0].split('/').reverse().join('-') + 'T' + b.createddate.split(',')[1].replace('.', ':'));
-          return dateB - dateA;
-        });
-        setDatas((pre) => ({ ...pre, delivery: sortedDelivery }));
+          const dateA = new Date(
+            a.createddate.split(',')[0].split('/').reverse().join('-') +
+              'T' +
+              a.createddate.split(',')[1].replace('.', ':')
+          )
+          const dateB = new Date(
+            b.createddate.split(',')[0].split('/').reverse().join('-') +
+              'T' +
+              b.createddate.split(',')[1].replace('.', ':')
+          )
+          return dateB - dateA
+        })
+        setDatas((pre) => ({ ...pre, delivery: sortedDelivery }))
       }
-    };
-    fetchData();
-  }, [datas.deliveryupdatestaus]);
-  
+    }
+    fetchData()
+  }, [datas.deliveryupdatestaus])
 
   // get table datas 'employee list'
   useEffect(() => {
@@ -185,38 +202,46 @@ const App = () => {
     fetchData()
   }, [datas.storageupdatestaus])
 
-    // get table datas 'balace sheet'
-    useEffect(() => {
-      const fetchData = async () => {
-        const { balancesheet, status } = await getBalanceSheet()
-        if (status) {
-          setDatas((pre) => ({ ...pre, balancesheet:balancesheet }))
-        }
+  // get table datas 'balace sheet'
+  useEffect(() => {
+    const fetchData = async () => {
+      const { balancesheet, status } = await getBalanceSheet()
+      if (status) {
+        setDatas((pre) => ({ ...pre, balancesheet: balancesheet }))
       }
-      fetchData()
-    }, [datas.balancesheetstatus])
+    }
+    fetchData()
+  }, [datas.balancesheetstatus])
 
   // Notification logic
   useEffect(() => {
-    datas.storage.forEach((record) => {
-      if (record.category === 'Product List') {
-        if (record.numberofpacks < record.alertcount) {
-          notification.warning({
-            message: 'Alert',
-            duration: 0,
-            description: `${record.productname} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`
-          })
-        }
-      } else {
-        if (record.quantity < record.alertcount) {
-          notification.warning({
-            message: 'Alert',
-            duration: 0,
-            description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`
-          })
+    const storageAlert = async () => {
+      for (const record of datas.storage) {
+        if (record.category === 'Product List') {
+          try {
+            const { product, status } = await getProductById(record.productid)
+            if (status === 200 && record.numberofpacks < record.alertcount) {
+              notification.warning({
+                message: 'Alert',
+                duration: 0,
+                description: `${product.productname} ${product.flavour} ${product.quantity} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`
+              })
+            }
+          } catch (error) {
+            console.error('Failed to fetch product details for alert', error)
+          }
+        } else {
+          if (record.quantity < record.alertcount) {
+            notification.warning({
+              message: 'Alert',
+              duration: 0,
+              description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`
+            })
+          }
         }
       }
-    })
+    }
+    storageAlert()
   }, [datas.storage])
 
   useEffect(() => {

@@ -108,7 +108,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     setIsCustomerPayLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '' }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate: TimestampJs() }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')

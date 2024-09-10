@@ -20,7 +20,7 @@ export const getproduct = async () => {
   // Get product by ID
 export const getProductById = async (productId) => {
   try {
-    const docRef = doc(db, "product", productId); // Reference to the specific document
+    const docRef = doc(db, "product", productId);
     const docSnapshot = await getDoc(docRef);
     
     if (docSnapshot.exists()) {
