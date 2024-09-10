@@ -72,15 +72,28 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   )
                 )
               : customerDeliveries
+              
             const totalBilled = filteredDeliveries.reduce(
               (acc, item) => acc + (Number(item.billamount) || 0),
               0
             )
+
+            const billUnpaid = deliveryList.reduce((acc, item) => {
+              if (item.paymentstatus === 'Unpaid') {
+                return acc + (Number(item.billamount) || 0)
+              } else if (item.paymentstatus === 'Partial') {
+                return acc + ((Number(item.billamount) - Number(item.partialamount)) || 0)
+              }
+              return acc
+            }, 0)
+
             const totalPayment = filteredPayDetails.reduce(
-              (acc, item) => acc + (Number(item.amount) || 0),
+              (acc, item) => {
+                return item.type === 'Balance' ? acc - item.amount : acc + (Number(item.amount));
+              },
               0
             )
-            const balance = totalBilled - totalPayment
+            const balance = billUnpaid - totalPayment
             return {
               ...item,
               sno: index + 1,
@@ -146,7 +159,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
       key: 'balance',
       render: (balance) => {
         const numericBalance = typeof balance === 'number' ? balance : 0
-        return `$${numericBalance.toFixed(2)}`
+        return `${numericBalance.toFixed(2)}`
       }
     },
     {
@@ -187,7 +200,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const balancesheetPay = async (value) => {
     let { date, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, createddate: TimestampJs() }
+    const payData = { ...Datas, date: formateDate,type: 'Balance', createddate: TimestampJs() }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -278,14 +291,25 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
 
   const billPaid = deliveryList.reduce((acc, item) => {
     if (item.paymentstatus === 'Paid') {
-      return acc + (Number(item.total) || 0)
+      return acc + (Number(item.billamount) || 0)
     } else if (item.paymentstatus === 'Partial') {
       return acc + (Number(item.partialamount) || 0)
     }
     return acc
   }, 0)
 
-  const totalPayment = payDetailsList.reduce((acc, item) => acc + (Number(item.amount) || 0), 0)
+  const billUnpaid = deliveryList.reduce((acc, item) => {
+    if (item.paymentstatus === 'Unpaid') {
+      return acc + (Number(item.billamount) || 0)
+    } else if (item.paymentstatus === 'Partial') {
+      return acc + ((Number(item.billamount) - Number(item.partialamount)) || 0)
+    }
+    return acc
+  }, 0)
+
+  const totalPayment = payDetailsList.reduce((acc, item) => {
+    return item.type === 'Balance' ? acc - item.amount : acc + (Number(item.amount));
+   }, 0);
 
   const handleCardClick = (key) => {
     setActiveCard(key)
@@ -373,14 +397,14 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
           <div className="w-1/2 pl-2 border border-gray-300 rounded-lg p-4">
             <List
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Order Details - {customerName}</div>}
+              header={<div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}><div>Order Details - {customerName}</div><div>Orders: {deliveryList.length}</div></div>}
               footer={
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Orders: {deliveryList.length}</div>
-                  <div>Total Billed: ${totalBilled.toFixed(2)}</div>
-                  <div>Total Paid: ${billPaid.toFixed(2)}</div>
+                  <div>Billed: ${totalBilled.toFixed(2)}</div>
+                  <div>Paid: ${billPaid.toFixed(2)}</div>
+                  <div>Unpaid: ${billUnpaid.toFixed(2)}</div>
                 </div>
               }
               bordered
@@ -416,7 +440,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
               renderItem={(item) => (
                 <List.Item>
                   <div>Date: {item.date}</div>
-                  <div>Amount: ${item.amount}</div>
+                  <div>{item.type === 'Balance' ? `Balance: $${item.amount}` : `Amount: $${item.amount}`}</div>
                   <div>Reason: {item.description}</div>
                 </List.Item>
               )}

@@ -682,7 +682,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         centered={true}
         width={1000}
         open={isModalOpen}
-        onOk={addNewProduction}
+        // onOk={addNewProduction}
         onCancel={modelCancel}
         okButtonProps={{ disabled: true }}
         footer={

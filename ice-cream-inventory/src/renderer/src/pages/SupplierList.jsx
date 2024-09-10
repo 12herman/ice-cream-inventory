@@ -31,8 +31,8 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addNewMaterialItem, createSupplier, getMaterialDetailsById, updateMaterialItsms, updateSupplier } from '../firebase/data-tables/supplier'
-import { createStorage } from '../firebase/data-tables/storage'
+import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier } from '../firebase/data-tables/supplier'
+import { createStorage, updateStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -43,6 +43,7 @@ const { Search, TextArea } = Input
 import { debounce } from 'lodash'
 import { areArraysEqual } from '../js-files/compare-two-array-of-object';
 import { getMissingIds } from '../js-files/missing-id';
+
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
@@ -106,8 +107,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       updateddate: '',
       isdeleted: false
     }
-    console.log('list', material)
-    console.log('supplier', supplierDatas)
 
     setSupplierModalLoading(true)
     try {
@@ -116,20 +115,23 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       const materialCollectionRef = await collection(supplierDocRef, 'materialdetails')
       for (const materialItem of material) {
         await addDoc(materialCollectionRef, {...materialItem,isdeleted:false,createddate:TimestampJs()})
+      
+        const materialExists = datas.storage.find(
+          (storageItem) => storageItem.materialname === materialItem.materialname && storageItem.category === 'Material List' && storageItem.unit === materialItem.unit
+        )
+        if (!materialExists) {
+          await createStorage({
+            materialname: materialItem.materialname,
+            unit: materialItem.unit,
+            alertcount: 0,
+            quantity: 0,
+            category: 'Material List',
+            createddate: TimestampJs()
+          })
+          storageUpdateMt()
+        }
       }
-      // const materialExists = datas.storage.find(
-      //   (storageItem) => storageItem.materialname === values.materialname
-      // )
-      // if (!materialExists) {
-      //   await createStorage({
-      //     materialname: values.materialname,
-      //     alertcount: 0,
-      //     quantity: 0,
-      //     category: 'Material List',
-      //     createddate: TimestampJs()
-      //   })
-      //   storageUpdateMt()
-      // }
+
       form.resetFields()
       supplierUpdateMt()
       message.open({ type: 'success', content: 'Supplier Added Successfully' })
@@ -181,7 +183,17 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       const rawmaterialsRef = datas.rawmaterials.filter(
         (item) => item.isdeleted === false && item.supplierid === record.id
       )
-      const combainData = payDetails.concat(rawmaterialsRef)
+      const rawmaterialNameRef = await Promise.all(
+        rawmaterialsRef.map(async (material) => {
+          const materialName = await getOneMaterialDetailsById(material.supplierid, material.materialid)
+          return{
+            ...material,
+            materialname: materialName.material.materialname,
+            unit: materialName.material.unit
+          }
+        })
+      )
+      const combainData = payDetails.concat(rawmaterialNameRef)
       setPayDetailsData(combainData)
     } catch (e) {
       console.log(e)
@@ -213,16 +225,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      render: (text, record) => {
-        if (record.supplierid !== undefined) {
-          let materialName = datas.suppliers.find(
-            (data) => data.id === record.supplierid
-          ).materialname
-          return materialName
-        } else {
-          return '-'
-        }
-      }
+      render: (text) => text ? text : '-'
     },
     {
       title: 'Quantity',
@@ -338,7 +341,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       render: (_, record) => {
         return (
           <>
-            <Button onClick={() => handlePopoverClick(record.id)}>
+            <Button onClick={() => handlePopoverClick(record.id)} className="h-[1.7rem]">
             <MdProductionQuantityLimits/>
             </Button>
             <Popover
@@ -452,9 +455,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
 
     let compareArrObj = await areArraysEqual(material,olddata.item)
     let missingIds = await getMissingIds(olddata.item,material)
-    // console.log(material.length);
-    // console.log(olddata.item);
-    // console.log(compareArrObj);
     
     if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
       message.open({content:'No changes found', type:'info'})
@@ -472,6 +472,21 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           const {id,createddate,isdeleted,...newupdateddata} = items;
           const itemId = id;
           await updateMaterialItsms(supplerId,itemId,{...newupdateddata,updateddate:TimestampJs()})
+          
+          const materialExists = datas.storage.find(
+            (storageItem) => storageItem.materialname === items.materialname && storageItem.category === 'Material List' && storageItem.unit === items.unit
+          )
+          if (!materialExists) {
+            await createStorage({
+              materialname: items.materialname,
+              unit: items.unit,
+              alertcount: 0,
+              quantity: 0,
+              category: 'Material List',
+              createddate: TimestampJs()
+            })
+            await storageUpdateMt()
+          }
         }
       };
 
@@ -479,9 +494,23 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       if(newMaterialItems.length > 0){
         for(const items of newMaterialItems){
           const {id,createddate,isdeleted,...newupdateddata} = items;
-          const itemId = id
-          // console.log(supplerId,{...newupdateddata,updateddate:TimestampJs()});
           await addNewMaterialItem(supplerId,{...newupdateddata,updateddate:TimestampJs(),isdeleted:false})
+        
+          const materialExists = datas.storage.find(
+            (storageItem) => storageItem.materialname === newupdateddata.materialname && storageItem.category === 'Material List' && storageItem.unit === newupdateddata.unit
+          )
+          if (!materialExists) {
+            await createStorage({
+              materialname: newupdateddata.materialname,
+              unit: newupdateddata.unit,
+              alertcount: 0,
+              quantity: 0,
+              category: 'Material List',
+              createddate: TimestampJs()
+            })
+            await storageUpdateMt()
+          }
+        
         }
       };
       
