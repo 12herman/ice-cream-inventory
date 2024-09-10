@@ -13,9 +13,16 @@ import {
   Radio,
   DatePicker,
   Tag,
-  Spin
+  Spin,
+  Card,
+  List,
+  Space,
+  Popover,
+  Empty
 } from 'antd'
-import { SolutionOutlined } from '@ant-design/icons'
+import { MdProductionQuantityLimits } from "react-icons/md";
+import { IoCloseCircle } from "react-icons/io5";
+import { SolutionOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons'
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { PiExport } from 'react-icons/pi'
@@ -24,7 +31,7 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { createSupplier, updateSupplier } from '../firebase/data-tables/supplier'
+import { addNewMaterialItem, createSupplier, getMaterialDetailsById, updateMaterialItsms, updateSupplier } from '../firebase/data-tables/supplier'
 import { createStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
@@ -34,14 +41,18 @@ import { formatToRupee } from '../js-files/formate-to-rupee'
 import { PiWarningCircleFill } from 'react-icons/pi'
 const { Search, TextArea } = Input
 import { debounce } from 'lodash'
+import { areArraysEqual } from '../js-files/compare-two-array-of-object';
+import { getMissingIds } from '../js-files/missing-id';
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
-  const [form] = Form.useForm()
+  const [form] = Form.useForm();
+  const [expantableform] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
   const [payForm] = Form.useForm()
+  const[materialForm] = Form.useForm();
   const [isPayModelOpen, setIsPayModelOpen] = useState(false)
   const [isPayDetailsModelOpen, setIsPayDetailsModelOpen] = useState(false)
   const [supplierPayId, setSupplierPayId] = useState(null)
@@ -54,7 +65,17 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     const filteredData = datas.suppliers
       .filter((data) => data.isdeleted === false)
       .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    setData(filteredData)
+    // setData(filteredData)
+   
+  async function fetchMaterialItems(){
+    let getAlldatas = await Promise.all(filteredData.map(async data=>{
+      let {materials,status} = await getMaterialDetailsById(data.id);
+      return ({...data,item:materials.filter(data=> data.isdeleted === false)})
+    }))
+    setData(getAlldatas);
+   }
+    fetchMaterialItems()
+    
     setSupplierTbLoading(false)
   }, [datas])
 
@@ -72,27 +93,43 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   const [supplierModalLoading, setSupplierModalLoading] = useState(false)
   // create new project
   const createNewSupplier = async (values) => {
+
+    if (values.material.length === 0) {
+      return message.open({ type: 'info', content: 'Add one material' })
+    }
+
+    const { material, ...value } = values
+
+    const supplierDatas = {
+      ...value,
+      createddate: TimestampJs(),
+      updateddate: '',
+      isdeleted: false
+    }
+    console.log('list', material)
+    console.log('supplier', supplierDatas)
+
     setSupplierModalLoading(true)
     try {
-      const materialExists = datas.storage.find(
-        (storageItem) => storageItem.materialname === values.materialname
-      )
-      await createSupplier({
-        ...values,
-        createddate: TimestampJs(),
-        updateddate: '',
-        isdeleted: false
-      })
-      if (!materialExists) {
-        await createStorage({
-          materialname: values.materialname,
-          alertcount: 0,
-          quantity: 0,
-          category: 'Material List',
-          createddate: TimestampJs()
-        })
-        storageUpdateMt()
+      const supplierCollectionRef = collection(db, 'supplier')
+      const supplierDocRef = await addDoc(supplierCollectionRef, supplierDatas)
+      const materialCollectionRef = await collection(supplierDocRef, 'materialdetails')
+      for (const materialItem of material) {
+        await addDoc(materialCollectionRef, {...materialItem,isdeleted:false,createddate:TimestampJs()})
       }
+      // const materialExists = datas.storage.find(
+      //   (storageItem) => storageItem.materialname === values.materialname
+      // )
+      // if (!materialExists) {
+      //   await createStorage({
+      //     materialname: values.materialname,
+      //     alertcount: 0,
+      //     quantity: 0,
+      //     category: 'Material List',
+      //     createddate: TimestampJs()
+      //   })
+      //   storageUpdateMt()
+      // }
       form.resetFields()
       supplierUpdateMt()
       message.open({ type: 'success', content: 'Supplier Added Successfully' })
@@ -234,8 +271,9 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       key: 'description',
       render: (text, record) => (record.description === undefined ? '-' : record.description)
     }
-  ]
+  ];
 
+  const [openPopoverRow, setOpenPopoverRow] = useState(null);
   const columns = [
     {
       title: 'S.No',
@@ -262,14 +300,14 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       showSorterTooltip: { target: 'sorter-icon' },
       defaultSortOrder: 'ascend'
     },
-    {
-      title: 'Material',
-      dataIndex: 'materialname',
-      key: 'materialname',
-      editable: true,
-      sorter: (a, b) => a.materialname.localeCompare(b.materialname),
-      showSorterTooltip: { target: 'sorter-icon' }
-    },
+    // {
+    //   title: 'Material',
+    //   dataIndex: 'materialname',
+    //   key: 'materialname',
+    //   editable: true,
+    //   sorter: (a, b) => a.materialname.localeCompare(b.materialname),
+    //   showSorterTooltip: { target: 'sorter-icon' }
+    // },
     {
       title: 'Location',
       dataIndex: 'location',
@@ -292,6 +330,37 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       editable: true,
       width: 83
     },
+    {
+      title: "Material",
+      dataIndex: 'material',
+      key: 'material',
+      width: 80,
+      render: (_, record) => {
+        return (
+          <>
+            <Button onClick={() => handlePopoverClick(record.id)}>
+            <MdProductionQuantityLimits/>
+            </Button>
+            <Popover
+              content={<div>
+              {
+                record.item.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> : record.item.map((data,i)=>{
+                return <span>{i+1}.{data.materialname} {'-'} {data.unit}<br/> </span>
+              })
+             }
+                <IoCloseCircle color='red' size={20} className='absolute right-2 top-2 cursor-pointer' onClick={() => setOpenPopoverRow(null)}/>
+              </div>}
+              title="Material"
+              trigger="click"
+              open={openPopoverRow === record.id} // Open only for the clicked row
+              onOpenChange={(visible) => handlePopoverOpenChange(visible, record.id)}
+            >
+            </Popover>
+          </>
+        );
+      }
+    },
+    
     {
       title: 'Action',
       dataIndex: 'operation',
@@ -332,7 +401,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
-              onClick={() => edit(record)}
+              onClick={() => {
+                // edit(record)
+                editSupplier(record);
+              }}
             >
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
@@ -351,7 +423,100 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         )
       }
     }
-  ]
+  ];
+
+  const [editSupplierModal,setEditSupplierModal] = useState(false);
+  const [editBtnData,setEditBtnData] = useState({});
+  const editSupplier = async (record) => {
+    setEditBtnData(record);
+    setEditSupplierModal(true)
+    // Set the form fields with the correct values from the record
+    await form.setFieldsValue({
+      suppliername: record.suppliername,
+      gender: record.gender,
+      location: record.location,
+      mobilenumber: record.mobilenumber,
+      material: record.item
+      // Ensure materialdetails is an array of objects with the expected structure
+    });
+  
+    // Open the modal after setting the form values
+    await setIsModalOpen(true);
+  };
+  
+  const updateSupllierMt = async()=>{
+
+    let {id,...olddata} = editBtnData;
+    let supplerId = id
+    let {material,...newdata} = form.getFieldValue();
+
+    let compareArrObj = await areArraysEqual(material,olddata.item)
+    let missingIds = await getMissingIds(olddata.item,material)
+    // console.log(material.length);
+    // console.log(olddata.item);
+    // console.log(compareArrObj);
+    
+    if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
+      message.open({content:'No changes found', type:'info'})
+    }
+    else{
+      let newMaterialItems = material.filter(item => !item.hasOwnProperty('id'));
+      let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
+      setSupplierModalLoading(true);
+      // update supplier
+      await updateSupplier(supplerId,{...newdata,updateddate:TimestampJs()});
+      
+      // update items
+      if(updatedMaterialItems.length === material.length && compareArrObj === false){
+        for(const items of updatedMaterialItems){
+          const {id,createddate,isdeleted,...newupdateddata} = items;
+          const itemId = id;
+          await updateMaterialItsms(supplerId,itemId,{...newupdateddata,updateddate:TimestampJs()})
+        }
+      };
+
+      // add new items 
+      if(newMaterialItems.length > 0){
+        for(const items of newMaterialItems){
+          const {id,createddate,isdeleted,...newupdateddata} = items;
+          const itemId = id
+          // console.log(supplerId,{...newupdateddata,updateddate:TimestampJs()});
+          await addNewMaterialItem(supplerId,{...newupdateddata,updateddate:TimestampJs(),isdeleted:false})
+        }
+      };
+      
+      // delete the items
+      if(missingIds.length > 0){
+        missingIds.map(async id=>{
+          await updateMaterialItsms(supplerId,id,{isdeleted:true,updateddate:TimestampJs()})
+        })
+      }
+
+      await supplierUpdateMt()
+      setIsCloseWarning(false)
+      setIsModalOpen(false)
+      form.resetFields()
+      setSupplierOnchangeValue('')
+      setIsPayModelOpen(false)
+      setIsCloseWarning(false)
+      setAmountOnchangeValue('')
+      await setSupplierModalLoading(false)
+      await message.open({content:'Updated successfully', type:'success'})
+    }
+  }
+
+
+  const handlePopoverClick = (id) => {
+    setOpenPopoverRow(id); // Set the ID of the row whose Popover is open
+  };
+
+  const handlePopoverOpenChange = (visible, id) => {
+    if (visible) {
+      setOpenPopoverRow(id); // Open Popover for this row
+    } else {
+      setOpenPopoverRow(null); // Close the Popover
+    }
+  };
 
   const EditableCell = ({
     editing,
@@ -363,6 +528,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     children,
     ...restProps
   }) => {
+
     const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
     return (
       <td {...restProps}>
@@ -442,7 +608,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       if (
         index != null &&
         row.suppliername === key.suppliername &&
-        row.materialname === key.materialname &&
+        // row.materialname === key.materialname &&
         row.location === key.location &&
         row.mobilenumber === key.mobilenumber &&
         row.gender === key.gender
@@ -458,13 +624,236 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
     }
+  };
+
+  const handleRowClick = (record) => {
+    setAddNewMaterial(pre => ({...pre,popover:true}))
+    console.log( record.id);
+  };
+
+  // useEffect(()=>{
+  //   const fatchData =()=>{
+  //     let {materials,status} =  getMaterialDetailsById(record.id);
+  //   }
+  // },[])
+  const [editExpandTablekey,setEditExpandTableKey] = useState([]);
+  const expandableTable = [
+    {
+      title:'S.No',
+      key:'sno',
+      render:(text,record,i)=> <span>{i+1}</span>,
+      width:50,
+      editable:false,
+    },
+    {
+      title:'Material',
+      dataIndex:'materialname',
+      key:'materialname',
+      render:(text)=> <span>{text}</span>,
+      editable:true,
+    },
+    {
+      title:'Unit',
+      key:'unit',
+      dataIndex:'unit',
+      render:(text)=> <span>{text}</span>,
+      width:100,
+      editable:true,
+    },
+    {
+      title: 'Action',
+      dataIndex: 'operation',
+      fixed: 'right',
+      width: 100,
+      render: (_, record) => {
+        const editable = isEditingExpandTable(record)
+        return editable ? (
+          <span className="flex gap-x-1 justify-center items-center">
+            <Typography.Link
+              onClick={() => ExpandTableSave(record)}
+              style={{
+                marginRight: 8
+              }}
+            >
+              <LuSave size={17} />
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={()=> {setEditExpandTableKey([]); setEditingKeys([])}}>
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
+        ) : (
+          <span className="flex gap-x-3 justify-center items-center">
+            <Typography.Link
+              disabled={editExpandTablekey.length !== 0 || selectedRowKeys.length !== 0}
+              onClick={() => editExpandTable(record)}
+            >
+              <MdOutlineModeEditOutline size={20} />
+            </Typography.Link>
+            <Popconfirm
+              disabled={editExpandTablekey.length !== 0 || selectedRowKeys.length !== 0}
+              className={`${editExpandTablekey.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => deleteExpantableTableMaterial(record)}
+            >
+              <AiOutlineDelete
+                className={`${editExpandTablekey.length !== 0 || selectedRowKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
+  ];
+
+const deleteExpantableTableMaterial =async (record)=>{
+  setSupplierTbLoading(true)
+await updateMaterialItsms(expandTableSupplierId,record.id,{  isdeleted:true,updateddate: TimestampJs()});
+setSupplierTbLoading(false)
+}
+
+  const expandableEditableCell = ({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  }) => {
+
+     const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <>
+            {dataIndex === 'unit' ? (
+                <Form.Item
+                  name="unit"
+                  style={{ margin: 0 }}
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    placeholder="Units"
+                    options={[
+                              { label: 'GM', value: 'gm' },
+                              { label: 'KG', value: 'kg' },
+                              { label: 'LT', value: 'lt' },
+                              { label: 'ML', value: 'ml' },
+                              { label: 'Box', value: 'box' },
+                              { label: 'Piece', value: 'piece' }
+                            ]}
+                  />
+                </Form.Item>
+            
+            ) : (
+              <Form.Item
+                name={dataIndex}
+                style={{ margin: 0 }}
+                rules={[{ required: true, message: false }]}
+              >
+               {inputNode}
+              </Form.Item>
+            )}
+          </>
+        ) : (
+          children
+        )}
+      </td>
+    )
+  };
+
+  const isEditingExpandTable = (record) => editExpandTablekey.includes(record.id);
+
+  const editExpandTable = (record) => {
+    setEditingKeys([record.id])
+    expantableform.setFieldsValue({ ...record })
+    setEditExpandTableKey([record.id])
+  };
+
+  const mergedColumnsExpandTable = expandableTable.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'mobilenumber' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditingExpandTable(record)
+      })
+    }
+  });
+
+  const [expandTableSupplierId,setExpandTableSupplierId] = useState('');
+  const [addNewMaterial,setAddNewMaterial] = useState({
+    modal: false,
+    spin:false,
+    closewarning:false,
+    popover:false
+  });
+  const expandableProps = {
+    expandedRowRender: (record) => {
+      setExpandTableSupplierId(record.id);
+      return <div className='w-[71%] mx-auto relative'>
+      <span className='flex justify-end items-center mb-1'><Button className='mb-1' type='primary' onClick={()=>setAddNewMaterial(pre=>({...pre,modal:true}))}>Add</Button></span>
+      <Form form={expantableform} component={false} > 
+      <Table 
+      virtual 
+      components={{
+        body:{
+          cell:expandableEditableCell
+          }
+          }} 
+      pagination={false}
+      columns={mergedColumnsExpandTable} 
+      dataSource={record.item.filter(data=> data.isdeleted === false)}
+      rowClassName="editable-row"
+      scroll={{ x: 200,y:200}}
+      /></Form>
+      </div> 
+    }
   }
 
+  const ExpandTableSave = async (key) => {
+    try {
+      const row = await expantableform.validateFields()
+      const newData = [...data]
+      const index = newData.findIndex((item) => key.id === item.key)
+      if (
+        index != null &&
+        row.materialname === key.materialname &&
+        row.unit === key.unit 
+      ) {
+        message.open({ type: 'info', content: 'No changes made' })
+        setEditingKeys([])
+        setEditExpandTableKey([])
+      } else {
+        setSupplierTbLoading(true)
+        // console.log(expandTableSupplierId);
+        // console.log(key.id, { ...row, updateddate: TimestampJs() });
+        await updateMaterialItsms(expandTableSupplierId,key.id,{ ...row, updateddate: TimestampJs() })
+        // await updateSupplier(key.id, { ...row, updateddate: TimestampJs() })
+        supplierUpdateMt()
+        message.open({ type: 'success', content: 'Updated Successfully' })
+        setEditingKeys([])
+        setEditExpandTableKey([]);
+        setSupplierTbLoading(false)
+      }
+    } catch (errInfo) {
+      console.log('Validate Failed:', errInfo)
+    }
+  };
+
   // selection
-  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys)
-  }
+  };
 
   const rowSelection = {
     selectedRowKeys,
@@ -578,19 +967,66 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
 
   const [isCloseWarning, setIsCloseWarning] = useState(false)
 
-  const warningModalOk = () => {
-    setIsCloseWarning(false)
-    setIsModalOpen(false)
-    form.resetFields()
-    setSupplierOnchangeValue('')
-
-    setIsPayModelOpen(false)
-    setIsCloseWarning(false)
-    setAmountOnchangeValue('')
+  const warningModalOk = (value) => {
+     if(value === 'newsupplier'){
+      setIsCloseWarning(false)
+      setIsModalOpen(false)
+      form.resetFields()
+      setSupplierOnchangeValue('')
+  
+      setIsPayModelOpen(false)
+      setIsCloseWarning(false)
+      setAmountOnchangeValue('')
+     }else{
+      console.log('material');
+      
+     }
+    
   }
 
+  useEffect(() => {
+    if (isModalOpen) {
+      // Ensure there's at least one material field when the modal opens
+      const currentMaterials = form.getFieldValue('material') || []
+      if (currentMaterials.length === 0) {
+        form.setFieldsValue({
+          material: [{ materialname: '', unit: '' }]
+        })
+      }
+    }
+
+    if(addNewMaterial.modal){
+      const currentMaterials = materialForm.getFieldValue('material') || []
+      if (currentMaterials.length === 0) {
+        materialForm.setFieldsValue({
+          material: [{ materialname: '', unit: '' }]
+        })
+      }
+    }
+  }, [isModalOpen, form, addNewMaterial.modal, materialForm]);
+
+  const addNewMaterialMt =()=>{
+    if(materialForm.getFieldValue().material.length === 0){
+      message.open({type:'info',content:'Add one material'})
+    }
+  };
+
   return (
-    <div>
+    <div className='relative'>
+    {/* <div className='absolute right-[20rem] '>
+    <Popover
+      
+      content={<a >Close</a>}
+      title="Title"
+      trigger="click"
+      open={addNewMaterial.popover}
+      // onCancel={()=> setAddNewMaterial(pre=>({...pre,popover:false}))}
+      onOpenChange={()=> setAddNewMaterial(pre=>({...pre,popover:false}))}
+    >
+      
+    </Popover>
+    </div> */}
+    
       <Modal
         zIndex={1001}
         centered={true}
@@ -601,7 +1037,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           </span>
         }
         open={isCloseWarning}
-        onOk={warningModalOk}
+        onOk={()=>warningModalOk('newsupplier')}
         onCancel={() => setIsCloseWarning(false)}
         okText="ok"
         cancelText="Cancel"
@@ -630,6 +1066,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               type="primary"
               onClick={() => {
+                setEditSupplierModal(false)
                 setIsModalOpen(true)
                 form.resetFields()
                 form.setFieldsValue({ gender: 'Male' })
@@ -640,9 +1077,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           </span>
         </li>
 
-        <li className="mt-2">
-          <Form form={form} component={false}>
+        <li className="mt-2 ">
+       
+          <Form form={form} component={false} >
             <Table
+              // className="expandtables"
               virtual
               components={{
                 body: {
@@ -656,42 +1095,64 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
+              // onRow={(record) => ({
+              //   onClick: () => handleRowClick(record), // Capture row click event
+              //     })}
+              // expandable={expandableProps}
             />
           </Form>
+        
+
+        {/* <div>
+        <Form form={expantableform} component={false} > 
+      <Table 
+      virtual 
+      components={{
+        body:{
+          cell:expandableEditableCell
+          }
+          }} 
+      pagination={false}
+      columns={mergedColumnsExpandTable} 
+      // dataSource={record.item.filter(data=> data.isdeleted === false)}
+      rowClassName="editable-row"
+      scroll={{ x: 300,y:200}}
+      /></Form>
+        </div> */}
         </li>
       </ul>
 
       <Modal
         centered={true}
         maskClosable={
-          supplierOnchangeValue === undefined ||
-          supplierOnchangeValue === null ||
-          supplierOnchangeValue === ''
+          form.getFieldValue('suppliername') === undefined ||
+          form.getFieldValue('suppliername') === null ||
+          form.getFieldValue('suppliername') === ''
             ? true
             : false
         }
-        title={<span className="flex justify-center">NEW SUPPLIER</span>}
+        title={<span className="flex justify-center">{editSupplierModal ? 'UPDATE SUPPLIER' : 'NEW SUPPLIER'}</span>}
         open={isModalOpen}
+        okText={editSupplierModal ? 'Update': 'Add'}
         onOk={() => form.submit()}
         okButtonProps={{ disabled: supplierModalLoading }}
         onCancel={() => {
           if (
-            supplierOnchangeValue === undefined ||
-            supplierOnchangeValue === null ||
-            supplierOnchangeValue === ''
+            form.getFieldValue('suppliername') === undefined ||
+            form.getFieldValue('suppliername') === null ||
+            form.getFieldValue('suppliername') === ''
           ) {
             setIsModalOpen(false)
             form.resetFields()
-            setSupplierOnchangeValue('')
           } else {
-            setIsCloseWarning(true)
+            setIsCloseWarning(true) // Assuming you have this state handler for close warning
           }
         }}
       >
         <Spin spinning={supplierModalLoading}>
           <Form
             initialValues={{ gender: 'Male' }}
-            onFinish={createNewSupplier}
+            onFinish={editSupplierModal ? updateSupllierMt : createNewSupplier}
             form={form}
             layout="vertical"
           >
@@ -701,29 +1162,78 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               label="Supplier Name"
               rules={[{ required: true, message: false }]}
             >
-              <Input
-                onChange={(e) => productOnchange(e.target.value)}
-                className="w-full"
-                placeholder="Enter the Supplier Name"
-              />
+              <Input className="w-full" placeholder="Enter the Supplier Name" />
             </Form.Item>
 
             <Form.Item
               className="mb-2"
               name="location"
-              label="location"
+              label="Location"
               rules={[{ required: true, message: false }]}
             >
               <Input placeholder="Enter the Location" />
             </Form.Item>
 
-            <Form.Item
-              className="mb-2"
-              name="materialname"
-              label="Material Name"
-              rules={[{ required: true, message: false }]}
-            >
-              <Input placeholder="Enter the Material Name" />
+            <Form.Item label="Material" className="mb-0">
+              <Form.List name="material">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex items-center gap-x-2 relative">
+                        {/* Input field for Material Name */}
+                        <Form.Item
+                          className="w-[70%] mb-[0.4rem]"
+                          {...restField}
+                          name={[name, 'materialname']}
+                          rules={[
+                            {
+                              required: true,
+                              message: true
+                            }
+                          ]}
+                        >
+                          <Input placeholder="Material Name" />
+                        </Form.Item>
+
+                        {/* Select for Units */}
+                        <Form.Item
+                          className="w-[23%] mb-[0.4rem]"
+                          {...restField}
+                          name={[name, 'unit']}
+                          rules={[
+                            {
+                              required: true,
+                              message: true
+                            }
+                          ]}
+                        >
+                          <Select
+                            placeholder="Units"
+                            options={[
+                              { label: 'GM', value: 'gm' },
+                              { label: 'KG', value: 'kg' },
+                              { label: 'LT', value: 'lt' },
+                              { label: 'ML', value: 'ml' },
+                              { label: 'Box', value: 'box' },
+                              { label: 'Piece', value: 'piece' }
+                            ]}
+                          />
+                        </Form.Item>
+
+                        <MinusCircleOutlined
+                          className="absolute top-[40%] right-1 -translate-y-1/2"
+                          onClick={() => remove(name)}
+                        />
+                      </div>
+                    ))}
+                    <Form.Item>
+                      <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                        Add Material
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
             </Form.Item>
 
             <Form.Item
@@ -735,7 +1245,12 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" type="number" placeholder="Enter the Mobile Number" />
+              <InputNumber
+                type="number"
+                className="w-full"
+                min={0}
+                placeholder="Enter the Mobile Number"
+              />
             </Form.Item>
 
             <Form.Item
@@ -764,8 +1279,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         }
         title={
           <div className="flex  justify-center py-3">
-            {' '}
-            <h1>PAY</h1>{' '}
+            <h1>PAY</h1>
           </div>
         }
         open={isPayModelOpen}
@@ -838,6 +1352,81 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           scroll={{ y: historyHeight }}
         />
       </Modal>
+
+      <Modal title={<span className='block text-center'>New Material</span>} onOk={()=>materialForm.submit()} okText='Add' centered open={addNewMaterial.modal} 
+      onCancel={()=>{ 
+        materialForm.resetFields(); 
+        setAddNewMaterial(pre=>({...pre,modal:false}))
+        }}>
+        <Spin spinning={addNewMaterial.spin}>
+          <Form form={materialForm} layout="vertical" onFinish={addNewMaterialMt}>  
+            <Form.Item label="Material" className="mb-0">
+              <Form.List name="material">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex items-center gap-x-2 relative">
+                        {/* Input field for Material Name */}
+                        <Form.Item
+                          className="w-[70%] mb-[0.4rem]"
+                          {...restField}
+                          name={[name, 'materialname']}
+                          rules={[
+                            {
+                              required: true,
+                              message: true
+                            }
+                          ]}
+                        >
+                          <Input onChange={()=> setAddNewMaterial(pre=>({}))} placeholder="Material Name" />
+                        </Form.Item>
+
+                        {/* Select for Units */}
+                        <Form.Item
+                          className="w-[23%] mb-[0.4rem]"
+                          {...restField}
+                          name={[name, 'unit']}
+                          rules={[
+                            {
+                              required: true,
+                              message: true
+                            }
+                          ]}
+                        >
+                          <Select
+                            placeholder="Units"
+                            options={[
+                              { label: 'GM', value: 'gm' },
+                              { label: 'KG', value: 'kg' },
+                              { label: 'LT', value: 'lt' },
+                              { label: 'ML', value: 'ml' },
+                              { label: 'Box', value: 'box' },
+                              { label: 'Piece', value: 'piece' }
+                            ]}
+                          />
+                        </Form.Item>
+
+                        <MinusCircleOutlined
+                          className="absolute top-[40%] right-1 -translate-y-1/2"
+                          onClick={() => remove(name)}
+                        />
+                      </div>
+                    ))}
+                    <Form.Item>
+                      <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                        Add Material
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </Form.Item>
+          </Form>
+        </Spin>
+      </Modal>
+
+
+
     </div>
   )
 }

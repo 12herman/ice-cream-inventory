@@ -14,7 +14,7 @@ import { FaBoxesPacking } from 'react-icons/fa6'
 import { TbFileSpreadsheet } from "react-icons/tb";
 import Pages from './components/Pages'
 import { getproduct } from './firebase/data-tables/products'
-import { getSupplier } from './firebase/data-tables/supplier'
+import { getMaterialDetailsById, getSupplier } from './firebase/data-tables/supplier'
 import { getCustomer } from './firebase/data-tables/customer'
 import { getRawmaterial } from './firebase/data-tables/rawmaterial'
 import { getDelivery } from './firebase/data-tables/delivery'
@@ -105,7 +105,8 @@ const App = () => {
     const fetchData = async () => {
       const { supplier, status } = await getSupplier()
       if (status) {
-        setDatas((pre) => ({ ...pre, suppliers: supplier }))
+        let supplierWithItems = await Promise.all(supplier.map(async data=>({...data,...(await getMaterialDetailsById(data.id))})));
+        setDatas((pre) => ({ ...pre, suppliers: supplierWithItems }))
       }
     }
     fetchData()

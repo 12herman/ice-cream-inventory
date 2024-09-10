@@ -25,7 +25,7 @@ import { createRawmaterial, updateRawmaterial } from '../firebase/data-tables/ra
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs'
-import { getSupplierById } from '../firebase/data-tables/supplier'
+import { getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
 const { RangePicker } = DatePicker
 import { PiWarningCircleFill } from 'react-icons/pi'
@@ -47,33 +47,51 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // side effect
   useEffect(() => {
     const fetchData = async () => {
-      setIsMaterialTbLoading(true)
 
-      const filteredMaterials = await Promise.all(
-        datas.rawmaterials
-          .filter((data) => !data.isdeleted && isWithinRange(data.date))
-          .map(async (item, index) => {
-            let suppliername = '-'
-            let materialname = item.materialname || '-'
-            if (item.type === 'Added') {
-              const result = await getSupplierById(item.supplierid)
-              suppliername = result.supplier.suppliername
-              materialname = result.supplier.materialname
-            }
-            return {
-              ...item,
-              sno: index + 1,
-              key: item.id || index,
-              suppliername: suppliername,
-              materialname: materialname
-            }
-          })
-      )
-      setData(filteredMaterials)
-      setIsMaterialTbLoading(false)
+      let rawTableDtas = await Promise.all(datas.rawmaterials.map(async data => 
+                  ({...data,
+                   ...(data.supplierid ? await getSupplierById(data.supplierid) :  '-'),
+                   ...(data.supplierid && data.materialid ? await getOneMaterialDetailsById(data.supplierid,data.materialid): '-') 
+                  })));
+
+      setIsMaterialTbLoading(true);
+
+      // const filteredMaterials = await Promise.all(
+      //   datas.rawmaterials
+      //     .filter((data) => !data.isdeleted && isWithinRange(data.date))
+      //     .map(async (item, index) => {
+      //       let suppliername = '-'
+      //       let materialname = item.materialname || '-'
+      //       let materiallist = '-'
+            
+      //       if (item.type === 'Added') {
+      //         const result = await getSupplierById(item.supplierid)
+      //         console.log(result.supplier.materialid);
+      //         suppliername = result.supplier.suppliername
+      //         materialname = result.supplier.materialname
+      //         materiallist = await getMaterialDetailsById(result.supplier.materialname)
+      //       }
+      //       return {
+      //         ...item,
+      //         sno: index + 1,
+      //         key: item.id || index,
+      //         suppliername: suppliername,
+      //         materialname: materialname,
+      //         materiallist:materiallist
+      //       }
+      //     })
+      // );
+
+      const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)));
+      console.log(filteredMaterials);
+      
+      // console.log(filteredMaterials);
+      setData(filteredMaterials);
+      setIsMaterialTbLoading(false);
     }
-    fetchData()
-  }, [datas.rawmaterials, dateRange])
+    fetchData();
+  }, [datas.rawmaterials, dateRange]);
+
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -87,21 +105,35 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     )
   }
 
+  const [unitOnchange,setUnitOnchange] = useState('');
   // Dropdown select
   useEffect(() => {
-    if (selectedSupplierName) {
-      const filteredMaterials = datas.suppliers
-        .filter((supplier) => supplier.suppliername === selectedSupplierName)
-        .map((supplier) => ({
-          value: supplier.materialname,
-          label: supplier.materialname,
-          key: supplier.id
-        }))
-      setMaterials(filteredMaterials)
-      form.resetFields(['materialname', 'quantity', 'unit', 'price', 'paymentstatus'])
-    } else {
-      setMaterials([])
+    async function process(params) {
+      setUnitOnchange('')
+      if (selectedSupplierName) {
+
+        // const filteredMaterials = await datas.suppliers
+        //   .filter((supplier) => supplier.id === selectedSupplierName)
+        //   .map((supplier) => ({
+        //     value: supplier.materialname,
+        //     label: supplier.materialname,
+        //     key: supplier.id
+        //   }));
+
+          const filteredMaterials = await datas.suppliers.filter((supplier) => supplier.id === selectedSupplierName)[0].materials.filter(data=> data.isdeleted === false).map(data=>({
+            label:data.materialname,
+            value:data.id,
+            key:data.id,
+            unit:data.unit
+          }));
+          
+        setMaterials(filteredMaterials);
+        form.resetFields(['materialname', 'quantity', 'unit', 'price', 'paymentstatus'])
+      } else {
+        setMaterials([])
+      }
     }
+    process()
   }, [selectedSupplierName, datas.suppliers])
 
   // search
@@ -117,6 +149,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   const [isLoadingModal, setIsLoadingModal] = useState(false)
 
+  // create the new add material entry
   const createAddMaterial = async (values) => {
     setIsLoadingModal(true)
     try {
@@ -125,26 +158,32 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       } else {
         const { date, materialname, suppliername, ...otherValues } = await values
         const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
-        const findSupplierId = await datas.suppliers.find(
-          (supplier) =>
-            supplier.materialname === materialname && supplier.suppliername === suppliername
-        ).id
+        
+        // const findSupplierId = await datas.suppliers.find( (supplier) =>  supplier.materialname === materialname && supplier.suppliername === suppliername ).id
+       
+        // await createRawmaterial({
+        //   supplierid: findSupplierId,
+        //   ...otherValues,
+        //   date: formattedDate,
+        //   partialamount: otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
+        //   createddate: TimestampJs(),
+        //   isdeleted: false,
+        //   type: 'Added'
+        // })
 
         await createRawmaterial({
-          supplierid: findSupplierId,
+          supplierid: suppliername,
+          materialid: materialname,
           ...otherValues,
           date: formattedDate,
           partialamount: otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
           createddate: TimestampJs(),
           isdeleted: false,
           type: 'Added'
-        })
+        });
+        
+        const existingMaterial = await datas.storage.find((storageItem) => storageItem.materialname === otherValues.materialname &&  storageItem.category === 'Material List');
 
-        const existingMaterial = await datas.storage.find(
-          (storageItem) =>
-            storageItem.materialname === otherValues.materialname &&
-            storageItem.category === 'Material List'
-        )
         if (existingMaterial) {
           await updateStorage(existingMaterial.id, {
             quantity: existingMaterial.quantity + otherValues.quantity
@@ -159,10 +198,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       }
     } catch (error) {
       console.log(error)
-    } finally {
+    } 
+    finally {
       setIsLoadingModal(false)
     }
-  }
+  };
 
   const columns = [
     {
@@ -198,13 +238,20 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       title: 'Supplier',
       dataIndex: 'suppliername',
       key: 'suppliername',
-      editable: true
+      editable: true,
+      render:(_,record)=>{
+
+       return record.supplier === undefined ? '-' : record.supplier.suppliername 
+      }
     },
     {
       title: 'Material',
       dataIndex: 'materialname',
       key: 'materialname',
-      editable: true
+      editable: true,
+      render:(_,record)=>{
+        return record.material === undefined ? record.materialname : record.material.materialname
+      }
     },
     {
       title: 'Quantity',
@@ -213,15 +260,20 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       editable: true,
       width: 120,
       render: (_, record) => {
-        return record.quantity + ' ' + record.unit
+        // Check if record.material and record.material.unit exist, then return the appropriate string
+        return record.quantity + ' ' + (record.material && record.material.unit ? record.material.unit : record.unit);
       }
+      
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       editable: true,
-      width: 120
+      width: 120,
+      render:(text)=>{
+        return text === undefined || text === null || text === '' ? '-' : text
+      }
     },
     {
       title: 'Type',
@@ -545,14 +597,33 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   })
 
   useEffect(() => {
-    const optionsuppliers = datas.suppliers
-      .filter(
-        (item, i, self) =>
-          item.isdeleted === false &&
-          i === self.findIndex((d) => d.materialname === item.materialname)
-      )
-      .map((item) => ({ label: item.materialname, value: item.materialname }))
-    setMtOption((pre) => ({ ...pre, material: optionsuppliers }))
+
+    async function fetchAllMaterial (){
+      // const optionsuppliers = datas.suppliers
+      // .filter(
+      //   (item, i, self) =>
+      //     item.isdeleted === false &&
+      //     i === self.findIndex((d) => d.materialname === item.materialname)
+      // )
+      // .map((item) => ({ label: item.materialname, value: item.materialname }))
+    
+   
+    const optionsuppliersr = await Promise.all(datas.suppliers.map(async data => (await getMaterialDetailsById(data.id))));
+    
+   let listOfMaterial =  optionsuppliersr.map((supplierDetails, index) => {
+      const { materials, status } = supplierDetails; // Destructure each supplier's materials and status
+      return [...materials]
+    });
+
+    let flattenedMaterials = listOfMaterial.flat();
+    
+    let uniqueMaterials = flattenedMaterials.filter((material, index, self) => index === self.findIndex( (t) =>  t.materialname.trim().toLowerCase() === material.materialname.trim().toLowerCase() && t.unit.trim().toLowerCase() === material.unit.trim().toLowerCase())).map(data=>({label:data.materialname,value:data.materialname,unit:data.unit,key:data.id}));
+    
+    setMtOption((pre) => ({ ...pre, material: uniqueMaterials }));
+    // console.log(uniqueMaterials);
+    
+    }
+    fetchAllMaterial();
   }, [])
 
   // create material
@@ -565,7 +636,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: mtOption.count,
       createddate: TimestampJs(),
       isdeleted: false,
-      quantity: values.quantity + ' ' + values.unit
+      quantity: values.quantity + ' ' + unitOnchange
     }
     // console.log(mtOption.tempproduct, newMaterial)
 
@@ -578,13 +649,13 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     } else {
       setMtOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newMaterial] }))
     }
-  }
+  };
 
   // remove tem material
   const removeTemMaterial = (key) => {
     const newTempProduct = mtOption.tempproduct.filter((item) => item.key !== key.key)
     setMtOption((pre) => ({ ...pre, tempproduct: newTempProduct }))
-  }
+  };
 
   // add new material to data base
   const addNewTemMaterial = async () => {
@@ -592,11 +663,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     try {
       mtOption.tempproduct.map(async (item) => {
         let { key, quantity, type, ...newMaterial } = item
-        let quantityNumber = Number(quantity.split(' ')[0])
+        let quantityNumber = Number(quantity.split(' ')[0]);
+        let unit = quantity.split(' ')[1];
+
         await createRawmaterial({
           ...newMaterial,
           quantity: quantityNumber,
           type: type,
+          unit:unit,
           paymentstatus: type === 'Return' ? 'Returned' : 'Used'
         })
         const existingMaterial = datas.storage.find(
@@ -625,12 +699,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     } catch (error) {
       console.log(error)
     } finally {
-      setIsLoadMaterialUsedModal(false)
+      setIsLoadMaterialUsedModal(false);
+      setUnitOnchange('')
     }
   }
 
   // model cancel
   const materialModelCancel = () => {
+    setUnitOnchange('')
     if (mtOption.tempproduct.length > 0) {
       setIsCloseWarning(true)
     } else {
@@ -803,17 +879,18 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     .toLowerCase()
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
-                options={Array.from(
-                  new Map(
-                    datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
-                  ).values()
-                ).map((supplier, index) => {
-                  return {
-                    value: supplier.suppliername,
-                    label: supplier.suppliername,
-                    key: index
-                  }
-                })}
+                // options={Array.from(
+                //   new Map(
+                //     datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
+                //   ).values()
+                // ).map((supplier, index) => {
+                //   return {
+                //     value: supplier.suppliername,
+                //     label: supplier.suppliername,
+                //     key: index
+                //   }
+                // })}
+                options={datas.suppliers.map(sp =>({value:sp.id,label:sp.suppliername}))}
                 onChange={(value) => setSelectedSupplierName(value)}
               />
             </Form.Item>
@@ -834,6 +911,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               rules={[{ required: true, message: false }]}
             >
               <Select
+                // suffixIcon='kg'
                 showSearch
                 placeholder="Select the Material"
                 optionFilterProp="label"
@@ -843,6 +921,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
                 options={materials}
+                onChange={(_,value)=> setUnitOnchange(value.unit)}
               />
             </Form.Item>
 
@@ -857,6 +936,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 ]}
               >
                 <InputNumber
+                suffix={<span className='pr-5'>{unitOnchange}</span>}
                   min={0}
                   type="number"
                   className="w-full"
@@ -864,7 +944,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 />
               </Form.Item>
 
-              <Form.Item
+              {/* <Form.Item
                 className="mb-0"
                 name="unit"
                 label="Unit"
@@ -903,7 +983,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     { label: 'Piece', value: 'piece' }
                   ]}
                 />
-              </Form.Item>
+              </Form.Item> */}
             </span>
 
             <Form.Item
@@ -1037,6 +1117,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={mtOption.material}
+                    onChange={(_,value)=>setUnitOnchange(value.unit)}
                   />
                 </Form.Item>
 
@@ -1052,10 +1133,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                       className="w-full"
                       type="number"
                       placeholder="Enter the Quantity"
+                      suffix={<span className='pr-6'>{unitOnchange}</span>}
                     />
                   </Form.Item>
 
-                  <Form.Item
+                  {/* <Form.Item
                     className=""
                     name="unit"
                     label="Unit"
@@ -1079,7 +1161,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                         { label: 'Piece', value: 'piece' }
                       ]}
                     />
-                  </Form.Item>
+                  </Form.Item> */}
                 </span>
 
                 <Form.Item className=" w-full">

@@ -17,7 +17,7 @@ export const getSupplier = async () => {
     }
   };
 
-  // Get Supplier by ID
+// Get Supplier by ID
 export const getSupplierById = async (supplierId) => {
   try {
     const docRef = doc(db, "supplier", supplierId);
@@ -34,6 +34,39 @@ export const getSupplierById = async (supplierId) => {
   }
 };
 
+  // get items for delivery
+  export const getMaterialDetailsById = async (supplierId) => {
+    try {
+      const itemsCollectionRef = collection(db, 'supplier', supplierId, 'materialdetails');
+      const querySnapshot = await getDocs(itemsCollectionRef);
+      const materials = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return { materials, status: 200 };
+    } catch (err) {
+      console.error("Error fetching items: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
+  export const getOneMaterialDetailsById = async (supplierId, materialId) => {
+    try {
+      // Step 1: Reference the specific material document by its ID
+      const itemDocRef = doc(db, 'supplier', supplierId, 'materialdetails', materialId);
+      
+      // Step 2: Fetch the document
+      const docSnap = await getDoc(itemDocRef);
+  
+      // Step 3: Check if the document exists
+      if (docSnap.exists()) {
+        return { material: { id: docSnap.id, ...docSnap.data() }, status: 200 };
+      } else {
+        return { status: 404, message: "Material not found" };
+      }
+    } catch (err) {
+      console.error("Error fetching material: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
   // Create a new supplier
 export const createSupplier = async (task) => {
   try {
@@ -43,6 +76,17 @@ export const createSupplier = async (task) => {
   } catch (err) {
     console.error("Error adding document: ", err);
     return { status: 500, message: err.message };
+  }
+};
+
+export const addNewMaterialItem = async (supplierId, newData) => {
+  try {
+      const materialRef = collection(db, 'supplier', supplierId, 'materialdetails');
+      await addDoc(materialRef, newData); // Add new material item with auto-generated ID
+      return { status: 200, message: 'Material item added successfully' };
+  } catch (err) {
+      console.error('Error adding material item: ', err);
+      return { status: 500, message: err.message };
   }
 };
 
@@ -58,6 +102,16 @@ export const updateSupplier = async (supplierId, updatedData) => {
   }
 };
 
+export const updateMaterialItsms = async (supplierId, materialItemsId, updatedData) => {
+  try {
+    const payDetailDocRef = doc(db, 'supplier', supplierId, 'materialdetails', materialItemsId);
+    await updateDoc(payDetailDocRef, updatedData);
+    return { status: 200, message: 'Pay details updated successfully' };
+  } catch (err) {
+    console.error("Error updating pay details: ", err);
+    return { status: 500, message: err.message };
+  }
+};
 
 // Delete an supplier
 export const deleteSupplier = async (supplierId) => {
