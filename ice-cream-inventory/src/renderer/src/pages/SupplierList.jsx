@@ -31,7 +31,7 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier } from '../firebase/data-tables/supplier'
+import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById } from '../firebase/data-tables/supplier'
 import { createStorage, updateStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
@@ -59,6 +59,8 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   const [supplierPayId, setSupplierPayId] = useState(null)
   const [payDetailsData, setPayDetailsData] = useState([])
   const [supplierTbLoading, setSupplierTbLoading] = useState(true)
+  const [totalBalanceAmount, setTotalBalanceAmount] = useState(0)
+  const [totalPurchaseAmount, setTotalPurchaseAmount] = useState(0)
 
   // side effect
   useEffect(() => {
@@ -173,13 +175,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
 
   const showPayDetailsModal = async (record) => {
     try {
-      const customerDocRef = doc(db, 'supplier', record.id)
-      const payDetailsRef = collection(customerDocRef, 'paydetails')
-      const payDetailsSnapshot = await getDocs(payDetailsRef)
-      const payDetails = payDetailsSnapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id
-      }))
+      const payDetailsRef = await getSupplierPayDetailsById(record.id)
+      let payDetails = []
+      if(payDetailsRef.status === 200){
+        payDetails = payDetailsRef.paydetails
+      }
       const rawmaterialsRef = datas.rawmaterials.filter(
         (item) => item.isdeleted === false && item.supplierid === record.id
       )
@@ -193,8 +193,28 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           }
         })
       )
-      const combainData = payDetails.concat(rawmaterialNameRef)
-      setPayDetailsData(combainData)
+      const combinedData = payDetails.concat(rawmaterialNameRef)
+      setPayDetailsData(combinedData)
+
+      const totalBalance = combinedData.reduce((total, item) => {
+        if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
+          return total + (Number(item.price) || 0);
+        }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
+          return total + ((Number(item.price)-Number(item.partialamount)) || 0);
+        }else {
+          return total - (Number(item.amount) || 0);
+        }
+      }, 0);
+      setTotalBalanceAmount(totalBalance);
+
+      const totalPurchase = combinedData.reduce((total, item) => {
+        if (item.type === 'Added') {
+          return total + (Number(item.price) || 0);
+        }
+        return total;
+      }, 0);
+      setTotalPurchaseAmount(totalPurchase);
+
     } catch (e) {
       console.log(e)
     }
@@ -1364,7 +1384,9 @@ setSupplierTbLoading(false)
       </Modal>
 
       <Modal
-        title={<span className="text-center w-full block pb-5">PAY DETAILS</span>}
+        title={<div className="text-center w-full block pb-5">
+          <span>PAY DETAILS</span>
+        </div>}
         open={isPayDetailsModelOpen}
         footer={null}
         width={1000}
@@ -1380,6 +1402,10 @@ setSupplierTbLoading(false)
           rowKey="id"
           scroll={{ y: historyHeight }}
         />
+        <div className="flex justify-between mt-2 font-semibold">
+            <div>Purchase: {totalPurchaseAmount.toFixed(2)}</div>
+            <div>Balance: {totalBalanceAmount.toFixed(2)}</div>
+          </div>
       </Modal>
 
       <Modal title={<span className='block text-center'>New Material</span>} onOk={()=>materialForm.submit()} okText='Add' centered open={addNewMaterial.modal} 

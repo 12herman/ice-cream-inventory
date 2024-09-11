@@ -265,9 +265,12 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={[
-                      { value: 'gm', label: 'GM' },
-                      { value: 'mm', label: 'MM' },
-                      { value: 'kg', label: 'KG' }
+                      { label: 'GM', value: 'gm' },
+                      { label: 'KG', value: 'kg' },
+                      { label: 'LT', value: 'lt' },
+                      { label: 'ML', value: 'ml' },
+                      { label: 'Box', value: 'box' },
+                      { label: 'Piece', value: 'piece' }
                     ]}
                   />
                 </Form.Item>
@@ -428,32 +431,36 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
 
   // export
   const exportExcel = async () => {
-    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key));
-    const excelDatas = exportDatas.map((pr,i)=>({
-      sno:i+1,
-      product:pr.productname,
-      flavour:pr.flavour,
-      size:pr.quantity+' '+ pr.unit,
-      rate:pr.price,
-      qty:pr.productperpack,
-      packprice:pr.productperpack * pr.price
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    const excelDatas = exportDatas.map((pr, i) => ({
+      sno: i + 1,
+      product: pr.productname,
+      flavour: pr.flavour,
+      size: pr.quantity + ' ' + pr.unit,
+      rate: pr.price,
+      qty: pr.productperpack,
+      packprice: pr.productperpack * pr.price
     }))
-    
+
     jsonToExcel(excelDatas, `Product-List-${TimestampJs()}`)
-    setSelectedRowKeys([]);
+    setSelectedRowKeys([])
     // setEditingKey('')
   }
 
-  const pdfRef = useRef();
-  const [pdf,setPdf] = useState({
-    data:[],
-    isGenerate:false,
-    name:`Product List ${DatestampJs()}`,
-  });
+  const pdfRef = useRef()
+  const [pdf, setPdf] = useState({
+    data: [],
+    isGenerate: false,
+    name: `Product List ${DatestampJs()}`
+  })
   const items = [
     {
       key: '1',
-      label: <span onClick={()=> exportPdf('gst')} className='w-full text-[0.7rem] m-0 block'>PDF(.pdf)</span>,
+      label: (
+        <span onClick={() => exportPdf('gst')} className="w-full text-[0.7rem] m-0 block">
+          PDF(.pdf)
+        </span>
+      )
     },
     // {
     //   key: '2',
@@ -461,18 +468,20 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     // },
     {
       key: '2',
-      label: <span className='w-full text-[0.7rem] m-0 block' onClick={exportExcel}>Excel(.xlsx)</span>,
+      label: (
+        <span className="w-full text-[0.7rem] m-0 block" onClick={exportExcel}>
+          Excel(.xlsx)
+        </span>
+      )
     }
-  ];
-  const menu = (
-    <Menu items={items} />
-  );
+  ]
+  const menu = <Menu items={items} />
   const exportPdf = async () => {
     const exportDatas = await data.filter((item) => selectedRowKeys.includes(item.key))
-    await setPdf(pre=>({...pre,data:exportDatas,isGenerate:true}))
-   await generatPDF(pdfRef,pdf.name);
-   await setSelectedRowKeys([])
-  };
+    await setPdf((pre) => ({ ...pre, data: exportDatas, isGenerate: true }))
+    await generatPDF(pdfRef, pdf.name)
+    await setSelectedRowKeys([])
+  }
 
   // useEffect( ()=>{
   // const pdfOperation = async ()=>{
@@ -483,7 +492,6 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   // }
   // pdfOperation();
   // },[pdf.isGenerate]);
-
 
   const [productOnchangeValue, setProductOnchangeValue] = useState('')
   const productOnchange = (value) => {
@@ -500,13 +508,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   }
 
   return (
-    
-    <div className='relative'>
-    
-    <div
+    <div className="relative">
+      <div
         ref={pdfRef}
         className="absolute -top-[40rem] w-[75%] mx-auto mt-0"
-        style={{  backgroundColor: '#ffff' }}
+        style={{ backgroundColor: '#ffff' }}
       >
         <section className="w-[100%] mx-auto mt-0">
           <ul className="flex justify-center items-center gap-x-5">
@@ -528,10 +534,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               </div> */}
               <div>
                 {' '}
-                <span className="font-bold">Date:</span>{' '}
-                <span>
-                  {TimestampJs().split(',')[0]}
-                </span>
+                <span className="font-bold">Date:</span> <span>{TimestampJs().split(',')[0]}</span>
               </div>
             </li>
 
@@ -555,7 +558,6 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 <th className="p-1 border-b text-left">Price</th>
                 {/* <th className="p-1 border-b text-center">Qty</th>
                 <th className="p-1 border-b text-center">Pack Price</th> */}
-                
               </tr>
             </thead>
             <tbody>
@@ -576,7 +578,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
           </table>
         </section>
       </div>
-     
+
       <Modal
         zIndex={1001}
         width={300}
@@ -615,9 +617,15 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             {/* <Popconfirm disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0} title="Sure to cancel?" onConfirm={()=>exportExcel('GST')} onCancel={exportExcel}>
             <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}>Export <PiExport /></Button>
             </Popconfirm> */}
-            <Dropdown disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0} overlay={menu} placement="bottom">
-  <Button>Export <PiExport /></Button>
-</Dropdown>
+            <Dropdown
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
+              overlay={menu}
+              placement="bottom"
+            >
+              <Button>
+                Export <PiExport />
+              </Button>
+            </Dropdown>
 
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
@@ -646,10 +654,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               columns={mergedColumns}
               pagination={false}
               loading={{
-              spinning: productTbLoading,
-              // productTbLoading,
-              indicator: 
-               <Spin indicator={<img className='opacity-80' src={loadingGif} alt="loading"  />} />,
+                spinning: productTbLoading,
+                // productTbLoading,
+                indicator: (
+                  <Spin indicator={<img className="opacity-80" src={loadingGif} alt="loading" />} />
+                )
               }}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
@@ -737,38 +746,16 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                       .localeCompare((optionB?.label ?? '').toLowerCase())
                   }
                   options={[
-                    {
-                      value: 'gm',
-                      label: 'GM'
-                    },
-                    {
-                      value: 'kg',
-                      label: 'KG'
-                    },
-                    {
-                      value: 'ml',
-                      label: 'ML'
-                    },
-                    {
-                      value: 'lt',
-                      label: 'LT'
-                    }
+                    { label: 'GM', value: 'gm' },
+                    { label: 'KG', value: 'kg' },
+                    { label: 'LT', value: 'lt' },
+                    { label: 'ML', value: 'ml' },
+                    { label: 'Box', value: 'box' },
+                    { label: 'Piece', value: 'piece' }
                   ]}
                 />
               </Form.Item>
             </span>
-
-            <Form.Item
-              className="mb-2"
-              name="productperpack"
-              label="Product Per Pack"
-              rules={[
-                { required: true, message: false },
-                { type: 'number', message: false }
-              ]}
-            >
-              <InputNumber className="w-full" type="number" placeholder="Enter the PPP" />
-            </Form.Item>
 
             <Form.Item
               className="mb-2"
@@ -780,6 +767,18 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               ]}
             >
               <InputNumber className="w-full" type="number" placeholder="Enter the Amount" />
+            </Form.Item>
+            
+            <Form.Item
+              className="mb-2"
+              name="productperpack"
+              label="Product Per Pack"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber className="w-full" type="number" placeholder="Enter the PPP" />
             </Form.Item>
           </Form>
         </Spin>

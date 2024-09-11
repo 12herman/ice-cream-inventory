@@ -200,13 +200,23 @@ export default function Home({ datas }) {
     )
   }).length
 
-  const totalPaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Paid')
-    .reduce((total, product) => total + product.billamount, 0)
+  const totalPaid = filteredDelivery.reduce((total, product) => {
+    if (product.paymentstatus === 'Paid') {
+      return total + (Number(product.billamount) || 0);
+    } else if (product.paymentstatus === 'Partial') {
+      return total + (Number(product.partialamount) || 0);
+    }
+    return total;
+  }, 0);
 
-  const totalUnpaid = filteredDelivery
-    .filter((product) => product.paymentstatus === 'Unpaid')
-    .reduce((total, product) => total + product.billamount, 0)
+  const totalUnpaid = filteredDelivery.reduce((total, product) => {
+    if (product.paymentstatus === 'Unpaid') {
+      return total + (Number(product.billamount) || 0);
+    } else if (product.paymentstatus === 'Partial') {
+      return total + ((Number(product.billamount) || 0) - (Number(product.partialamount) || 0));
+    }
+    return total;
+  }, 0);
 
   const [activeCard, setActiveCard] = useState('totalCustomers')
   const cardsData = [
@@ -255,12 +265,12 @@ export default function Home({ datas }) {
         break
       case 'totalPaid':
         newSelectedTableData = filteredDelivery.filter(
-          (product) => product.paymentstatus === 'Paid'
+          (product) => product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial'
         )
         break
       case 'totalUnpaid':
         newSelectedTableData = filteredDelivery.filter(
-          (product) => product.paymentstatus === 'Unpaid'
+          (product) => product.paymentstatus === 'Unpaid' || product.paymentstatus === 'Partial'
         )
         break
       default:
