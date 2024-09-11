@@ -6,6 +6,7 @@ import {
   DatePicker,
   Tag,
   Table,
+  Typography,
   Button,
   Modal,
   Descriptions,
@@ -14,8 +15,11 @@ import {
   message,
   Radio,
   Select,
-  InputNumber
+  InputNumber,
+  Input
 } from 'antd'
+import { LuSave } from 'react-icons/lu'
+import { TiCancel } from 'react-icons/ti'
 import { FaRupeeSign } from 'react-icons/fa'
 import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
@@ -33,6 +37,10 @@ import { formatToRupee } from '../js-files/formate-to-rupee'
 import html2canvas from 'html2canvas'
 import ReactToPrint from 'react-to-print'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { AiOutlineDelete } from 'react-icons/ai'
+import { customRound } from '../js-files/round-amount'
+import WarningModal from '../components/WarningModal'
 
 dayjs.extend(isSameOrAfter)
 
@@ -46,7 +54,9 @@ export default function Home({ datas }) {
   const [selectedTableData, setSelectedTableData] = useState([])
   const [tableLoading, setTableLoading] = useState(true)
   const [form] = Form.useForm()
-  const [form2] = Form.useForm()
+  const [marginform] = Form.useForm()
+ 
+  const [temform] = Form.useForm();
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
   const [deliveryData, setDeliveryData] = useState([])
   const [quotationData, setQuotationData] = useState({
@@ -56,13 +66,327 @@ export default function Home({ datas }) {
     flavour: '',
     quantity: '',
     numberofpacks: 1,
+  });
+
+  const [quotationft,setQuotationFt] = useState({
+    date: null,
+    type:'withGST',
+    tempproduct:[],
+    margin: 0,
+    discount: 0,
+    percentage:0,
+    amount:0,
+    count:0,
+    totalamount:0,
+    editingkey:'',
+    mrpamount:0,
+    onfocus:false,
+    edmargin:true,
+    edprice:true,
+    edpacks:true,
+    customername:'',
+    mobilenumber:''
+  });
+
+
+  const quotationTempTable = [
+    {
+      title: <span className="text-[0.7rem]">Product</span>,
+      dataIndex: 'productname',
+      key: 'productname',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Flavor</span>,
+      dataIndex: 'flavour',
+      key: 'flavour',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+
+    {
+      title: <span className="text-[0.7rem]">Quantity</span>,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Packs</span>,
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
+      editable: quotationft.edpacks,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Piece Price</span>,
+      dataIndex: 'productprice',
+      key: 'productprice',
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">MRP</span>,
+      dataIndex: 'mrp',
+      key: 'mrp',
+      editable: false,
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Margin</span>,
+      dataIndex: 'margin',
+      key: 'margin',
+      editable: quotationft.edmargin,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.7rem]">Price</span>,
+      dataIndex: 'price',
+      key: 'price',
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      editable:quotationft.edprice
+    },
+    {
+      title: <span className="text-[0.7rem]">Action</span>,
+      dataIndex: 'operation',
+      fixed: 'right',
+      width: 80,
+      render: (_, record) => {
+        let iseditable = isEditionTemp(record)
+        return !iseditable ? (
+          <span className="flex gap-x-2">
+            <MdOutlineModeEditOutline
+              className="text-blue-500 cursor-pointer"
+              size={19}
+              onClick={() => temTbEdit(record)}
+            />
+            <Popconfirm
+              className='cursor-pointer text-red-500 hover:text-red-400'
+              // className={`${quotationft.editingkey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => removeTemProduct(record)}
+              disabled={quotationft.editingkey !== ''}
+            >
+              <AiOutlineDelete
+                // className={`${quotationft.editingkey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        ) : (
+          <span className="flex gap-x-2">
+            <Typography.Link style={{ marginRight: 8 }} onClick={() => savedata(record)}>
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={() => {setStoreFirst(null); setQuotationFt((pre) => ({ ...pre, editingkey:'',edpacks:true,edprice:true,edmargin:true}))}}
+            >
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
+  ]
+
+  const isEditionTemp = (re) => {
+    return quotationft.editingkey.includes(re.key)
+  };
+
+  const tempMergedColumns = quotationTempTable.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'margin' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditionTemp(record)
+      })
+    }
   })
- 
+const [storefirst,setStoreFirst] = useState(null)
+  const temTbEdit = (re) => {
+    temform.setFieldsValue({ ...re })
+    setQuotationFt((pre) => ({ ...pre, editingkey: [re.key], ediable:{margin:true,packs:true,price:true} }))
+  };
+
+  const EditableCellTem = ({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  }) => {
+    const inputNode =
+      dataIndex === 'numberofpacks' ? (
+        <InputNumber size="small" type="number" className="w-[4rem]" min={1}  onFocus={(e) => {
+          if(storefirst === null){
+            setStoreFirst(e.target.value)
+            setQuotationFt(pre=>({...pre,edmargin:false,edprice:false}))
+          }
+        }}/>
+      ) : dataIndex === 'margin' ? (
+        <InputNumber
+          type="number"
+          onFocus={(e) => {
+            if(storefirst === null){
+              setStoreFirst(e.target.value)
+              setQuotationFt(pre=>({...pre,edpacks:false,edprice:false}))
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+          max={100}
+        />
+      )  :  (
+        <InputNumber
+          onFocus={(e) => {
+            if(storefirst === null){
+              setStoreFirst(e.target.value)
+              setQuotationFt(pre=>({...pre,edpacks:false,edmargin:false}))
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+        />
+      )
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <Form.Item
+            name={dataIndex}
+            style={{
+              margin: 0
+            }}
+            rules={[
+              {
+                required: true,
+                message: false
+              }
+            ]}
+          >
+            {inputNode}
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    )
+  };
+
+  const savedata= async (data)=>{
+    let row = temform.getFieldValue();
+    try{
+      if(data.numberofpacks === row.numberofpacks && data.margin === row.margin && data.price === row.price){
+        message.open({type:'info',content:'No changes made'})
+      }
+      else if(data.numberofpacks !== row.numberofpacks && data.margin === row.margin && data.price === row.price || data.numberofpacks === row.numberofpacks && data.margin !== row.margin && data.price === row.price){
+        // calculation
+        let mrp = row.numberofpacks * data.productprice;
+        let updatedTempproduct = quotationft.tempproduct.map(product => 
+          product.key === row.key 
+            ? { 
+                ...product,
+                numberofpacks: row.numberofpacks,
+                margin: row.margin,
+                price: customRound(mrp - (mrp * row.margin) / 100),
+                mrp: mrp
+              }
+            : product
+        );
+        // update amount
+        let totalamount = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0);
+        let mrpamount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+        // Update the state with the new tempproduct array
+        setQuotationFt(pre => ({
+          ...pre,
+          tempproduct: updatedTempproduct,
+          totalamount:totalamount,
+          mrpamount:mrpamount
+        })); 
+        message.open({type:'success',content:'Updated Sucessfully'})
+      }
+      else if(data.numberofpacks === row.numberofpacks && data.margin === row.margin && data.price !== row.price){
+                // calculation
+                let mrp = row.numberofpacks * data.productprice;
+                let updatedTempproduct = quotationft.tempproduct.map(product => 
+                  product.key === row.key 
+                    ? { 
+                        ...product,
+                        numberofpacks: row.numberofpacks,
+                        margin: customRound(((mrp - row.price ) / mrp) * 100),
+                        price: row.price,
+                        mrp: mrp
+                      }
+                    : product
+                );
+                // update amount
+                let totalamount = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0);
+                let mrpamount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+                // Update the state with the new tempproduct array
+                setQuotationFt(pre => ({
+                  ...pre,
+                  tempproduct: updatedTempproduct,
+                  totalamount:totalamount,
+                  mrpamount:mrpamount
+                })); 
+                message.open({type:'success',content:'Updated Sucessfully'})
+                }
+              }
+              catch(e){
+                console.log(e);
+              }
+              finally{
+              setStoreFirst(null)
+              setQuotationFt(pre=>({...pre,edpacks:true,edprice:true,edmargin:true,editingkey:''}))
+              }
+            };
+
+
+  const removeTemProduct = (recorde) => {
+    const newTempProduct = quotationft.tempproduct.filter((item) => item.key !== recorde.key)
+    newTempProduct.length <= 0 ? setQuotationFt(pre=>({...pre,count:0,mrpamount:0,totalamount:0})) : setQuotationFt((pre) => ({...pre,totalamount: pre.totalamount - recorde.price,mrpamount:pre.mrpamount - recorde.mrp}))
+    setQuotationFt((pre) => ({ ...pre, tempproduct: newTempProduct, amount: 0, discount: 0, percentage: 0  }))
+    marginform.resetFields(['marginvalue']);  
+  };
+
+  // margin data
+  const marginOnchange = debounce((value) => {
+    let marginamount = quotationft.totalamount * (value.marginvalue / 100)
+    let finalamounts = customRound(quotationft.totalamount - marginamount)
+    setQuotationFt((pre) => ({
+      ...pre,
+      amount: finalamounts,
+      percentage: value.marginvalue,
+      discount: marginamount
+    }));
+      let newData = quotationft.tempproduct.map((item) => {
+      let marginamount = item.mrp * (value.marginvalue / 100)
+      let finalamounts = customRound(item.mrp - marginamount)
+      return {
+        ...item,
+        price: finalamounts,
+        margin: value.marginvalue
+      }
+    });
+    let totalprice = newData.map(data => data.price).reduce((a,b)=> a + b ,0);
+    setQuotationFt((pre) => ({ ...pre, tempproduct: newData, totalamount:totalprice }))
+  }, 300);
 
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true)
-
       const initialData = await Promise.all(
         datas.delivery
           .filter((data) => !data.isdeleted && data.date === today.format('DD/MM/YYYY'))
@@ -350,23 +674,106 @@ export default function Home({ datas }) {
         }
       }))
     }
-  }
 
+  };
+
+  
   const handleQuotationPrint = async () =>{
+    // data
+    let {date} = quotationft.tempproduct[0]
+    // customer details
+    let cusotmerData = {
+      customername: quotationft.customername === null || quotationft.customername === '' ? undefined : quotationft.customername,
+      mobilenumber:quotationft.mobilenumber === null || quotationft.mobilenumber === '' ? undefined : quotationft.mobilenumber,
+      date,
+      gstin: '',
+      total:quotationft.mrpamount,
+      billamount:quotationft.totalamount,
+      location:'',
+      partialamount:0
+    };
+    // product items
+    let items = quotationft.tempproduct.map((data,i) => ({
+      sno:i+1,
+      productname:data.productname,
+      flavour:data.flavour,
+      quantity:data.quantity,
+      pieceamount:data.productprice,
+      numberofpacks:data.numberofpacks,
+      producttotalamount:data.mrp,
+      margin:data.margin,
+      price:data.price
+    }));
+
+    // console.log(items);
     await setInvoiceDatas((pre) => ({
       ...pre,
-      data: prItems,
-    }))
-    message.open({ type: 'success', content: 'Quotation Created' })
+      data: items,
+      isGenerate: false,
+      customerdetails: cusotmerData,
+    }));
+  
+    // console.log(cusotmerData,items);
+
+    // setIsPrinting(true);
+
+    // await setInvoiceDatas((pre) => ({
+    //   ...pre,
+    //   data: prItems,
+    // }))
+    // message.open({ type: 'success', content: 'Quotation Created' })
   }
+
+
+  
 
   const handleQuotationDownload = async () =>{
-    await setInvoiceDatas((pre) => ({
-      ...pre,
-      data: prItems,
-    }))
-    message.open({ type: 'success', content: 'Quotation Created' })
-  }
+        // data
+        let {date} = quotationft.tempproduct[0]
+        // customer details
+        let cusotmerData = {
+          customername: quotationft.customername === null || quotationft.customername === '' ? undefined : quotationft.customername,
+          mobilenumber:quotationft.mobilenumber === null || quotationft.mobilenumber === '' ? undefined : quotationft.mobilenumber,
+          date,
+          gstin: '',
+          total:quotationft.mrpamount,
+          billamount:quotationft.totalamount,
+          location:'',
+          partialamount:0
+        };
+        // product items
+        let items = quotationft.tempproduct.map((data,i) => ({
+          sno:i+1,
+          productname:data.productname,
+          flavour:data.flavour,
+          quantity:data.quantity,
+          pieceamount:data.productprice,
+          numberofpacks:data.numberofpacks,
+          producttotalamount:data.mrp,
+          margin:data.margin,
+          price:data.price
+        }));
+
+        await setInvoiceDatas((pre) => ({
+          ...pre,
+          data: items,
+          isGenerate: true,
+          customerdetails: cusotmerData
+        }))
+     
+        // console.log(items);
+        // await setInvoiceDatas({
+        //   data: items,
+        //   isGenerate: false,
+        //   customerdetails: cusotmerData,
+        //   location: ''
+        // });
+    // await setInvoiceDatas((pre) => ({
+    //   ...pre,
+    //   data: prItems,
+    // }))
+    // message.open({ type: 'success', content: 'Quotation Created' })
+  };
 
   useEffect(() => {
     if (isPrinting && promiseResolveRef.current) {
@@ -390,7 +797,7 @@ export default function Home({ datas }) {
         await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
       }
     }
-    generatePDF()
+    generatePDF();
   }, [invoiceDatas.isGenerate, printRef])
 
   const columns = [
@@ -592,51 +999,56 @@ export default function Home({ datas }) {
     await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
   }
 
-  // create add temp product
-  const [count, setCount] = useState(0)
+  // (Add to List) btn
   const addTempProduct = async (values) => {
-    setCount(count + 1)
+    setQuotationFt(pre =>({...pre,count:pre.count+1}));
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
-    const newProduct = { ...values, key: count, date: formattedDate, createddate: TimestampJs() }
-    const checkExsit = option.tempproduct.some(
+
+    let [quantityvalue, units] = values.quantity.split(' ')
+    const findPrice = await datas.product.find(
+      (item) =>
+        item.isdeleted === false &&
+        item.productname === values.productname &&
+        item.flavour === values.flavour &&
+        item.quantity === Number(quantityvalue) &&
+        item.unit === units
+    ).price;
+    
+    const newProduct = {
+      ...values,
+      key: quotationft.count,
+      date: formattedDate,
+      createddate: TimestampJs(),
+      mrp: findPrice * values.numberofpacks,
+      productprice: findPrice,
+      margin: 0,
+      price: findPrice * values.numberofpacks
+    };
+
+    const checkExsit = quotationft.tempproduct.some(
       (item) =>
         item.productname === newProduct.productname &&
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
-        item.numberofpacks === newProduct.numberofpacks &&
         item.date === newProduct.date
-    )
-    const checkSamePacks = option.tempproduct.some(
-      (item) =>
-        item.productname === newProduct.productname &&
-        item.flavour === newProduct.flavour &&
-        item.quantity === newProduct.quantity &&
-        item.numberofpacks !== newProduct.numberofpacks &&
-        item.date === newProduct.date &&
-        item.key !== newProduct.key
-    )
-    const temVales = { ...values, date: formattedDate }
-    const dbCheck = datas.productions.some(
-      (item) =>
-        item.productname === temVales.productname &&
-        item.flavour === temVales.flavour &&
-        item.quantity === temVales.quantity &&
-        item.date === temVales.date
-    )
+    );
+
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else if (checkSamePacks) {
-      message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else if (dbCheck) {
-      message.open({ type: 'warning', content: 'Product is already added' })
-      return
-    } else {
-      setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
-    }
-  }
+    } 
+    else {
+      // mrp and total price
+      let totalprice = [...quotationft.tempproduct, newProduct].map(data => data.price).reduce((a,b)=> a + b,0);
+      let mrpprice = [...quotationft.tempproduct, newProduct].map(data => data.mrp).reduce((a,b)=> a + b,0);
 
+      setQuotationFt(pre =>({...pre, totalamount:totalprice, tempproduct:[...pre.tempproduct, newProduct],amount: 0, discount: 0, percentage: 0,mrpamount:mrpprice}));
+      
+      marginform.resetFields(['marginvalue']);
+    }
+  };
+
+ 
+  
 
   const itemColumns = [
     {
@@ -669,7 +1081,39 @@ export default function Home({ datas }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, [])
+  }, []);
+
+  // warning modal
+  const [warningModal,setWarningModal] = useState(false);
+  // cancel btn
+  const warningModalCancel = ()=>{
+    setWarningModal(false);
+  };
+ // ok btn
+ const warningModalok =()=>{
+  setWarningModal(false);
+  setQuotationFt({
+    date: null,
+    type:'With GST',
+    tempproduct:[],
+    margin: 0,
+    discount: 0,
+    percentage:0,
+    amount:0,
+    count:0,
+    totalamount:0,
+    editingkey:'',
+    mrpamount:0,
+    onfocus:false,
+    edmargin:true,
+    edprice:true,
+    edpacks:true,
+    customername:'',
+    mobilenumber:''
+  });
+  setQuotationModalOpen(false);
+  marginform.resetFields(['marginvalue']);
+ };
 
   return (
     <div>
@@ -681,15 +1125,14 @@ export default function Home({ datas }) {
             defaultValue={[today, today]}
             format="DD/MM/YYYY"
           />
-          {/* <Button
+          <Button
             type="primary"
             onClick={() => {
               setQuotationModalOpen(true)
               form.resetFields()
-            }}
-          >
+            }}>
             Quotation <FaRegFilePdf />
-          </Button> */}
+          </Button>
         </li>
 
         <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
@@ -743,7 +1186,9 @@ export default function Home({ datas }) {
       <Modal
         title="Items"
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+        }}
         width={800}
         footer={null}
       >
@@ -769,24 +1214,29 @@ export default function Home({ datas }) {
 
       <Modal
         className="relative"
-        width={1000}
+        width={1100}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">QUOTATION</span>
         }
         open={quotationModalOpen}
         onCancel={() => {
-          setQuotationModalOpen(false)
+          if(quotationft.tempproduct.length > 0){
+            setWarningModal(true)
+          }else{
+            setQuotationModalOpen(false)
+          }
         }}
         footer={
           <div>
             <section className="flex gap-x-3 justify-between items-center">
-              <span className="flex gap-x-3 m-0 justify-center">
+             
+              <span className="flex gap-x-3 m-0 justify-center items-center">
                 <Form
                  className="flex gap-x-2 justify-center items-center"
-                  form={form2}
-                  onFinish={() => {console.log('Margin')}}
+                  form={marginform}
+                  onFinish={(value) => marginOnchange(value)}
                 >
-                  <Form.Item name="marginvalue" rules={[{ required: true, message: false }]}>
+                  <Form.Item className='mb-0' name="marginvalue" rules={[{ required: true, message: false }]}>
                     <InputNumber
                       min={0}
                       max={100}
@@ -795,20 +1245,47 @@ export default function Home({ datas }) {
                       prefix={<span>Margin(%)</span>}
                     />
                   </Form.Item>
-                  <Form.Item>
+                  <Form.Item  className='mb-0'>
                     <Button type="primary" htmlType="submit">
                       Enter
                     </Button>
                   </Form.Item>
                 </Form>
               </span>
+
               <span className="flex gap-x-3 justify-center items-center">
-                <Button htmlType="submit" type="primary" className=" w-fit" onClick={() => handleQuotationPrint()}>
+                {/* <Button  disabled={quotationft.tempproduct.length > 0 ? false : true} type="primary" className=" w-fit" onClick={() => handleQuotationPrint()}>
                 <PrinterOutlined />Print 
-                </Button>
-                <Button htmlType="submit" type="primary" className=" w-fit" onClick={() => handleQuotationDownload()}>
-                  <DownloadOutlined />Download
-                </Button>
+                </Button> */}
+                <ReactToPrint
+            trigger={() => (
+              <Button type='primary' disabled={quotationft.tempproduct.length > 0 ? false : true} ><PrinterOutlined /> Print</Button>
+            )}
+            onBeforeGetContent={async () => {
+              return new Promise((resolve) => {
+                promiseResolveRef.current = resolve
+                handleQuotationPrint().then(() => {
+                  setIsPrinting(true)
+                })
+              })
+            }}
+            content={() => componentRef.current}
+            onAfterPrint={() => {
+              promiseResolveRef.current = null
+              setIsPrinting(false)
+            }}
+          />
+          <Popconfirm title="Sure to download pdf?" onConfirm={() => handleQuotationDownload()}>
+            <Button
+            type='primary'
+              disabled={quotationft.tempproduct.length > 0 ? false : true}
+              
+            ><DownloadOutlined size={20}/> Download</Button>
+          </Popconfirm>
+
+                {/* <Button  type="primary" className=" w-fit" onClick={() => handleQuotationDownload()}>
+                  <DownloadOutlined />
+                </Button> */}
               </span>
             </section>
           </div>
@@ -816,8 +1293,8 @@ export default function Home({ datas }) {
       >
         <div className="relative">
           <div className="grid grid-cols-4 gap-x-2">
-            <Form
-              className="col-span-1"
+           <span className="col-span-1">
+           <Form
               form={form}
               layout="vertical"
               onFinish={addTempProduct}
@@ -839,7 +1316,10 @@ export default function Home({ datas }) {
                   buttonStyle="solid"
                   style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
                   onChange={(e) => {
-                    form.resetFields();
+                    setQuotationFt(pre=>({...pre,type:e.target.value}))
+                    // setQuotationData(pre=>({...pre,type:e.target.value}))
+                    // form.resetFields(['productname','flavour','quantity', 'numberofpacks',]);
+                    marginform.resetFields(['marginvalue'])
                   }}
                 >
                   <Radio.Button value="withGST" style={{ width: '50%' }}>
@@ -921,14 +1401,32 @@ export default function Home({ datas }) {
                   placeholder="Enter the Number"
                 />
               </Form.Item>
+              <span className='absolute flex justify-center items-center left-[18rem] bottom-[-3.1rem] gap-x-2'>
+              <Form.Item
+                className="mb-1"
+                name="customername"
+                
+              >
+                <Input onChange={(e)=>setQuotationFt(pre=>({...pre,customername:e.target.value}))} placeholder='Customer Name'/>
+              </Form.Item>
+
+              <Form.Item
+                className="mb-1"
+                name="mobilenumber"
+                // label="Mobile Number"
+              >
+                <InputNumber type='number' onChange={(e)=>setQuotationFt(pre=>({...pre,mobilenumber:e}))} placeholder='Mobile No' className='w-full' min={0}/>
+              </Form.Item>
+              </span>
               <div className="mb-3 w-full">
                 <Button className="w-full" type="primary" htmlType="submit">
                   Add To List
                 </Button>
                     </div>
             </Form>
+           </span>
 
-              <Table
+              {/* <Table
                 virtual
                 columns={quotationColumns}
                 // components={{ body: { cell: EditableCellTem } }}
@@ -936,23 +1434,40 @@ export default function Home({ datas }) {
                 className="col-span-3"
                 dataSource={option.tempproduct}
                 scroll={{ x: false, y: false }}
-              />
+              /> */}
+
+              <span className="col-span-3">
+              <Form 
+              form={temform} 
+              component={false}
+              //  onFinish={tempSingleMargin}
+              >
+                <Table
+                  virtual
+                  columns={tempMergedColumns}
+                  components={{ body: { cell: EditableCellTem } }}
+                  dataSource={quotationft.tempproduct}
+                  pagination={{ pageSize: 4 }}
+                  scroll={{ x: false, y: false }}
+                />
+              </Form>
+              </span>
           </div>
 
           <span
             className={`absolute top-[-2.7rem] right-10 ${option.margin === 0 ? 'hidden' : 'block'}`}
           >
             <Tag color="blue">
-              MRP Amount: <span className="text-sm">{option.price}</span>
+              MRP Amount: <span className="text-sm">{formatToRupee(quotationft.mrpamount,true)}</span>
             </Tag>
             <Tag color="green">
-              Net Amount: <span className="text-sm">{option.amount}</span>
+              Net Amount: <span className="text-sm">{formatToRupee(quotationft.totalamount,true)}</span>
             </Tag>
           </span>
           
         </div>
       </Modal>
-
+    <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok}/>
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
@@ -974,8 +1489,8 @@ export default function Home({ datas }) {
 
             <ul className="mt-5 flex justify-between">
               <li>
-                <div>
-                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
+                <div className={`font-bold ${quotationft.type === 'withoutGST' ? 'hidden': 'inline-block'}`}>
+                  <span >GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
                 <div>
                   {' '}
@@ -987,7 +1502,7 @@ export default function Home({ datas }) {
                   </span>
                 </div>
                 <div
-                  className={` ${invoiceDatas.customerdetails.customername !== 'Quick Sale' ? 'block' : 'hidden'}`}
+                  className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined  ? 'hidden' :  'block'}`}
                 >
                   <span className="font-bold">Customer Name :</span>{' '}
                   <span>
@@ -996,6 +1511,14 @@ export default function Home({ datas }) {
                       : null}
                   </span>
                 </div>
+
+                <div
+                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined  ? 'hidden' :  'block'}`}
+                >
+                  <span className="font-bold">Mobile Number : </span> <span>{invoiceDatas.customerdetails.mobilenumber}</span>
+                 
+                </div>
+
                 <div
                   className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
                 >
