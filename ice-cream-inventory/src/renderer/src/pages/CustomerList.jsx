@@ -26,7 +26,11 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
-import { createCustomer, updateCustomer } from '../firebase/data-tables/customer'
+import {
+  createCustomer,
+  updateCustomer,
+  getCustomerPayDetailsById
+} from '../firebase/data-tables/customer'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
@@ -47,6 +51,9 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [payDetailsData, setPayDetailsData] = useState([])
   const [isVehicleNoDisabled, setIsVehicleNoDisabled] = useState(true)
   const [customerTbLoading, setCustomerTbLoading] = useState(true)
+  const [totalReturnAmount, setTotalReturnAmount] = useState(0)
+  const [totalPurchaseAmount, setTotalPurchaseAmount] = useState(0)
+  const [totalPaymentAmount, setTotalPaymentAmount] = useState(0)
 
   // side effect
   useEffect(() => {
@@ -108,7 +115,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     setIsCustomerPayLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '', type: 'Payment', createddate: TimestampJs() }
+    const payData = {
+      ...Datas,
+      date: formateDate,
+      description: description || '',
+      type: 'Payment',
+      createddate: TimestampJs()
+    }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -130,20 +143,41 @@ export default function CustomerList({ datas, customerUpdateMt }) {
 
   const showPayDetailsModal = async (record) => {
     try {
-      const customerDocRef = doc(db, 'customer', record.id)
-      const payDetailsRef = collection(customerDocRef, 'paydetails')
-      const payDetailsSnapshot = await getDocs(payDetailsRef)
-      const payDetails = payDetailsSnapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id
-      }))
-
+      const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      let payDetails = []
+      if (payDetailsResponse.status === 200) {
+        payDetails = payDetailsResponse.paydetails
+      }
       const deliveryDocRef = await datas.delivery.filter(
         (item) => item.isdeleted === false && item.customerid === record.id
       )
-      const combainData = payDetails.concat(deliveryDocRef)
+      const combinedData = payDetails.concat(deliveryDocRef)
+      setPayDetailsData(combinedData)
 
-      setPayDetailsData(combainData)
+      const totalPayment = combinedData.reduce((total, item) => {
+        if (item.type === 'Payment') {
+          return total + (Number(item.amount) || 0)
+        }
+        return total
+      }, 0)
+      setTotalPaymentAmount(totalPayment)
+
+      const totalPurchase = combinedData.reduce((total, item) => {
+        if (item.type === 'order') {
+          return total + (Number(item.billamount) || 0)
+        }
+        return total
+      }, 0)
+      setTotalPurchaseAmount(totalPurchase)
+
+      const totalReturn = combinedData.reduce((total, item) => {
+        if (item.type === 'return') {
+          return total + (Number(item.billamount) || 0)
+        }
+        return total
+      }, 0)
+      setTotalReturnAmount(totalReturn)
+
     } catch (e) {
       console.log(e)
     }
@@ -368,7 +402,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     children,
     ...restProps
   }) => {
-    const inputNode = dataIndex === 'mobilenumber' ? <InputNumber type='number'/> : <Input />
+    const inputNode = dataIndex === 'mobilenumber' ? <InputNumber type="number" /> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
@@ -392,21 +426,33 @@ export default function CustomerList({ datas, customerUpdateMt }) {
                   />
                 </Form.Item>
               </span>
-            ) : dataIndex === 'mobilenumber'?
-            <Form.Item
+            ) : dataIndex === 'mobilenumber' ? (
+              <Form.Item
                 name="mobilenumber"
                 style={{ margin: 0 }}
-                rules={[{ required:true, message: false}]}
+                rules={[{ required: true, message: false }]}
               >
-                <InputNumber maxLength={10} type='number'/>
+                <InputNumber maxLength={10} type="number" />
               </Form.Item>
-            : (
+            ) : (
               <Form.Item
                 name={dataIndex}
                 style={{ margin: 0 }}
-                rules={[{ required: dataIndex === 'customername' || dataIndex === 'transport' || dataIndex === 'mobilenumber' || dataIndex === 'location' ? true : false, message: false,whitespace:true}]}
+                rules={[
+                  {
+                    required:
+                      dataIndex === 'customername' ||
+                      dataIndex === 'transport' ||
+                      dataIndex === 'mobilenumber' ||
+                      dataIndex === 'location'
+                        ? true
+                        : false,
+                    message: false,
+                    whitespace: true
+                  }
+                ]}
               >
-                 <Input />
+                <Input />
               </Form.Item>
             )}
           </>
@@ -445,10 +491,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   }
 
   const save = async (key) => {
-    
-
     try {
-      const row = await form.validateFields();
+      const row = await form.validateFields()
       setCustomerTbLoading(true)
       const newData = [...data]
       const index = newData.findIndex((item) => key.id === item.key)
@@ -471,8 +515,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo)
-    }
-    finally{
+    } finally {
       setCustomerTbLoading(false)
     }
   }
@@ -891,6 +934,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           rowKey="id"
           scroll={{ y: historyHeight }}
         />
+        <div className="flex justify-between mt-2 font-semibold">
+          <div>Order: {totalPurchaseAmount.toFixed(2)}</div>
+          <div>Return: {totalReturnAmount.toFixed(2)}</div>
+          <div>Payment: {totalPaymentAmount.toFixed(2)}</div>
+        </div>
       </Modal>
     </div>
   )

@@ -511,7 +511,9 @@ const [storefirst,setStoreFirst] = useState(null)
 
   const totalProfit = totalSales - totalSpend
 
-  const totalCustomers = filteredDelivery.length
+  const totalReturn = filteredDelivery
+  .filter((product) => product.type === 'return')
+  .reduce((total, product) => total + product.billamount, 0)
 
   const totalQuickSale = filteredDelivery
     .filter((product) => product.type === 'quick')
@@ -525,7 +527,7 @@ const [storefirst,setStoreFirst] = useState(null)
   }).length
 
   const totalPaid = filteredDelivery.reduce((total, product) => {
-    if (product.paymentstatus === 'Paid') {
+    if (product.paymentstatus === 'Paid' && product.type !== 'return') {
       return total + (Number(product.billamount) || 0);
     } else if (product.paymentstatus === 'Partial') {
       return total + (Number(product.partialamount) || 0);
@@ -542,12 +544,12 @@ const [storefirst,setStoreFirst] = useState(null)
     return total;
   }, 0);
 
-  const [activeCard, setActiveCard] = useState('totalCustomers')
+  const [activeCard, setActiveCard] = useState('')
   const cardsData = [
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
     { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
     { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
-    { key: 'totalCustomers', title: 'Total Customer', value: totalCustomers, prefix: <IoPerson /> },
+    { key: 'totalReturn', title: 'Total Return', value: totalReturn, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
     {
@@ -572,6 +574,9 @@ const [storefirst,setStoreFirst] = useState(null)
       case 'totalQuickSale':
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'quick')
         break
+      case 'totalReturn':
+        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'return')
+        break
       case 'totalBooking':
         newSelectedTableData = deliveryData.filter((product) => {
           return (
@@ -589,7 +594,7 @@ const [storefirst,setStoreFirst] = useState(null)
         break
       case 'totalPaid':
         newSelectedTableData = filteredDelivery.filter(
-          (product) => product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial'
+          (product) => product.type !== 'return' && (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
         break
       case 'totalUnpaid':
@@ -1169,7 +1174,7 @@ const [storefirst,setStoreFirst] = useState(null)
                     )
                   }
                   value={card.value}
-                  precision={card.key === 'totalCustomers' || card.key === 'totalBooking' ? 0 : 2}
+                  precision={card.key === 'totalBooking' ? 0 : 2}
                   valueStyle={{
                     color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
                   }}

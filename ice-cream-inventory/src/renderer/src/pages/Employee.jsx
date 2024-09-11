@@ -45,6 +45,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
   const [employeeTbLoading, setEmployeeTbLoading] = useState(true)
+  const [totalPaymentAmount, setTotalPaymentAmount] = useState(0)
+  const [totalReturnAmount, setTotalReturnAmount] = useState(0)
 
   // side effect
   useEffect(() => {
@@ -191,6 +193,23 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {
                   let checkPayData = paydetails.filter((item) => item.isdeleted === false)
+                  
+                  const totalPayment = checkPayData.reduce((total, item) => {
+                    if (item.type === 'pay') {
+                      return total + (Number(item.amount) || 0);
+                    }
+                    return total;
+                  }, 0);
+                  setTotalPaymentAmount(totalPayment);
+                  
+                  const totalReturn = checkPayData.reduce((total, item) => {
+                    if (item.type === 'spend') {
+                      return total + (Number(item.amount) || 0);
+                    }
+                    return total;
+                  }, 0);
+                  setTotalReturnAmount(totalReturn);
+
                   setEmployeePayDetails((pre) => ({
                     ...pre,
                     modal: true,
@@ -966,6 +985,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
             dataSource={employeePayDetails.data}
             rowKey="id"
           />
+          <div className="flex justify-between mt-2 font-semibold">
+            <div>Payment: {totalPaymentAmount.toFixed(2)}</div>
+            <div>Return: {totalReturnAmount.toFixed(2)}</div>
+          </div>
         </Form>
       </Modal>
     </div>
