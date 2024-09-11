@@ -10,14 +10,16 @@ import {
   Radio,
   Input,
   DatePicker,
-  Form
+  Form,
+  Tag
 } from 'antd'
-import { getCustomerById } from '../firebase/data-tables/customer'
+import { getCustomerById, getCustomerPayDetailsById } from '../firebase/data-tables/customer'
 import { LuFileCog } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
 import { addDoc, collection, doc, getDocs, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
+const { Search } = Input
 
 export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const [data, setData] = useState([])
@@ -41,13 +43,13 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
             const customerDeliveries = (datas.delivery || []).filter(
               (delivery) => delivery.customerid === item.id && !delivery.isdeleted
             )
-            const customerDocRef = doc(db, 'customer', item.id)
-            const payDetailsRef = collection(customerDocRef, 'paydetails')
-            const payDetailsSnapshot = await getDocs(payDetailsRef)
-            const payDetails = payDetailsSnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id
-            }))
+
+            const payDetailsResponse = await getCustomerPayDetailsById(item.id)
+            let payDetails = []
+            if (payDetailsResponse.status === 200) {
+              payDetails = payDetailsResponse.paydetails
+            }
+
             const openEntry = payDetails
               .filter((payDetail) => payDetail.description === 'Open')
               .sort(
@@ -55,6 +57,17 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') -
                   dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
               )[0]
+
+            const isOpenOrClose = payDetails
+              .filter(
+                (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
+              )
+              .sort((a, b) =>
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )[0]
+
             const filteredPayDetails = openEntry
               ? [
                   openEntry,
@@ -65,6 +78,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   )
                 ]
               : payDetails
+
             const filteredDeliveries = openEntry
               ? customerDeliveries.filter((delivery) =>
                   dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
@@ -72,20 +86,28 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   )
                 )
               : customerDeliveries
-            const totalBilled = filteredDeliveries.reduce(
-              (acc, item) => acc + (Number(item.billamount) || 0),
-              0
-            )
-            const totalPayment = filteredPayDetails.reduce(
-              (acc, item) => acc + (Number(item.amount) || 0),
-              0
-            )
-            const balance = totalBilled - totalPayment
+
+            const billUnpaid = filteredDeliveries.reduce((acc, item) => {
+              if (item.paymentstatus === 'Unpaid') {
+                return acc + (Number(item.billamount) || 0)
+              } else if (item.paymentstatus === 'Partial') {
+                return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
+              }
+              return acc
+            }, 0)
+
+            const totalPayment = filteredPayDetails.reduce((acc, item) => {
+              return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
+            }, 0)
+
+            const balance = billUnpaid - totalPayment
+
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
-              balance: balance
+              balance: balance,
+              bookstatus: isOpenOrClose.description
             }
           })
       )
@@ -122,18 +144,40 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     fetchData()
   }, [datas])
 
+  // search
+  const [searchText, setSearchText] = useState('')
+  const onSearchEnter = (value, _e) => {
+    setSearchText(value)
+  }
+  const onSearchChange = (e) => {
+    if (e.target.value === '') {
+      setSearchText('')
+    }
+  }
+
   const columns = [
     {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
       width: 50,
-      render: (_, __, index) => index + 1
+      filteredValue: [searchText],
+      render: (_, __, index) => index + 1,
+      onFilter: (value, record) => {
+        return (
+          String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.balance).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.bookstatus).toLowerCase().includes(value.toLowerCase())
+        )
+      }
     },
     {
       title: 'Customer',
       dataIndex: 'customername',
-      key: 'customername'
+      key: 'customername',
+      sorter: (a, b) => a.customername.localeCompare(b.customername),
+      defaultSortOrder: 'ascend'
     },
     {
       title: 'Mobile',
@@ -146,8 +190,17 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
       key: 'balance',
       render: (balance) => {
         const numericBalance = typeof balance === 'number' ? balance : 0
-        return `$${numericBalance.toFixed(2)}`
-      }
+        return `${numericBalance.toFixed(2)}`
+      },
+      sorter: (a, b) => a.balance - b.balance
+    },
+    {
+      title: 'Status',
+      dataIndex: 'bookstatus',
+      key: 'bookstatus',
+      width: 80,
+      sorter: (a, b) => a.bookstatus.localeCompare(b.bookstatus),
+      render: (text) => <Tag color={text === 'Open' ? 'green' : 'red'}>{text}</Tag>
     },
     {
       title: 'Action',
@@ -155,7 +208,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
       width: 70,
       render: (_, record) => (
         <span>
-          <Button onClick={() => showPayModel(record)}>
+          <Button onClick={() => showPayModel(record)} className="h-[1.7rem]">
             <LuFileCog />
           </Button>
         </span>
@@ -166,28 +219,33 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   const showPayModel = async (record) => {
     payForm.resetFields()
     setCustomerPayId(record.id)
-    const customerDocRef = doc(db, 'customer', record.id)
-            const payDetailsRef = collection(customerDocRef, 'paydetails')
-            const payDetailsSnapshot = await getDocs(payDetailsRef)
-            const payDetails = payDetailsSnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id
-            }))
-    const isOpenOrClose = payDetails
-      .filter((payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close')
-      .sort((a, b) =>
-        dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
-      )[0]
-    payForm.setFieldsValue({
-      description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
-    })
-    setIsModalVisible(true)
+    try {
+      const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      if (payDetailsResponse.status === 200) {
+        const payDetails = payDetailsResponse.paydetails
+        const isOpenOrClose = payDetails
+          .filter(
+            (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
+          )
+          .sort((a, b) =>
+            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
+          )[0]
+        payForm.setFieldsValue({
+          description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
+        })
+      } else {
+        console.error(payDetailsResponse.message)
+      }
+      setIsModalVisible(true)
+    } catch (err) {
+      console.error('Error fetching pay details:', err)
+    }
   }
 
   const balancesheetPay = async (value) => {
     let { date, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, createddate: TimestampJs() }
+    const payData = { ...Datas, date: formateDate, type: 'Balance', createddate: TimestampJs() }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -214,78 +272,94 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
 
   const handleRowClick = async (record) => {
     try {
-      const customerDocRef = doc(db, 'customer', record.id)
-      const customerDoc = await getDoc(customerDocRef)
-      if (customerDoc.exists()) {
-        const customerData = customerDoc.data()
+      const customerResponse = await getCustomerById(record.id)
+      if (customerResponse.status === 200) {
+        const customerData = customerResponse.customer
         setCustomerName(customerData.customername)
+      } else {
+        console.error(customerResponse.message)
+        return
       }
-      const payDetailsRef = collection(customerDocRef, 'paydetails')
-      const payDetailsSnapshot = await getDocs(payDetailsRef)
-      const payDetails = payDetailsSnapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id
-      }))
 
-      const openEntry = payDetails
-        .filter((payDetail) => payDetail.description === 'Open')
-        .sort(
-          (a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-        )[0]
-      let filteredPayDetails = []
+      const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      if (payDetailsResponse.status === 200) {
+        const payDetails = payDetailsResponse.paydetails
 
-      if (openEntry) {
-        filteredPayDetails = [
-          openEntry,
-          ...payDetails.filter((payDetail) =>
-            dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+        const openEntry = payDetails
+          .filter((payDetail) => payDetail.description === 'Open')
+          .sort(
+            (a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+          )[0]
+        let filteredPayDetails = []
+
+        if (openEntry) {
+          filteredPayDetails = [
+            openEntry,
+            ...payDetails.filter((payDetail) =>
+              dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            )
+          ]
+          filteredPayDetails.sort(
+            (a, b) =>
+              dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+          )
+        }
+
+        setPayDetailsList(filteredPayDetails)
+
+        const deliveries = deliveryData.filter(
+          (delivery) => delivery.customerid === record.id && !delivery.isdeleted
+        )
+        if (openEntry) {
+          const filteredDeliveries = deliveries.filter((delivery) =>
+            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
               dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
             )
           )
-        ]
-        filteredPayDetails.sort(
-          (a, b) =>
-            dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
-        )
-      }
-
-      setPayDetailsList(filteredPayDetails)
-
-      const deliveries = deliveryData.filter(
-        (delivery) => delivery.customerid === record.id && !delivery.isdeleted
-      )
-      if (openEntry) {
-        const filteredDeliveries = deliveries.filter((delivery) =>
-          dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-            dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+          filteredDeliveries.sort(
+            (a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
           )
-        )
-        filteredDeliveries.sort(
-          (a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-        )
-        setDeliveryList(filteredDeliveries)
+          setDeliveryList(filteredDeliveries)
+        } else {
+          setDeliveryList([])
+        }
       } else {
-        setDeliveryList([])
+        console.error(payDetailsResponse.message)
       }
     } catch (e) {
       console.log(e)
     }
   }
 
+  const totalMRP = deliveryList.reduce((acc, item) => acc + (Number(item.total) || 0), 0)
+
   const totalBilled = deliveryList.reduce((acc, item) => acc + (Number(item.billamount) || 0), 0)
 
   const billPaid = deliveryList.reduce((acc, item) => {
     if (item.paymentstatus === 'Paid') {
-      return acc + (Number(item.total) || 0)
+      return acc + (Number(item.billamount) || 0)
     } else if (item.paymentstatus === 'Partial') {
       return acc + (Number(item.partialamount) || 0)
     }
     return acc
   }, 0)
 
-  const totalPayment = payDetailsList.reduce((acc, item) => acc + (Number(item.amount) || 0), 0)
+  const billUnpaid = deliveryList.reduce((acc, item) => {
+    if (item.paymentstatus === 'Unpaid') {
+      return acc + (Number(item.billamount) || 0)
+    } else if (item.paymentstatus === 'Partial') {
+      return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
+    }
+    return acc
+  }, 0)
+
+  const totalPayment = payDetailsList.reduce((acc, item) => {
+    return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
+  }, 0)
 
   const handleCardClick = (key) => {
     setActiveCard(key)
@@ -322,6 +396,16 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   return (
     <div>
       <ul>
+        <li className="flex gap-x-3 justify-between items-center">
+          <Search
+            allowClear
+            className="w-[30%]"
+            placeholder="Search"
+            onSearch={onSearchEnter}
+            onChange={onSearchChange}
+            enterButton
+          />
+        </li>
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
             const isActive = activeCard === card.key
@@ -373,25 +457,41 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
           <div className="w-1/2 pl-2 border border-gray-300 rounded-lg p-4">
             <List
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Order Details - {customerName}</div>}
+              header={
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
+                >
+                  <div>Order Details - {customerName}</div>
+                  <div>Orders: {deliveryList.length}</div>
+                </div>
+              }
               footer={
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Orders: {deliveryList.length}</div>
-                  <div>Total Billed: ${totalBilled.toFixed(2)}</div>
-                  <div>Total Paid: ${billPaid.toFixed(2)}</div>
+                  <div>MRP: {totalMRP.toFixed(2)}</div>
+                  <div>Billed: {totalBilled.toFixed(2)}</div>
+                  <div>Paid: {billPaid.toFixed(2)}</div>
+                  <div>Unpaid: {billUnpaid.toFixed(2)}</div>
                 </div>
               }
               bordered
               dataSource={deliveryList}
               renderItem={(item) => (
                 <List.Item>
-                  <div>Date: {item.date}</div>
-                  <div>MRP: ${item.total}</div>
-                  <div>Bill: ${item.billamount}</div>
-                  <div>Partial: ${item.partialamount}</div>
-                  <div>Status: {item.paymentstatus}</div>
+                  <div>{item.date}</div>
+                  <div>MRP: {item.total}</div>
+                  <div>Bill: {item.billamount}</div>
+                  <div>
+                    {item.paymentstatus === 'Partial' ? (
+                      <span>
+                        {item.paymentstatus}: {item.partialamount}
+                      </span>
+                    ) : (
+                      <span>{item.paymentstatus}</span>
+                    )}
+                  </div>
+                  <div>{item.type}</div>
                 </List.Item>
               )}
               style={{
@@ -408,7 +508,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
                   <div>Payments: {payDetailsList.length}</div>
-                  <div>Total Payment: ${totalPayment.toFixed(2)}</div>
+                  <div>Total Payment: {totalPayment.toFixed(2)}</div>
                 </div>
               }
               bordered
@@ -416,7 +516,11 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
               renderItem={(item) => (
                 <List.Item>
                   <div>Date: {item.date}</div>
-                  <div>Amount: ${item.amount}</div>
+                  <div>
+                    {item.type === 'Balance'
+                      ? `Balance: ${item.amount}`
+                      : `Amount: ${item.amount}`}
+                  </div>
                   <div>Reason: {item.description}</div>
                 </List.Item>
               )}

@@ -962,7 +962,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             }
             else if(returnDelivery.state === true && item.returntype === 'damage')
             {
-
+              console.log('damage')
             }
             else {
               await updateStorage(existingProduct.id, {

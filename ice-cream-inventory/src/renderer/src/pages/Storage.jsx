@@ -325,11 +325,8 @@ export default function Storage({ datas, storageUpdateMt }) {
     
     try {
       const row = await ediablefForm.validateFields()
-      
       if (selectedSegment === 'Material List') {
-        
-        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.alertcount === row.alertcount)
-        
+        const exsitingData = await datas.storage.some((item) => item.id === record.id && item.alertcount === row.alertcount && item.quantity === row.quantity)
         if (exsitingData) {
           message.open({ type: 'info', content: 'Data already exists'})
           setEditingKeys([])

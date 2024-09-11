@@ -34,6 +34,19 @@ export const getSupplierById = async (supplierId) => {
   }
 };
 
+// get pay details from supplier
+export const getSupplierPayDetailsById = async (supplierId) => {
+  try {
+    const itemsCollectionRef = collection(db, 'supplier', supplierId, 'paydetails');
+    const querySnapshot = await getDocs(itemsCollectionRef);
+    const paydetails = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return { paydetails, status: 200 };
+  } catch (err) {
+    console.error("Error fetching items: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
   // get items for delivery
   export const getMaterialDetailsById = async (supplierId) => {
     try {
