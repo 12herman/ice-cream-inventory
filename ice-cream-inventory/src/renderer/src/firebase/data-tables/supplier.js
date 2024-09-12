@@ -80,6 +80,31 @@ export const getSupplierPayDetailsById = async (supplierId) => {
     }
   };
 
+  // To get all materials from all suppliers
+  export const getAllMaterialDetailsFromAllSuppliers = async () => {
+    try {
+      const suppliersCollectionRef = collection(db, 'supplier');
+      const suppliersSnapshot = await getDocs(suppliersCollectionRef);
+      const allMaterialDetails = [];
+      for (const supplierDoc of suppliersSnapshot.docs) {
+        const supplierId = supplierDoc.id;
+        const materialDetailsRef = collection(db, 'supplier', supplierId, 'materialdetails');
+        const materialDetailsSnapshot = await getDocs(materialDetailsRef);
+        materialDetailsSnapshot.forEach(materialDoc => {
+          allMaterialDetails.push({
+            supplierId,
+            materialId: materialDoc.id,
+            ...materialDoc.data(),
+          });
+        });
+      }
+      return { materials: allMaterialDetails, status: 200 };
+    } catch (err) {
+      console.error("Error fetching material details from all suppliers: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
   // Create a new supplier
 export const createSupplier = async (task) => {
   try {

@@ -486,7 +486,7 @@ export default function BalanceSheet({ datas }) {
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Order Details - {customerName}</div>
+                  <div>Order Details  {customerName}</div>
                   <div>Order: {totalOrderAmount.toFixed(2)}</div>
                   <div>Return: {totalReturnAmount.toFixed(2)}</div>
                 </div>
@@ -528,7 +528,7 @@ export default function BalanceSheet({ datas }) {
             <List
               className="mt-2"
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Payment Details - {customerName}</div>}
+              header={<div style={{ fontWeight: '600' }}>Payment Details  {customerName}</div>}
               footer={
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}

@@ -128,7 +128,14 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true
+      editable: true,
+      render: (text, record) => {
+        return (
+          <div>
+            <span>{text}</span> <span>{record.unit}</span>
+          </div>
+        );
+      }
     },
     {
       title: 'Alert Count',
@@ -202,7 +209,14 @@ export default function Storage({ datas, storageUpdateMt }) {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable:false
+      editable:false,
+      render: (text, record) => {
+        return (
+          <div>
+            <span>{text}</span> <span>{record.unit}</span>
+          </div>
+        );
+      }
     },
     {
       title: 'Box',
