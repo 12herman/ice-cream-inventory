@@ -158,38 +158,32 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       } else {
         const { date, materialname, suppliername, ...otherValues } = await values
         const formattedDate = date ? dayjs(date).format('DD/MM/YYYY') : null
-        
-        // const findSupplierId = await datas.suppliers.find( (supplier) =>  supplier.materialname === materialname && supplier.suppliername === suppliername ).id
-       
-        // await createRawmaterial({
-        //   supplierid: findSupplierId,
-        //   ...otherValues,
-        //   date: formattedDate,
-        //   partialamount: otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
-        //   createddate: TimestampJs(),
-        //   isdeleted: false,
-        //   type: 'Added'
-        // })
 
         await createRawmaterial({
           supplierid: suppliername,
           materialid: materialname,
           ...otherValues,
           date: formattedDate,
-          partialamount: otherValues.partialamount === undefined ? 0 : otherValues.partialamount,
+          partialamount: otherValues.partialamount || 0,
           createddate: TimestampJs(),
           isdeleted: false,
           type: 'Added'
         });
-        
-        const existingMaterial = await datas.storage.find((storageItem) => storageItem.materialname === otherValues.materialname &&  storageItem.category === 'Material List');
-
+         
+        const materialData = await getOneMaterialDetailsById (suppliername,materialname)
+        const existingMaterial = datas.storage.find(
+          (storageItem) =>
+            storageItem.category === 'Material List' &&
+            storageItem.materialname?.trim().toLowerCase() === materialData.material.materialname?.trim().toLowerCase() &&
+            storageItem.unit?.trim().toLowerCase() === materialData.material.unit?.trim().toLowerCase()
+        );
         if (existingMaterial) {
           await updateStorage(existingMaterial.id, {
             quantity: existingMaterial.quantity + otherValues.quantity
           })
-          storageUpdateMt()
+          await storageUpdateMt()
         }
+
         form.resetFields()
         rawmaterialUpdateMt()
         setIsModalOpen(false)

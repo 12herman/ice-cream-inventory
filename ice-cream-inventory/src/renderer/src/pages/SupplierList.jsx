@@ -31,8 +31,8 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById } from '../firebase/data-tables/supplier'
-import { createStorage, updateStorage } from '../firebase/data-tables/storage'
+import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById ,getAllMaterialDetailsFromAllSuppliers } from '../firebase/data-tables/supplier'
+import { createStorage, updateStorage, deleteStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -127,6 +127,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             unit: materialItem.unit,
             alertcount: 0,
             quantity: 0,
+            isdeleted: false,
             category: 'Material List',
             createddate: TimestampJs()
           })
@@ -493,15 +494,20 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           const itemId = id;
           await updateMaterialItsms(supplerId,itemId,{...newupdateddata,updateddate:TimestampJs()})
           
+          console.log("Checking for material:", items.materialname, items.unit);
+          console.log("Storage data:", datas.storage);
+
           const materialExists = datas.storage.find(
-            (storageItem) => storageItem.materialname === items.materialname && storageItem.category === 'Material List' && storageItem.unit === items.unit
+            (storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === items.materialname?.trim().toLowerCase() && storageItem.unit?.trim().toLowerCase() === items.unit?.trim().toLowerCase()
           )
+
           if (!materialExists) {
             await createStorage({
               materialname: items.materialname,
               unit: items.unit,
               alertcount: 0,
               quantity: 0,
+              isdeleted: false,
               category: 'Material List',
               createddate: TimestampJs()
             })
@@ -525,6 +531,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               unit: newupdateddata.unit,
               alertcount: 0,
               quantity: 0,
+              isdeleted: false,
               category: 'Material List',
               createddate: TimestampJs()
             })
@@ -539,6 +546,30 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         missingIds.map(async id=>{
           await updateMaterialItsms(supplerId,id,{isdeleted:true,updateddate:TimestampJs()})
         })
+      }
+
+      for (const oldItem of olddata.item) {
+        const newItem = material.find(
+          (mItem) => mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
+        );
+        const { materials: allMaterials, status } = await getAllMaterialDetailsFromAllSuppliers();
+        const isMaterialInSupplierList = allMaterials.find(
+          (mItem) =>
+            mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
+        );
+        if (!newItem && !isMaterialInSupplierList) {
+          const oldMaterialExists = datas.storage.find(
+            (storageItem) =>
+              storageItem.materialname === oldItem.materialname &&
+              storageItem.category === 'Material List' &&
+              storageItem.unit === oldItem.unit
+          );
+          console.log(oldMaterialExists,newItem,isMaterialInSupplierList,allMaterials)
+          if (oldMaterialExists) {
+            await deleteStorage(oldMaterialExists.id);
+            await storageUpdateMt();
+          }
+        }
       }
 
       await supplierUpdateMt()
