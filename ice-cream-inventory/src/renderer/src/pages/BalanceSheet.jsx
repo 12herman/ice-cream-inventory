@@ -107,7 +107,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
               sno: index + 1,
               key: item.id || index,
               balance: balance,
-              bookstatus: isOpenOrClose.description
+              bookstatus: isOpenOrClose ? isOpenOrClose.description : 'Empty'
             }
           })
       )
@@ -221,6 +221,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     setCustomerPayId(record.id)
     try {
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      console.log(payDetailsResponse)
       if (payDetailsResponse.status === 200) {
         const payDetails = payDetailsResponse.paydetails
         const isOpenOrClose = payDetails
@@ -230,9 +231,13 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
           .sort((a, b) =>
             dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
           )[0]
-        payForm.setFieldsValue({
-          description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
-        })
+        if (isOpenOrClose) {
+          payForm.setFieldsValue({
+            description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
+          })
+        } else {
+          payForm.setFieldsValue({ description: 'Open' })
+        }
       } else {
         console.error(payDetailsResponse.message)
       }
@@ -335,24 +340,44 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
     }
   }
 
-  const totalMRP = deliveryList.reduce((acc, item) => acc + (Number(item.total) || 0), 0)
+  const totalOrderAmount = deliveryList
+    .filter((product) => product.type === 'order')
+    .reduce((total, product) => total + product.total, 0)
 
-  const totalBilled = deliveryList.reduce((acc, item) => acc + (Number(item.billamount) || 0), 0)
+  const totalReturnAmount = deliveryList
+    .filter((product) => product.type === 'return')
+    .reduce((total, product) => total + product.total, 0)
+
+  const totalMRP = deliveryList.reduce((acc, item) => {
+    if (item.type === 'return') {
+      return acc - (Number(item.total) || 0)
+    }
+    return acc + (Number(item.total) || 0)
+  }, 0)
+
+  const totalBilled = deliveryList.reduce((acc, item) => {
+    if (item.type === 'return') {
+      return acc - (Number(item.billamount) || 0)
+    }
+    return acc + (Number(item.billamount) || 0)
+  }, 0)
 
   const billPaid = deliveryList.reduce((acc, item) => {
-    if (item.paymentstatus === 'Paid') {
+    if (item.paymentstatus === 'Paid' && item.type === 'order') {
       return acc + (Number(item.billamount) || 0)
-    } else if (item.paymentstatus === 'Partial') {
+    } else if (item.paymentstatus === 'Partial' && item.type === 'order') {
       return acc + (Number(item.partialamount) || 0)
     }
     return acc
   }, 0)
 
   const billUnpaid = deliveryList.reduce((acc, item) => {
-    if (item.paymentstatus === 'Unpaid') {
+    if (item.paymentstatus === 'Unpaid' && item.type === 'order') {
       return acc + (Number(item.billamount) || 0)
-    } else if (item.paymentstatus === 'Partial') {
+    } else if (item.paymentstatus === 'Partial' && item.type === 'order') {
       return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
+    } else if (item.type === 'return') {
+      return acc - (Number(item.billamount) || 0)
     }
     return acc
   }, 0)
@@ -462,7 +487,8 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
                   <div>Order Details - {customerName}</div>
-                  <div>Orders: {deliveryList.length}</div>
+                  <div>Order: {totalOrderAmount.toFixed(2)}</div>
+                  <div>Return: {totalReturnAmount.toFixed(2)}</div>
                 </div>
               }
               footer={
@@ -517,9 +543,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
                 <List.Item>
                   <div>Date: {item.date}</div>
                   <div>
-                    {item.type === 'Balance'
-                      ? `Balance: ${item.amount}`
-                      : `Amount: ${item.amount}`}
+                    {item.type === 'Balance' ? `Balance: ${item.amount}` : `Amount: ${item.amount}`}
                   </div>
                   <div>Reason: {item.description}</div>
                 </List.Item>
