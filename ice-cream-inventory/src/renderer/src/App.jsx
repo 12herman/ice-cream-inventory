@@ -95,8 +95,7 @@ const App = () => {
     setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
   const storageUpdateMt = () =>
     setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
-  const balanceSheetUpdateMt = () =>
-    setDatas((pre) => ({ ...pre, balancesheetstatus: !pre.balancesheetstatus }))
+
 
   // get table datas 'project list'
   useEffect(() => {
@@ -282,7 +281,6 @@ const App = () => {
         productionUpdateMt={productionUpdateMt}
         usedmaterialUpdateMt={usedmaterialUpdateMt}
         storageUpdateMt={storageUpdateMt}
-        balanceSheetUpdateMt={balanceSheetUpdateMt}
         navPages={navPages}
       />
     </main>

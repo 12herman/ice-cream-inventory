@@ -21,7 +21,7 @@ import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 const { Search } = Input
 
-export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
+export default function BalanceSheet({ datas }) {
   const [data, setData] = useState([])
   const [payForm] = Form.useForm()
   const [deliveryData, setDeliveryData] = useState([])
@@ -403,7 +403,7 @@ export default function BalanceSheet({ datas, balanceSheetUpdateMt }) {
   useEffect(() => {
     // Function to calculate and update table height
     const updateTableHeight = () => {
-      const newHeight = window.innerHeight - 100 // Adjust this value based on your layout needs
+      const newHeight = window.innerHeight - 200 // Adjust this value based on your layout needs
       setTableHeight(newHeight)
     }
     // Set initial height

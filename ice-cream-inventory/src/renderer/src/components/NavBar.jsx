@@ -33,6 +33,7 @@ import { TiCancel } from 'react-icons/ti'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { debounce } from 'lodash'
 import { updateStorage } from '../firebase/data-tables/storage'
+import { customRound } from '../js-files/round-amount'
 
 export default function NavBar({
   navPages,
@@ -74,7 +75,13 @@ export default function NavBar({
   const [quickSaleForm3] = Form.useForm()
   const [form] = Form.useForm()
 
-  const [editingKey, setEditingKey] = useState('')
+  const [editingKey, setEditingKey] = useState('');
+  const [qucikSaleTableEdiable,setQucikSaleTableEdiable] = useState({
+    pieceprice:true,
+    packs:true,
+    margin:true,
+    price:true
+  })
   // tem table column
   const temTableCl = [
     {
@@ -100,14 +107,16 @@ export default function NavBar({
       dataIndex: 'productprice',
       key: 'productprice',
       editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      editable:qucikSaleTableEdiable.pieceprice
     },
     {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      editable:qucikSaleTableEdiable.packs
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
@@ -119,7 +128,7 @@ export default function NavBar({
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      editable: isQuickSale.temtableedit.margin,
+      editable:qucikSaleTableEdiable.margin,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -127,7 +136,7 @@ export default function NavBar({
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable: isQuickSale.temtableedit.price
+      editable:qucikSaleTableEdiable.price
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -162,15 +171,14 @@ export default function NavBar({
 
             <Popconfirm
               title="Sure to cancel?"
-              onConfirm={() => setIsQuickSale((pre) => ({ ...pre, editingKeys: [] }))}
-            >
+              onConfirm={() => { setIsQuickSale((pre) => ({ ...pre, editingKeys: [] })); setFirstValue(null); setQucikSaleTableEdiable({ pieceprice:true, packs:true, margin:true, price:true})}}>
               <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
             </Popconfirm>
           </span>
         )
       }
     }
-  ]
+  ];
 
   useEffect(() => {
     const productData = datas.product
@@ -367,13 +375,12 @@ export default function NavBar({
     } else {
       setIsSpinners(true)
       // setIsQuickSale(pre => ({...pre}))
-
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
         margin: data.margin? data.margin : '',
         productprice: data.productprice
-      }))
+      }));
       console.log(productItems)
       if (isQuickSale.type === 'quick') {
         await productItems.map(async (data) => {
@@ -439,22 +446,37 @@ export default function NavBar({
   }
 
   const marginMt = (value) => {
-    let marginCal = (isQuickSale.total * value.marginvalue) / 100
-    let marignAn = isQuickSale.total - marginCal
 
     let newData = isQuickSale.temdata.map((data) => ({
       ...data,
       margin: value.marginvalue,
       price: data.mrp - (data.mrp * value.marginvalue) / 100
-    }))
+    }));
 
+    const totalAmounts =  newData.map(data => data.price).reduce((a,b)=> a + b ,0)
+    const mrpAmount = newData.map(data => data.mrp).reduce((a, b) => a + b, 0)
+        
     setIsQuickSale((pre) => ({
-      ...pre,
-      margin: value.marginvalue,
-      billamount: marignAn,
-      marginstate: true,
-      temdata: newData
-    }))
+          ...pre,
+          margin: value.marginvalue,
+          billamount: totalAmounts,
+          marginstate: true,
+          temdata: newData,
+          total:mrpAmount
+        }));
+    
+
+    // let marginCal = (isQuickSale.total * value.marginvalue) / 100
+    // let marignAn = isQuickSale.total - marginCal
+
+    // console.log(marginCal,marignAn);
+    
+    // let newData = isQuickSale.temdata.map((data) => ({
+    //   ...data,
+    //   margin: value.marginvalue,
+    //   price: data.mrp - (data.mrp * value.marginvalue) / 100
+    // }))
+    
   }
 
   // const customerOnchange = (value)=>{
@@ -521,17 +543,25 @@ export default function NavBar({
   }) => {
     const inputNode =
       dataIndex === 'numberofpacks' ? (
-        <InputNumber size="small" type="number" className="w-[4rem]" min={1} />
+        <InputNumber size="small" type="number" className="w-[4rem]" min={1} 
+          onFocus={(e)=>{
+            if (firstValue === null) {
+              setFirstValue(e.target.value);
+              setQucikSaleTableEdiable({margin:false,packs:true,pieceprice:false,price:false})
+            }
+          }}
+        />
       ) : dataIndex === 'margin' ? (
         <InputNumber
           type="number"
           onFocus={(e) => {
             if (firstValue === null) {
               setFirstValue(e.target.value) // Store the first value
-              setIsQuickSale((pre) => ({
-                ...pre,
-                temtableedit: { ...pre.temtableedit, margin: true, price: false }
-              }))
+              setQucikSaleTableEdiable({margin:true,packs:false,pieceprice:false,price:false})
+              // setIsQuickSale((pre) => ({
+              //   ...pre,
+              //   temtableedit: { ...pre.temtableedit, margin: true, price: false }
+              // }))
             }
           }}
           size="small"
@@ -539,22 +569,56 @@ export default function NavBar({
           min={0}
           max={100}
         />
-      ) : (
+      ) : dataIndex === 'price' ?  (
         <InputNumber
           onFocus={(e) => {
             if (firstValue === null) {
               setFirstValue(e.target.value) // Store the first value
-              setIsQuickSale((pre) => ({
-                ...pre,
-                temtableedit: { ...pre.temtableedit, margin: false, price: true }
-              }))
+              setQucikSaleTableEdiable({margin:false,packs:false,pieceprice:false,price:true})
+              // setIsQuickSale((pre) => ({
+              //   ...pre,
+              //   temtableedit: { ...pre.temtableedit, margin: false, price: true }
+              // }))
             }
           }}
           size="small"
           className="w-[4rem]"
           min={0}
         />
+      ): dataIndex === 'productprice' ? (
+        <InputNumber
+        onFocus={(e) => {
+          if (firstValue === null) {
+            setFirstValue(e.target.value) // Store the first value
+            setQucikSaleTableEdiable({margin:false,packs:false,pieceprice:true,price:false})
+            // setIsQuickSale((pre) => ({
+            //   ...pre,
+            //   temtableedit: { ...pre.temtableedit, margin: false, price: true }
+            // }))
+          }
+        }}
+        size="small"
+        className="w-[4rem]"
+        min={0}
+      />
+      ) :  (
+        <InputNumber
+        // onFocus={(e) => {
+        //   if (firstValue === null) {
+        //     setFirstValue(e.target.value) // Store the first value
+        //     setQucikSaleTableEdiable({margin:false,packs:true,pieceprice:false,price:false})
+        //     // setIsQuickSale((pre) => ({
+        //     //   ...pre,
+        //     //   temtableedit: { ...pre.temtableedit, margin: false, price: true }
+        //     // }))
+        //   }
+        // }}
+        size="small"
+        className="w-[4rem]"
+        min={0}
+      />
       )
+      
     return (
       <td {...restProps}>
         {editing ? (
@@ -609,64 +673,176 @@ export default function NavBar({
   }
 
   const tempSingleMargin = async (data) => {
+    const row = await form.validateFields();
+    const tempdata = isQuickSale.temdata;
+    let updatedTempproduct;
     try {
-      const row = await form.validateFields()
-      const oldtemDatas = isQuickSale.temdata
-      const checkDatas = oldtemDatas.some(
-        (item) =>
-          item.key === data.key &&
-          item.margin === row.margin &&
-          item.productprice === row.productprice &&
-          item.numberofpacks === row.numberofpacks &&
-          item.price === row.price
-      )
-      if (checkDatas) {
-        message.open({ type: 'info', content: 'No Changes made' })
-        setIsQuickSale((pre) => ({
-          ...pre,
-          editingKeys: [],
-          temtableedit: { margin: true, price: true }
-        }))
-        setFirstValue(null)
-        return
+      
+      if(row.margin === data.margin || row.numberofpacks === data.numberofpacks || row.price === data.price || row.productprice === data.productprice)
+      {
+        message.open({content:'No changes made', type:'info'});
+        setIsQuickSale((pre) => ({ ...pre,  editingKeys: []}));
+        setQucikSaleTableEdiable({ pieceprice:true, packs:true,  margin:true, price:true });
+        setFirstValue(null);
       }
-      const updatedTempproduct = oldtemDatas.map((item) => {
-        if (item.key === data.key) {
-          let mrpData = row.productprice * row.numberofpacks
-          let price = mrpData - mrpData * (row.margin / 100)
-          let calculatedMargin = row.margin
-          if (row.price !== undefined) {
-            price = row.price
-            calculatedMargin = ((mrpData - price) / mrpData) * 100
+      else if( qucikSaleTableEdiable.margin)
+      {
+          updatedTempproduct = await tempdata.map((item) => {
+          if (item.key === data.key) {
+            let mrpData = data.productprice * data.numberofpacks
+            let price = mrpData - mrpData * (row.margin / 100)
+            let calculatedMargin = row.margin
+            if (row.price !== undefined) {
+              price = row.price
+              calculatedMargin = ((mrpData - price) / mrpData) * 100
+            }
+            return {
+              ...item,
+              productprice: data.productprice,
+              numberofpacks: data.numberofpacks,
+              margin: row.margin,
+              mrp: mrpData,
+              price: price
+            }
           }
-          return {
-            ...item,
-            productprice: row.productprice,
-            numberofpacks: row.numberofpacks,
-            margin: row.margin,
-            mrp: mrpData,
-            price: price
+          return item
+        });
+        const totalAmounts = await updatedTempproduct.map(data => data.price).reduce((a,b)=> a + b ,0)
+        const mrpAmount = updatedTempproduct.map(data => data.mrp).reduce((a, b) => a + b, 0)
+        setIsQuickSale(pre=>({...pre,temdata:updatedTempproduct,editingKeys: [],billamount: totalAmounts, total: mrpAmount,marginstate: true,}));
+        setQucikSaleTableEdiable({ pieceprice:true, packs:true,  margin:true, price:true });
+        setFirstValue(null);
+        message.open({content:'Updated successfully', type:'success'});
+      }
+      else if( qucikSaleTableEdiable.packs)
+      {
+        updatedTempproduct = await tempdata.map((item) => {
+          if (item.key === data.key) {
+            let mrpData = data.productprice * row.numberofpacks
+            let price = mrpData - mrpData * (data.margin / 100)
+            return {
+              ...item,
+              productprice: data.productprice,
+              numberofpacks: row.numberofpacks,
+              margin: data.margin,
+              mrp: mrpData,
+              price: price,
+            }
           }
-        }
-        return item
-      })
-      const totalAmounts = updatedTempproduct.reduce((acc, item) => {
-        return acc + item.price
-      }, 0)
-      const mrpAmount = updatedTempproduct.reduce((acc, item) => {
-        return acc + item.mrp
-      }, 0)
-      setIsQuickSale((pre) => ({
-        ...pre,
-        billamount: totalAmounts,
-        total: mrpAmount,
-        editingKeys: [],
-        temdata: updatedTempproduct,
-        marginstate: true,
-        temtableedit: { margin: true, price: true }
-      }))
-      setFirstValue(null)
-      message.open({ type: 'success', content: 'Updated successfully' })
+          return item
+        });
+        const totalAmounts = await updatedTempproduct.map(data => data.price).reduce((a,b)=> a + b ,0)
+        const mrpAmount = updatedTempproduct.map(data => data.mrp).reduce((a, b) => a + b, 0);
+        setIsQuickSale(pre=>({...pre,temdata:updatedTempproduct,editingKeys: [],billamount: totalAmounts, total: mrpAmount,marginstate: true,}));
+        setQucikSaleTableEdiable({ pieceprice:true, packs:true,  margin:true, price:true });
+        setFirstValue(null);
+        message.open({content:'Updated successfully', type:'success'});
+      }
+      else if (qucikSaleTableEdiable.price)
+      {
+        updatedTempproduct = await tempdata.map((item) => {
+          if (item.key === data.key) {
+            let mrpData = data.productprice * data.numberofpacks
+            let price = row.price
+            return {
+              ...item,
+              productprice: data.productprice,
+              numberofpacks: data.numberofpacks,
+              margin: ((mrpData - row.price) / mrpData) * 100,
+              mrp: mrpData,
+              price: price,
+            }
+          }
+          return item
+        });
+        const totalAmounts = await updatedTempproduct.map(data => data.price).reduce((a,b)=> a + b ,0)
+        const mrpAmount = updatedTempproduct.map(data => data.mrp).reduce((a, b) => a + b, 0);
+        setIsQuickSale(pre=>({...pre,temdata:updatedTempproduct,editingKeys: [],billamount: totalAmounts, total: mrpAmount,marginstate: true,}));
+        setQucikSaleTableEdiable({ pieceprice:true, packs:true,  margin:true, price:true });
+        setFirstValue(null);
+        message.open({content:'Updated successfully', type:'success'});
+       
+      }
+      else if (qucikSaleTableEdiable.pieceprice)
+      {
+        updatedTempproduct = await tempdata.map((item) => {
+          if (item.key === data.key) {
+            let mrpData = row.productprice * data.numberofpacks
+            let price = mrpData - mrpData * (data.margin / 100)
+            return {
+              ...item,
+              // productprice: data.productprice,
+              productprice: row.productprice,
+              numberofpacks: data.numberofpacks,
+              margin: data.margin,
+              mrp: mrpData,
+              price: price,
+              quickproductprice:row.productprice
+            }
+          }
+          return item
+        });
+        const totalAmounts = await updatedTempproduct.map(data => data.price).reduce((a,b)=> a + b ,0)
+        const mrpAmount = updatedTempproduct.map(data => data.mrp).reduce((a, b) => a + b, 0);
+        setIsQuickSale(pre=>({...pre,temdata:updatedTempproduct,editingKeys: [],billamount: totalAmounts, total: mrpAmount,marginstate: true,}));
+        setQucikSaleTableEdiable({ pieceprice:true, packs:true,  margin:true, price:true });
+        setFirstValue(null);
+        message.open({content:'Updated successfully', type:'success'});
+      }
+
+     
+
+      // const row = await form.validateFields()
+      // const oldtemDatas = isQuickSale.temdata
+      // const checkDatas = oldtemDatas.some( (item) =>  item.key === data.key && item.margin === row.margin &&  item.productprice === row.productprice && item.numberofpacks === row.numberofpacks && item.price === row.price);
+      
+      // if (checkDatas) {
+      //   message.open({ type: 'info', content: 'No Changes made' })
+      //   setIsQuickSale((pre) => ({ ...pre,  editingKeys: [], temtableedit: { margin: true, price: true } }))
+      //   setFirstValue(null);
+      // }
+      // else{ 
+      //   const updatedTempproduct = oldtemDatas.map((item) => {
+      //     if (item.key === data.key) {
+      //       let mrpData = row.productprice * row.numberofpacks
+      //       let price = mrpData - mrpData * (row.margin / 100)
+      //       let calculatedMargin = row.margin
+      //       if (row.price !== undefined) {
+      //         price = row.price
+      //         calculatedMargin = ((mrpData - price) / mrpData) * 100
+      //       }
+      //       return {
+      //         ...item,
+      //         productprice: row.productprice,
+      //         numberofpacks: row.numberofpacks,
+      //         margin: row.margin,
+      //         mrp: mrpData,
+      //         price: price
+      //       }
+      //     }
+      //     return item
+      //   });
+
+      //   const totalAmounts = updatedTempproduct.reduce((acc, item) => {
+      //     return acc + item.price
+      //   }, 0)
+      //   const mrpAmount = updatedTempproduct.reduce((acc, item) => {
+      //     return acc + item.mrp
+      //   }, 0)
+      //   setIsQuickSale((pre) => ({
+      //     ...pre,
+      //     billamount: totalAmounts,
+      //     total: mrpAmount,
+      //     editingKeys: [],
+      //     temdata: updatedTempproduct,
+      //     marginstate: true,
+      //     temtableedit: { margin: true, price: true }
+      //   }))
+      //   setFirstValue(null)
+      //   message.open({ type: 'success', content: 'Updated successfully' })
+      //   setFirstValue(null)
+      //   setQucikSaleTableEdiable({ pieceprice:true, packs:true, margin:true, price:true})
+      // }
     } catch (e) {
       console.log(e)
     }
