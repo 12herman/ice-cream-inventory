@@ -106,7 +106,6 @@ export default function NavBar({
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
       editable:qucikSaleTableEdiable.pieceprice
     },
@@ -114,7 +113,6 @@ export default function NavBar({
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true,
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
       editable:qucikSaleTableEdiable.packs
     },
