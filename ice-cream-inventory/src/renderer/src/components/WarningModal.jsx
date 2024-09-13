@@ -15,7 +15,7 @@ export default function WarningModal({state,cancel,ok}) {
         zIndex={1001}
         onOk={ok}
         onCancel={cancel}
-        okText="ok"
+        okText="OK"
         cancelText="Cancel"
         className="center-buttons-modal"
       >

@@ -543,7 +543,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 {' '}
                 <span className="font-bold">Cell:</span> 7373674757
               </span>
-              <span>8056848361</span>
+              <span>9487369569</span>
             </li>
           </ul>
 

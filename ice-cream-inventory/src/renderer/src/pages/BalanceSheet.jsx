@@ -33,89 +33,97 @@ export default function BalanceSheet({ datas }) {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [customerPayId, setCustomerPayId] = useState(null)
   const [customerName, setCustomerName] = useState('')
+  const [refreshTable, setRefreshTable] = useState(false)
 
-  useEffect(() => {
-    const calculateBalance = async () => {
-      const filteredData = await Promise.all(
-        datas.customers
-          .filter((data) => data.isdeleted === false)
-          .map(async (item, index) => {
-            const customerDeliveries = (datas.delivery || []).filter(
-              (delivery) => delivery.customerid === item.id && !delivery.isdeleted
+  const fetchData = async () => {
+    setBalanceTbLoading(true)
+    const initialData = await Promise.all(
+      datas.customers
+        .filter((data) => data.isdeleted === false)
+        .map(async (item, index) => {
+          const customerDeliveries = (datas.delivery || []).filter(
+            (delivery) => delivery.customerid === item.id && !delivery.isdeleted
+          )
+
+          const payDetailsResponse = await getCustomerPayDetailsById(item.id)
+          let payDetails = []
+          if (payDetailsResponse.status === 200) {
+            payDetails = payDetailsResponse.paydetails
+          }
+
+          const openEntry = payDetails
+            .filter((payDetail) => payDetail.description === 'Open')
+            .sort(
+              (a, b) =>
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') -
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+            )[0]
+
+          const isOpenOrClose = payDetails
+            .filter(
+              (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
             )
-
-            const payDetailsResponse = await getCustomerPayDetailsById(item.id)
-            let payDetails = []
-            if (payDetailsResponse.status === 200) {
-              payDetails = payDetailsResponse.paydetails
-            }
-
-            const openEntry = payDetails
-              .filter((payDetail) => payDetail.description === 'Open')
-              .sort(
-                (a, b) =>
-                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') -
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-              )[0]
-
-            const isOpenOrClose = payDetails
-              .filter(
-                (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
+            .sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
               )
-              .sort((a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-                )
-              )[0]
+            )[0]
 
-            const filteredPayDetails = openEntry
-              ? [
-                  openEntry,
-                  ...payDetails.filter((payDetail) =>
-                    dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                      dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
-                    )
-                  )
-                ]
-              : payDetails
-
-            const filteredDeliveries = openEntry
-              ? customerDeliveries.filter((delivery) =>
-                  dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+          const filteredPayDetails = openEntry
+            ? [
+                openEntry,
+                ...payDetails.filter((payDetail) =>
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
                     dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
                   )
                 )
-              : customerDeliveries
+              ]
+            : payDetails
 
-            const billUnpaid = filteredDeliveries.reduce((acc, item) => {
-              if (item.paymentstatus === 'Unpaid') {
-                return acc + (Number(item.billamount) || 0)
-              } else if (item.paymentstatus === 'Partial') {
-                return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
-              }
-              return acc
-            }, 0)
+          const filteredDeliveries = openEntry
+            ? customerDeliveries.filter((delivery) =>
+                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )
+            : customerDeliveries
 
-            const totalPayment = filteredPayDetails.reduce((acc, item) => {
-              return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
-            }, 0)
-
-            const balance = billUnpaid - totalPayment
-
-            return {
-              ...item,
-              sno: index + 1,
-              key: item.id || index,
-              balance: balance,
-              bookstatus: isOpenOrClose ? isOpenOrClose.description : 'Empty'
+          const billUnpaid = filteredDeliveries.reduce((acc, item) => {
+            if (item.paymentstatus === 'Unpaid') {
+              return acc + (Number(item.billamount) || 0)
+            } else if (item.paymentstatus === 'Partial') {
+              return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
             }
-          })
-      )
-      setData(filteredData)
-      setFilteredData(filteredData)
-    }
-    calculateBalance()
-  }, [datas])
+            return acc
+          }, 0)
+
+          const totalPayment = filteredPayDetails.reduce((acc, item) => {
+            return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
+          }, 0)
+
+          const balance = billUnpaid - totalPayment
+
+          return {
+            ...item,
+            sno: index + 1,
+            key: item.id || index,
+            balance: balance,
+            bookstatus: isOpenOrClose ? isOpenOrClose.description : 'Empty'
+          }
+        })
+    )
+    setData(initialData)
+    setFilteredData(initialData)
+    setBalanceTbLoading(false)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [refreshTable,datas])
+
+  const reloadTable = () => {
+    setRefreshTable((prev) => !prev)
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -256,6 +264,7 @@ export default function BalanceSheet({ datas }) {
       const payDetailsRef = collection(customerDocRef, 'paydetails')
       await addDoc(payDetailsRef, payData)
       message.open({ type: 'success', content: 'Book Status Added Successfully' })
+      reloadTable()
     } catch (e) {
       console.log(e)
     } finally {
