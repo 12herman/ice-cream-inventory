@@ -311,7 +311,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 136
     },
     {
-      title: 'Vehicle / Freezer ',
+      title: 'Number',
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
       editable: true

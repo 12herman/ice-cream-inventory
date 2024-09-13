@@ -521,7 +521,7 @@ export default function BalanceSheet({ datas }) {
                 </List.Item>
               )}
               style={{
-                maxHeight: '40vh',
+                maxHeight: `${tableHeight/2}px`,
                 overflowY: 'auto'
               }}
             />
@@ -549,7 +549,7 @@ export default function BalanceSheet({ datas }) {
                 </List.Item>
               )}
               style={{
-                maxHeight: '40vh',
+                maxHeight: `${tableHeight/2}px`,
                 overflowY: 'auto'
               }}
             />

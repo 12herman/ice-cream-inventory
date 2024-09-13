@@ -1048,9 +1048,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
       await setOption((prev) => ({ ...prev, tempproduct: [] }))
-
+      console.log(productItems)
       for (const item of productItems) {
-
+        console.log(item,productItems)
         await addDoc(itemsCollectionRef, item)
 
         const { product, status } = await getProductById(item.id);
