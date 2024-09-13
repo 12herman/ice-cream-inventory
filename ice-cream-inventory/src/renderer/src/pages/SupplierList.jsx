@@ -76,10 +76,11 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       return ({...data,item:materials.filter(data=> data.isdeleted === false)})
     }))
     setData(getAlldatas);
+    await setSupplierTbLoading(false)
    }
     fetchMaterialItems()
     
-    setSupplierTbLoading(false)
+    
   }, [datas])
 
   // search
@@ -474,21 +475,25 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     let supplerId = id
     let {material,...newdata} = form.getFieldValue();
 
-    let compareArrObj = await areArraysEqual(material,olddata.item)
     let missingIds = await getMissingIds(olddata.item,material)
+    // let missingIds = await material.filter(aObj => !olddata.item.some(bObj => aObj.id === bObj.id));
+    let newMaterialItems = material.filter(item => !item.hasOwnProperty('id'));
+    let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
     
+    let compareArrObj = await areArraysEqual(updatedMaterialItems,olddata.item)
+    
+
     if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
       message.open({content:'No changes found', type:'info'})
     }
     else{
-      let newMaterialItems = material.filter(item => !item.hasOwnProperty('id'));
-      let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
+      
       setSupplierModalLoading(true);
       // update supplier
       await updateSupplier(supplerId,{...newdata,updateddate:TimestampJs()});
-      
+
       // update items
-      if(updatedMaterialItems.length === material.length && compareArrObj === false){
+      if(compareArrObj === false){
         for(const items of updatedMaterialItems){
           const {id,createddate,isdeleted,...newupdateddata} = items;
           const itemId = id;
@@ -500,7 +505,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
           const materialExists = datas.storage.find(
             (storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === items.materialname?.trim().toLowerCase() && storageItem.unit?.trim().toLowerCase() === items.unit?.trim().toLowerCase()
           )
-
           if (!materialExists) {
             await createStorage({
               materialname: items.materialname,
@@ -521,10 +525,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         for(const items of newMaterialItems){
           const {id,createddate,isdeleted,...newupdateddata} = items;
           await addNewMaterialItem(supplerId,{...newupdateddata,updateddate:TimestampJs(),isdeleted:false})
-        
-          const materialExists = datas.storage.find(
-            (storageItem) => storageItem.materialname === newupdateddata.materialname && storageItem.category === 'Material List' && storageItem.unit === newupdateddata.unit
-          )
+          const materialExists = datas.storage.find((storageItem) => storageItem.materialname === newupdateddata.materialname && storageItem.category === 'Material List' && storageItem.unit === newupdateddata.unit)
           if (!materialExists) {
             await createStorage({
               materialname: newupdateddata.materialname,
@@ -537,7 +538,6 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             })
             await storageUpdateMt()
           }
-        
         }
       };
       
