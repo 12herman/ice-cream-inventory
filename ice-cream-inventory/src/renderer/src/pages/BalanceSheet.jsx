@@ -55,8 +55,7 @@ export default function BalanceSheet({ datas }) {
             .filter((payDetail) => payDetail.description === 'Open')
             .sort(
               (a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') -
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
             )[0]
 
           const isOpenOrClose = payDetails
@@ -119,7 +118,7 @@ export default function BalanceSheet({ datas }) {
 
   useEffect(() => {
     fetchData()
-  }, [refreshTable,datas])
+  }, [refreshTable, datas])
 
   const reloadTable = () => {
     setRefreshTable((prev) => !prev)
@@ -297,19 +296,78 @@ export default function BalanceSheet({ datas }) {
 
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
       if (payDetailsResponse.status === 200) {
-        const payDetails = payDetailsResponse.paydetails
+        const payDetails = payDetailsResponse.paydetails || []
 
-        const openEntry = payDetails
-          .filter((payDetail) => payDetail.description === 'Open')
-          .sort(
-            (a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-          )[0]
+        const openEntry =
+          payDetails
+            .filter((payDetail) => payDetail.description === 'Open')
+            .sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            )[0] || null
+
+        const closeEntry =
+          payDetails
+            .filter((payDetail) => payDetail.description === 'Close')
+            .sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            )[0] || null
+
         let filteredPayDetails = []
 
         if (openEntry) {
+          if (closeEntry) {
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+            )
+            if (isCloseAfterOpen) {
+              filteredPayDetails = payDetails.filter((payDetail) => {
+                const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm')
+                return (
+                  payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')) &&
+                  payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm'))
+                )
+              })
+              filteredPayDetails = [openEntry, ...filteredPayDetails, closeEntry]
+              filteredPayDetails.sort(
+                (a, b) =>
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') -
+                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            } else {
+              filteredPayDetails = [
+                openEntry,
+                ...payDetails.filter((payDetail) =>
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                  )
+                )
+              ]
+              filteredPayDetails.sort(
+                (a, b) =>
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') -
+                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            }
+          } else {
+            filteredPayDetails = [
+              openEntry,
+              ...payDetails.filter((payDetail) =>
+                dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )
+            ]
+            filteredPayDetails.sort(
+              (a, b) =>
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+            )
+          }
+        } else {
           filteredPayDetails = [
-            openEntry,
             ...payDetails.filter((payDetail) =>
               dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
                 dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
@@ -327,22 +385,62 @@ export default function BalanceSheet({ datas }) {
         const deliveries = deliveryData.filter(
           (delivery) => delivery.customerid === record.id && !delivery.isdeleted
         )
+
+        let filteredDeliveries = [];
+
         if (openEntry) {
-          const filteredDeliveries = deliveries.filter((delivery) =>
-            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+          if (closeEntry) {
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
               dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
             )
-          )
-          filteredDeliveries.sort(
-            (a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
-          )
-          setDeliveryList(filteredDeliveries)
+            if (isCloseAfterOpen) {
+              filteredDeliveries = deliveries.filter((delivery) => {
+                const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm')
+                return (
+                  deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')) &&
+                  deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm'))
+                )
+              })
+              filteredDeliveries.sort((a, b) =>
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )
+            } else {
+              filteredDeliveries = deliveries.filter((delivery) =>
+                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )
+              filteredDeliveries.sort((a, b) =>
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                )
+              )
+            }
+          } else {
+            filteredDeliveries = deliveries.filter((delivery) =>
+              dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            )
+            filteredDeliveries.sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              )
+            )
+          }
         } else {
-          setDeliveryList([])
+          filteredDeliveries = deliveries.filter((delivery) =>
+            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(dayjs().subtract(1, 'year'))
+          )
+          filteredDeliveries.sort((a, b) =>
+            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
+          )
         }
+        setDeliveryList(filteredDeliveries)
       } else {
-        console.error(payDetailsResponse.message)
+         console.error(payDetailsResponse.message);
       }
     } catch (e) {
       console.log(e)
@@ -495,7 +593,7 @@ export default function BalanceSheet({ datas }) {
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Order Details  {customerName}</div>
+                  <div>Order Details {customerName}</div>
                   <div>Order: {totalOrderAmount.toFixed(2)}</div>
                   <div>Return: {totalReturnAmount.toFixed(2)}</div>
                 </div>
@@ -530,14 +628,14 @@ export default function BalanceSheet({ datas }) {
                 </List.Item>
               )}
               style={{
-                maxHeight: `${tableHeight/2}px`,
+                maxHeight: `${tableHeight / 2}px`,
                 overflowY: 'auto'
               }}
             />
             <List
               className="mt-2"
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Payment Details  {customerName}</div>}
+              header={<div style={{ fontWeight: '600' }}>Payment Details {customerName}</div>}
               footer={
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
@@ -558,7 +656,7 @@ export default function BalanceSheet({ datas }) {
                 </List.Item>
               )}
               style={{
-                maxHeight: `${tableHeight/2}px`,
+                maxHeight: `${tableHeight / 2}px`,
                 overflowY: 'auto'
               }}
             />

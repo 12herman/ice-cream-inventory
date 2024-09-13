@@ -26,7 +26,7 @@ import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
 import { fetchItemsForDelivery } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
-import { getSupplierById } from '../firebase/data-tables/supplier'
+import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
 const { RangePicker } = DatePicker
 import { debounce } from 'lodash'
@@ -462,16 +462,25 @@ const [storefirst,setStoreFirst] = useState(null)
         datas.rawmaterials
           .filter((material) => isWithinRange(material.date))
           .map(async (item) => {
-            let suppliername = '-'
+            let supplierName = '-'
+            let materialName = '-'
+            let materialUnit = '-'
             if (item.type === 'Added') {
               const result = await getSupplierById(item.supplierid)
-              suppliername = result.supplier.suppliername
+              supplierName = result.supplier.suppliername
+              const materialresult = await getOneMaterialDetailsById(item.supplierid,item.materialid)
+              materialName = materialresult.material.materialname
+              materialUnit = materialresult.material.unit
             }
             return {
               ...item,
               key: item.id,
-              customername: suppliername,
-              billamount: item.price
+              customername: supplierName,
+              total:item.price,
+              billamount: item.price,
+              materialname: materialName,
+              unit: materialUnit,
+              materialquantity: item.quantity
             }
           })
       )
@@ -489,13 +498,18 @@ const [storefirst,setStoreFirst] = useState(null)
   const showModal = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
-      const itemsWithProductNames = items.map((item) => {
+      let itemsWithProductNames = items.map((item) => {
         const product = datas.product.find((product) => product.id === item.id)
         return {
           ...item,
-          productname: product ? product.productname : 'Deleted'
+          productname: product ? product.productname : '',
+          flavour: product ? product.flavour : '',
+          quantity: product ? product.quantity : ''
         }
       })
+      if(items.length === 0){
+        itemsWithProductNames = [{productname : record.materialname,flavour: '', quantity: record.unit ,numberofpacks: record.materialquantity}]
+      }
       setSelectedRecord({ ...record, items: itemsWithProductNames })
       setIsModalVisible(true)
     }
@@ -1077,7 +1091,8 @@ const [storefirst,setStoreFirst] = useState(null)
     {
       title: 'Item Name',
       dataIndex: 'productname',
-      key: 'productname'
+      key: 'productname',
+      render: (text, record) => `${record.productname} - ${record.flavour} - ${record.quantity}`
     },
     {
       title: 'Packs',

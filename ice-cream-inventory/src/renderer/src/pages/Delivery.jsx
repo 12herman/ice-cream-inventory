@@ -1335,7 +1335,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       width:80,
     },
     {
-      title: 'Product Name',
+      title: 'Product',
       key: 'productname',
       dataIndex: 'productname'
     },
@@ -1345,20 +1345,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'flavour'
     },
     {
-      title: 'Quantity',
+      title: 'Size',
       key: 'quantity',
       dataIndex: 'quantity',
       width:100,
     },
     {
-      title: 'Peice Amount',
+      title: 'Rate',
       key: 'pieceamount',
       dataIndex: 'pieceamount',
       width:120,
       render: (text) => <span>{text}</span>
     },
     {
-      title: 'Number of Packs',
+      title: 'Qty',
       key: 'numberofpacks',
       dataIndex: 'numberofpacks',
       width:140,
@@ -1384,7 +1384,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       width:deliveryBill.returnmodeltable === false ? 80 : 120,
     },
     {
-      title: 'Total Amount',
+      title: 'Amount',
       key: 'price',
       dataIndex: 'price',
       render: (text) => <span>{formatToRupee(text, true)}</span>
@@ -1770,14 +1770,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             <thead>
               <tr>
                 <th className="p-4 text-left border-b">S.No</th>
-                <th className="p-4 border-b text-center">Product Name</th>
+                <th className="p-4 border-b text-center">Product</th>
                 <th className="p-4 border-b text-center">Flavour</th>
-                <th className="p-4 border-b text-center">Quantity</th>
-                <th className="p-4 border-b text-center">Piece Amount</th>
-                <th className="p-4 border-b text-center">Number of Packs</th>
+                <th className="p-4 border-b text-center">Size</th>
+                <th className="p-4 border-b text-center">Rate</th>
+                <th className="p-4 border-b text-center">Qty</th>
                 <th className="p-4 border-b text-center">MRP</th>
                 <th className="p-4 border-b text-center">Margin</th>
-                <th className="p-4 border-b text-center">Total Amount</th>
+                <th className="p-4 border-b text-center">Amount</th>
               </tr>
             </thead>
             <tbody>
