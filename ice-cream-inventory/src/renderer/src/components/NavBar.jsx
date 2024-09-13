@@ -376,7 +376,7 @@ export default function NavBar({
       const productItems = await isQuickSale.temdata.map((data) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
-        margin: data.margin? data.margin : '',
+        margin: data.margin,
         productprice: data.productprice
       }));
       console.log(productItems)

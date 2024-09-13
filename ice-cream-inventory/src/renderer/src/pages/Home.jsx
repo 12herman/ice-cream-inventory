@@ -864,6 +864,14 @@ const [storefirst,setStoreFirst] = useState(null)
               <Tag color="blue">{record.type}</Tag>
             </>
           )
+        }
+        else if (text === 'Return') {
+          return (
+            <>
+              <Tag color="red">Return</Tag>
+              <Tag color="red">{record.type}</Tag>
+            </>
+          )
         } else {
           return (
             <>

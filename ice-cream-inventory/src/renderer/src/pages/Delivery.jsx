@@ -216,7 +216,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           <span className="flex gap-x-0">
             <Tag color="yellow">Partial</Tag> <Tag color="blue">{record.partialamount}</Tag>
           </span>
-        ) : (
+        ) : text === 'Return' ? <Tag color="red">Return</Tag>
+        : (
           <Tag color="red">Unpaid</Tag>
         )
     },
@@ -659,8 +660,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   ]
 
   const tempSingleMargin = async (data) => {
-   
-    
     try {
       const row = await temform.validateFields()
       const oldtemDatas = option.tempproduct
@@ -689,6 +688,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             }
           : product
       );
+      console.log(updatedTempproduct);
+      
       let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
       let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
       
@@ -1005,10 +1006,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           numberofpacks: temp.numberofpacks,
           id: pr.id,
           returntype: temp.returntype,
-          margin: temp.margin
+          margin: temp.margin === '' ? 0 : temp.margin 
         }))
     );
 
+    
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue()
 
@@ -1019,8 +1021,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             customerid: option.tempproduct[0].customername,
             date: option.tempproduct[0].date,
             total: totalamount,
-            billamount: marginValue.amount,
-            paymentstatus: marginValue.paymentstaus,
+            billamount: option.tempproduct.map(data => data.price).reduce((a,b)=> a + b ,0),
+            paymentstatus: "Return",
             partialamount:
             partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
@@ -1058,7 +1060,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           
           if (returnDelivery.state === true && item.returntype === 'normal') {
               await updateStorage(existingProduct.id, {
-                numberofpacks: existingProduct.numberofpacks + item.numberofpacks
+                numberofpacks: existingProduct.numberofpacks + item.numberofpacks,
+                margin:item.margin === '' ? 0 : item.margin
               })
             }
             else if(returnDelivery.state === true && item.returntype === 'damage')
@@ -1067,7 +1070,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             }
             else {
               await updateStorage(existingProduct.id, {
-                numberofpacks: existingProduct.numberofpacks - item.numberofpacks
+                numberofpacks: existingProduct.numberofpacks - item.numberofpacks,
+                margin:item.margin === '' ? 0 : item.margin
               })
             }
             await storageUpdateMt()
@@ -1372,9 +1376,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: deliveryBill.returnmodeltable === false ? 'margin' : 'returntype',
       render: (text, record) => {
         if (deliveryBill.returnmodeltable === false) {
-          return text === undefined ? `0 %` : <span>{text} %</span>
+          return text === undefined ? `0%` : <span>{text}%</span>
         } else {
-          return text === 'damage' ? <span className='flex justify-center items-center gap-x-1'> <span>{record.margin}%</span> <Tag color="red" className='text-[0.7rem]'>Damage</Tag></span> : <Tag color="blue">Normal</Tag>
+          return text === 'damage' ? <span className='flex justify-center items-center gap-x-1'> <span>{record.margin}%</span> <Tag color="red" className='text-[0.7rem]'>Damage</Tag></span> : <span className='flex justify-center items-center gap-x-1'>{record.margin}% <Tag color="blue">Normal</Tag></span>
         }
       },
       width:deliveryBill.returnmodeltable === false ? 80 : 120,
@@ -1684,7 +1688,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     let mrpValue = await lastOrderData.products.map((data,i)=> data.numberofpacks * data.price).reduce((a,b)=> a + b ,0);
     let netValue = await lastOrderData.products.map((data,i)=> data.numberofpacks * data.price - (data.numberofpacks * data.price) * data.margin / 100 ).reduce((a,b)=> a + b ,0);
     setTotalAmount(customRound(mrpValue));
-    setMarginValue((pre) => ({ ...pre, amount: customRound(netValue) }))
+    setMarginValue((pre) => ({ ...pre, amount: customRound(netValue),paymentstaus:"Paid" }))
     setOption(pre=>({...pre,tempproduct:itemsObject}));
     // setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Paid' })
     // console.log(itemsObject);
@@ -2199,7 +2203,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         width={1200}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">
-            {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : 'BOOKING'} ON{' '}
+            {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : deliveryBill.prdata.type === 'quick' ? "QUICK SALE" : 'BOOKING'} ON{' '}
             {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}
             <span className={`${deliveryBill.prdata.type === 'booking' ? 'pl-1 inline-block text-gray-600': 'hidden'}`}>{deliveryBill.prdata.time}</span>
           </span>
