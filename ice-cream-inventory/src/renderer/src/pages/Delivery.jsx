@@ -48,6 +48,7 @@ import jsPDF from 'jspdf'
 import companyLogo from '../assets/img/companylogo.png'
 import { customRound } from '../js-files/round-amount'
 import { TbFileSymlink } from "react-icons/tb";
+import { toDigit } from '../js-files/tow-digit'
 
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   const [form] = Form.useForm()
@@ -1333,6 +1334,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       key: 'sno',
       dataIndex: 'sno',
       width:80,
+      render:(text,record,i) => <span>{i+1}</span>
     },
     {
       title: 'Product',
@@ -1376,7 +1378,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: deliveryBill.returnmodeltable === false ? 'margin' : 'returntype',
       render: (text, record) => {
         if (deliveryBill.returnmodeltable === false) {
-          return text === undefined ? `0%` : <span>{text}%</span>
+          return text === undefined ? `0%` : <span>{toDigit(text)}%</span>
         } else {
           return text === 'damage' ? <span className='flex justify-center items-center gap-x-1'> <span>{record.margin}%</span> <Tag color="red" className='text-[0.7rem]'>Damage</Tag></span> : <span className='flex justify-center items-center gap-x-1'>{record.margin}% <Tag color="blue">Normal</Tag></span>
         }
@@ -1791,10 +1793,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                       <td className="p-4 border-b">{item.pieceamount}</td>
                       <td className="p-4 border-b">{item.numberofpacks}</td>
                       <td className="p-4 border-b">{item.producttotalamount}</td>
-                      <td className="p-4 border-b">{item.margin}</td>
+                      <td className="p-4 border-b">{toDigit(item.margin)}%</td>
                       <td className="p-4 border-b">
-                        {item.numberofpacks * item.pieceamount -
-                          (item.numberofpacks * item.pieceamount * item.margin) / 100}
+                        {customRound(item.numberofpacks * item.pieceamount -
+                          (item.numberofpacks * item.pieceamount * item.margin) / 100)}
                       </td>
                     </tr>
                   ))

@@ -41,6 +41,7 @@ import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
+import { toDigit } from '../js-files/tow-digit'
 
 dayjs.extend(isSameOrAfter)
 
@@ -1613,10 +1614,10 @@ const [storefirst,setStoreFirst] = useState(null)
                         <td className="p-4 border-b">{item.pieceamount}</td>
                         <td className="p-4 border-b">{item.numberofpacks}</td>
                         <td className="p-4 border-b">{item.producttotalamount}</td>
-                        <td className="p-4 border-b">{item.margin}</td>
+                        <td className="p-4 border-b">{toDigit(item.margin)}%</td>
                         <td className="p-4 border-b">
-                          {item.numberofpacks * item.pieceamount -
-                            (item.numberofpacks * item.pieceamount * item.margin) / 100}
+                          {customRound(item.numberofpacks * item.pieceamount -
+                            (item.numberofpacks * item.pieceamount * item.margin) / 100)}
                         </td>
                       </tr>
                     ))
