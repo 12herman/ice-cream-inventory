@@ -97,7 +97,7 @@ export default function BalanceSheet({ datas }) {
           }, 0)
 
           const totalPayment = filteredPayDetails.reduce((acc, item) => {
-            return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
+            return item.type !== 'Balance' ?  acc + Number(item.amount) : acc
           }, 0)
 
           const balance = billUnpaid - totalPayment
@@ -490,7 +490,7 @@ export default function BalanceSheet({ datas }) {
   }, 0)
 
   const totalPayment = payDetailsList.reduce((acc, item) => {
-    return item.type === 'Balance' ? acc - item.amount : acc + Number(item.amount)
+    return item.type !== 'Balance' ?  acc + Number(item.amount) : acc
   }, 0)
 
   const handleCardClick = (key) => {
@@ -648,11 +648,11 @@ export default function BalanceSheet({ datas }) {
               dataSource={payDetailsList}
               renderItem={(item) => (
                 <List.Item>
-                  <div>Date: {item.date}</div>
+                  <div>{item.date}</div>
                   <div>
                     {item.type === 'Balance' ? `Balance: ${item.amount}` : `Amount: ${item.amount}`}
                   </div>
-                  <div>Reason: {item.description}</div>
+                  <div>{item.description}</div>
                 </List.Item>
               )}
               style={{
