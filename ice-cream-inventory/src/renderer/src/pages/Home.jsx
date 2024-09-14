@@ -870,6 +870,7 @@ const [storefirst,setStoreFirst] = useState(null)
             <>
               <Tag color="green">Paid</Tag>
               <Tag color="blue">{record.type}</Tag>
+              <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
         } else if (text === 'Partial') {
@@ -877,6 +878,7 @@ const [storefirst,setStoreFirst] = useState(null)
             <>
               <Tag color="yellow">Partial - {partialamount}</Tag>
               <Tag color="blue">{record.type}</Tag>
+              <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
         }

@@ -59,6 +59,7 @@ export default function NavBar({
     billamount: 0,
     type: 'quick',
     marginstate: false,
+    paymentmode: '',
     paymentstatus: 'Paid',
     customeroption: [],
     editingKeys: [],
@@ -410,6 +411,7 @@ export default function NavBar({
         total: isQuickSale.total,
         type: isQuickSale.type,
         isdeleted: false,
+        paymentmode: isQuickSale.paymentmode,
         createddate: TimestampJs(),
         date: isQuickSale.date
       }
@@ -432,6 +434,7 @@ export default function NavBar({
           date: dayjs().format('DD/MM/YYYY'),
           margin: 0,
           billamount: 0,
+          paymentmode: 'Cash',
           type: 'quick'
         }))
         quickSaleForm.resetFields()
@@ -862,6 +865,7 @@ export default function NavBar({
       margin: 0,
       billamount: 0,
       type: 'quick',
+      paymentmode: 'Cash',
       paymentstatus: 'Paid',
       editingKeys: []
     }))
@@ -938,6 +942,7 @@ export default function NavBar({
             margin: 0,
             billamount: 0,
             marginstate: false,
+            paymentmode: 'Cash',
             paymentstatus: 'Paid'
           }))
           quickSaleForm.resetFields()
@@ -996,7 +1001,7 @@ export default function NavBar({
             <Form
               form={quickSaleForm3}
               layout="vertical"
-              initialValues={{ paymentstatus: 'Paid' }}
+              initialValues={{ paymentstatus: 'Paid', paymentmode: 'Cash' }}
               className="flex gap-x-2 justify-center items-center"
             >
               <Form.Item name="paymentstatus" className="mb-0">
@@ -1020,6 +1025,26 @@ export default function NavBar({
                   <Radio.Button value="Partial">PARTIAL</Radio.Button>
                 </Radio.Group>
               </Form.Item>
+
+              {(isQuickSale.paymentstatus === 'Paid' || isQuickSale.paymentstatus === 'Partial') && (
+              <Form.Item
+                className="mb-0 absolute top-[2rem] left-80"
+                name="paymentmode"
+                rules={[{ required: true, message: 'Please select a payment method' }]}
+              >
+                <Radio.Group
+                  onChange={(e) => {
+                    setIsQuickSale((pre) => ({ ...pre, paymentmode: e.target.value }))
+                  }}
+                  disabled={isQuickSale.marginstate ? false : true}
+                >
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item> 
+              )}
+
               <Form.Item
                 rules={[
                   {
@@ -1138,6 +1163,7 @@ export default function NavBar({
               margin: 0,
               billamount: 0,
               type: 'quick',
+              paymentmode: 'Cash',
               paymentstatus: 'Paid',
               editingKeys: []
             }))
