@@ -273,9 +273,15 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       key: 'paymentstatus',
       render: (text, record) =>
         record.paymentstatus === undefined ? (
-          <Tag color="green">Pay</Tag>
+          <>
+          <Tag color="cyan">{record.paymentmode}</Tag>
+          <span>-</span>
+          </>
         ) : record.paymentstatus === 'Paid' ? (
+          <span className="flex items-center">
           <Tag color="green">Paid</Tag>
+          {record.paymentmode && <Tag color="cyan">{record.paymentmode}</Tag>}
+          </span>
         ) : record.paymentstatus === 'Unpaid' ? (
           <Tag color="red">UnPaid</Tag>
         ) : record.paymentstatus === 'Partial' ? (
@@ -284,6 +290,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             <Tag color="blue" className=" text-[0.7rem]">
               {formatToRupee(record.partialamount, true)}
             </Tag>
+            {record.paymentmode && <Tag color="cyan">{record.paymentmode}</Tag>}
           </span>
         ) : (
           <></>
@@ -1382,7 +1389,7 @@ setSupplierTbLoading(false)
           <Form
             onFinish={supplierPay}
             form={payForm}
-            initialValues={{ date: dayjs() }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
             layout="vertical"
           >
             <Form.Item
@@ -1410,6 +1417,22 @@ setSupplierTbLoading(false)
             <Form.Item className="mb-1" name="description" label="Description">
               <TextArea rows={4} placeholder="Write the Description" />
             </Form.Item>
+
+            <Form.Item
+                className="mb-0"
+                name="paymentmode"
+                label="Payment Mode"
+                rules={[{ required: true, message: false }]}
+              >
+                <Radio.Group
+                   size='small'>
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                  <Radio value="NEFT">NEFT</Radio>
+                </Radio.Group>
+              </Form.Item>
+
           </Form>
         </Spin>
       </Modal>
