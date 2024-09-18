@@ -2130,7 +2130,7 @@ const [payModalState,setPayModalState] = useState({
         footer={
           <div>
             <section className="flex gap-x-3 justify-between ">
-              <span className={`${returnDelivery.state === true ? 'invisible' : ''}`}>
+              {/* <span className={`${returnDelivery.state === true ? 'invisible' : ''}`}> */}
                 <Form
                   className="flex gap-x-1"
                   disabled={option.tempproduct.length > 0 && !isDeliverySpiner ? false : true}
@@ -2152,7 +2152,7 @@ const [payModalState,setPayModalState] = useState({
                     </Button>
                   </Form.Item>
                 </Form>
-              </span>
+              {/* </span> */}
 
               <Form
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
@@ -2427,7 +2427,7 @@ const [payModalState,setPayModalState] = useState({
             <Tag color={`${deliveryBill.data.paymentstatus === 'Paid' ? 'green' : deliveryBill.data.paymentstatus === 'Unpaid' ? 'red' : deliveryBill.data.paymentstatus === 'Partial' ? 'yellow' : 'blue'}`}>{deliveryBill.data.paymentstatus}</Tag>
            </span>
 
-            <Button onClick={historyBtnMt} className='absolute right-10'><RiHistoryLine /></Button>
+            <Button onClick={historyBtnMt} className={`absolute right-10 ${deliveryBill.data.paymentstatus === 'Return' ? 'hidden' : ''}`}><RiHistoryLine /></Button>
           </div>
         }
         footer={false}
