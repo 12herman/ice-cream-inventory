@@ -2541,7 +2541,7 @@ const [payModalState,setPayModalState] = useState({
       //  description={<>because the 'PAYMENT HISTORY' can't be edited?</>}
        onConfirm={()=>quicksalepayForm.submit()}
        >
-        <Button type='primary'>Pay</Button>
+        <Button disabled={payModalState.btndisable} type='primary'>Pay</Button>
        </Popconfirm>
            
           </div>
