@@ -100,7 +100,7 @@ export default function NavBar({
       title: <span className="text-[0.7rem]">Quantity</span>,
       dataIndex: 'quantity',
       key: 'quantity',
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,

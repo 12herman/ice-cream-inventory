@@ -15,9 +15,12 @@ import {
   Radio,
   Tag,
   Segmented,
-  Spin
+  Spin,
+  Timeline
 } from 'antd'
+import { RiHistoryLine } from "react-icons/ri";
 import { PiWarningCircleFill } from 'react-icons/pi'
+import { MdOutlinePayments } from 'react-icons/md'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
@@ -34,10 +37,15 @@ import { MdAddShoppingCart } from "react-icons/md";
 import {
   createDelivery,
   fetchItemsForDelivery,
-  updateDelivery
+  fetchPayDetailsForDelivery,
+  getDeliveryById,
+  updateDelivery,
+  updatePaydetailsChild
 } from '../firebase/data-tables/delivery'
+import { MdOutlineDoneOutline } from "react-icons/md";
+import { GiCancel } from "react-icons/gi";
 import { formatToRupee } from '../js-files/formate-to-rupee'
-import { addDoc, collection } from 'firebase/firestore'
+import { addDoc, collection, doc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { FaClipboardList } from 'react-icons/fa'
 import { TbFileDownload } from 'react-icons/tb'
@@ -49,11 +57,13 @@ import companyLogo from '../assets/img/companylogo.png'
 import { customRound } from '../js-files/round-amount'
 import { TbFileSymlink } from "react-icons/tb";
 import { toDigit } from '../js-files/tow-digit'
-
+const {  TextArea } = Input
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
+  
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
   const [form4] = Form.useForm()
+  const [quicksalepayForm] = Form.useForm()
   const [temform] = Form.useForm()
   const [dateRange, setDateRange] = useState([null, null])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -76,9 +86,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     open: false,
     totalamount: 0,
     billingamount: 0,
-    returnmodeltable: false
+    returnmodeltable: false,
+    update:true
   })
 
+  // console.log(deliveryBill);
+  
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true)
@@ -100,11 +113,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             }
           })
       )
-      setData(filteredData)
+     await setData(filteredData);
       setTableLoading(false)
     }
     fetchData()
-  }, [datas, dateRange])
+  }, [datas, dateRange]);
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -215,7 +228,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           <Tag color="green">Paid</Tag>
         ) : text === 'Partial' ? (
           <span className="flex gap-x-0">
-            <Tag color="yellow">Partial</Tag> <Tag color="blue">{record.partialamount}</Tag>
+            <Tag color="yellow">Partial</Tag> <Tag color="blue">{formatToRupee(record.partialamount,true)}</Tag>
           </span>
         ) : text === 'Return' ? <Tag color="red">Return</Tag>
         : (
@@ -358,10 +371,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         editing: isEditing(record)
       })
     }
-  })
+  });
+
   const cancel = () => {
     setEditingKey('')
-  }
+  };
 
   //update method
   const save = async (key) => {
@@ -490,7 +504,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'margin',
       key: 'margin',
       editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
@@ -590,7 +604,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       dataIndex: 'margin',
       key: 'margin',
       editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
@@ -819,11 +833,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                                       customerdetails:{},
                                       products:[]
                                         });
+  const [lastOrderBtnState,setlastOrderBtnState] = useState(true);
 
   const customerOnchange = debounce(async (value, i) => {
     
     if(returnDelivery.state === false){
-      setLastOrderData({ customerdetails:{}, products:[] });
+      setlastOrderBtnState(true)
+      // setLastOrderData({ customerdetails:{}, products:[] });
       // get last order data
        let lastOrderDatas= datas.delivery.filter(data=> data.customerid === value && data.type === 'order' );
        
@@ -847,19 +863,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                ...product
              })}
            }));
-        setLastOrderData({customerdetails:customerDetails,products:products})
+        let compainddata = [...lastOrderData.products,...products];
+        let uniqueArray = [...new Map(compainddata.map(item => [item.id,item])).values()]
+        setLastOrderData({customerdetails:customerDetails,products:uniqueArray});
         }
        };
+       setlastOrderBtnState(false)
     }
     
-
-     
     // end last order data
     form2.resetFields(['productname'])
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
-    setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: [] }))
+    setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: lastOrderData.products.length > 0 ? lastOrderData.products : [] }))
     setTotalAmount(0)
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
@@ -970,7 +987,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     //   return
     // } 
     else {
-
       setTotalAmount((pre) => pre + findPrice * values.numberofpacks)
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
       // deliveryUpdateMt()
@@ -1126,6 +1142,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       setMarginValue({ amount: 0, discount: 0, percentage: 0 });
       form4.setFieldsValue({ paymentstatus: 'Paid' });
       setLastOrderData({ customerdetails:{}, products:[] });
+      setlastOrderBtnState(true)
     }
   }
 
@@ -1149,6 +1166,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
     form4.setFieldsValue({ paymentstatus: 'Paid' })
     setLastOrderData({ customerdetails:{}, products:[] });
+    setlastOrderBtnState(true)
   }
 
   // export
@@ -1276,6 +1294,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     setIsMaterialModalOpen(false)
     form3.resetFields()
     setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
+    
   }
 
   const [form5] = Form.useForm()
@@ -1380,7 +1399,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         if (deliveryBill.returnmodeltable === false) {
           return text === undefined ? `0%` : <span>{toDigit(text)}%</span>
         } else {
-          return text === 'damage' ? <span className='flex justify-center items-center gap-x-1'> <span>{record.margin}%</span> <Tag color="red" className='text-[0.7rem]'>Damage</Tag></span> : <span className='flex justify-center items-center gap-x-1'>{record.margin}% <Tag color="blue">Normal</Tag></span>
+          return text === 'damage' ? <span className='flex justify-center items-center gap-x-1'> <span>{toDigit(record.margin)}%</span> <Tag color="red" className='text-[0.7rem]'>Damage</Tag></span> : <span className='flex justify-center items-center gap-x-1'>{toDigit(record.margin)}% <Tag color="blue">Normal</Tag></span>
         }
       },
       width:deliveryBill.returnmodeltable === false ? 80 : 120,
@@ -1396,13 +1415,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
   useEffect(() => {
     const getItems = async () => {
       if (deliveryBill.prdata.id !== '') {
-        
+    
         await setDeliveryBill((pre) => ({ ...pre, loading: true }))
         
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
+        const {paymenthistory} = await fetchPayDetailsForDelivery(deliveryBill.prdata.id)
         
         if (status === 200) {
-          
           let prItems = datas.product.flatMap((item) =>
             items.filter((item2) => item.id === item2.id)
               .map((item2, i) => {
@@ -1424,16 +1443,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
           
           await setDeliveryBill((pre) => ({
             ...pre,
-            data: { items: prItems, ...deliveryBill.prdata }
+            data: { items: prItems, ...deliveryBill.prdata, 
+              paymenthistory: paymenthistory.length > 0 ? paymenthistory : []
+             }
           }))
         }
 
-
         await setDeliveryBill((pre) => ({ ...pre, loading: false }))
+ 
       }
     }
-    getItems()
-  }, [deliveryBill.open])
+    getItems();
+    
+    
+  }, [deliveryBill.open, deliveryBill.update])
 
   const onOpenDeliveryBill = debounce((data) => {
     setDeliveryBill((pre) => ({
@@ -1441,7 +1464,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       model: true,
       prdata: data,
       open: !deliveryBill.open,
-      returnmodeltable: data.type === 'return' ? true : false
+      // open: !pre.open,
+      returnmodeltable: data.type === 'return' ? true : false,
     }))
   }, 200)
 
@@ -1687,14 +1711,203 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
       quantity: data.quantity + ' ' + data.unit,
       returntype: data.returntype
     }));
+
     let mrpValue = await lastOrderData.products.map((data,i)=> data.numberofpacks * data.price).reduce((a,b)=> a + b ,0);
     let netValue = await lastOrderData.products.map((data,i)=> data.numberofpacks * data.price - (data.numberofpacks * data.price) * data.margin / 100 ).reduce((a,b)=> a + b ,0);
     setTotalAmount(customRound(mrpValue));
     setMarginValue((pre) => ({ ...pre, amount: customRound(netValue),paymentstaus:"Paid" }))
     setOption(pre=>({...pre,tempproduct:itemsObject}));
+    setlastOrderBtnState(true)
     // setMarginValue({ amount: 0, discount: 0, percentage: 0, paymentstaus: 'Paid' })
-    // console.log(itemsObject);
+    // console.log(itemsObject);Fuse
   }
+
+  // quick sale pay
+  const [quickSalePay,setQuickSalePay] = useState({modal:false,loading:false})
+  const openQuickSaleModalMt =()=>{
+    setPayModalState(pre=>({...pre,btndisable:false,type:'create'}));
+    quicksalepayForm.setFieldsValue({amount:deliveryBill.data.billamount - deliveryBill.data.partialamount})
+    setPopupModal(pre=> ({...pre,quicksaleform:true}));
+  };
+
+  const quickSalePayMt = async () => {
+   
+    // setQuickSalePay((pre) => ({ ...pre, loading: true }));
+    let { date, description, ...paydetails } = quicksalepayForm.getFieldValue();
+    let formateDate = dayjs(date).format('DD/MM/YYYY');
+    let billId = deliveryBill.prdata.id;
+  
+    let newData = {
+      ...paydetails,
+      date: formateDate,
+      createddate: TimestampJs(),
+      description: description === undefined || description === null ? '' : description,
+    };
+  
+    let balanceAmount = deliveryBill.data.billamount - deliveryBill.data.partialamount;
+    let newPayAmount = balanceAmount - newData.amount;
+  
+    if(paydetails.amount === 0){
+      message.open({type:'info',content:'Enter the Valuable Amount'});
+      return
+    }
+    setLoadingSpin(pre =>({...pre,quicksaleform:true}));
+    try {
+      if (newPayAmount < 0) {
+        message.open({ type: 'warning', content: `Give the correct amount` });
+      } else {
+        if (newPayAmount === 0) {
+          // Payed in full
+          setPayModalState(pre=>({...pre,btndisable:true}));
+          let updateData = { partialamount: 0, paymentstatus: 'Paid', updateddate: TimestampJs() };
+          await updateDelivery(deliveryBill.data.id, updateData);
+          const DeliveryDocRef = doc(db, 'delivery', billId);
+          const payDetailsRef = collection(DeliveryDocRef, 'paydetails');
+          await addDoc(payDetailsRef, newData);
+          await deliveryUpdateMt();
+          // await message.open({ type: 'success', content: `Paid successfully` });
+
+        } else {
+          // Partial payment update
+          setPayModalState(pre=>({...pre,btndisable:true}));
+          let partialamount = {
+            partialamount: deliveryBill.data.partialamount + newData.amount,
+            paymentstatus: deliveryBill.data.paymentstatus === 'Unpaid' ? 'Partial' : deliveryBill.data.paymentstatus,
+            updateddate: TimestampJs(),
+          };
+          await updateDelivery(deliveryBill.data.id, partialamount);
+          const DeliveryDocRef = doc(db, 'delivery', billId);
+          const payDetailsRef = collection(DeliveryDocRef, 'paydetails');
+          await addDoc(payDetailsRef, newData);
+          await deliveryUpdateMt();
+          // await message.open({ type: 'success', content: `Payment pay successfully` });
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+       // Ensure the delivery update finishes
+      await setTimeout(async()=> {
+        let {delivery,status} = await getDeliveryById(deliveryBill.prdata.id);
+        await setDeliveryBill((pre) => ({
+          ...pre,update: !deliveryBill.update,
+          prdata: delivery,
+          returnmodeltable: delivery.type === 'return' ? true : false,
+        }));
+        
+      },2000);
+      // Wait for the reset of fields and modal closure
+     await quicksalepayForm.resetFields();
+    //  await setQuickSalePay((pre) => ({ ...pre, modal: false, loading: false }));
+     
+     setPopupModal(pre => ({...pre,quicksaleform:false}))
+     setLoadingSpin(pre =>({...pre,quicksaleform:false}));
+     await message.open({ type: 'success', content: `Payment pay successfully` });
+    }
+  };
+
+
+// spiner
+const [loadingSpin,setLoadingSpin]=useState({
+  payhistory:false,
+  quicksaleform:false
+});
+
+// model open close
+const [popupModal,setPopupModal] = useState({
+  payhistory:false,
+  quicksaleform:false
+});
+
+// form pay modal
+const [payModalState,setPayModalState] = useState({
+  data:{},
+  type:'create',
+  btndisable:false
+});
+
+
+
+
+  const [historyBtn,setHistoryBtn] = useState({
+    // modal:false,
+    data:[],
+  });
+
+  // History buttton
+  const historyBtnMt=async ()=> {
+    //spiner
+    await setLoadingSpin(pre=>({...pre,payhistory:true})) 
+    //modal
+    await setPopupModal(pre=>({...pre,payhistory:true}));
+    // get data
+    const {paymenthistory} = await fetchPayDetailsForDelivery(deliveryBill.prdata.id);
+    const sortedHistory = paymenthistory.sort((a, b) => {
+      const dateA = new Date( a.createddate.split(',')[0].split('/').reverse().join('-') +'T' + a.createddate.split(',')[1].replace('.', ':'));
+      const dateB = new Date( b.createddate.split(',')[0].split('/').reverse().join('-') + 'T' + b.createddate.split(',')[1].replace('.', ':'));
+      return   dateA - dateB
+    });
+
+    let paydetails = sortedHistory.length > 0 ? paymenthistory.map((data,i)=>({
+      key:data.id,
+      label: data.date,
+      children: (<span className='flex gap-x-1 w-full'> <Tag color='green'>{formatToRupee(data.amount)}</Tag> {data.description}   
+      {/* <MdOutlineModeEditOutline 
+      onClick={()=>{
+        // click to get the data 
+        setPayModalState(pre=>({...pre,data:data,type:'edit',btndisable:false})); 
+        // modal open
+        setPopupModal(pre=>({...pre,quicksaleform:true})); 
+        // update the old data in the form
+        quicksalepayForm.setFieldsValue({amount:data.amount,date:dayjs(data.date, 'DD/MM/YYYY') ,description:data.description}); 
+        }} 
+        size={17} className='text-blue-500 cursor-pointer'/>  */}
+
+        </span>),
+      date:data.createddate
+   })) : [];
+
+    // paid
+    if(deliveryBill.prdata.paymentstatus === 'Paid'){
+       await setHistoryBtn( pre => ({...pre,data:[...paydetails,{dot: <MdOutlineDoneOutline className="timeline-clock-icon text-green-500 pb-0"/>,label:'Paid',children:` ${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}]}));
+    }
+    // unpaid
+    else if (deliveryBill.prdata.paymentstatus === 'Unpaid'){
+
+       await setHistoryBtn( pre => ({...pre,data:[...paydetails,{dot: <GiCancel className="timeline-clock-icon text-red-500"/>,label:'Unpaid',children:` ${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}]}));
+    }
+    // partial
+    else if(deliveryBill.prdata.paymentstatus === 'Partial'){
+      await setHistoryBtn( pre => ({...pre,data:paydetails}));
+    }
+
+   await setLoadingSpin(pre=>({...pre,payhistory:false}))
+  };
+
+  const updateQuickSalePayMt =async ()=>{
+    let {date,amount,description} = quicksalepayForm.getFieldValue();
+    let oldAmount = payModalState.data.amount;
+    let partialAmount = deliveryBill.data.partialamount;
+    let billingAmount = deliveryBill.data.billamount
+    if(payModalState.data.date ===  dayjs(date).format('DD/MM/YYYY') && payModalState.data.amount === amount && payModalState.data.description === description.trim() ){
+      message.open({type:'info',content:'No changes made'})
+    }else{
+    //loading modal
+    // setPayModalState(pre=>({...pre,btndisable:true}));
+    // setLoadingSpin(pre=>({...pre,quicksaleform:true}))
+     let updatePayData = {date:dayjs(date).format('DD/MM/YYYY'),amount:amount,description:description,updateddate:TimestampJs()};
+     let payIdChild = payModalState.data.id;
+     let PayId = deliveryBill.data.id;
+     let lessAmount = partialAmount - oldAmount;
+     console.log(billingAmount,lessAmount);
+    //  await updatePaydetailsChild(PayId,payIdChild,updatePayData);
+    //  await historyBtnMt();
+    //  setPopupModal(pre=>({...pre,quicksaleform:false}));
+    //  //loading modal stop
+    //  setLoadingSpin(pre=>({...pre,quicksaleform:false}))
+    }
+  };
+
 
   return (
     <div>
@@ -1709,18 +1922,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         open={isCloseWarning}
         zIndex={1001}
         onOk={warningModalOk}
-        onCancel={() => setIsCloseWarning(false)}
+        onCancel={() => {
+          setIsCloseWarning(false);
+        }}
         okText="ok"
         cancelText="Cancel"
         className="center-buttons-modal"
       >
         <p className="text-center">Are your sure to Cancel</p>
       </Modal>
+
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
-        style={{ padding: '20px', backgroundColor: '#ffff' }}
-      >
+        style={{ padding: '20px', backgroundColor: '#ffff' }} >
         <section className="w-[90%] mx-auto mt-14">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
@@ -1902,8 +2117,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         maskClosable={option.tempproduct.length > 0 ? false : true}
         centered
         className="relative"
-        title={
-          <div className="flex justify-center py-3">
+        title={<div className="flex justify-center py-3">
             <h2>{returnDelivery.state === true ? 'RETURN' : 'PLACE ORDER'}</h2>
           </div>
         }
@@ -2065,7 +2279,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   />
                 </Form.Item>
                 <Popconfirm  title={<span className='flex justify-between items-center gap-x-1'><MdAddShoppingCart size={18} color='#f26724' /> Last order?</span> }  icon='' onConfirm={lastOrderBtn}>  
-                <Button type='primary' disabled={lastOrderData.products.length > 0 ? false : true} className={`${returnDelivery.state ? 'hidden':'block'} mb-1`}><TbFileSymlink /></Button>
+                <Button type='primary' disabled={lastOrderBtnState} className={`${returnDelivery.state ? 'hidden':'block'} mb-1`}><TbFileSymlink /></Button>
                 </Popconfirm>  
                </span>
 
@@ -2176,7 +2390,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
                   components={{ body: { cell: EditableCellTem } }}
                   columns={tempMergedColumns}
                   dataSource={option.tempproduct}
-                  pagination={{ pageSize: 4 }}
+                  pagination={{ pageSize: 5 }}
                   scroll={{ x: false, y: false }}
                 />
               </Form>
@@ -2199,16 +2413,21 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         </Spin>
       </Modal>
 
-      {/* Delivery bill model */}
+     
       <Modal
         className="relative"
         width={1200}
         title={
-          <span className="w-full flex justify-center items-center text-sm py-2">
-            {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : deliveryBill.prdata.type === 'quick' ? "QUICK SALE" : 'BOOKING'} ON{' '}
+          <div className="relative flex items-center justify-center text-sm py-2">
+           <span className='flex gap-x-2'>
+           {deliveryBill.prdata.type === 'order' ? 'DELIVERED' : deliveryBill.prdata.type === 'return' ? 'RETURN' : deliveryBill.prdata.type === 'quick' ? "QUICK SALE" : 'BOOKING'} ON{' '}
             {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}
-            <span className={`${deliveryBill.prdata.type === 'booking' ? 'pl-1 inline-block text-gray-600': 'hidden'}`}>{deliveryBill.prdata.time}</span>
-          </span>
+            <span className={`${deliveryBill.prdata.type === 'booking' ? ' inline-block text-gray-600': 'hidden'}`}>{deliveryBill.prdata.time}</span>
+            <Tag color={`${deliveryBill.data.paymentstatus === 'Paid' ? 'green' : deliveryBill.data.paymentstatus === 'Unpaid' ? 'red' : deliveryBill.data.paymentstatus === 'Partial' ? 'yellow' : 'blue'}`}>{deliveryBill.data.paymentstatus}</Tag>
+           </span>
+
+            <Button onClick={historyBtnMt} className='absolute right-10'><RiHistoryLine /></Button>
+          </div>
         }
         footer={false}
         open={deliveryBill.model}
@@ -2226,7 +2445,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
         <div className="mt-5">
           <span>
             Total Amount:
-            <Tag className="text-[1.1rem]" color="yellow">
+            <Tag className="text-[1.1rem]" color="blue">
               {formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.total)}
             </Tag>
           </span>
@@ -2244,12 +2463,141 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
 
           <span className={`${deliveryBill.data.partialamount === 0 ? 'hidden': 'inline-block'}`}>
             Partial Amount:
-            <Tag className="text-[1.1rem]" color="blue">
+            <Tag className="text-[1.1rem]" color="yellow">
               {formatToRupee(deliveryBill.data.total === undefined ? 0 : deliveryBill.data.partialamount)}
             </Tag>
           </span>
+
+          <span className={`${deliveryBill.prdata.paymentstatus === 'Paid' ? 'hidden': 'inline-block'}`}>Balance Amount: <Tag color='red' className='text-sm font-medium'>{formatToRupee(deliveryBill.data.billamount - deliveryBill.data.partialamount)}</Tag></span>
+        </div>
+
+        <div className={`${deliveryBill.prdata.paymentstatus !== 'Paid' && (deliveryBill.prdata.type === 'quick' || deliveryBill.prdata.type === 'booking') ? 'block' : 'hidden'}`}>
+        
+        <div className='w-full flex items-center justify-end'>
+       
+        <Button
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              onClick={openQuickSaleModalMt}
+              type='primary'
+              // disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            > Pay
+              <MdOutlinePayments />
+            </Button>
+            
+            </div>
+             
+            <Modal
+            okText={payModalState.type === 'create' ? 'Pay' : 'Update'}
+        centered={true}
+        maskClosable={
+          customerOnchange.payamount === '' ||
+          customerOnchange.payamount === undefined ||
+          customerOnchange.payamount === null
+            ? true
+            : false
+            }
+        title={
+          <div className="flex  justify-center py-3">
+            {' '}
+            <h1>PAY</h1>{' '}
+          </div>
+        }
+        open={popupModal.quicksaleform}
+        onCancel={() => {
+          setPopupModal(pre =>({...pre,quicksaleform:false}));
+          quicksalepayForm.resetFields()
+          // if (
+          //   customerOnchange.payamount === '' ||
+          //   customerOnchange.payamount === undefined ||
+          //   customerOnchange.payamount === null
+          // ) {
+          //   setIsPayModelOpen(false)
+          // } else {
+          //   setIsCloseWarning(true)
+          // }
+        }}
+        // onOk={() => {
+        //   quicksalepayForm.submit();
+        // }}
+        okButtonProps={{ disabled: payModalState.btndisable }}
+        
+        footer={
+          <div className='flex justify-end gap-x-2 items-center'>
+            <Button onClick={() => {
+          setPopupModal(pre =>({...pre,quicksaleform:false}));
+          quicksalepayForm.resetFields()
+          // if (
+          //   customerOnchange.payamount === '' ||
+          //   customerOnchange.payamount === undefined ||
+          //   customerOnchange.payamount === null
+          // ) {
+          //   setIsPayModelOpen(false)
+          // } else {
+          //   setIsCloseWarning(true)
+          // }
+        }}>Cancel</Button>
+        <Popconfirm
+       title="Are you sure?"
+      //  description={<>because the 'PAYMENT HISTORY' can't be edited?</>}
+       onConfirm={()=>quicksalepayForm.submit()}
+       >
+        <Button type='primary'>Pay</Button>
+       </Popconfirm>
+           
+          </div>
+        }
+      >
+        <Spin 
+        spinning={loadingSpin.quicksaleform}
+        >
+          <Form
+            onFinish={payModalState.type === 'create' ? quickSalePayMt : updateQuickSalePayMt}
+            form={quicksalepayForm}
+            initialValues={{ date: dayjs() }}
+            layout="vertical"
+          >
+            <Form.Item
+              className="mb-1"
+              name="amount"
+              label="Amount"
+              rules={[{ required: true, message: false }]}
+            >
+              <InputNumber
+                onChange={(e) => {} // customerOnchangeMt(e, 'payamount')
+                 }
+                min={0}
+                type="number"
+                className="w-full"
+                placeholder="Enter the Amount"
+              />
+            </Form.Item>
+            <Form.Item className="mb-1" name="description" label="Description">
+              <TextArea rows={4} placeholder="Write the Description" />
+            </Form.Item>
+            <Form.Item
+              className=" absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
+          </Form>
+        </Spin>
+      </Modal>
         </div>
       </Modal>
+
+       {/* payment history model */}
+       <Modal footer={null} centered onCancel={()=> setPopupModal(pre=>({...pre,payhistory:false}))} open={popupModal.payhistory}>
+       <h2 className='w-full text-center font-bold mb-4'>  PAYMENT HISTORY</h2>
+               <Spin spinning={loadingSpin.payhistory}>
+               <Timeline
+                  mode='left'
+                  items={historyBtn.data}
+                />
+               </Spin>
+       </Modal>
     </div>
   )
 }

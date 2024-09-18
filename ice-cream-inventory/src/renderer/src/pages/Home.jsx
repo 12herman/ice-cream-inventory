@@ -857,7 +857,8 @@ const [storefirst,setStoreFirst] = useState(null)
     {
       title: 'Amount',
       dataIndex: 'billamount',
-      key: 'billamount'
+      key: 'billamount',
+      render:(text)=> <span>{formatToRupee(text,true)}</span>
     },
     {
       title: 'Status',

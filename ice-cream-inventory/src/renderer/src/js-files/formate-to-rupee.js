@@ -2,8 +2,9 @@ export const formatToRupee = (number,isDisableRs) => {
     if(number === 0){
         return '0.00'
     }
+    let roundNumber = Math.round(number)
     // Convert the number to a string
-    let numStr = number.toString();
+    let numStr = roundNumber.toString();
     
     // Split the number into integer and decimal parts (if any)
     let [integerPart, decimalPart] = numStr.split('.');
