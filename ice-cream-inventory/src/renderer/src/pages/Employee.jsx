@@ -12,7 +12,8 @@ import {
   Select,
   Radio,
   DatePicker,
-  Spin
+  Spin,
+  Tag
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -466,7 +467,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
   const [employeePay, setEmployeePay] = useState({
     modal: false,
     name: {},
-    data: dayjs().format('DD/MMM/YYYY')
+    data: dayjs().format('DD/MMM/YYYY'),
   })
 
   const [isEmpLoading, setIsEmpLoading] = useState(false)
@@ -481,7 +482,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       description: description === undefined ? '' : description,
       type: 'pay',
       createddate: TimestampJs(),
-      isdeleted: false
+      isdeleted: false,
     }
 
     try {
@@ -538,7 +539,6 @@ export default function Employee({ datas, employeeUpdateMt }) {
       render: (_, record) => (
         <span>{record.type === 'pay' ? formatToRupee(record.amount, true) : ''}</span>
       ),
-      editable: true,
       width: 160
     },
     {
@@ -554,7 +554,12 @@ export default function Employee({ datas, employeeUpdateMt }) {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      editable: true
+      render: (_, record) => (
+        <> 
+        <Tag color="cyan">{record.paymentmode ? record.paymentmode : ''}</Tag>
+        <span>{record.description}</span>
+        </>
+      )
     }
   ]
 
@@ -935,10 +940,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
           <Form
             onFinish={empPayMt}
             form={employeePayForm}
-            initialValues={{ date: dayjs() }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
             layout="vertical"
           >
-            <Form.Item className="mb-1" name="amount" label="Amount">
+            <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
               <InputNumber
                 onChange={(e) => employeeOnchangeMt(e)}
                 min={0}
@@ -947,6 +952,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 placeholder="Enter the Amount"
               />
             </Form.Item>
+
             <Form.Item className="mb-1" name="description" label="Description">
               <TextArea rows={4} placeholder="Write the Description" />
             </Form.Item>
@@ -959,6 +965,22 @@ export default function Employee({ datas, employeeUpdateMt }) {
             >
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
+
+            <Form.Item
+                className="mb-0 top-[2rem] left-80"
+                name="paymentmode"
+                label="Payment Mode"
+                rules={[{ required: true, message: false }]}
+              >
+                <Radio.Group
+                 size='small'>
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                  <Radio value="NEFT">NEFT</Radio>
+                </Radio.Group>
+              </Form.Item>
+
           </Form>
         </Spin>
       </Modal>
