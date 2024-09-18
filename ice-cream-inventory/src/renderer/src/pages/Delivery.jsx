@@ -58,7 +58,7 @@ import { customRound } from '../js-files/round-amount'
 import { TbFileSymlink } from "react-icons/tb";
 import { toDigit } from '../js-files/tow-digit'
 const {  TextArea } = Input
-export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
+export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, customerUpdateMt }) {
   
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
@@ -1101,7 +1101,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             ? 'Production return successfully'
             : 'Production added successfully'
       })
-      await deliveryUpdateMt()
+      await deliveryUpdateMt();
+      await customerUpdateMt()
     } catch (error) {
       console.error('Error adding delivery: ', error)
       message.open({ type: 'error', content: 'Error adding production' })
@@ -1851,7 +1852,7 @@ const [payModalState,setPayModalState] = useState({
     let paydetails = sortedHistory.length > 0 ? paymenthistory.map((data,i)=>({
       key:data.id,
       label: data.date,
-      children: (<span className='flex gap-x-1 w-full'> <Tag color='green'>{formatToRupee(data.amount)}</Tag> {data.description}   
+      children: (<span className='flex gap-x-1 w-full '> <Tag color='green'>{formatToRupee(data.amount)}</Tag> {data.description}   
       {/* <MdOutlineModeEditOutline 
       onClick={()=>{
         // click to get the data 
@@ -1869,7 +1870,7 @@ const [payModalState,setPayModalState] = useState({
 
     // paid
     if(deliveryBill.prdata.paymentstatus === 'Paid'){
-       await setHistoryBtn( pre => ({...pre,data:[...paydetails,{dot: <MdOutlineDoneOutline className="timeline-clock-icon text-green-500 pb-0"/>,label:'Paid',children:` ${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}]}));
+       await setHistoryBtn( pre => ({...pre,data:[...paydetails,{dot: <MdOutlineDoneOutline className="timeline-clock-icon text-green-500 pb-0"/>,label:'Paid',children:<span className='pb-0 mb-0'>{`${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}</span>}]}));
     }
     // unpaid
     else if (deliveryBill.prdata.paymentstatus === 'Unpaid'){
@@ -2589,8 +2590,9 @@ const [payModalState,setPayModalState] = useState({
       </Modal>
 
        {/* payment history model */}
-       <Modal footer={null} centered onCancel={()=> setPopupModal(pre=>({...pre,payhistory:false}))} open={popupModal.payhistory}>
-       <h2 className='w-full text-center font-bold mb-4'>  PAYMENT HISTORY</h2>
+       <Modal
+       footer={null}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      centered onCancel={()=> setPopupModal(pre=>({...pre,payhistory:false}))} open={popupModal.payhistory}>
+       <h2 className='w-full text-center font-bold mb-5'>  PAYMENT HISTORY</h2>
                <Spin spinning={loadingSpin.payhistory}>
                <Timeline
                   mode='left'

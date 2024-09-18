@@ -43,6 +43,7 @@ const { Search, TextArea } = Input
 import { debounce } from 'lodash'
 import { areArraysEqual } from '../js-files/compare-two-array-of-object';
 import { getMissingIds } from '../js-files/missing-id';
+import { sortDateAndTime } from '../js-files/sort-time-date-sec';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -159,7 +160,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '' }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs() }
     try {
       const customerDocRef = doc(db, 'supplier', supplierPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -172,6 +173,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       setIsPayModelOpen(false)
       setPayModalLoading(false)
       setAmountOnchangeValue('')
+      message.open({type:'success',content:'Payed successfully'})
     }
   }
 
@@ -194,8 +196,12 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
             unit: materialName.material.unit
           }
         })
-      )
-      const combinedData = payDetails.concat(rawmaterialNameRef)
+      );
+
+      let sortedData = await sortDateAndTime(payDetails)
+      const combinedData = sortedData.concat(rawmaterialNameRef)
+      
+      
       setPayDetailsData(combinedData)
 
       const totalBalance = combinedData.reduce((total, item) => {

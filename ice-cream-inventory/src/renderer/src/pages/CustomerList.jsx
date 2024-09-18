@@ -37,6 +37,7 @@ import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
 import { PiWarningCircleFill } from 'react-icons/pi'
+import { sortDateAndTime } from '../js-files/sort-time-date-sec'
 
 export default function CustomerList({ datas, customerUpdateMt }) {
   // states
@@ -151,15 +152,20 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       const deliveryDocRef = await datas.delivery.filter(
         (item) => item.isdeleted === false && item.customerid === record.id
       )
+      
+      
+      
       const combinedData = payDetails.concat(deliveryDocRef)
-      setPayDetailsData(combinedData)
+      let sortedData = await sortDateAndTime(combinedData)
+      setPayDetailsData(sortedData)
 
-      const totalPayment = combinedData.reduce((total, item) => {
+      const totalPayment = sortedData.reduce((total, item) => {
         if (item.type === 'Payment') {
           return total + (Number(item.amount) || 0)
         }
         return total
       }, 0)
+      
       setTotalPaymentAmount(totalPayment)
 
       const totalPurchase = combinedData.reduce((total, item) => {
