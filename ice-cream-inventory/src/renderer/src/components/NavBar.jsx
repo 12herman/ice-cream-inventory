@@ -301,7 +301,8 @@ export default function NavBar({
       ...pre,
       total: totalMultiprTotalPr,
       marginstate: false,
-      paymentstatus: ''
+      paymentstatus: '',
+      paymentmode:'Cash',
     }))
     quickSaleForm2.resetFields()
     quickSaleForm3.resetFields()
@@ -463,7 +464,8 @@ export default function NavBar({
           billamount: totalAmounts,
           marginstate: true,
           temdata: newData,
-          total:mrpAmount
+          total:mrpAmount,
+          paymentstatus:'Paid'
         }));
     
 
@@ -1009,7 +1011,7 @@ export default function NavBar({
                   disabled={isQuickSale.marginstate ? false : true}
                   buttonStyle="solid"
                   onChange={(e) => {
-                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value }))
+                    setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value,}))
                     if (e.target.value === 'Paid') {
                       quickSaleForm3.resetFields()
                     }
@@ -1034,7 +1036,7 @@ export default function NavBar({
               >
                 <Radio.Group
                   onChange={(e) => {
-                    setIsQuickSale((pre) => ({ ...pre, paymentmode: e.target.value }))
+                    setIsQuickSale((pre) => ({ ...pre, paymentmode:  isQuickSale.paymentstatus === 'Unpaid' ? '' :   e.target.value }))
                   }}
                   disabled={isQuickSale.marginstate ? false : true}
                 >
