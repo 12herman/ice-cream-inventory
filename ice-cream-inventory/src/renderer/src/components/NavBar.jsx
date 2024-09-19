@@ -920,6 +920,8 @@ export default function NavBar({
     setPersonOnchangeSt(e)
   }, 200)
 
+  console.log(isQuickSale.marginstate , !isSpinners , isQuickSale.temdata.length > 0);
+  
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
       <ul>
@@ -1002,7 +1004,7 @@ export default function NavBar({
         footer={
           <div className="flex justify-between items-center">
             <Form
-              disabled={isQuickSale.temdata.length > 0 ? false : true}
+              disabled={!isSpinners && isQuickSale.temdata.length > 0 ? false : true}
               onFinish={marginMt}
               className="flex gap-x-2"
               form={quickSaleForm2}
@@ -1028,6 +1030,7 @@ export default function NavBar({
             </Form>
 
             <Form
+            
               form={quickSaleForm3}
               layout="vertical"
               initialValues={{ paymentstatus: 'Paid', paymentmode: 'Cash' }}
@@ -1035,7 +1038,7 @@ export default function NavBar({
             >
               <Form.Item name="paymentstatus" className="mb-0">
                 <Radio.Group
-                  disabled={isQuickSale.marginstate ? false : true}
+                  disabled={!isSpinners && isQuickSale.temdata.length > 0 ?false : true}
                   buttonStyle="solid"
                   onChange={(e) => {
                     setIsQuickSale((pre) => ({ ...pre, paymentstatus: e.target.value,}))
@@ -1160,7 +1163,7 @@ export default function NavBar({
             </Form>
             <Button
               onClick={quicksaleMt}
-              disabled={isQuickSale.marginstate && isSpinners === false ? false : true}
+              disabled={!isSpinners && isQuickSale.temdata.length > 0 ? false : true}
               type="primary"
             >
               Sale

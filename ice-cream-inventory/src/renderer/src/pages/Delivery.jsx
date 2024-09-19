@@ -383,6 +383,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       const row = await form.validateFields()
       const newData = [...data]
       const index = newData.findIndex((item) => key.id === item.key)
+      
       if (index != null && row.numberofpacks === key.numberofpacks) {
         message.open({ type: 'info', content: 'No changes made' })
         setEditingKey('')
@@ -456,6 +457,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     message.open({ type: 'success', content: 'Deleted Successfully' })
   }
 
+  const [firstValue, setFirstValue] = useState(null);
+  const [TableEdiable,setTableEdiable] = useState({
+    pieceprice:true,
+    packs:true,
+    margin:true,
+    price:true
+  });
+
   const columns2 = [
     {
       title: <span className="text-[0.7rem]">Product</span>,
@@ -479,17 +488,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Packs</span>,
-      dataIndex: 'numberofpacks',
-      key: 'numberofpacks',
-      editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
+   
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      editable:TableEdiable.pieceprice
+    },
+    {
+      title: <span className="text-[0.7rem]">Packs</span>,
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
+      editable: TableEdiable.packs,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
     {
@@ -503,14 +514,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      editable: true,
+      editable: TableEdiable.margin,
       render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
-      editable: false,
+      editable: TableEdiable.price,
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
@@ -557,6 +568,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     }
   ]
 
+
+
   const columnsReturn = [
     {
       title: <span className="text-[0.7rem]">Product</span>,
@@ -584,7 +597,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
@@ -674,28 +687,26 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     }
   ]
 
-  const tempSingleMargin = async (data) => {
-    try {
-      const row = await temform.validateFields()
-      const oldtemDatas = option.tempproduct
-      
-      // general datas
-      let mrp = row.numberofpacks * data.productprice;
 
-    if(row.margin === data.margin && row.numberofpacks === data.numberofpacks && row.returntype === data.returntype)
-    {
-      message.open({content:'No changes made',type:'info'});
-      setOption((pre) => ({
-        ...pre,
-        editingKeys: []
-      }))
-    }
-    else{
-      let updatedTempproduct = await oldtemDatas.map(product => 
+  //Save
+  const tempSingleMargin = async (data) => {
+
+      const row = await temform.validateFields();
+      let initialtype = row.returntype === undefined ? 'normal' : row.returntype
+      const oldtemDatas = option.tempproduct
+      let updatedTempproduct;
+
+      console.log(row,data);
+      
+    try {
+    // margin
+    if(row.margin !== data.margin && TableEdiable.margin){  
+      let mrp = data.numberofpacks * data.productprice;
+      updatedTempproduct = await oldtemDatas.map(product => 
         product.key === data.key
           ? { 
               ...product,
-              numberofpacks: row.numberofpacks,
+              numberofpacks: data.numberofpacks,
               margin: row.margin,
               price: customRound(mrp - (mrp * row.margin) / 100),
               mrp: mrp,
@@ -703,84 +714,126 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             }
           : product
       );
-      console.log(updatedTempproduct);
+    let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
+    let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+    setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
+    setTotalAmount(mrpAmount)
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: updatedTempproduct,
+      editingKeys: []
+    }));
+    message.open({ type: 'success', content: 'Updated successfully' })
+    setFirstValue(null)
+    }
+    // piece price
+    else if(row.productprice !== data.productprice && TableEdiable.pieceprice){
       
-      let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
-      let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
-      
-      setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
-      setTotalAmount(mrpAmount)
+      updatedTempproduct = await oldtemDatas.map(product => {
+      let mrpNormal = data.numberofpacks * data.productprice;
+      let mrpData = row.productprice * data.numberofpacks;
+
+      let marginvalue = ((data.productprice -  row.productprice) / data.productprice) * 100
+      let price = mrpData - mrpData * (0 / 100);
+       if( product.key === data.key){
+          return { 
+            ...product,
+            numberofpacks: data.numberofpacks,
+            margin: marginvalue,
+            price: customRound(price),
+            mrp: mrpNormal,
+            returntype:row.returntype === undefined ? 'normal' : row.returntype
+          }
+       }
+     return product
+    });
+    let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
+    let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+    setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
+    setTotalAmount(mrpAmount)
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: updatedTempproduct,
+      editingKeys: []
+    }));
+    message.open({ type: 'success', content: 'Updated successfully' })
+    setFirstValue(null)
+   }
+    // packs
+   else if(row.numberofpacks !== data.numberofpacks && TableEdiable.packs){
+     updatedTempproduct = await oldtemDatas.map(product => {
+      let mrpData = row.numberofpacks * data.productprice;
+      let price = mrpData - mrpData * (data.margin / 100);
+       if( product.key === data.key){
+          return { 
+            ...product,
+            numberofpacks: row.numberofpacks,
+            margin: data.margin,
+            price: customRound(price),
+            mrp: mrpData,
+            returntype:row.returntype === undefined ? 'normal' : row.returntype
+          }
+       }
+     return product
+    });
+    let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
+    let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+    setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
+    setTotalAmount(mrpAmount)
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: updatedTempproduct,
+      editingKeys: []
+    }));
+    message.open({ type: 'success', content: 'Updated successfully' })
+    setFirstValue(null)
+   }
+   // price
+   else if(row.price !== data.price && TableEdiable.price){
+    updatedTempproduct = await oldtemDatas.map(product => {
+      let mrpData = data.numberofpacks * data.productprice;
+      let price = row.price;
+       if( product.key === data.key){
+          return { 
+            ...product,
+            numberofpacks: data.numberofpacks,
+            margin: ((mrpData - row.price) / mrpData) * 100,
+            price: customRound(price),
+            mrp: mrpData,
+            returntype:row.returntype === undefined ? 'normal' : row.returntype
+          }
+       }
+     return product
+    });
+    let totalAmounts = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0)
+    let mrpAmount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+    setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
+    setTotalAmount(mrpAmount)
+    setOption((pre) => ({
+      ...pre,
+      tempproduct: updatedTempproduct,
+      editingKeys: []
+    }));
+    message.open({ type: 'success', content: 'Updated successfully' })
+    setFirstValue(null)
+   }
+    // all are same
+    else if(row.margin === data.margin  || 
+      row.numberofpacks === data.numberofpacks || 
+      initialtype === data.returntype || 
+      row.productprice === data.productprice || 
+      row.price === data.price)
+    {
+      message.open({content:'No changes made',type:'info'});
       setOption((pre) => ({
         ...pre,
-        tempproduct: updatedTempproduct,
         editingKeys: []
       }));
-      message.open({ type: 'success', content: 'Updated successfully' })
+      setFirstValue(null)
     }
 
-      // Check if the margin already exists for the same key
-      // const checkDatas =
-      //   returnDelivery.state === true
-      //     ? oldtemDatas.some(
-      //         (item) =>
-      //           item.key === data.key &&
-      //           item.numberofpacks === row.numberofpacks &&
-      //           item.returntype === row.returntype &&
-      //           item.margin === row.margin
-      //       )
-      //     : oldtemDatas.some(
-      //         (item) =>
-      //           item.key === data.key &&
-      //           item.margin === row.margin &&
-      //           item.numberofpacks === row.numberofpacks
-      //       )
+    
 
-      // if (checkDatas) {
-      //   message.open({ type: 'info', content: 'No Changes found' })
-      // } else {
-      //   message.open({ type: 'success', content: 'Updated successfully' })
-      // }
-
-      // // Update the item in the array while maintaining the order
-      // const updatedTempproduct = oldtemDatas.map((item) => {
-      //   if (item.key === data.key) {
-      //     let mrpData = item.productprice * row.numberofpacks
-      //     let priceing = customRound(mrpData - mrpData * (row.margin / 100))
-      //     if (returnDelivery.state === true) {
-      //       return {
-      //         ...item,
-      //         numberofpacks: row.numberofpacks,
-      //         mrp: item.productprice * row.numberofpacks,
-      //         returntype: row.returntype
-      //       }
-      //     } else {
-      //       return {
-      //         ...item,
-      //         numberofpacks: row.numberofpacks,
-      //         margin: row.margin,
-      //         mrp: item.productprice * row.numberofpacks,
-      //         price: priceing
-      //       }
-      //     }
-      //   }
-      //   return item
-      // })
-
-      // const totalAmounts = updatedTempproduct.reduce((acc, item) => {
-      //   return acc + item.price
-      // }, 0)
-
-      // const mrpAmount = updatedTempproduct.reduce((acc, item) => {
-      //   return acc + item.mrp
-      // }, 0)
-
-      // setMarginValue((pre) => ({ ...pre, amount: customRound(totalAmounts) }))
-      // setTotalAmount(mrpAmount)
-      // setOption((pre) => ({
-      //   ...pre,
-      //   tempproduct: updatedTempproduct,
-      //   editingKeys: []
-      // }))
     } catch (e) {
       console.log(e)
     }
@@ -830,20 +883,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
     // customer onchange value
   const [lastOrderData,setLastOrderData] = useState({
-                                      customerdetails:{},
-                                      products:[]
-                                        });
+                                            customerdetails:{},
+                                            products:[]
+                                            });
+ 
   const [lastOrderBtnState,setlastOrderBtnState] = useState(true);
 
   const customerOnchange = debounce(async (value, i) => {
-    
+    let itemsObject=[];
     if(returnDelivery.state === false){
       setlastOrderBtnState(true)
       // setLastOrderData({ customerdetails:{}, products:[] });
       // get last order data
        let lastOrderDatas= datas.delivery.filter(data=> data.customerid === value && data.type === 'order' );
        
+       
        if(lastOrderDatas.length > 0){
+        
         let latestOrderData = lastOrderDatas.sort((a, b) => {
           let dateA = new Date(a.createddate.replace(',', ' ')); // Replace comma for better parsing
           let dateB = new Date(b.createddate.replace(',', ' '));
@@ -852,31 +908,53 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     
         let {items,status} = await fetchItemsForDelivery(latestOrderData.id);
         if(status){
-          
         let customerDetails = lastOrderDatas[0];
-    
         let products = await Promise.all(items.map( async item => {
-        let {product,status} = await getProductById(item.id);
+          let {product,status} = await getProductById(item.id);
             if(status){
              return ({
                ...item,
                ...product
              })}
            }));
+        console.log(products);
+        
         let compainddata = [...lastOrderData.products,...products];
+        
         let uniqueArray = [...new Map(compainddata.map(item => [item.id,item])).values()]
-        setLastOrderData({customerdetails:customerDetails,products:uniqueArray});
-        }
-       };
+
+        console.log(compainddata);
+        
+      //   itemsObject =await uniqueArray.map((data,i)=>{
+      //     return {
+      // createddate:TimestampJs(),
+      // customername:customerDetails.customerid,
+      // date:form2.getFieldValue().date ? form2.getFieldValue().date.format('DD/MM/YYYY') : '',
+      // flavour:data.flavour,
+      // key:i+1,
+      // margin:data.margin,
+      // mrp:data.numberofpacks * data.price,
+      // numberofpacks:data.numberofpacks,
+      // price: data.numberofpacks * data.price - (data.numberofpacks * data.price) * data.margin / 100,
+      // productname: data.productname,
+      // productprice:data.price,
+      // quantity: data.quantity + ' ' + data.unit,
+      // returntype: data.returntype
+      //     }
+      //   });
+      //   console.log(itemsObject);
+        
+        setLastOrderData({customerdetails:customerDetails,products:uniqueArray}); }
+      };
        setlastOrderBtnState(false)
     }
-    
     // end last order data
     form2.resetFields(['productname'])
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
-    setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: lastOrderData.products.length > 0 ? lastOrderData.products : [] }))
+    if(lastOrderData.products.length > 0){}
+    else{ setOption((pre) => ({ ...pre, customerstatus: false, tempproduct:  [] }))}
     setTotalAmount(0)
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
@@ -955,6 +1033,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
     console.log(newProduct);
     
+    console.log(option.tempproduct);
+    
 
     const checkExsit = option.tempproduct.some(
       (item) =>
@@ -962,8 +1042,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         item.productname === newProduct.productname &&
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
-        item.numberofpacks === newProduct.numberofpacks &&
-        item.date === newProduct.date && 
+        // item.numberofpacks === newProduct.numberofpacks &&
+        // item.date === newProduct.date && 
         item.returntype === newProduct.returntype
     )
 
@@ -1145,6 +1225,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       form4.setFieldsValue({ paymentstatus: 'Paid' });
       setLastOrderData({ customerdetails:{}, products:[] });
       setlastOrderBtnState(true)
+      setOption(pre=>({...pre,editingKeys:[]}))
     }
   }
 
@@ -1169,6 +1250,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     form4.setFieldsValue({ paymentstatus: 'Paid' })
     setLastOrderData({ customerdetails:{}, products:[] });
     setlastOrderBtnState(true)
+    setOption(pre=>({...pre,editingKeys:[]}))
   }
 
   // export
@@ -1519,7 +1601,110 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 )}
               />
             </Form.Item>
-          ) : (
+          ) 
+          : dataIndex === 'numberofpacks' ? 
+          <Form.Item
+              name='numberofpacks'
+              style={{
+                margin: 0
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: false
+                }
+              ]}
+            >
+           <InputNumber size="small" type="number" className="w-[4rem]" min={1} 
+          onFocus={(e)=>{
+            if (firstValue === null) {
+              setFirstValue(e.target.value);
+              setTableEdiable({margin:false,packs:true,pieceprice:false,price:false})
+            }
+          }}
+        /> </Form.Item>
+        
+        : dataIndex === 'margin' ? 
+        <Form.Item
+              name='margin'
+              style={{
+                margin: 0
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: false
+                }
+              ]}
+            >
+        <InputNumber
+          type="number"
+          onFocus={(e) => {
+            if (firstValue === null) {
+              setFirstValue(e.target.value) // Store the first value
+              setTableEdiable({margin:true,packs:false,pieceprice:false,price:false})
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+          max={100}
+        />
+        </Form.Item>
+       
+       : dataIndex === 'price' ?
+        <Form.Item
+              name='price'
+              style={{
+                margin: 0
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: false
+                }
+              ]}
+            >
+        <InputNumber
+          onFocus={(e) => {
+            if (firstValue === null) {
+              setFirstValue(e.target.value) // Store the first value
+              setTableEdiable({margin:false,packs:false,pieceprice:false,price:true})
+            }
+          }}
+          size="small"
+          className="w-[4rem]"
+          min={0}
+        />
+        </Form.Item>
+       
+
+       : dataIndex === 'productprice' ? 
+       <Form.Item
+              name='productprice'
+              style={{
+                margin: 0
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: false
+                }
+              ]}
+            >
+        <InputNumber
+        onFocus={(e) => {
+          if (firstValue === null) {
+            setFirstValue(e.target.value) // Store the first value
+            setTableEdiable({margin:false,packs:false,pieceprice:true,price:false})
+          }
+        }}
+        size="small"
+        className="w-[4rem]"
+        min={0}
+      />
+      </Form.Item>
+       : (
             <Form.Item
               name={dataIndex}
               style={{
@@ -1547,6 +1732,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   }
 
   const temTbEdit = (re) => {
+    setFirstValue(null);
+    setTableEdiable({
+      pieceprice:true,
+      packs:true,
+      margin:true,
+      price:true
+    })
     temform.setFieldsValue({ ...re })
     setOption((pre) => ({ ...pre, editingKeys: [re.key] }))
   }
@@ -1698,6 +1890,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // last order pull button
   const lastOrderBtn = async ()=>{
+
     let itemsObject = lastOrderData.products.map((data,i)=>({
       createddate:TimestampJs(),
       customername:lastOrderData.customerdetails.customerid,
@@ -2157,7 +2350,7 @@ const [payModalState,setPayModalState] = useState({
 
               <Form
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
-                disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
+                disabled={option.tempproduct.length === 0 || isDeliverySpiner ? true : false}
                 form={form4}
                 initialValues={{ partialamount: null, price: 'Price', paymentstatus: 'Paid', paymentmode: 'Cash' }}
                 onFinish={addNewDelivery}
@@ -2165,7 +2358,7 @@ const [payModalState,setPayModalState] = useState({
                 <span className="flex gap-x-3 m-0 justify-center items-center">
                   <Form.Item name="paymentstatus">
                     <Radio.Group
-                      disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
+                      disabled={option.tempproduct.length === 0 || isDeliverySpiner ? true : false}
                       buttonStyle="solid"
                       onChange={radioOnchange}
                     >
