@@ -43,7 +43,7 @@ const { Search, TextArea } = Input
 import { debounce } from 'lodash'
 import { areArraysEqual } from '../js-files/compare-two-array-of-object';
 import { getMissingIds } from '../js-files/missing-id';
-import { sortDateAndTime } from '../js-files/sort-time-date-sec';
+import { lastestFirstSort } from '../js-files/sort-time-date-sec';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -198,7 +198,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         })
       );
 
-      let sortedData = await sortDateAndTime(payDetails)
+      let sortedData = await lastestFirstSort(payDetails)
       const combinedData = sortedData.concat(rawmaterialNameRef)
       
       

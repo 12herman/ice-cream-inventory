@@ -1,4 +1,4 @@
-export const sortDateAndTime = async (data)=>{
+export const lastestFirstSort = async (data)=>{
 
    let sorting = await data.sort((a, b) => {
         // Convert "DD/MM/YYYY,HH.mm,ss" to a proper Date format "MM/DD/YYYY HH:mm:ss"
@@ -15,7 +15,7 @@ export const sortDateAndTime = async (data)=>{
         let dateB = parseDate(b.createddate);
       
         // Sort by date, time, and seconds
-        return dateA - dateB;
+        return   dateB - dateA;
       });
 
       return sorting;
