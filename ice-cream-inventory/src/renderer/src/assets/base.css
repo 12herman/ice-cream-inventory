@@ -38,6 +38,10 @@
   margin: 0 5px !important; /* Optional: Add spacing between buttons */
 }
 
+.ant-timeline-item-last >.ant-timeline-item-content{
+  min-height: 0px !important;
+}
+
 
 
 
