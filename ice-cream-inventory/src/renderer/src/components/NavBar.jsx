@@ -231,7 +231,7 @@ export default function NavBar({
   }
 
   const QuickSaleTemAdd = async (values, i) => {
-    console.log(Number(values.quantity.split(' ')[0]))
+    // console.log(Number(values.quantity.split(' ')[0]))
     let existingDataCheck = isQuickSale.temdata.filter(
       (item) =>
         item.productname === values.productname &&
@@ -411,11 +411,14 @@ export default function NavBar({
         paymentstatus: qickSaleForm3Value.paymentstatus,
         total: isQuickSale.total,
         type: isQuickSale.type,
+        bookingstatus: isQuickSale.type === "booking" ? "" : null,
         isdeleted: false,
         paymentmode: isQuickSale.paymentmode,
         createddate: TimestampJs(),
         date: isQuickSale.date
       }
+      console.log(isQuickSale.type === "booking");
+      
 
       try {
         const deliveryCollectionRef = collection(db, 'delivery')
@@ -770,21 +773,45 @@ export default function NavBar({
       {
         updatedTempproduct = await tempdata.map((item) => {
           if (item.key === data.key) {
+            let mrpNormal = data.productprice * data.numberofpacks
             let mrpData = row.productprice * data.numberofpacks
-            let price = mrpData - mrpData * (data.margin / 100)
+            
+            let marginvalue = ((data.productprice -  row.productprice) / data.productprice) * 100
+            let price = mrpData - mrpData * (0 / 100)
+            // console.log(mrpData - mrpData  * (0 / 100));
+            
             return {
               ...item,
               // productprice: data.productprice,
-              productprice: row.productprice,
+              productprice: data.productprice,
               numberofpacks: data.numberofpacks,
-              margin: data.margin,
-              mrp: mrpData,
+              margin: marginvalue,
+              mrp: mrpNormal,
               price: price,
               quickproductprice:row.productprice
             }
           }
           return item
         });
+        
+        // updatedTempproduct = await tempdata.map((item) => {
+        //   if (item.key === data.key) {
+        //     let mrpData = row.productprice * data.numberofpacks
+        //     let price = mrpData - mrpData * (data.margin / 100)
+        //     return {
+        //       ...item,
+        //       // productprice: data.productprice,
+        //       productprice: row.productprice,
+        //       numberofpacks: data.numberofpacks,
+        //       margin: data.margin,
+        //       mrp: mrpData,
+        //       price: price,
+        //       quickproductprice:row.productprice
+        //     }
+        //   }
+        //   return item
+        // });
+
         const totalAmounts = await updatedTempproduct.map(data => data.price).reduce((a,b)=> a + b ,0)
         const mrpAmount = updatedTempproduct.map(data => data.mrp).reduce((a, b) => a + b, 0);
         setIsQuickSale(pre=>({...pre,temdata:updatedTempproduct,editingKeys: [],billamount: totalAmounts, total: mrpAmount,marginstate: true,}));

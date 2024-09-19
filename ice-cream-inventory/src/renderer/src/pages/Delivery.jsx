@@ -2424,7 +2424,7 @@ const [payModalState,setPayModalState] = useState({
             </Tag>
             <Tag
               color="green"
-              className={`${returnDelivery.state === true ? 'hidden' : 'inline-block'}`}
+              // className={`${returnDelivery.state === true ? 'hidden' : 'inline-block'}`}
             >
               Net Amount: <span className="text-sm">{formatToRupee(marginValue.amount)}</span>
             </Tag>
