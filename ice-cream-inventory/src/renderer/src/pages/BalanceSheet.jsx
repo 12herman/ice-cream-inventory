@@ -11,7 +11,8 @@ import {
   Input,
   DatePicker,
   Form,
-  Tag
+  Tag,
+  InputNumber
 } from 'antd'
 import { getCustomerById, getCustomerPayDetailsById } from '../firebase/data-tables/customer'
 import { LuFileCog } from 'react-icons/lu'
@@ -34,6 +35,9 @@ export default function BalanceSheet({ datas }) {
   const [customerPayId, setCustomerPayId] = useState(null)
   const [customerName, setCustomerName] = useState('')
   const [refreshTable, setRefreshTable] = useState(false)
+  const [isOpenDisabled, setIsOpenDisabled] = useState(false);
+const [isCloseDisabled, setIsCloseDisabled] = useState(false);
+const [isPayDisabled, setIsPayDisabled] = useState(false);
 
   const fetchData = async () => {
     setBalanceTbLoading(true)
@@ -55,7 +59,7 @@ export default function BalanceSheet({ datas }) {
             .filter((payDetail) => payDetail.description === 'Open')
             .sort(
               (a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
             )[0]
 
           const isOpenOrClose = payDetails
@@ -63,17 +67,27 @@ export default function BalanceSheet({ datas }) {
               (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
             )
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )[0]
+
+            if (!isOpenOrClose) {
+              return {
+                ...item,
+                sno: index + 1,
+                key: item.id || index,
+                balance: 0,
+                bookstatus: 'Empty',
+              };
+            }
 
           const filteredPayDetails = openEntry
             ? [
                 openEntry,
                 ...payDetails.filter((payDetail) =>
-                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
                   )
                 )
               ]
@@ -81,8 +95,8 @@ export default function BalanceSheet({ datas }) {
 
           const filteredDeliveries = openEntry
             ? customerDeliveries.filter((delivery) =>
-                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 )
               )
             : customerDeliveries
@@ -100,14 +114,14 @@ export default function BalanceSheet({ datas }) {
             return item.type !== 'Balance' ?  acc + Number(item.amount) : acc
           }, 0)
 
-          const balance = billUnpaid - totalPayment
+          const balance = openEntry.amount + billUnpaid - totalPayment
 
           return {
             ...item,
             sno: index + 1,
             key: item.id || index,
             balance: balance,
-            bookstatus: isOpenOrClose ? isOpenOrClose.description : 'Empty'
+            bookstatus: isOpenOrClose.description
           }
         })
     )
@@ -230,19 +244,25 @@ export default function BalanceSheet({ datas }) {
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
       console.log(payDetailsResponse)
       if (payDetailsResponse.status === 200) {
-        const payDetails = payDetailsResponse.paydetails
+        const payDetails = payDetailsResponse.paydetails || [];
         const isOpenOrClose = payDetails
           .filter(
             (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
           )
           .sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
+            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss'))
           )[0]
         if (isOpenOrClose) {
+          setIsOpenDisabled(isOpenOrClose.description === 'Open');
+          setIsCloseDisabled(isOpenOrClose.description === 'Close');
+          setIsPayDisabled(isOpenOrClose.description === 'Close');
           payForm.setFieldsValue({
-            description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
+            description: isOpenOrClose.description === 'Open' ? 'Pay' : 'Open'
           })
         } else {
+          setIsOpenDisabled(false);
+          setIsCloseDisabled(true);
+          setIsPayDisabled(true);
           payForm.setFieldsValue({ description: 'Open' })
         }
       } else {
@@ -255,9 +275,10 @@ export default function BalanceSheet({ datas }) {
   }
 
   const balancesheetPay = async (value) => {
-    let { date, ...Datas } = value
+    let { date, amount,description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, type: 'Balance', createddate: TimestampJs() }
+    const type = description === 'Pay' ? 'Payment' : 'Balance';
+    const payData = { ...Datas, amount: Number(amount), date: formateDate, type: type,description:description, createddate: TimestampJs() }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -302,8 +323,8 @@ export default function BalanceSheet({ datas }) {
           payDetails
             .filter((payDetail) => payDetail.description === 'Open')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )[0] || null
 
@@ -311,8 +332,8 @@ export default function BalanceSheet({ datas }) {
           payDetails
             .filter((payDetail) => payDetail.description === 'Close')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )[0] || null
 
@@ -320,63 +341,63 @@ export default function BalanceSheet({ datas }) {
 
         if (openEntry) {
           if (closeEntry) {
-            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
             )
             if (isCloseAfterOpen) {
               filteredPayDetails = payDetails.filter((payDetail) => {
-                const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm')
+                const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 return (
-                  payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')) &&
-                  payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm'))
+                  payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')) &&
+                  payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss'))
                 )
               })
               filteredPayDetails = [openEntry, ...filteredPayDetails, closeEntry]
               filteredPayDetails.sort(
                 (a, b) =>
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') -
-                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') -
+                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             } else {
               filteredPayDetails = [
                 openEntry,
                 ...payDetails.filter((payDetail) =>
-                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
                   )
                 )
               ]
               filteredPayDetails.sort(
                 (a, b) =>
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') -
-                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') -
+                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             }
           } else {
             filteredPayDetails = [
               openEntry,
               ...payDetails.filter((payDetail) =>
-                dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 )
               )
             ]
             filteredPayDetails.sort(
               (a, b) =>
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
             )
           }
         } else {
           filteredPayDetails = [
             ...payDetails.filter((payDetail) =>
-              dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )
           ]
           filteredPayDetails.sort(
             (a, b) =>
-              dayjs(a.createddate, 'DD/MM/YYYY,HH.mm') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
           )
         }
 
@@ -390,52 +411,52 @@ export default function BalanceSheet({ datas }) {
 
         if (openEntry) {
           if (closeEntry) {
-            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
             )
             if (isCloseAfterOpen) {
               filteredDeliveries = deliveries.filter((delivery) => {
-                const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm')
+                const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 return (
-                  deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')) &&
-                  deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm'))
+                  deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')) &&
+                  deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss'))
                 )
               })
               filteredDeliveries.sort((a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 )
               )
             } else {
               filteredDeliveries = deliveries.filter((delivery) =>
-                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 )
               )
               filteredDeliveries.sort((a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
                 )
               )
             }
           } else {
             filteredDeliveries = deliveries.filter((delivery) =>
-              dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(
-                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )
             filteredDeliveries.sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm')
+              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
               )
             )
           }
         } else {
           filteredDeliveries = deliveries.filter((delivery) =>
-            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm').isAfter(dayjs().subtract(1, 'year'))
+            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(dayjs().subtract(1, 'year'))
           )
           filteredDeliveries.sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm'))
+            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss'))
           )
         }
         setDeliveryList(filteredDeliveries)
@@ -697,13 +718,15 @@ export default function BalanceSheet({ datas }) {
           >
             <Radio.Group
               buttonStyle="solid"
-              disabled
               style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
             >
-              <Radio.Button value="Open" style={{ width: '50%' }}>
+              <Radio.Button value="Open" style={{ width: '33%' }} disabled={isOpenDisabled}>
                 OPEN
               </Radio.Button>
-              <Radio.Button value="Close" style={{ width: '50%' }}>
+              <Radio.Button value="Pay" style={{ width: '34%' }} disabled={isPayDisabled}>
+                PAY
+              </Radio.Button>
+              <Radio.Button value="Close" style={{ width: '33%' }} disabled={isCloseDisabled}>
                 CLOSE
               </Radio.Button>
             </Radio.Group>
@@ -714,7 +737,7 @@ export default function BalanceSheet({ datas }) {
             label="Book Balance"
             rules={[{ required: true, message: false }]}
           >
-            <Input type="number" min={0} placeholder="Enter Amount" />
+            <InputNumber className='w-full' type="number" min={0} placeholder="Enter Amount" />
           </Form.Item>
         </Form>
       </Modal>

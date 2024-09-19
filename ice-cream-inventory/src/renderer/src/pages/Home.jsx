@@ -621,6 +621,16 @@ const [storefirst,setStoreFirst] = useState(null)
         newSelectedTableData = filteredDelivery
     }
     setSelectedTableData(newSelectedTableData)
+    console.log(newSelectedTableData)
+  }
+
+  const handlePaymentTypeClick = (paymentMode, event) => {
+    event.stopPropagation();
+    const filtered = filteredDelivery.filter(
+      (product) => product.type !== 'return' && (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial') && product.paymentmode === paymentMode
+    )
+    setSelectedTableData(filtered)
+    console.log(filtered,paymentMode)
   }
 
   const componentRef = useRef()
@@ -753,9 +763,6 @@ const [storefirst,setStoreFirst] = useState(null)
     // }))
     // message.open({ type: 'success', content: 'Quotation Created' })
   }
-
-
-  
 
   const handleQuotationDownload = async () =>{
         // data
@@ -1088,9 +1095,6 @@ const [storefirst,setStoreFirst] = useState(null)
     }
   };
 
- 
-  
-
   const itemColumns = [
     {
       title: 'Item Name',
@@ -1192,6 +1196,8 @@ const [storefirst,setStoreFirst] = useState(null)
                   color: isActive ? '#ffffff' : ''
                 }}
               >
+                <div className="flex flex-col">
+                <div className="flex justify-between">
                 <Statistic
                   title={
                     isActive ? (
@@ -1207,6 +1213,15 @@ const [storefirst,setStoreFirst] = useState(null)
                   }}
                   prefix={card.prefix}
                 />
+                {card.key === 'totalPaid' && (
+                  <div className="flex gap-x-2">
+                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('Cash', event)} type="default">Cash</Button>
+                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('Card', event)} type="default">Card</Button>
+                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('UPI', event)} type="default">UPI</Button>
+                  </div>
+                )}
+                </div>
+                </div>
               </Card>
             )
           })}
