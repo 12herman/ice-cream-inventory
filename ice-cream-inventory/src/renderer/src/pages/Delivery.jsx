@@ -1030,7 +1030,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
     
     // Partial amount (value)
     let { partialamount } = form4.getFieldsValue()
-
+    let { paymentmode } = form4.getFieldsValue()
     // Create delivery new
     const newDelivery =
       returnDelivery.state === true
@@ -1054,6 +1054,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt }) {
             paymentstatus: marginValue.paymentstaus,
             partialamount:
             partialamount === undefined || partialamount === null ? 0 : partialamount,
+            paymentmode: marginValue.paymentstaus === 'Unpaid' ? '' : paymentmode,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -2157,7 +2158,7 @@ const [payModalState,setPayModalState] = useState({
                 className={`${returnDelivery.state === true ? 'hidden' : ''}`}
                 disabled={marginValue.amount === 0 || isDeliverySpiner ? true : false}
                 form={form4}
-                initialValues={{ partialamount: null, price: 'Price', paymentstatus: 'Paid' }}
+                initialValues={{ partialamount: null, price: 'Price', paymentstatus: 'Paid', paymentmode: 'Cash' }}
                 onFinish={addNewDelivery}
               >
                 <span className="flex gap-x-3 m-0 justify-center items-center">
@@ -2172,6 +2173,23 @@ const [payModalState,setPayModalState] = useState({
                       <Radio.Button value="Partial">PARTIAL</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
+
+                  {marginValue.paymentstaus !== 'Unpaid' && (
+                  <Form.Item
+                className="mb-0 absolute top-[2rem] left-44"
+                name="paymentmode"
+                rules={[{ required: true, message: 'Please select a payment method' }]}
+              >
+                <Radio.Group
+                  disabled={option.tempproduct.length <= 0 ? true : false}
+                >
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item>
+                  )}
+
                   <Form.Item
                     name="partialamount"
                     rules={[
