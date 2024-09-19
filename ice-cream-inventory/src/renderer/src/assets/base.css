@@ -19,6 +19,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 .ant-table-placeholder {
   display: flex;
   justify-content: center;
@@ -41,9 +42,3 @@
 .ant-timeline-item-last >.ant-timeline-item-content{
   min-height: 0px !important;
 }
-
-
-
-
-
-
