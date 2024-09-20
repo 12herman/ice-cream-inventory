@@ -59,7 +59,7 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             .filter((payDetail) => payDetail.description === 'Open')
             .sort(
               (a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
             )[0]
 
           const isOpenOrClose = payDetails
@@ -67,8 +67,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
               (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
             )
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )[0]
 
@@ -86,8 +86,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             ? [
                 openEntry,
                 ...payDetails.filter((payDetail) =>
-                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                    dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                   )
                 )
               ]
@@ -95,8 +95,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
 
           const filteredDeliveries = openEntry
             ? customerDeliveries.filter((delivery) =>
-                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
               )
             : customerDeliveries
@@ -250,7 +250,7 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
           )
           .sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss'))
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss'))
           )[0]
         if (isOpenOrClose) {
           setIsOpenDisabled(isOpenOrClose.description === 'Open');
@@ -323,8 +323,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
           payDetails
             .filter((payDetail) => payDetail.description === 'Open')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )[0] || null
 
@@ -332,8 +332,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
           payDetails
             .filter((payDetail) => payDetail.description === 'Close')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )[0] || null
 
@@ -341,63 +341,63 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
 
         if (openEntry) {
           if (closeEntry) {
-            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
             )
             if (isCloseAfterOpen) {
               filteredPayDetails = payDetails.filter((payDetail) => {
-                const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss')
                 return (
-                  payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')) &&
-                  payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss'))
+                  payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')) &&
+                  payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss'))
                 )
               })
               filteredPayDetails = [openEntry, ...filteredPayDetails, closeEntry]
               filteredPayDetails.sort(
                 (a, b) =>
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') -
-                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                  dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                  dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             } else {
               filteredPayDetails = [
                 openEntry,
                 ...payDetails.filter((payDetail) =>
-                  dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                    dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                  dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                    dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                   )
                 )
               ]
               filteredPayDetails.sort(
                 (a, b) =>
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') -
-                  dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                  dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                  dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             }
           } else {
             filteredPayDetails = [
               openEntry,
               ...payDetails.filter((payDetail) =>
-                dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
               )
             ]
             filteredPayDetails.sort(
               (a, b) =>
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
             )
           }
         } else {
           filteredPayDetails = [
             ...payDetails.filter((payDetail) =>
-              dayjs(payDetail.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )
           ]
           filteredPayDetails.sort(
             (a, b) =>
-              dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss') - dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
           )
         }
 
@@ -411,52 +411,52 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
 
         if (openEntry) {
           if (closeEntry) {
-            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-              dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+            const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
             )
             if (isCloseAfterOpen) {
               filteredDeliveries = deliveries.filter((delivery) => {
-                const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss')
                 return (
-                  deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')) &&
-                  deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY,HH.mm.ss'))
+                  deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')) &&
+                  deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss'))
                 )
               })
               filteredDeliveries.sort((a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
               )
             } else {
               filteredDeliveries = deliveries.filter((delivery) =>
-                dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
               )
               filteredDeliveries.sort((a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                  dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                  dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
               )
             }
           } else {
             filteredDeliveries = deliveries.filter((delivery) =>
-              dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(
-                dayjs(openEntry.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )
             filteredDeliveries.sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss')
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
             )
           }
         } else {
           filteredDeliveries = deliveries.filter((delivery) =>
-            dayjs(delivery.createddate, 'DD/MM/YYYY,HH.mm.ss').isAfter(dayjs().subtract(1, 'year'))
+            dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(dayjs().subtract(1, 'year'))
           )
           filteredDeliveries.sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY,HH.mm.ss').diff(dayjs(a.createddate, 'DD/MM/YYYY,HH.mm.ss'))
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss'))
           )
         }
         setDeliveryList(filteredDeliveries)

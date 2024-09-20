@@ -42,6 +42,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
+import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
 
@@ -841,12 +842,12 @@ const [storefirst,setStoreFirst] = useState(null)
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'createddate',
+      key: 'date',
       width: 150,
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format)
-        const dateB = dayjs(b.createddate, format)
+        const format = 'DD/MM/YYYY'
+        const dateA = dayjs(a.date, format)
+        const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
       defaultSortOrder: 'descend'
@@ -873,18 +874,18 @@ const [storefirst,setStoreFirst] = useState(null)
       key: 'paymentstatus',
       render: (text, record) => {
         const { partialamount } = record
-        if (text === 'Paid') {
+        if (text === 'Paid' && record.type !== 'Added' ) {
           return (
             <>
-              <Tag color="green">Paid</Tag>
+              <Tag color="green">{text}</Tag>
               <Tag color="blue">{record.type}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
-        } else if (text === 'Partial') {
+        } else if (text === 'Partial' && record.type !== 'Added') {
           return (
             <>
-              <Tag color="yellow">Partial - {partialamount}</Tag>
+              <Tag color="yellow">{text} - {partialamount}</Tag>
               <Tag color="blue">{record.type}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
@@ -893,14 +894,14 @@ const [storefirst,setStoreFirst] = useState(null)
         else if (text === 'Return') {
           return (
             <>
-              <Tag color="red">Return</Tag>
+              <Tag color="red">{text}</Tag>
               <Tag color="red">{record.type}</Tag>
             </>
           )
         } else {
           return (
             <>
-              <Tag color="red">Unpaid</Tag>
+              <Tag color="red">{text}</Tag>
               <Tag color="blue">{record.type}</Tag>
             </>
           )
