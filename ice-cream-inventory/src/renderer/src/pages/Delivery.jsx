@@ -113,7 +113,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               mobilenumber: mobileNumber
             }
           })
-      )
+      );
+      console.log(filteredData);
+      
      await setData(filteredData);
       setTableLoading(false)
     }
@@ -897,13 +899,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       // setLastOrderData({ customerdetails:{}, products:[] });
       // get last order data
        let lastOrderDatas= datas.delivery.filter(data=> data.customerid === value && data.type === 'order' );
-       
-       
+
        if(lastOrderDatas.length > 0){
         
-        let latestOrderData = await latestFirstSort(lastOrderDatas)[0]
-    
+        let latestOrderData = await latestFirstSort(lastOrderDatas);
+        latestOrderData = latestOrderData.length > 0 ? latestOrderData[0] : [];
+
         let {items,status} = await fetchItemsForDelivery(latestOrderData.id);
+        
         if(status){
         let customerDetails = lastOrderDatas[0];
         let products = await Promise.all(items.map( async item => {
@@ -914,32 +917,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                ...product
              })}
            }));
-        console.log(products);
-        
+
+        // console.log(products);
         let compainddata = [...lastOrderData.products,...products];
         
         let uniqueArray = [...new Map(compainddata.map(item => [item.id,item])).values()]
-
-        console.log(compainddata);
-        
-      //   itemsObject =await uniqueArray.map((data,i)=>{
-      //     return {
-      // createddate:TimestampJs(),
-      // customername:customerDetails.customerid,
-      // date:form2.getFieldValue().date ? form2.getFieldValue().date.format('DD/MM/YYYY') : '',
-      // flavour:data.flavour,
-      // key:i+1,
-      // margin:data.margin,
-      // mrp:data.numberofpacks * data.price,
-      // numberofpacks:data.numberofpacks,
-      // price: data.numberofpacks * data.price - (data.numberofpacks * data.price) * data.margin / 100,
-      // productname: data.productname,
-      // productprice:data.price,
-      // quantity: data.quantity + ' ' + data.unit,
-      // returntype: data.returntype
-      //     }
-      //   });
-      //   console.log(itemsObject);
+        // console.log(compainddata);
         
         setLastOrderData({customerdetails:customerDetails,products:uniqueArray}); }
       };
