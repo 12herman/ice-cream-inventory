@@ -1,23 +1,22 @@
-export const lastestFirstSort = async (data)=>{
+// Ensure this file exports the function
+// Ensure this file exports the function
+export const latestFirstSort = async (data) => {
+  let sorting = data.sort((a, b) => {
+    let parseDate = (dateStr) => {
+      let [datePart, timePart] = dateStr.split(' ');
+      let [day, month, year] = datePart.split('/');
+      let [hour, minute, second] = timePart.split(':');
 
-   let sorting = await data.sort((a, b) => {
-        // Convert "DD/MM/YYYY,HH.mm,ss" to a proper Date format "MM/DD/YYYY HH:mm:ss"
-        let parseDate = (dateStr) => {
-          let [datePart, timePart, seconds] = dateStr.split(','); // Split by comma to get date, time, and seconds
-          let [day, month, year] = datePart.split('/');
-          let [hour, minute] = timePart.split('.');
-      
-          // Construct a new Date object in the format "MM/DD/YYYY HH:mm:ss"
-          return new Date(`${month}/${day}/${year} ${hour}:${minute}:${seconds}`);
-        };
-      
-        let dateA = parseDate(a.createddate);
-        let dateB = parseDate(b.createddate);
-      
-        // Sort by date, time, and seconds
-        return   dateB - dateA;
-      });
+      // Create the date object with correct format for month/day/year
+      return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+    };
 
-      return sorting;
-}
-  
+    let dateA = parseDate(a.createddate);
+    let dateB = parseDate(b.createddate);
+
+    // Sort in descending order (latest first)
+    return dateB - dateA;
+  });
+
+  return sorting;
+};

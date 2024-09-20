@@ -27,6 +27,7 @@ import jsonToExcel from '../js-files/json-to-excel'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { getProductById } from '../firebase/data-tables/products'
 import { PiWarningCircleFill } from 'react-icons/pi'
+import { latestFirstSort } from '../js-files/sort-time-date-sec'
 
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   const [form] = Form.useForm()
@@ -59,7 +60,8 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             }
           })
       )
-      setData(filteredProductions)
+      const sortLatest = await latestFirstSort(filteredProductions)
+      setData(sortLatest)
       setIsProductionTbLoading(false)
     }
     fetchData()
@@ -108,14 +110,14 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'createddate',
+      key: 'date',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format)
-        const dateB = dayjs(b.createddate, format)
+        const format = 'DD/MM/YYYY'
+        const dateA = dayjs(a.date, format)
+        const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
-      defaultSortOrder: 'descend',
+      // defaultSortOrder: 'descend',
       editable: false,
       width: 115
     },
@@ -508,7 +510,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   // add new production
   const addNewProduction = async () => {
   
-    setIsAddProductModal(true)
+   await setIsAddProductModal(true)
     try {
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
@@ -530,7 +532,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         const existingProduct = datas.storage.find((storageItem) => storageItem.productid === existingProductList.id  && storageItem.category === 'Product List' )
         
         console.log(existingProduct);
-        setIsAddProductModal(false)
+        // setIsAddProductModal(false)
         await updateStorage(existingProduct.id, {
           numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks,
           updateddate:TimestampJs()
@@ -552,7 +554,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     } catch (error) {
       console.error('An error occurred while adding new production:', error)
     } finally {
-      setIsAddProductModal(false)
+     await setIsAddProductModal(false)
     }
   }
 

@@ -57,6 +57,7 @@ import companyLogo from '../assets/img/companylogo.png'
 import { customRound } from '../js-files/round-amount'
 import { TbFileSymlink } from "react-icons/tb";
 import { toDigit } from '../js-files/tow-digit'
+import { latestFirstSort } from '../js-files/sort-time-date-sec';
 const {  TextArea } = Input
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, customerUpdateMt }) {
   
@@ -163,11 +164,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'createddate',
+      key: 'date',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format)
-        const dateB = dayjs(b.createddate, format)
+        const format = 'DD/MM/YYYY'
+        const dateA = dayjs(a.date, format)
+        const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
       // defaultSortOrder: 'descend',
@@ -900,11 +901,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
        
        if(lastOrderDatas.length > 0){
         
-        let latestOrderData = lastOrderDatas.sort((a, b) => {
-          let dateA = new Date(a.createddate.replace(',', ' ')); // Replace comma for better parsing
-          let dateB = new Date(b.createddate.replace(',', ' '));
-          return dateB - dateA;
-        })[0];
+        let latestOrderData = await latestFirstSort(lastOrderDatas)[0]
     
         let {items,status} = await fetchItemsForDelivery(latestOrderData.id);
         if(status){

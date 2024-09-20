@@ -38,7 +38,7 @@ import { db } from '../firebase/firebase'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import { debounce } from 'lodash'
 import { PiWarningCircleFill } from 'react-icons/pi'
-import { lastestFirstSort } from '../js-files/sort-time-date-sec'
+import { latestFirstSort } from '../js-files/sort-time-date-sec'
 
 export default function Employee({ datas, employeeUpdateMt }) {
   // states
@@ -196,7 +196,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 if (status) {
                   
                   let checkPayData = paydetails.filter((item) => item.isdeleted === false)
-                  let lastestSrot =await lastestFirstSort(checkPayData);
+                  let lastestSrot =await latestFirstSort(checkPayData);
                   console.log(lastestSrot)
                   const totalPayment = checkPayData.reduce((total, item) => {
                     if (item.type === 'pay') {

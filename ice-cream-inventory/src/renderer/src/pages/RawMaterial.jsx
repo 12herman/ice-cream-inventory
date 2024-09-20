@@ -29,6 +29,7 @@ import { getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } fr
 const { Search } = Input
 const { RangePicker } = DatePicker
 import { PiWarningCircleFill } from 'react-icons/pi'
+import { latestFirstSort } from '../js-files/sort-time-date-sec'
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
@@ -85,8 +86,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)));
       console.log(filteredMaterials);
       
-      // console.log(filteredMaterials);
-      setData(filteredMaterials);
+      const sortLatest = await latestFirstSort(filteredMaterials)
+
+      setData(sortLatest);
       setIsMaterialTbLoading(false);
     }
     fetchData();
@@ -206,10 +208,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
+        let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
+        let supplierName = record.supplier !== undefined ? record.supplier.suppliername : undefined
+        // let quantityWithUnit = record.material !== undefined ? record.quantity+ record.material.unit : undefined;
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.suppliername).toLowerCase().includes(value.toLowerCase()) ||
+          String(supplierName).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
+          String(addMaterialName).toLowerCase().includes(value.toLowerCase()) ||
+          // String(quantityWithUnit).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.price).toLowerCase().includes(value.toLowerCase())
         )
@@ -218,14 +225,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'createddate',
+      key: 'date',
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY,HH:mm'
-        const dateA = dayjs(a.createddate, format)
-        const dateB = dayjs(b.createddate, format)
+        const format = 'DD/MM/YYYY'
+        const dateA = dayjs(a.date, format)
+        const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
-      defaultSortOrder: 'descend',
+      // defaultSortOrder: 'descend',
       width: 115
     },
     {
