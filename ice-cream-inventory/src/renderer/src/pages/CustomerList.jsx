@@ -153,13 +153,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         (item) => item.isdeleted === false && item.customerid === record.id
       )
       
-      
-      
       const combinedData = payDetails.concat(deliveryDocRef)
       let sortedData = await latestFirstSort(combinedData)
       setPayDetailsData(sortedData)
 
-      const totalPayment = sortedData.reduce((total, item) => {
+      const totalPayment = combinedData.reduce((total, item) => {
         if (item.type === 'Payment') {
           return total + (Number(item.amount) || 0)
         }
@@ -938,7 +936,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
                   <Radio value="Cash">Cash</Radio>
                   <Radio value="Card">Card</Radio>
                   <Radio value="UPI">UPI</Radio>
-                  <Radio value="NEFT">NEFT</Radio>
                 </Radio.Group>
               </Form.Item>
 

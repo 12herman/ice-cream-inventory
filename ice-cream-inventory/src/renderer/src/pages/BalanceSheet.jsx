@@ -35,9 +35,10 @@ export default function BalanceSheet({ datas }) {
   const [customerPayId, setCustomerPayId] = useState(null)
   const [customerName, setCustomerName] = useState('')
   const [refreshTable, setRefreshTable] = useState(false)
-  const [isOpenDisabled, setIsOpenDisabled] = useState(false);
-const [isCloseDisabled, setIsCloseDisabled] = useState(false);
-const [isPayDisabled, setIsPayDisabled] = useState(false);
+  const [isOpenDisabled, setIsOpenDisabled] = useState(false)
+  const [isCloseDisabled, setIsCloseDisabled] = useState(false)
+  const [isPayDisabled, setIsPayDisabled] = useState(false)
+  const [isPaySelected, setIsPaySelected] = useState(false)
 
   const fetchData = async () => {
     setBalanceTbLoading(true)
@@ -59,7 +60,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             .filter((payDetail) => payDetail.description === 'Open')
             .sort(
               (a, b) =>
-                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
             )[0]
 
           const isOpenOrClose = payDetails
@@ -72,15 +74,15 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
               )
             )[0]
 
-            if (!isOpenOrClose) {
-              return {
-                ...item,
-                sno: index + 1,
-                key: item.id || index,
-                balance: 0,
-                bookstatus: 'Empty',
-              };
+          if (!isOpenOrClose) {
+            return {
+              ...item,
+              sno: index + 1,
+              key: item.id || index,
+              balance: 0,
+              bookstatus: 'Empty'
             }
+          }
 
           const filteredPayDetails = openEntry
             ? [
@@ -102,16 +104,18 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             : customerDeliveries
 
           const billUnpaid = filteredDeliveries.reduce((acc, item) => {
-            if (item.paymentstatus === 'Unpaid') {
+            if (item.paymentstatus === 'Unpaid' && item.type === 'order') {
               return acc + (Number(item.billamount) || 0)
-            } else if (item.paymentstatus === 'Partial') {
+            } else if (item.paymentstatus === 'Partial' && item.type === 'order') {
               return acc + (Number(item.billamount) - Number(item.partialamount) || 0)
+            } else if (item.type === 'return') {
+              return acc - (Number(item.billamount) || 0)
             }
             return acc
           }, 0)
 
           const totalPayment = filteredPayDetails.reduce((acc, item) => {
-            return item.type !== 'Balance' ?  acc + Number(item.amount) : acc
+            return item.type !== 'Balance' ? acc + Number(item.amount) : acc
           }, 0)
 
           const balance = openEntry.amount + billUnpaid - totalPayment
@@ -244,25 +248,29 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
       console.log(payDetailsResponse)
       if (payDetailsResponse.status === 200) {
-        const payDetails = payDetailsResponse.paydetails || [];
+        const payDetails = payDetailsResponse.paydetails || []
         const isOpenOrClose = payDetails
           .filter(
             (payDetail) => payDetail.description === 'Open' || payDetail.description === 'Close'
           )
           .sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss'))
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
           )[0]
         if (isOpenOrClose) {
-          setIsOpenDisabled(isOpenOrClose.description === 'Open');
-          setIsCloseDisabled(isOpenOrClose.description === 'Close');
-          setIsPayDisabled(isOpenOrClose.description === 'Close');
+          setIsOpenDisabled(isOpenOrClose.description === 'Open')
+          setIsCloseDisabled(isOpenOrClose.description === 'Close')
+          setIsPayDisabled(isOpenOrClose.description === 'Close')
+          setIsModalVisible(false)
           payForm.setFieldsValue({
-            description: isOpenOrClose.description === 'Open' ? 'Pay' : 'Open'
+            description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
           })
         } else {
-          setIsOpenDisabled(false);
-          setIsCloseDisabled(true);
-          setIsPayDisabled(true);
+          setIsOpenDisabled(false)
+          setIsCloseDisabled(true)
+          setIsPayDisabled(true)
+          setIsModalVisible(false)
           payForm.setFieldsValue({ description: 'Open' })
         }
       } else {
@@ -275,10 +283,18 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
   }
 
   const balancesheetPay = async (value) => {
-    let { date, amount,description, ...Datas } = value
+    let { date, amount, description, paymentmode, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const type = description === 'Pay' ? 'Payment' : 'Balance';
-    const payData = { ...Datas, amount: Number(amount), date: formateDate, type: type,description:description, createddate: TimestampJs() }
+    const type = description === 'Pay' ? 'Payment' : 'Balance'
+    const payData = {
+      ...Datas,
+      amount: Number(amount),
+      date: formateDate,
+      type: type,
+      paymentmode: description === 'Pay' ? paymentmode : '',
+      description: description,
+      createddate: TimestampJs()
+    }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -289,6 +305,7 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
       console.log(e)
     } finally {
       payForm.resetFields()
+      fetchCustomerData(customerPayId)
       setCustomerPayId(null)
       setIsModalVisible(false)
     }
@@ -304,9 +321,13 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
     setFilteredData(filtered)
   }
 
-  const handleRowClick = async (record) => {
+  const handleRowClick = (record) => {
+    fetchCustomerData(record.id)
+  }
+
+  const fetchCustomerData = async (customerId) => {
     try {
-      const customerResponse = await getCustomerById(record.id)
+      const customerResponse = await getCustomerById(customerId)
       if (customerResponse.status === 200) {
         const customerData = customerResponse.customer
         setCustomerName(customerData.customername)
@@ -315,7 +336,7 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
         return
       }
 
-      const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      const payDetailsResponse = await getCustomerPayDetailsById(customerId)
       if (payDetailsResponse.status === 200) {
         const payDetails = payDetailsResponse.paydetails || []
 
@@ -384,7 +405,8 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             ]
             filteredPayDetails.sort(
               (a, b) =>
-                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
             )
           }
         } else {
@@ -397,17 +419,18 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
           ]
           filteredPayDetails.sort(
             (a, b) =>
-              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') - dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
           )
         }
 
         setPayDetailsList(filteredPayDetails)
 
         const deliveries = deliveryData.filter(
-          (delivery) => delivery.customerid === record.id && !delivery.isdeleted
+          (delivery) => delivery.customerid === customerId && !delivery.isdeleted
         )
 
-        let filteredDeliveries = [];
+        let filteredDeliveries = []
 
         if (openEntry) {
           if (closeEntry) {
@@ -456,12 +479,14 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(dayjs().subtract(1, 'year'))
           )
           filteredDeliveries.sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss'))
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
           )
         }
         setDeliveryList(filteredDeliveries)
       } else {
-         console.error(payDetailsResponse.message);
+        console.error(payDetailsResponse.message)
       }
     } catch (e) {
       console.log(e)
@@ -511,7 +536,14 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
   }, 0)
 
   const totalPayment = payDetailsList.reduce((acc, item) => {
-    return item.type !== 'Balance' ?  acc + Number(item.amount) : acc
+    return item.type !== 'Balance' ? acc + Number(item.amount) : acc
+  }, 0)
+
+  const openingBalance = payDetailsList.reduce((acc, item) => {
+    if (item.type === 'Balance' && item.description === 'Open') {
+      return acc + item.amount
+    }
+    return acc
   }, 0)
 
   const handleCardClick = (key) => {
@@ -661,7 +693,7 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Payments: {payDetailsList.length}</div>
+                  <div>Opening Balance: {openingBalance}</div>
                   <div>Total Payment: {totalPayment.toFixed(2)}</div>
                 </div>
               }
@@ -694,11 +726,13 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
           payForm.submit()
         }}
         onCancel={() => {
+          payForm.resetFields(),
+          setIsPaySelected(false),
           setIsModalVisible(false)
         }}
       >
         <Form
-          initialValues={{ date: dayjs() }}
+          initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
           layout="vertical"
           form={payForm}
           onFinish={balancesheetPay}
@@ -719,6 +753,9 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             <Radio.Group
               buttonStyle="solid"
               style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+              onChange={(e) => {
+                setIsPaySelected(e.target.value === 'Pay')
+              }}
             >
               <Radio.Button value="Open" style={{ width: '33%' }} disabled={isOpenDisabled}>
                 OPEN
@@ -737,7 +774,20 @@ const [isPayDisabled, setIsPayDisabled] = useState(false);
             label="Book Balance"
             rules={[{ required: true, message: false }]}
           >
-            <InputNumber className='w-full' type="number" min={0} placeholder="Enter Amount" />
+            <InputNumber className="w-full" type="number" min={0} placeholder="Enter Amount" />
+          </Form.Item>
+
+          <Form.Item
+            className="mb-0"
+            name="paymentmode"
+            label="Payment Mode"
+            rules={[{ required: true, message: false }]}
+          >
+            <Radio.Group size="small" disabled={!isPaySelected}>
+              <Radio value="Cash">Cash</Radio>
+              <Radio value="Card">Card</Radio>
+              <Radio value="UPI">UPI</Radio>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Modal>
