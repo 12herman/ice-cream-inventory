@@ -340,6 +340,11 @@ export default function NavBar({
     // if(isQuickSale.type === 'booking'){
     // }
     // setIsQuickSale((pre) => ({ ...pre, model: false }))
+    
+    if(dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY') === 'Invalid Date'){
+      return message.open({type:'info',content:"Please choose the correct date"})
+    }
+    
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue()
     if (
       isQuickSale.type === 'booking' &&
@@ -422,7 +427,7 @@ export default function NavBar({
         isdeleted: false,
         paymentmode: isQuickSale.paymentmode,
         createddate: TimestampJs(),
-        date: isQuickSale.date
+        date: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
       }
 
       
@@ -432,7 +437,7 @@ export default function NavBar({
           ? 0
           : qickSaleForm3Value.partialamount,
         createddate:TimestampJs(),
-        date:isQuickSale.date,
+        date:dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
         description:'',
         paymentmode:isQuickSale.paymentmode
       }
@@ -470,10 +475,8 @@ export default function NavBar({
         console.log(error)
         setIsSpinners(false)
       }
-
     }
-   
-   
+
   }
 
   const marginMt = (value) => {

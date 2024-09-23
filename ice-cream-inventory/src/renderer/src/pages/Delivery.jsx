@@ -2057,7 +2057,7 @@ const [payModalState,setPayModalState] = useState({
     let paydetails = sortedHistory.length > 0 ? paymenthistory.map((data,i)=>({
       key:data.id,
       label: data.date,
-      children: (<span className='flex gap-x-1 w-full '> <Tag color='green'>{formatToRupee(data.amount)}</Tag> {data.description}   
+      children: (<span className='flex gap-x-1 w-full '> <Tag className='m-0' color='green'>{formatToRupee(data.amount)}</Tag> <Tag className='m-0'>{data.paymentmode}</Tag> {data.description}   
       {/* <MdOutlineModeEditOutline 
       onClick={()=>{
         // click to get the data 
@@ -2760,7 +2760,7 @@ const [payModalState,setPayModalState] = useState({
             </Tag>
           </span>
 
-          <span className={`${deliveryBill.prdata.paymentstatus === 'Paid' ? 'hidden': 'inline-block'}`}>Balance Amount: <Tag color='red' className='text-sm font-medium'>{formatToRupee(deliveryBill.data.billamount - deliveryBill.data.partialamount)}</Tag></span>
+          <span className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.paymentstatus === 'Return' ? 'hidden': 'inline-block'}`}>Balance Amount: <Tag color='red' className='text-sm font-medium'>{formatToRupee(deliveryBill.data.billamount - deliveryBill.data.partialamount)}</Tag></span>
         </div>
 
         <div 
