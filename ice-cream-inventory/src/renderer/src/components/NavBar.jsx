@@ -256,16 +256,14 @@ export default function NavBar({
       unit: values.quantity.split(' ')[1]
     }
 
-    const temdata = datas.product
-      .filter(
+    const temdata = datas.product.filter(
         (pr) =>
           pr.productname === inputDatas.productname &&
           pr.isdeleted === false &&
           pr.flavour === inputDatas.flavour &&
           pr.quantity === inputDatas.quantity &&
-          pr.unit === inputDatas.unit
-      )
-      .map((data) => ({
+          pr.unit === inputDatas.unit)
+           .map((data) => ({
         ...data,
         numberofpacks: inputDatas.numberofpacks,
         quantity: values.quantity,
@@ -274,36 +272,43 @@ export default function NavBar({
         margin: 0,
         productprice: data.price,
         price: values.numberofpacks * data.price,
-        key: isQuickSale.count
-      }))
+        key: isQuickSale.count}))
 
-    setIsQuickSale((pre) => ({ ...pre, temdata: [...pre.temdata, ...temdata] }))
-    const alltemdata = [...isQuickSale.temdata, ...temdata]
+    // setIsQuickSale((pre) => ({ ...pre, temdata: [...pre.temdata, ...temdata] }))
+    
+    const alltemdata = [...isQuickSale.temdata, ...temdata];
+    const billamt = alltemdata.map(data => data.price).reduce((a,b)=> a + b,0);
     const totalMultiprTotalPr = alltemdata.reduce((acc, curr) => {
       return acc + (curr.mrp || 0)
     }, 0)
     setIsQuickSale((pre) => ({
       ...pre,
       total: totalMultiprTotalPr,
-      marginstate: false
+      billamount:billamt,
+      marginstate: true,
+      temdata: [...pre.temdata, ...temdata]
     }))
     quickSaleForm2.resetFields()
     quickSaleForm3.resetFields()
   }
 
   const removeTemProduct = (data) => {
+    
     const deletedData = isQuickSale.temdata.filter((item) => item.sno !== data.sno)
-    setIsQuickSale((pre) => ({ ...pre, temdata: deletedData }))
-    const totalMultiprTotalPr = deletedData.reduce((acc, curr) => {
-      return acc + (curr.mrp || 0)
-    }, 0)
+    // setIsQuickSale((pre) => ({ ...pre, temdata: deletedData }))
+    const totalMultiprTotalPr = deletedData.reduce((acc, curr) => { return acc + (curr.mrp || 0); }, 0);
+    const billamt = deletedData.map(data => data.price).reduce((a,b)=> a + b,0);
+    
     setIsQuickSale((pre) => ({
       ...pre,
+      temdata: deletedData,
       total: totalMultiprTotalPr,
-      marginstate: false,
-      paymentstatus: '',
+      billamount:billamt,
+      marginstate: true,
+      paymentstatus: pre.paymentstatus,
       paymentmode:'Cash',
-    }))
+    }));
+
     quickSaleForm2.resetFields()
     quickSaleForm3.resetFields()
   }
@@ -331,11 +336,11 @@ export default function NavBar({
   }
 
   const quicksaleMt = async () => {
+ 
     // if(isQuickSale.type === 'booking'){
     // }
     // setIsQuickSale((pre) => ({ ...pre, model: false }))
     let qickSaleForm3Value = quickSaleForm3.getFieldsValue()
-
     if (
       isQuickSale.type === 'booking' &&
       (qickSaleForm3Value.customername === '' ||
@@ -381,14 +386,15 @@ export default function NavBar({
         margin: data.margin,
         productprice: data.productprice
       }));
-      console.log(productItems)
+      console.log(productItems);
+      
       if (isQuickSale.type === 'quick') {
+       
         await productItems.map(async (data) => {
           const existingProduct = datas.storage.find(
             (storageItem) =>
               storageItem.productid === data.id && storageItem.category === 'Product List'
           )
-
           // console.log(existingProduct.id,{numberofpacks: existingProduct.numberofpacks - data.numberofpacks,updateddate:TimestampJs()});
           await updateStorage(existingProduct.id, {
             numberofpacks: existingProduct.numberofpacks - data.numberofpacks,
@@ -396,6 +402,7 @@ export default function NavBar({
           })
         })
         await storageUpdateMt()
+       
       }
 
       const newDelivery = {
@@ -419,7 +426,7 @@ export default function NavBar({
       }
       console.log(isQuickSale.type === "booking");
       
-
+      
       try {
         const deliveryCollectionRef = collection(db, 'delivery')
         const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
@@ -442,12 +449,15 @@ export default function NavBar({
           type: 'quick'
         }))
         quickSaleForm.resetFields()
-        setIsSpinners(false)
+       await setIsSpinners(false)
       } catch (error) {
         console.log(error)
         setIsSpinners(false)
       }
+
     }
+   
+   
   }
 
   const marginMt = (value) => {
