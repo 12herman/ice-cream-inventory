@@ -2840,9 +2840,17 @@ const [payModalState,setPayModalState] = useState({
           <Form
             onFinish={payModalState.type === 'create' ? quickSalePayMt : updateQuickSalePayMt}
             form={quicksalepayForm}
-            initialValues={{ date: dayjs() }}
+            initialValues={{ date: dayjs(),paymentmode:"Cash"}}
             layout="vertical"
           >
+           <Form.Item
+              className=" absolute top-[-3rem]"
+              name="date"
+              label=""
+              rules={[{ required: true, message: false }]}
+            >
+              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+            </Form.Item>
             <Form.Item
               className="mb-1"
               name="amount"
@@ -2862,13 +2870,18 @@ const [payModalState,setPayModalState] = useState({
               <TextArea rows={4} placeholder="Write the Description" />
             </Form.Item>
             <Form.Item
-              className=" absolute top-[-3rem]"
-              name="date"
-              label=""
-              rules={[{ required: true, message: false }]}
-            >
-              <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
-            </Form.Item>
+                className="mb-0"
+                name="paymentmode"
+                label="Payment Mode"
+                rules={[{ required: true, message: false }]}
+              >
+                <Radio.Group
+                   size='small'>
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item>
           </Form>
         </Spin>
       </Modal>
