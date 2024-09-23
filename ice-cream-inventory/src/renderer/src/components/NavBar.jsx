@@ -424,13 +424,29 @@ export default function NavBar({
         createddate: TimestampJs(),
         date: isQuickSale.date
       }
-      console.log(isQuickSale.type === "booking");
+
       
-      
+      const paydetailsHistory = {
+        amount:qickSaleForm3Value.partialamount === undefined ||
+        qickSaleForm3Value.partialamount === null
+          ? 0
+          : qickSaleForm3Value.partialamount,
+        createddate:TimestampJs(),
+        date:isQuickSale.date,
+        description:'',
+        paymentmode:isQuickSale.paymentmode
+      }
+
       try {
         const deliveryCollectionRef = collection(db, 'delivery')
         const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
-        const itemsCollectionRef = collection(deliveryDocRef, 'items')
+        const itemsCollectionRef = collection(deliveryDocRef, 'items');
+        const paydetailsHistoryRef = collection(deliveryDocRef, 'paydetails');
+
+        if((isQuickSale.type === 'booking' || isQuickSale.type === 'quick') && isQuickSale.paymentstatus === 'Partial'){
+          await addDoc(paydetailsHistoryRef, paydetailsHistory)
+        }
+
         for (const item of productItems) {
           await addDoc(itemsCollectionRef, item)
         }
@@ -1231,7 +1247,7 @@ export default function NavBar({
                 >
                   <DatePicker
                     className="w-[8.5rem]"
-                    onChange={qickSaledateChange}
+                    // onChange={qickSaledateChange}
                     format={'DD/MM/YYYY'}
                   />
                 </Form.Item>
