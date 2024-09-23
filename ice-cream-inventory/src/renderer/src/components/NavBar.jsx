@@ -34,7 +34,7 @@ import { PiWarningCircleFill } from 'react-icons/pi'
 import { debounce } from 'lodash'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { customRound } from '../js-files/round-amount'
-
+import '../components/css/NavBar.css'
 export default function NavBar({
   navPages,
   setNavPages,

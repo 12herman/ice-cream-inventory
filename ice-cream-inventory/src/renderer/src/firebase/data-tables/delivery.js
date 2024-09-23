@@ -117,4 +117,28 @@ export const deleteDelivery = async (deliveryId) => {
   }
 };
 
+  // To get all deliverys from all Delivery
+  export const getAllPayDetailsFromAllDelivery = async () => {
+    try {
+      const DeliveryCollectionRef = collection(db, 'delivery');
+      const DeliverySnapshot = await getDocs(DeliveryCollectionRef);
+      const alldeliveryDetails = [];
+      for (const supplierDoc of DeliverySnapshot.docs) {
+        const DeliveryId = supplierDoc.id;
+        const DeliveryDetailsRef = collection(db, 'delivery', DeliveryId, 'paydetails');
+        const deliveryDetailsSnapshot = await getDocs(DeliveryDetailsRef);
+        deliveryDetailsSnapshot.forEach(deliveryDoc => {
+          alldeliveryDetails.push({
+            DeliveryId,
+            deliveryId: deliveryDoc.id,
+            ...deliveryDoc.data(),
+          });
+        });
+      }
+      return { deliverys: alldeliveryDetails, status: 200 };
+    } catch (err) {
+      console.error("Error fetching delivery details from all delivery: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
 

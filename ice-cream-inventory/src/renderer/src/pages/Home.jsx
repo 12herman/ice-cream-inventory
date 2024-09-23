@@ -24,7 +24,7 @@ import { FaRupeeSign } from 'react-icons/fa'
 import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
-import { fetchItemsForDelivery } from '../firebase/data-tables/delivery'
+import { fetchItemsForDelivery, getAllPayDetailsFromAllDelivery } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
@@ -433,8 +433,14 @@ export default function Home({ datas }) {
   }, 300)
 
   useEffect(() => {
+
+
+
     const fetchData = async () => {
       setTableLoading(true)
+
+      
+
       const initialData = await Promise.all(
         datas.delivery
           .filter((data) => !data.isdeleted && data.date === today.format('DD/MM/YYYY'))
@@ -452,6 +458,7 @@ export default function Home({ datas }) {
       )
 
       setSelectedTableData(initialData)
+
       setTableLoading(false)
 
       const initialDeliveryData = await Promise.all(
@@ -475,6 +482,8 @@ export default function Home({ datas }) {
     fetchData()
   }, [datas])
 
+let [totalPayAmount,setTotalPayAmount] = useState(0)
+
   useEffect(() => {
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
@@ -488,6 +497,15 @@ export default function Home({ datas }) {
           (dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1])))
         )
       }
+
+      let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
+      if(status){
+       let filterData = deliverys.filter(data => isWithinRange(data.date));
+       let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
+       setTotalPayAmount(totalAmount);
+       console.log(totalAmount);
+      }
+
 
       const newFilteredDelivery = await Promise.all(
         datas.delivery
@@ -596,12 +614,27 @@ export default function Home({ datas }) {
     )
   }).length
 
-  const totalPaid = filteredDelivery.reduce((total, product) => {
+// useEffect(()=>{
+//   async function fetchPayDetails(){
+//     let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
+//     if(status){
+//      let filterData = deliverys.filter(data => data.date === '23/09/2024');
+//      let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
+//      console.log(totalAmount);
+     
+//     }
+//    }
+//    fetchPayDetails()
+// },[])
+
+  const totalPaid = filteredDelivery.reduce(async(total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
+
       return total + (Number(product.billamount) || 0)
-    } else if (product.paymentstatus === 'Partial') {
-      return total + (Number(product.partialamount) || 0)
-    }
+    } 
+    // else if (product.paymentstatus === 'Partial') {
+    //   return total + (Number(product.partialamount) || 0)
+    // }
     return total
   }, 0)
 
@@ -680,7 +713,7 @@ export default function Home({ datas }) {
         newSelectedTableData = filteredDelivery
     }
     setSelectedTableData(newSelectedTableData)
-    console.log(newSelectedTableData)
+    // console.log(newSelectedTableData)
   }
 
   const handlePaymentTypeClick = (paymentMode, event) => {
@@ -1255,8 +1288,43 @@ export default function Home({ datas }) {
     marginform.resetFields(['marginvalue'])
   }
 
+ // card
+  const tabListNoTitle = [
+    {
+      key: 'total',
+      label: 'Total',
+    },
+    {
+      key: 'cash',
+      label: 'Cash',
+    },
+    {
+      key: 'card',
+      label: 'Card',
+    },
+    {
+      key: 'upi',
+      label: 'UPI',
+    },
+   
+  ];
+
+  const contentListNoTitle = {
+    cash: <p className='pl-4'>article content</p>,
+    card: <p className='pl-4'>app content</p>,
+    upi: <p className='pl-4'>project content</p>,
+    total:<p className='pl-4'>{formatToRupee(totalPaid + Number(totalPayAmount))}</p>
+  };
+
+  const [activeTabKey2, setActiveTabKey2] = useState('total');
+
+  const onTab2Change = (key) => {
+    setActiveTabKey2(key);
+  };
+
   return (
     <div>
+    
       <ul>
         <li className="flex gap-x-3 items-center justify-end">
           <RangePicker
@@ -1280,9 +1348,35 @@ export default function Home({ datas }) {
           {cardsData.map((card) => {
             const isActive = activeCard === card.key
             return (
-              <Card
+              <div>
+              
+              {card.key === 'totalPaid' ? <Card
+        style={{
+                  cursor: 'pointer',
+                  borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
+                  borderWidth: 2,
+                  background: isActive ? '#f26723' : '',
+                  color: isActive ? '#ffffff' : '#3f8600'
+                }}
+        tabList={tabListNoTitle}
+        activeTabKey={activeTabKey2}
+        onClick={() => {
+          // document.querySelector('.ant-tabs-tab-btn').classList('testactive')
+          handleCardClick(card.key)
+        }}
+        // tabBarExtraContent={<a href="#">More</a>}
+        onTabChange={onTab2Change}
+        tabProps={{
+          size: 'middle',
+        }}
+      >
+        {contentListNoTitle[activeTabKey2]}
+      </Card> :  <Card
                 key={card.key}
-                onClick={() => handleCardClick(card.key)}
+                onClick={(e) =>  {
+                 
+                  handleCardClick(card.key)
+                }}
                 style={{
                   cursor: 'pointer',
                   borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
@@ -1335,7 +1429,14 @@ export default function Home({ datas }) {
                     )}
                   </div>
                 </div>
-              </Card>
+              </Card>}
+
+
+             
+
+        
+   </div>
+              
             )
           })}
         </ul>
