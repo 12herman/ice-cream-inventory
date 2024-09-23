@@ -198,11 +198,10 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         })
       );
 
-      let sortedData = await latestFirstSort(payDetails)
-      const combinedData = sortedData.concat(rawmaterialNameRef)
+      const combinedData = payDetails.concat(rawmaterialNameRef)
       
-      
-      setPayDetailsData(combinedData)
+      let sortedData = await latestFirstSort(combinedData)
+      setPayDetailsData(sortedData)
 
       const totalBalance = combinedData.reduce((total, item) => {
         if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
