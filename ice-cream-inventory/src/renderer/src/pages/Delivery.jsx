@@ -1870,9 +1870,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         const canvas = await html2canvas(element)
         const data = await canvas.toDataURL('image/png')
         const pdf = await new jsPDF()
-        const imgWidth = 210 // A4 page width in mm
+        const imgWidth = 210
+        const pageHeight = 297
         const imgHeight = (canvas.height * imgWidth) / canvas.width
-        pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight)
+        let heightLeft = imgHeight
+        let position = 0
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight
+          pdf.addPage()
+          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+        }
         pdf.save(
           `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
         )

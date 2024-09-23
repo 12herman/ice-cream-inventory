@@ -980,7 +980,6 @@ export default function Employee({ datas, employeeUpdateMt }) {
                   <Radio value="Cash">Cash</Radio>
                   <Radio value="Card">Card</Radio>
                   <Radio value="UPI">UPI</Radio>
-                  <Radio value="NEFT">NEFT</Radio>
                 </Radio.Group>
               </Form.Item>
 

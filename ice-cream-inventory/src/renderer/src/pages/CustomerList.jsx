@@ -55,6 +55,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [totalReturnAmount, setTotalReturnAmount] = useState(0)
   const [totalPurchaseAmount, setTotalPurchaseAmount] = useState(0)
   const [totalPaymentAmount, setTotalPaymentAmount] = useState(0)
+  const [totalBalanceAmount, setTotalBalanceAmount] = useState(0)
 
   // side effect
   useEffect(() => {
@@ -152,7 +153,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       const deliveryDocRef = await datas.delivery.filter(
         (item) => item.isdeleted === false && item.customerid === record.id
       )
-      
+
       const combinedData = payDetails.concat(deliveryDocRef)
       let sortedData = await latestFirstSort(combinedData)
       setPayDetailsData(sortedData)
@@ -163,7 +164,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         }
         return total
       }, 0)
-      
+
       setTotalPaymentAmount(totalPayment)
 
       const totalPurchase = combinedData.reduce((total, item) => {
@@ -182,6 +183,24 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       }, 0)
       setTotalReturnAmount(totalReturn)
 
+      const totalBalance = combinedData.reduce((total, item) => {
+        const billAmount = Number(item.billamount) || 0
+        const partialAmount = Number(item.partialamount) || 0
+        const paymentAmount = Number(item.amount) || 0
+        if (item.type === 'order') {
+          if (item.paymentstatus === 'Unpaid') {
+            return total + billAmount
+          } else if (item.paymentstatus === 'Partial') {
+            return total + (billAmount - partialAmount)
+          }
+        } else if (item.type === 'return') {
+          return total - billAmount
+        } else if (item.type === 'Payment') {
+          return total - paymentAmount
+        }
+        return total
+      }, 0)
+      setTotalBalanceAmount(totalBalance)
     } catch (e) {
       console.log(e)
     }
@@ -244,14 +263,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       render: (_, record) => {
         return record.paymentstatus === undefined ? (
           <>
-          <Tag color="cyan">{record.paymentmode}</Tag>
-          <span>-</span>
+            <Tag color="cyan">{record.paymentmode}</Tag>
+            <span>-</span>
           </>
         ) : record.paymentstatus === 'Paid' ? (
-            <span className="flex items-center">
+          <span className="flex items-center">
             <Tag color="green">Paid</Tag>
             {record.paymentmode && <Tag color="cyan">{record.paymentmode}</Tag>}
-            </span>
+          </span>
         ) : record.paymentstatus === 'Unpaid' ? (
           <Tag color="red">UnPaid</Tag>
         ) : record.paymentstatus === 'Partial' ? (
@@ -266,7 +285,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           <></>
         )
       },
-      width: 140
+      width: 170
     },
     {
       title: 'Description',
@@ -926,19 +945,17 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             </Form.Item>
 
             <Form.Item
-                className="mb-0"
-                name="paymentmode"
-                label="Payment Mode"
-                rules={[{ required: true, message: false }]}
-              >
-                <Radio.Group
-                   size='small'>
-                  <Radio value="Cash">Cash</Radio>
-                  <Radio value="Card">Card</Radio>
-                  <Radio value="UPI">UPI</Radio>
-                </Radio.Group>
-              </Form.Item>
-
+              className="mb-0"
+              name="paymentmode"
+              label="Payment Mode"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group size="small">
+                <Radio value="Cash">Cash</Radio>
+                <Radio value="Card">Card</Radio>
+                <Radio value="UPI">UPI</Radio>
+              </Radio.Group>
+            </Form.Item>
           </Form>
         </Spin>
       </Modal>
@@ -964,6 +981,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           <div>Order: {totalPurchaseAmount.toFixed(2)}</div>
           <div>Return: {totalReturnAmount.toFixed(2)}</div>
           <div>Payment: {totalPaymentAmount.toFixed(2)}</div>
+          <div>Balance: {totalBalanceAmount.toFixed(2)}</div>
         </div>
       </Modal>
     </div>

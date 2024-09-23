@@ -57,8 +57,8 @@ export default function Home({ datas }) {
   const [tableLoading, setTableLoading] = useState(true)
   const [form] = Form.useForm()
   const [marginform] = Form.useForm()
- 
-  const [temform] = Form.useForm();
+
+  const [temform] = Form.useForm()
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
   const [deliveryData, setDeliveryData] = useState([])
   const [quotationData, setQuotationData] = useState({
@@ -67,29 +67,28 @@ export default function Home({ datas }) {
     productname: '',
     flavour: '',
     quantity: '',
-    numberofpacks: 1,
-  });
+    numberofpacks: 1
+  })
 
-  const [quotationft,setQuotationFt] = useState({
+  const [quotationft, setQuotationFt] = useState({
     date: null,
-    type:'withGST',
-    tempproduct:[],
+    type: 'withGST',
+    tempproduct: [],
     margin: 0,
     discount: 0,
-    percentage:0,
-    amount:0,
-    count:0,
-    totalamount:0,
-    editingkey:'',
-    mrpamount:0,
-    onfocus:false,
-    edmargin:true,
-    edprice:true,
-    edpacks:true,
-    customername:'',
-    mobilenumber:''
-  });
-
+    percentage: 0,
+    amount: 0,
+    count: 0,
+    totalamount: 0,
+    editingkey: '',
+    mrpamount: 0,
+    onfocus: false,
+    edmargin: true,
+    edprice: true,
+    edpacks: true,
+    customername: '',
+    mobilenumber: ''
+  })
 
   const quotationTempTable = [
     {
@@ -146,7 +145,7 @@ export default function Home({ datas }) {
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable:quotationft.edprice
+      editable: quotationft.edprice
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -163,7 +162,7 @@ export default function Home({ datas }) {
               onClick={() => temTbEdit(record)}
             />
             <Popconfirm
-              className='cursor-pointer text-red-500 hover:text-red-400'
+              className="cursor-pointer text-red-500 hover:text-red-400"
               // className={`${quotationft.editingkey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
               onConfirm={() => removeTemProduct(record)}
@@ -183,7 +182,16 @@ export default function Home({ datas }) {
 
             <Popconfirm
               title="Sure to cancel?"
-              onConfirm={() => {setStoreFirst(null); setQuotationFt((pre) => ({ ...pre, editingkey:'',edpacks:true,edprice:true,edmargin:true}))}}
+              onConfirm={() => {
+                setStoreFirst(null)
+                setQuotationFt((pre) => ({
+                  ...pre,
+                  editingkey: '',
+                  edpacks: true,
+                  edprice: true,
+                  edmargin: true
+                }))
+              }}
             >
               <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
             </Popconfirm>
@@ -195,7 +203,7 @@ export default function Home({ datas }) {
 
   const isEditionTemp = (re) => {
     return quotationft.editingkey.includes(re.key)
-  };
+  }
 
   const tempMergedColumns = quotationTempTable.map((col) => {
     if (!col.editable) {
@@ -212,11 +220,15 @@ export default function Home({ datas }) {
       })
     }
   })
-const [storefirst,setStoreFirst] = useState(null)
+  const [storefirst, setStoreFirst] = useState(null)
   const temTbEdit = (re) => {
     temform.setFieldsValue({ ...re })
-    setQuotationFt((pre) => ({ ...pre, editingkey: [re.key], ediable:{margin:true,packs:true,price:true} }))
-  };
+    setQuotationFt((pre) => ({
+      ...pre,
+      editingkey: [re.key],
+      ediable: { margin: true, packs: true, price: true }
+    }))
+  }
 
   const EditableCellTem = ({
     editing,
@@ -230,19 +242,25 @@ const [storefirst,setStoreFirst] = useState(null)
   }) => {
     const inputNode =
       dataIndex === 'numberofpacks' ? (
-        <InputNumber size="small" type="number" className="w-[4rem]" min={1}  onFocus={(e) => {
-          if(storefirst === null){
-            setStoreFirst(e.target.value)
-            setQuotationFt(pre=>({...pre,edmargin:false,edprice:false}))
-          }
-        }}/>
+        <InputNumber
+          size="small"
+          type="number"
+          className="w-[4rem]"
+          min={1}
+          onFocus={(e) => {
+            if (storefirst === null) {
+              setStoreFirst(e.target.value)
+              setQuotationFt((pre) => ({ ...pre, edmargin: false, edprice: false }))
+            }
+          }}
+        />
       ) : dataIndex === 'margin' ? (
         <InputNumber
           type="number"
           onFocus={(e) => {
-            if(storefirst === null){
+            if (storefirst === null) {
               setStoreFirst(e.target.value)
-              setQuotationFt(pre=>({...pre,edpacks:false,edprice:false}))
+              setQuotationFt((pre) => ({ ...pre, edpacks: false, edprice: false }))
             }
           }}
           size="small"
@@ -250,12 +268,12 @@ const [storefirst,setStoreFirst] = useState(null)
           min={0}
           max={100}
         />
-      )  :  (
+      ) : (
         <InputNumber
           onFocus={(e) => {
-            if(storefirst === null){
+            if (storefirst === null) {
               setStoreFirst(e.target.value)
-              setQuotationFt(pre=>({...pre,edpacks:false,edmargin:false}))
+              setQuotationFt((pre) => ({ ...pre, edpacks: false, edmargin: false }))
             }
           }}
           size="small"
@@ -285,20 +303,30 @@ const [storefirst,setStoreFirst] = useState(null)
         )}
       </td>
     )
-  };
+  }
 
-  const savedata= async (data)=>{
-    let row = temform.getFieldValue();
-    try{
-      if(data.numberofpacks === row.numberofpacks && data.margin === row.margin && data.price === row.price){
-        message.open({type:'info',content:'No changes made'})
-      }
-      else if(data.numberofpacks !== row.numberofpacks && data.margin === row.margin && data.price === row.price || data.numberofpacks === row.numberofpacks && data.margin !== row.margin && data.price === row.price){
+  const savedata = async (data) => {
+    let row = temform.getFieldValue()
+    try {
+      if (
+        data.numberofpacks === row.numberofpacks &&
+        data.margin === row.margin &&
+        data.price === row.price
+      ) {
+        message.open({ type: 'info', content: 'No changes made' })
+      } else if (
+        (data.numberofpacks !== row.numberofpacks &&
+          data.margin === row.margin &&
+          data.price === row.price) ||
+        (data.numberofpacks === row.numberofpacks &&
+          data.margin !== row.margin &&
+          data.price === row.price)
+      ) {
         // calculation
-        let mrp = row.numberofpacks * data.productprice;
-        let updatedTempproduct = quotationft.tempproduct.map(product => 
-          product.key === row.key 
-            ? { 
+        let mrp = row.numberofpacks * data.productprice
+        let updatedTempproduct = quotationft.tempproduct.map((product) =>
+          product.key === row.key
+            ? {
                 ...product,
                 numberofpacks: row.numberofpacks,
                 margin: row.margin,
@@ -306,62 +334,80 @@ const [storefirst,setStoreFirst] = useState(null)
                 mrp: mrp
               }
             : product
-        );
+        )
         // update amount
-        let totalamount = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0);
-        let mrpamount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
+        let totalamount = updatedTempproduct.map((data) => data.price).reduce((a, b) => a + b, 0)
+        let mrpamount = updatedTempproduct.map((data) => data.mrp).reduce((a, b) => a + b, 0)
         // Update the state with the new tempproduct array
-        setQuotationFt(pre => ({
+        setQuotationFt((pre) => ({
           ...pre,
           tempproduct: updatedTempproduct,
-          totalamount:totalamount,
-          mrpamount:mrpamount
-        })); 
-        message.open({type:'success',content:'Updated Sucessfully'})
+          totalamount: totalamount,
+          mrpamount: mrpamount
+        }))
+        message.open({ type: 'success', content: 'Updated Sucessfully' })
+      } else if (
+        data.numberofpacks === row.numberofpacks &&
+        data.margin === row.margin &&
+        data.price !== row.price
+      ) {
+        // calculation
+        let mrp = row.numberofpacks * data.productprice
+        let updatedTempproduct = quotationft.tempproduct.map((product) =>
+          product.key === row.key
+            ? {
+                ...product,
+                numberofpacks: row.numberofpacks,
+                margin: customRound(((mrp - row.price) / mrp) * 100),
+                price: row.price,
+                mrp: mrp
+              }
+            : product
+        )
+        // update amount
+        let totalamount = updatedTempproduct.map((data) => data.price).reduce((a, b) => a + b, 0)
+        let mrpamount = updatedTempproduct.map((data) => data.mrp).reduce((a, b) => a + b, 0)
+        // Update the state with the new tempproduct array
+        setQuotationFt((pre) => ({
+          ...pre,
+          tempproduct: updatedTempproduct,
+          totalamount: totalamount,
+          mrpamount: mrpamount
+        }))
+        message.open({ type: 'success', content: 'Updated Sucessfully' })
       }
-      else if(data.numberofpacks === row.numberofpacks && data.margin === row.margin && data.price !== row.price){
-                // calculation
-                let mrp = row.numberofpacks * data.productprice;
-                let updatedTempproduct = quotationft.tempproduct.map(product => 
-                  product.key === row.key 
-                    ? { 
-                        ...product,
-                        numberofpacks: row.numberofpacks,
-                        margin: customRound(((mrp - row.price ) / mrp) * 100),
-                        price: row.price,
-                        mrp: mrp
-                      }
-                    : product
-                );
-                // update amount
-                let totalamount = updatedTempproduct.map(data=> data.price).reduce((a,b)=> a + b,0);
-                let mrpamount = updatedTempproduct.map(data=> data.mrp).reduce((a,b)=> a + b,0);
-                // Update the state with the new tempproduct array
-                setQuotationFt(pre => ({
-                  ...pre,
-                  tempproduct: updatedTempproduct,
-                  totalamount:totalamount,
-                  mrpamount:mrpamount
-                })); 
-                message.open({type:'success',content:'Updated Sucessfully'})
-                }
-              }
-              catch(e){
-                console.log(e);
-              }
-              finally{
-              setStoreFirst(null)
-              setQuotationFt(pre=>({...pre,edpacks:true,edprice:true,edmargin:true,editingkey:''}))
-              }
-            };
-
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setStoreFirst(null)
+      setQuotationFt((pre) => ({
+        ...pre,
+        edpacks: true,
+        edprice: true,
+        edmargin: true,
+        editingkey: ''
+      }))
+    }
+  }
 
   const removeTemProduct = (recorde) => {
     const newTempProduct = quotationft.tempproduct.filter((item) => item.key !== recorde.key)
-    newTempProduct.length <= 0 ? setQuotationFt(pre=>({...pre,count:0,mrpamount:0,totalamount:0})) : setQuotationFt((pre) => ({...pre,totalamount: pre.totalamount - recorde.price,mrpamount:pre.mrpamount - recorde.mrp}))
-    setQuotationFt((pre) => ({ ...pre, tempproduct: newTempProduct, amount: 0, discount: 0, percentage: 0  }))
-    marginform.resetFields(['marginvalue']);  
-  };
+    newTempProduct.length <= 0
+      ? setQuotationFt((pre) => ({ ...pre, count: 0, mrpamount: 0, totalamount: 0 }))
+      : setQuotationFt((pre) => ({
+          ...pre,
+          totalamount: pre.totalamount - recorde.price,
+          mrpamount: pre.mrpamount - recorde.mrp
+        }))
+    setQuotationFt((pre) => ({
+      ...pre,
+      tempproduct: newTempProduct,
+      amount: 0,
+      discount: 0,
+      percentage: 0
+    }))
+    marginform.resetFields(['marginvalue'])
+  }
 
   // margin data
   const marginOnchange = debounce((value) => {
@@ -372,8 +418,8 @@ const [storefirst,setStoreFirst] = useState(null)
       amount: finalamounts,
       percentage: value.marginvalue,
       discount: marginamount
-    }));
-      let newData = quotationft.tempproduct.map((item) => {
+    }))
+    let newData = quotationft.tempproduct.map((item) => {
       let marginamount = item.mrp * (value.marginvalue / 100)
       let finalamounts = customRound(item.mrp - marginamount)
       return {
@@ -381,10 +427,10 @@ const [storefirst,setStoreFirst] = useState(null)
         price: finalamounts,
         margin: value.marginvalue
       }
-    });
-    let totalprice = newData.map(data => data.price).reduce((a,b)=> a + b ,0);
-    setQuotationFt((pre) => ({ ...pre, tempproduct: newData, totalamount:totalprice }))
-  }, 300);
+    })
+    let totalprice = newData.map((data) => data.price).reduce((a, b) => a + b, 0)
+    setQuotationFt((pre) => ({ ...pre, tempproduct: newData, totalamount: totalprice }))
+  }, 300)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -425,7 +471,6 @@ const [storefirst,setStoreFirst] = useState(null)
       )
 
       setDeliveryData(initialDeliveryData)
-
     }
     fetchData()
   }, [datas])
@@ -470,7 +515,10 @@ const [storefirst,setStoreFirst] = useState(null)
             if (item.type === 'Added') {
               const result = await getSupplierById(item.supplierid)
               supplierName = result.supplier.suppliername
-              const materialresult = await getOneMaterialDetailsById(item.supplierid,item.materialid)
+              const materialresult = await getOneMaterialDetailsById(
+                item.supplierid,
+                item.materialid
+              )
               materialName = materialresult.material.materialname
               materialUnit = materialresult.material.unit
             }
@@ -478,7 +526,7 @@ const [storefirst,setStoreFirst] = useState(null)
               ...item,
               key: item.id,
               customername: supplierName,
-              total:item.price,
+              total: item.price,
               billamount: item.price,
               materialname: materialName,
               unit: materialUnit,
@@ -509,8 +557,15 @@ const [storefirst,setStoreFirst] = useState(null)
           quantity: product ? product.quantity : ''
         }
       })
-      if(items.length === 0){
-        itemsWithProductNames = [{productname : record.materialname,flavour: '', quantity: record.unit ,numberofpacks: record.materialquantity}]
+      if (items.length === 0) {
+        itemsWithProductNames = [
+          {
+            productname: record.materialname,
+            flavour: '',
+            quantity: record.unit,
+            numberofpacks: record.materialquantity
+          }
+        ]
       }
       setSelectedRecord({ ...record, items: itemsWithProductNames })
       setIsModalVisible(true)
@@ -528,8 +583,8 @@ const [storefirst,setStoreFirst] = useState(null)
   const totalProfit = totalSales - totalSpend
 
   const totalReturn = filteredDelivery
-  .filter((product) => product.type === 'return')
-  .reduce((total, product) => total + product.billamount, 0)
+    .filter((product) => product.type === 'return')
+    .reduce((total, product) => total + product.billamount, 0)
 
   const totalQuickSale = filteredDelivery
     .filter((product) => product.type === 'quick')
@@ -537,28 +592,27 @@ const [storefirst,setStoreFirst] = useState(null)
 
   const totalBooking = deliveryData.filter((product) => {
     return (
-      product.type === 'booking' &&
-      dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+      product.type === 'booking' && dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
     )
   }).length
 
   const totalPaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
-      return total + (Number(product.billamount) || 0);
+      return total + (Number(product.billamount) || 0)
     } else if (product.paymentstatus === 'Partial') {
-      return total + (Number(product.partialamount) || 0);
+      return total + (Number(product.partialamount) || 0)
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
   const totalUnpaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Unpaid') {
-      return total + (Number(product.billamount) || 0);
+      return total + (Number(product.billamount) || 0)
     } else if (product.paymentstatus === 'Partial') {
-      return total + ((Number(product.billamount) || 0) - (Number(product.partialamount) || 0));
+      return total + ((Number(product.billamount) || 0) - (Number(product.partialamount) || 0))
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
   const [activeCard, setActiveCard] = useState('')
   const cardsData = [
@@ -594,23 +648,27 @@ const [storefirst,setStoreFirst] = useState(null)
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'return')
         break
       case 'totalBooking':
-        newSelectedTableData = deliveryData.filter((product) => {
-          return (
-            product.type === 'booking' &&
-            dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
-          )
-        }).map((product) => {
+        newSelectedTableData = deliveryData
+          .filter((product) => {
+            return (
+              product.type === 'booking' &&
+              dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+            )
+          })
+          .map((product) => {
             const dateTimeString = `${product.date} ${product.time}`
             //const productDateTime = dayjs(dateTimeString, 'DD/MM/YYYY HH:mm')
             return {
               ...product,
               date: dateTimeString
             }
-        })
+          })
         break
       case 'totalPaid':
         newSelectedTableData = filteredDelivery.filter(
-          (product) => product.type !== 'return' && (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
+          (product) =>
+            product.type !== 'return' &&
+            (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
         break
       case 'totalUnpaid':
@@ -626,12 +684,15 @@ const [storefirst,setStoreFirst] = useState(null)
   }
 
   const handlePaymentTypeClick = (paymentMode, event) => {
-    event.stopPropagation();
+    event.stopPropagation()
     const filtered = filteredDelivery.filter(
-      (product) => product.type !== 'return' && (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial') && product.paymentmode === paymentMode
+      (product) =>
+        product.type !== 'return' &&
+        (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial') &&
+        product.paymentmode === paymentMode
     )
     setSelectedTableData(filtered)
-    console.log(filtered,paymentMode)
+    console.log(filtered, paymentMode)
   }
 
   const componentRef = useRef()
@@ -715,45 +776,49 @@ const [storefirst,setStoreFirst] = useState(null)
         }
       }))
     }
+  }
 
-  };
-
-  
-  const handleQuotationPrint = async () =>{
+  const handleQuotationPrint = async () => {
     // data
-    let {date} = quotationft.tempproduct[0]
+    let { date } = quotationft.tempproduct[0]
     // customer details
     let cusotmerData = {
-      customername: quotationft.customername === null || quotationft.customername === '' ? undefined : quotationft.customername,
-      mobilenumber:quotationft.mobilenumber === null || quotationft.mobilenumber === '' ? undefined : quotationft.mobilenumber,
+      customername:
+        quotationft.customername === null || quotationft.customername === ''
+          ? undefined
+          : quotationft.customername,
+      mobilenumber:
+        quotationft.mobilenumber === null || quotationft.mobilenumber === ''
+          ? undefined
+          : quotationft.mobilenumber,
       date,
       gstin: '',
-      total:quotationft.mrpamount,
-      billamount:quotationft.totalamount,
-      location:'',
-      partialamount:0
-    };
+      total: quotationft.mrpamount,
+      billamount: quotationft.totalamount,
+      location: '',
+      partialamount: 0
+    }
     // product items
-    let items = quotationft.tempproduct.map((data,i) => ({
-      sno:i+1,
-      productname:data.productname,
-      flavour:data.flavour,
-      quantity:data.quantity,
-      pieceamount:data.productprice,
-      numberofpacks:data.numberofpacks,
-      producttotalamount:data.mrp,
-      margin:data.margin,
-      price:data.price
-    }));
+    let items = quotationft.tempproduct.map((data, i) => ({
+      sno: i + 1,
+      productname: data.productname,
+      flavour: data.flavour,
+      quantity: data.quantity,
+      pieceamount: data.productprice,
+      numberofpacks: data.numberofpacks,
+      producttotalamount: data.mrp,
+      margin: data.margin,
+      price: data.price
+    }))
 
     // console.log(items);
     await setInvoiceDatas((pre) => ({
       ...pre,
       data: items,
       isGenerate: false,
-      customerdetails: cusotmerData,
-    }));
-  
+      customerdetails: cusotmerData
+    }))
+
     // console.log(cusotmerData,items);
 
     // setIsPrinting(true);
@@ -765,53 +830,59 @@ const [storefirst,setStoreFirst] = useState(null)
     // message.open({ type: 'success', content: 'Quotation Created' })
   }
 
-  const handleQuotationDownload = async () =>{
-        // data
-        let {date} = quotationft.tempproduct[0]
-        // customer details
-        let cusotmerData = {
-          customername: quotationft.customername === null || quotationft.customername === '' ? undefined : quotationft.customername,
-          mobilenumber:quotationft.mobilenumber === null || quotationft.mobilenumber === '' ? undefined : quotationft.mobilenumber,
-          date,
-          gstin: '',
-          total:quotationft.mrpamount,
-          billamount:quotationft.totalamount,
-          location:'',
-          partialamount:0
-        };
-        // product items
-        let items = quotationft.tempproduct.map((data,i) => ({
-          sno:i+1,
-          productname:data.productname,
-          flavour:data.flavour,
-          quantity:data.quantity,
-          pieceamount:data.productprice,
-          numberofpacks:data.numberofpacks,
-          producttotalamount:data.mrp,
-          margin:data.margin,
-          price:data.price
-        }));
+  const handleQuotationDownload = async () => {
+    // data
+    let { date } = quotationft.tempproduct[0]
+    // customer details
+    let cusotmerData = {
+      customername:
+        quotationft.customername === null || quotationft.customername === ''
+          ? undefined
+          : quotationft.customername,
+      mobilenumber:
+        quotationft.mobilenumber === null || quotationft.mobilenumber === ''
+          ? undefined
+          : quotationft.mobilenumber,
+      date,
+      gstin: '',
+      total: quotationft.mrpamount,
+      billamount: quotationft.totalamount,
+      location: '',
+      partialamount: 0
+    }
+    // product items
+    let items = quotationft.tempproduct.map((data, i) => ({
+      sno: i + 1,
+      productname: data.productname,
+      flavour: data.flavour,
+      quantity: data.quantity,
+      pieceamount: data.productprice,
+      numberofpacks: data.numberofpacks,
+      producttotalamount: data.mrp,
+      margin: data.margin,
+      price: data.price
+    }))
 
-        await setInvoiceDatas((pre) => ({
-          ...pre,
-          data: items,
-          isGenerate: true,
-          customerdetails: cusotmerData
-        }))
-     
-        // console.log(items);
-        // await setInvoiceDatas({
-        //   data: items,
-        //   isGenerate: false,
-        //   customerdetails: cusotmerData,
-        //   location: ''
-        // });
+    await setInvoiceDatas((pre) => ({
+      ...pre,
+      data: items,
+      isGenerate: true,
+      customerdetails: cusotmerData
+    }))
+
+    // console.log(items);
+    // await setInvoiceDatas({
+    //   data: items,
+    //   isGenerate: false,
+    //   customerdetails: cusotmerData,
+    //   location: ''
+    // });
     // await setInvoiceDatas((pre) => ({
     //   ...pre,
     //   data: prItems,
     // }))
     // message.open({ type: 'success', content: 'Quotation Created' })
-  };
+  }
 
   useEffect(() => {
     if (isPrinting && promiseResolveRef.current) {
@@ -826,16 +897,26 @@ const [storefirst,setStoreFirst] = useState(null)
         const canvas = await html2canvas(element)
         const data = await canvas.toDataURL('image/png')
         const pdf = await new jsPDF()
-        const imgWidth = 210 // A4 page width in mm
+        const imgWidth = 210
+        const pageHeight = 297
         const imgHeight = (canvas.height * imgWidth) / canvas.width
-        pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight)
+        let heightLeft = imgHeight
+        let position = 0
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight
+          pdf.addPage()
+          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+        }
         pdf.save(
           `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
         )
         await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
       }
     }
-    generatePDF();
+    generatePDF()
   }, [invoiceDatas.isGenerate, printRef])
 
   const columns = [
@@ -866,7 +947,7 @@ const [storefirst,setStoreFirst] = useState(null)
       title: 'Amount',
       dataIndex: 'billamount',
       key: 'billamount',
-      render:(text)=> <span>{formatToRupee(text,true)}</span>
+      render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
       title: 'Status',
@@ -874,7 +955,7 @@ const [storefirst,setStoreFirst] = useState(null)
       key: 'paymentstatus',
       render: (text, record) => {
         const { partialamount } = record
-        if (text === 'Paid' && record.type !== 'Added' ) {
+        if (text === 'Paid' && record.type !== 'Added') {
           return (
             <>
               <Tag color="green">{text}</Tag>
@@ -885,13 +966,14 @@ const [storefirst,setStoreFirst] = useState(null)
         } else if (text === 'Partial' && record.type !== 'Added') {
           return (
             <>
-              <Tag color="yellow">{text} - {partialamount}</Tag>
+              <Tag color="yellow">
+                {text} - {partialamount}
+              </Tag>
               <Tag color="blue">{record.type}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
-        }
-        else if (text === 'Return') {
+        } else if (text === 'Return') {
           return (
             <>
               <Tag color="red">{text}</Tag>
@@ -970,7 +1052,7 @@ const [storefirst,setStoreFirst] = useState(null)
     {
       title: 'Rate',
       key: 'pieceamount',
-      dataIndex: 'pieceamount',
+      dataIndex: 'pieceamount'
     },
     {
       title: 'Qty',
@@ -980,12 +1062,12 @@ const [storefirst,setStoreFirst] = useState(null)
     {
       title: 'MRP',
       key: 'producttotalamount',
-      dataIndex: 'producttotalamount',
+      dataIndex: 'producttotalamount'
     },
     {
       title: 'Amount',
       key: 'price',
-      dataIndex: 'price',
+      dataIndex: 'price'
     }
   ]
 
@@ -1031,8 +1113,8 @@ const [storefirst,setStoreFirst] = useState(null)
     }))
   }
 
-   //flavour onchange value
-   const flavourOnchange = async (value, i) => {
+  //flavour onchange value
+  const flavourOnchange = async (value, i) => {
     form.resetFields(['quantity'])
     form.resetFields(['numberofpacks'])
     const quantityOp = await Array.from(
@@ -1050,7 +1132,7 @@ const [storefirst,setStoreFirst] = useState(null)
 
   // (Add to List) btn
   const addTempProduct = async (values) => {
-    setQuotationFt(pre =>({...pre,count:pre.count+1}));
+    setQuotationFt((pre) => ({ ...pre, count: pre.count + 1 }))
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
 
     let [quantityvalue, units] = values.quantity.split(' ')
@@ -1061,8 +1143,8 @@ const [storefirst,setStoreFirst] = useState(null)
         item.flavour === values.flavour &&
         item.quantity === Number(quantityvalue) &&
         item.unit === units
-    ).price;
-    
+    ).price
+
     const newProduct = {
       ...values,
       key: quotationft.count,
@@ -1072,7 +1154,7 @@ const [storefirst,setStoreFirst] = useState(null)
       productprice: findPrice,
       margin: 0,
       price: findPrice * values.numberofpacks
-    };
+    }
 
     const checkExsit = quotationft.tempproduct.some(
       (item) =>
@@ -1080,21 +1162,32 @@ const [storefirst,setStoreFirst] = useState(null)
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
         item.date === newProduct.date
-    );
+    )
 
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
-    } 
-    else {
+    } else {
       // mrp and total price
-      let totalprice = [...quotationft.tempproduct, newProduct].map(data => data.price).reduce((a,b)=> a + b,0);
-      let mrpprice = [...quotationft.tempproduct, newProduct].map(data => data.mrp).reduce((a,b)=> a + b,0);
+      let totalprice = [...quotationft.tempproduct, newProduct]
+        .map((data) => data.price)
+        .reduce((a, b) => a + b, 0)
+      let mrpprice = [...quotationft.tempproduct, newProduct]
+        .map((data) => data.mrp)
+        .reduce((a, b) => a + b, 0)
 
-      setQuotationFt(pre =>({...pre, totalamount:totalprice, tempproduct:[...pre.tempproduct, newProduct],amount: 0, discount: 0, percentage: 0,mrpamount:mrpprice}));
-      
-      marginform.resetFields(['marginvalue']);
+      setQuotationFt((pre) => ({
+        ...pre,
+        totalamount: totalprice,
+        tempproduct: [...pre.tempproduct, newProduct],
+        amount: 0,
+        discount: 0,
+        percentage: 0,
+        mrpamount: mrpprice
+      }))
+
+      marginform.resetFields(['marginvalue'])
     }
-  };
+  }
 
   const itemColumns = [
     {
@@ -1128,39 +1221,39 @@ const [storefirst,setStoreFirst] = useState(null)
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, []);
+  }, [])
 
   // warning modal
-  const [warningModal,setWarningModal] = useState(false);
+  const [warningModal, setWarningModal] = useState(false)
   // cancel btn
-  const warningModalCancel = ()=>{
-    setWarningModal(false);
-  };
- // ok btn
- const warningModalok =()=>{
-  setWarningModal(false);
-  setQuotationFt({
-    date: null,
-    type:'With GST',
-    tempproduct:[],
-    margin: 0,
-    discount: 0,
-    percentage:0,
-    amount:0,
-    count:0,
-    totalamount:0,
-    editingkey:'',
-    mrpamount:0,
-    onfocus:false,
-    edmargin:true,
-    edprice:true,
-    edpacks:true,
-    customername:'',
-    mobilenumber:''
-  });
-  setQuotationModalOpen(false);
-  marginform.resetFields(['marginvalue']);
- };
+  const warningModalCancel = () => {
+    setWarningModal(false)
+  }
+  // ok btn
+  const warningModalok = () => {
+    setWarningModal(false)
+    setQuotationFt({
+      date: null,
+      type: 'With GST',
+      tempproduct: [],
+      margin: 0,
+      discount: 0,
+      percentage: 0,
+      amount: 0,
+      count: 0,
+      totalamount: 0,
+      editingkey: '',
+      mrpamount: 0,
+      onfocus: false,
+      edmargin: true,
+      edprice: true,
+      edpacks: true,
+      customername: '',
+      mobilenumber: ''
+    })
+    setQuotationModalOpen(false)
+    marginform.resetFields(['marginvalue'])
+  }
 
   return (
     <div>
@@ -1177,7 +1270,8 @@ const [storefirst,setStoreFirst] = useState(null)
             onClick={() => {
               setQuotationModalOpen(true)
               form.resetFields()
-            }}>
+            }}
+          >
             Quotation <FaRegFilePdf />
           </Button>
         </li>
@@ -1198,30 +1292,48 @@ const [storefirst,setStoreFirst] = useState(null)
                 }}
               >
                 <div className="flex flex-col">
-                <div className="flex justify-between">
-                <Statistic
-                  title={
-                    isActive ? (
-                      <span className="text-white">{card.title}</span>
-                    ) : (
-                      <span>{card.title}</span>
-                    )
-                  }
-                  value={card.value}
-                  precision={card.key === 'totalBooking' ? 0 : 2}
-                  valueStyle={{
-                    color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
-                  }}
-                  prefix={card.prefix}
-                />
-                {card.key === 'totalPaid' && (
-                  <div className="flex gap-x-2">
-                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('Cash', event)} type="default">Cash</Button>
-                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('Card', event)} type="default">Card</Button>
-                    <Button style={{ width: '42px', height: '28px' }} onClick={(event) => handlePaymentTypeClick('UPI', event)} type="default">UPI</Button>
+                  <div className="flex justify-between">
+                    <Statistic
+                      title={
+                        isActive ? (
+                          <span className="text-white">{card.title}</span>
+                        ) : (
+                          <span>{card.title}</span>
+                        )
+                      }
+                      value={card.value}
+                      precision={card.key === 'totalBooking' ? 0 : 2}
+                      valueStyle={{
+                        color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
+                      }}
+                      prefix={card.prefix}
+                    />
+                    {card.key === 'totalPaid' && (
+                      <div className="flex gap-x-2">
+                        <Button
+                          style={{ width: '42px', height: '28px' }}
+                          onClick={(event) => handlePaymentTypeClick('Cash', event)}
+                          type="default"
+                        >
+                          Cash
+                        </Button>
+                        <Button
+                          style={{ width: '42px', height: '28px' }}
+                          onClick={(event) => handlePaymentTypeClick('Card', event)}
+                          type="default"
+                        >
+                          Card
+                        </Button>
+                        <Button
+                          style={{ width: '42px', height: '28px' }}
+                          onClick={(event) => handlePaymentTypeClick('UPI', event)}
+                          type="default"
+                        >
+                          UPI
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                )}
-                </div>
                 </div>
               </Card>
             )
@@ -1245,7 +1357,7 @@ const [storefirst,setStoreFirst] = useState(null)
         title="Items"
         open={isModalVisible}
         onCancel={() => {
-          setIsModalVisible(false);
+          setIsModalVisible(false)
         }}
         width={800}
         footer={null}
@@ -1278,23 +1390,26 @@ const [storefirst,setStoreFirst] = useState(null)
         }
         open={quotationModalOpen}
         onCancel={() => {
-          if(quotationft.tempproduct.length > 0){
+          if (quotationft.tempproduct.length > 0) {
             setWarningModal(true)
-          }else{
+          } else {
             setQuotationModalOpen(false)
           }
         }}
         footer={
           <div>
             <section className="flex gap-x-3 justify-between items-center">
-             
               <span className="flex gap-x-3 m-0 justify-center items-center">
                 <Form
-                 className="flex gap-x-2 justify-center items-center"
+                  className="flex gap-x-2 justify-center items-center"
                   form={marginform}
                   onFinish={(value) => marginOnchange(value)}
                 >
-                  <Form.Item className='mb-0' name="marginvalue" rules={[{ required: true, message: false }]}>
+                  <Form.Item
+                    className="mb-0"
+                    name="marginvalue"
+                    rules={[{ required: true, message: false }]}
+                  >
                     <InputNumber
                       min={0}
                       max={100}
@@ -1303,7 +1418,7 @@ const [storefirst,setStoreFirst] = useState(null)
                       prefix={<span>Margin(%)</span>}
                     />
                   </Form.Item>
-                  <Form.Item  className='mb-0'>
+                  <Form.Item className="mb-0">
                     <Button type="primary" htmlType="submit">
                       Enter
                     </Button>
@@ -1316,30 +1431,39 @@ const [storefirst,setStoreFirst] = useState(null)
                 <PrinterOutlined />Print 
                 </Button> */}
                 <ReactToPrint
-            trigger={() => (
-              <Button type='primary' disabled={quotationft.tempproduct.length > 0 ? false : true} ><PrinterOutlined /> Print</Button>
-            )}
-            onBeforeGetContent={async () => {
-              return new Promise((resolve) => {
-                promiseResolveRef.current = resolve
-                handleQuotationPrint().then(() => {
-                  setIsPrinting(true)
-                })
-              })
-            }}
-            content={() => componentRef.current}
-            onAfterPrint={() => {
-              promiseResolveRef.current = null
-              setIsPrinting(false)
-            }}
-          />
-          <Popconfirm title="Sure to download pdf?" onConfirm={() => handleQuotationDownload()}>
-            <Button
-            type='primary'
-              disabled={quotationft.tempproduct.length > 0 ? false : true}
-              
-            ><DownloadOutlined size={20}/> Download</Button>
-          </Popconfirm>
+                  trigger={() => (
+                    <Button
+                      type="primary"
+                      disabled={quotationft.tempproduct.length > 0 ? false : true}
+                    >
+                      <PrinterOutlined /> Print
+                    </Button>
+                  )}
+                  onBeforeGetContent={async () => {
+                    return new Promise((resolve) => {
+                      promiseResolveRef.current = resolve
+                      handleQuotationPrint().then(() => {
+                        setIsPrinting(true)
+                      })
+                    })
+                  }}
+                  content={() => componentRef.current}
+                  onAfterPrint={() => {
+                    promiseResolveRef.current = null
+                    setIsPrinting(false)
+                  }}
+                />
+                <Popconfirm
+                  title="Sure to download pdf?"
+                  onConfirm={() => handleQuotationDownload()}
+                >
+                  <Button
+                    type="primary"
+                    disabled={quotationft.tempproduct.length > 0 ? false : true}
+                  >
+                    <DownloadOutlined size={20} /> Download
+                  </Button>
+                </Popconfirm>
 
                 {/* <Button  type="primary" className=" w-fit" onClick={() => handleQuotationDownload()}>
                   <DownloadOutlined />
@@ -1351,140 +1475,144 @@ const [storefirst,setStoreFirst] = useState(null)
       >
         <div className="relative">
           <div className="grid grid-cols-4 gap-x-2">
-           <span className="col-span-1">
-           <Form
-              form={form}
-              layout="vertical"
-              onFinish={addTempProduct}
-              initialValues={{ date: dayjs(), type: 'withGST' }}
-            >
-              <Form.Item
-                className="mb-3 absolute top-[-2.7rem]"
-                name="date"
-                label=""
-                rules={[{ required: true, message: false }]}
+            <span className="col-span-1">
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={addTempProduct}
+                initialValues={{ date: dayjs(), type: 'withGST' }}
               >
-                <DatePicker
-                  className="w-[8.5rem]"
-                  format={'DD/MM/YYYY'}
-                />
-              </Form.Item>
-              <Form.Item name="type" className="mb-1 mt-3">
-                <Radio.Group
-                  buttonStyle="solid"
-                  style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
-                  onChange={(e) => {
-                    setQuotationFt(pre=>({...pre,type:e.target.value}))
-                    // setQuotationData(pre=>({...pre,type:e.target.value}))
-                    // form.resetFields(['productname','flavour','quantity', 'numberofpacks',]);
-                    marginform.resetFields(['marginvalue'])
-                  }}
+                <Form.Item
+                  className="mb-3 absolute top-[-2.7rem]"
+                  name="date"
+                  label=""
+                  rules={[{ required: true, message: false }]}
                 >
-                  <Radio.Button value="withGST" style={{ width: '50%' }}>
-                    With GST
-                  </Radio.Button>
-                  <Radio.Button value="withoutGST" style={{ width: '50%' }}>
-                    Without GST
-                  </Radio.Button>
-                </Radio.Group>
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="productname"
-                label="Product Name"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  onChange={(value, i) => productOnchange(value, i)}
-                  showSearch
-                  placeholder="Select the Product"
-                  optionFilterProp="label"
+                  <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+                </Form.Item>
+                <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                    onChange={(e) => {
+                      setQuotationFt((pre) => ({ ...pre, type: e.target.value }))
+                      // setQuotationData(pre=>({...pre,type:e.target.value}))
+                      // form.resetFields(['productname','flavour','quantity', 'numberofpacks',]);
+                      marginform.resetFields(['marginvalue'])
+                    }}
+                  >
+                    <Radio.Button value="withGST" style={{ width: '50%' }}>
+                      With GST
+                    </Radio.Button>
+                    <Radio.Button value="withoutGST" style={{ width: '50%' }}>
+                      Without GST
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="productname"
+                  label="Product Name"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    onChange={(value, i) => productOnchange(value, i)}
+                    showSearch
+                    placeholder="Select the Product"
+                    optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
                         .toLowerCase()
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
-                  options={option.product}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="flavour"
-                label="Flavour"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.flavourstatus}
-                  onChange={(value, i) => flavourOnchange(value, i)}
-                  showSearch
-                  placeholder="Select the Flavour"
-                  optionFilterProp="label"
+                    options={option.product}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="flavour"
+                  label="Flavour"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.flavourstatus}
+                    onChange={(value, i) => flavourOnchange(value, i)}
+                    showSearch
+                    placeholder="Select the Flavour"
+                    optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
                         .toLowerCase()
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={option.flavour}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-1"
-                name="quantity"
-                label="Quantity"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  disabled={option.quantitystatus}
-                  showSearch
-                  placeholder="Select the Quantity"
-                  optionFilterProp="label"
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-1"
+                  name="quantity"
+                  label="Quantity"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <Select
+                    disabled={option.quantitystatus}
+                    showSearch
+                    placeholder="Select the Quantity"
+                    optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '')
                         .toLowerCase()
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={option.quantity}
-                />
-              </Form.Item>
-              <Form.Item
-                className="mb-3"
-                name="numberofpacks"
-                label="Number of Packs"
-                rules={[{ required: true, message: false }]}
-              >
-                <InputNumber
-                  type="number"
-                  min={1}
-                  className="w-full"
-                  placeholder="Enter the Number"
-                />
-              </Form.Item>
-              <span className='absolute flex justify-center items-center left-[18rem] bottom-[-3.1rem] gap-x-2'>
-              <Form.Item
-                className="mb-1"
-                name="customername"
-                
-              >
-                <Input onChange={(e)=>setQuotationFt(pre=>({...pre,customername:e.target.value}))} placeholder='Customer Name'/>
-              </Form.Item>
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="mb-3"
+                  name="numberofpacks"
+                  label="Number of Packs"
+                  rules={[{ required: true, message: false }]}
+                >
+                  <InputNumber
+                    type="number"
+                    min={1}
+                    className="w-full"
+                    placeholder="Enter the Number"
+                  />
+                </Form.Item>
+                <span className="absolute flex justify-center items-center left-[18rem] bottom-[-3.1rem] gap-x-2">
+                  <Form.Item className="mb-1" name="customername">
+                    <Input
+                      onChange={(e) =>
+                        setQuotationFt((pre) => ({ ...pre, customername: e.target.value }))
+                      }
+                      placeholder="Customer Name"
+                    />
+                  </Form.Item>
 
-              <Form.Item
-                className="mb-1"
-                name="mobilenumber"
-                // label="Mobile Number"
-              >
-                <InputNumber type='number' onChange={(e)=>setQuotationFt(pre=>({...pre,mobilenumber:e}))} placeholder='Mobile No' className='w-full' min={0}/>
-              </Form.Item>
-              </span>
-              <div className="mb-3 w-full">
-                <Button className="w-full" type="primary" htmlType="submit">
-                  Add To List
-                </Button>
-                    </div>
-            </Form>
-           </span>
+                  <Form.Item
+                    className="mb-1"
+                    name="mobilenumber"
+                    // label="Mobile Number"
+                  >
+                    <InputNumber
+                      type="number"
+                      onChange={(e) => setQuotationFt((pre) => ({ ...pre, mobilenumber: e }))}
+                      placeholder="Mobile No"
+                      className="w-full"
+                      min={0}
+                    />
+                  </Form.Item>
+                </span>
+                <div className="mb-3 w-full">
+                  <Button className="w-full" type="primary" htmlType="submit">
+                    Add To List
+                  </Button>
+                </div>
+              </Form>
+            </span>
 
-              {/* <Table
+            {/* <Table
                 virtual
                 columns={quotationColumns}
                 // components={{ body: { cell: EditableCellTem } }}
@@ -1494,11 +1622,11 @@ const [storefirst,setStoreFirst] = useState(null)
                 scroll={{ x: false, y: false }}
               /> */}
 
-              <span className="col-span-3">
-              <Form 
-              form={temform} 
-              component={false}
-              //  onFinish={tempSingleMargin}
+            <span className="col-span-3">
+              <Form
+                form={temform}
+                component={false}
+                //  onFinish={tempSingleMargin}
               >
                 <Table
                   virtual
@@ -1509,23 +1637,24 @@ const [storefirst,setStoreFirst] = useState(null)
                   scroll={{ x: false, y: false }}
                 />
               </Form>
-              </span>
+            </span>
           </div>
 
           <span
             className={`absolute top-[-2.7rem] right-10 ${option.margin === 0 ? 'hidden' : 'block'}`}
           >
             <Tag color="blue">
-              MRP Amount: <span className="text-sm">{formatToRupee(quotationft.mrpamount,true)}</span>
+              MRP Amount:{' '}
+              <span className="text-sm">{formatToRupee(quotationft.mrpamount, true)}</span>
             </Tag>
             <Tag color="green">
-              Net Amount: <span className="text-sm">{formatToRupee(quotationft.totalamount,true)}</span>
+              Net Amount:{' '}
+              <span className="text-sm">{formatToRupee(quotationft.totalamount, true)}</span>
             </Tag>
           </span>
-          
         </div>
       </Modal>
-    <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok}/>
+      <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok} />
       <div
         ref={printRef}
         className="absolute top-[-200rem]"
@@ -1547,8 +1676,10 @@ const [storefirst,setStoreFirst] = useState(null)
 
             <ul className="mt-5 flex justify-between">
               <li>
-                <div className={`font-bold ${quotationft.type === 'withoutGST' ? 'hidden': 'inline-block'}`}>
-                  <span >GSTIN :</span> 33AAIFN6367K1ZV
+                <div
+                  className={`font-bold ${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}
+                >
+                  <span>GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
                 <div>
                   {' '}
@@ -1560,7 +1691,7 @@ const [storefirst,setStoreFirst] = useState(null)
                   </span>
                 </div>
                 <div
-                  className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined  ? 'hidden' :  'block'}`}
+                  className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}
                 >
                   <span className="font-bold">Customer Name :</span>{' '}
                   <span>
@@ -1571,10 +1702,10 @@ const [storefirst,setStoreFirst] = useState(null)
                 </div>
 
                 <div
-                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined  ? 'hidden' :  'block'}`}
+                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined ? 'hidden' : 'block'}`}
                 >
-                  <span className="font-bold">Mobile Number : </span> <span>{invoiceDatas.customerdetails.mobilenumber}</span>
-                 
+                  <span className="font-bold">Mobile Number : </span>{' '}
+                  <span>{invoiceDatas.customerdetails.mobilenumber}</span>
                 </div>
 
                 <div
@@ -1635,8 +1766,10 @@ const [storefirst,setStoreFirst] = useState(null)
                         <td className="p-4 border-b">{item.producttotalamount}</td>
                         <td className="p-4 border-b">{toDigit(item.margin)}%</td>
                         <td className="p-4 border-b">
-                          {customRound(item.numberofpacks * item.pieceamount -
-                            (item.numberofpacks * item.pieceamount * item.margin) / 100)}
+                          {customRound(
+                            item.numberofpacks * item.pieceamount -
+                              (item.numberofpacks * item.pieceamount * item.margin) / 100
+                          )}
                         </td>
                       </tr>
                     ))
