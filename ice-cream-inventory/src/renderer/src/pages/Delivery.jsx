@@ -1084,8 +1084,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // add new delivery
   const addNewDelivery = async () => {
-    // console.log(option.tempproduct[0].date);
-  
+
+    if(dayjs(form2.getFieldValue().date).format('DD/MM/YYYY') === 'Invalid Date'){
+     return message.open({type:'info',content:"Please choose the correct date"})
+    }
+ 
+ 
     setEditingKey('')
     setIsDeliverySpiner(true)
     let productItems = option.tempproduct.flatMap((temp) => datas.product
@@ -1112,7 +1116,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       returnDelivery.state === true
         ? {
             customerid: option.tempproduct[0].customername,
-            date: option.tempproduct[0].date,
+            date: dayjs(form2.getFieldValue().date).format('DD/MM/YYYY'),
             total: totalamount,
             billamount: option.tempproduct.map(data => data.price).reduce((a,b)=> a + b ,0),
             paymentstatus: "Return",
@@ -1124,7 +1128,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           }
         : {
             customerid: option.tempproduct[0].customername,
-            date: option.tempproduct[0].date,
+            date: dayjs(form2.getFieldValue().date).format('DD/MM/YYYY'),
             total: totalamount,
             billamount: marginValue.amount,
             paymentstatus: marginValue.paymentstaus,
@@ -1194,7 +1198,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       await setIsDeliverySpiner(false)
      await setTableLoading(false)
     }
-  
+
   };
 
   // model close
@@ -2647,7 +2651,7 @@ const [payModalState,setPayModalState] = useState({
             <span className={`${deliveryBill.prdata.type === 'booking' ? ' inline-block text-gray-600': 'hidden'}`}>{deliveryBill.prdata.time}</span>
             <span>{deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}</span>
             <Tag className='m-0' color={`${deliveryBill.data.paymentstatus === 'Paid' ? 'green' : deliveryBill.data.paymentstatus === 'Unpaid' ? 'red' : deliveryBill.data.paymentstatus === 'Partial' ? 'yellow' : 'blue'}`}>{deliveryBill.data.paymentstatus}</Tag>
-            <Tag color='green' className={`${deliveryBill.data.paymentmode === "" ? 'hidden': 'block'}`}>{deliveryBill.data.paymentmode}</Tag>
+            <Tag color='green' className={`${deliveryBill.data.paymentmode === "" || deliveryBill.data.paymentmode === undefined ? 'hidden': 'block'}`}>{deliveryBill.data.paymentmode}</Tag>
             <Tag color={`${deliveryBill.data.bookingstatus === 'Cancelled' ? 'red': 'green'}`} className={`${deliveryBill.data.bookingstatus === undefined || deliveryBill.data.bookingstatus === null || deliveryBill.data.bookingstatus ==='' ? 'hidden': 'block'}`}>{deliveryBill.data.bookingstatus === undefined || deliveryBill.data.bookingstatus === null ? '': deliveryBill.data.bookingstatus}</Tag>
            </span>
            
@@ -2760,7 +2764,7 @@ const [payModalState,setPayModalState] = useState({
         </div>
 
         <div 
-        className={`${deliveryBill.prdata.paymentstatus ==='Paid' || deliveryBill.prdata.type === 'order' ? 'hidden' : 'block'}`}
+        className={`${deliveryBill.prdata.paymentstatus ==='Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}
         // className={`${(deliveryBill.prdata.paymentstatus === 'Unpaid' && deliveryBill.prdata.paymentstatus === 'Partial') && (deliveryBill.prdata.type === 'quick' || deliveryBill.prdata.type === 'booking' || deliveryBill.prdata.type === 'order') ? 'block' : 'hidden'}`}
         >
         
