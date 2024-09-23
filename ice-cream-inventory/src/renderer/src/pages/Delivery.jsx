@@ -595,18 +595,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Packs</span>,
-      dataIndex: 'numberofpacks',
-      key: 'numberofpacks',
-      editable: true,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>,
-    },
+    
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      editable:TableEdiable.pieceprice
+    },
+    {
+      title: <span className="text-[0.7rem]">Packs</span>,
+      dataIndex: 'numberofpacks',
+      key: 'numberofpacks',
+      editable: TableEdiable.packs,
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
@@ -619,14 +621,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
-      editable: true,
+      editable: TableEdiable.margin,
       render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
-      editable: false,
+      editable: TableEdiable.price,
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
     },
     {
@@ -868,15 +870,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // deliver date onchange
   const sendDeliveryDateOnchange = (value, i) => {
-    form2.resetFields(['customername'])
-    form2.resetFields(['productname'])
-    form2.resetFields(['flavour'])
-    form2.resetFields(['quantity'])
-    form2.resetFields(['numberofpacks'])
-    setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: [] }))
-    setTotalAmount(0)
-    setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    form5.resetFields(['marginvalue'])
+    // form2.resetFields(['customername'])
+    // form2.resetFields(['productname'])
+    // form2.resetFields(['flavour'])
+    // form2.resetFields(['quantity'])
+    // form2.resetFields(['numberofpacks'])
+    // setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: [] }))
+    // setTotalAmount(0)
+    // setMarginValue({ amount: 0, discount: 0, percentage: 0 })
+    // form5.resetFields(['marginvalue'])
   }
 
     // customer onchange value
@@ -1082,6 +1084,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // add new delivery
   const addNewDelivery = async () => {
+    // console.log(option.tempproduct[0].date);
+  
     setEditingKey('')
     setIsDeliverySpiner(true)
     let productItems = option.tempproduct.flatMap((temp) => datas.product
@@ -1190,6 +1194,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       await setIsDeliverySpiner(false)
      await setTableLoading(false)
     }
+  
   };
 
   // model close
