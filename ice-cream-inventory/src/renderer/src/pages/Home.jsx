@@ -26,7 +26,8 @@ import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
 import {
   fetchItemsForDelivery,
-  getAllPayDetailsFromAllDelivery
+  getAllPayDetailsFromAllDelivery,
+  getDeliveryUsingDates
 } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
@@ -482,6 +483,14 @@ export default function Home({ datas }) {
   }, [datas])
 
   useEffect(() => {
+
+  // let testfetch = async()=>{
+  //   // let {delivery,status} =await getDeliveryUsingDates();
+  //   // console.log(delivery);
+    
+  // }
+  // testfetch()
+
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
         if (!dateRange[0] || !dateRange[1]) {
@@ -721,7 +730,7 @@ export default function Home({ datas }) {
         product.paymentmode === paymentMode
     )
     setSelectedTableData(filtered)
-    console.log(filtered, paymentMode)
+    // console.log(filtered, paymentMode)
   }
 
   const componentRef = useRef()
@@ -1320,7 +1329,7 @@ const upiAmount = filteredPayments
     cash: <p className="pl-4">{formatToRupee(cashAmount)}</p>,
     card: <p className="pl-4">{formatToRupee(cardAmount)}</p>,
     upi: <p className="pl-4">{formatToRupee(upiAmount)}</p>,
-    total: <p className="pl-4">{totalPaid + Number(totalPayAmount)}</p>
+    total: <p className="pl-4">{formatToRupee(totalPaid + Number(totalPayAmount))}</p>
   }
 
   const [activeTabKey2, setActiveTabKey2] = useState('total')
@@ -1400,7 +1409,7 @@ const upiAmount = filteredPayments
                     onClick={() => {
                       handleCardClick(card.key)
                       let el = document.querySelectorAll('.ant-tabs-tab-btn');
-                      console.log(el)
+                      // console.log(el)
       if (el) {
         el.forEach(data => {
           data.classList.remove('active-text-white')
