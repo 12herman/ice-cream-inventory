@@ -726,8 +726,7 @@ export default function Home({ datas }) {
     // console.log(newSelectedTableData)
   }
 
-  const handlePaymentTypeClick = (paymentMode, event) => {
-    event.stopPropagation()
+  const handlePaymentTypeClick = (paymentMode) => {
     const filtered = filteredDelivery.filter(
       (product) =>
         product.type !== 'return' &&
@@ -735,7 +734,6 @@ export default function Home({ datas }) {
         product.paymentmode === paymentMode
     )
     setSelectedTableData(filtered)
-    // console.log(filtered, paymentMode)
   }
 
   const componentRef = useRef()
@@ -1357,11 +1355,11 @@ export default function Home({ datas }) {
   const onTab2Change = (key) => {
     setActiveTabKey2(key)
     if (key === 'cash') {
-      handlePaymentTypeClick('Cash', { stopPropagation: () => {} })
+      handlePaymentTypeClick('Cash')
     } else if (key === 'card') {
-      handlePaymentTypeClick('Card', { stopPropagation: () => {} })
+      handlePaymentTypeClick('Card')
     } else if (key === 'upi') {
-      handlePaymentTypeClick('UPI', { stopPropagation: () => {} })
+      handlePaymentTypeClick('UPI')
     } else {
       handleCardClick('totalPaid')
     }
