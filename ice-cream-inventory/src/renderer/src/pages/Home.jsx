@@ -24,8 +24,9 @@ import { FaRupeeSign } from 'react-icons/fa'
 import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
-import { fetchItemsForDelivery, 
-  getAllPayDetailsFromAllDelivery 
+import {
+  fetchItemsForDelivery,
+  getAllPayDetailsFromAllDelivery
 } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
@@ -57,9 +58,10 @@ export default function Home({ datas }) {
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [selectedTableData, setSelectedTableData] = useState([])
   const [tableLoading, setTableLoading] = useState(true)
+  const [filteredPayments, setFilteredPayments] = useState([])
   const [form] = Form.useForm()
   const [marginform] = Form.useForm()
-
+  const [totalPayAmount, setTotalPayAmount] = useState(0)
   const [temform] = Form.useForm()
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
   const [deliveryData, setDeliveryData] = useState([])
@@ -435,13 +437,8 @@ export default function Home({ datas }) {
   }, 300)
 
   useEffect(() => {
-
-
-
     const fetchData = async () => {
       setTableLoading(true)
-
-      
 
       const initialData = await Promise.all(
         datas.delivery
@@ -484,8 +481,6 @@ export default function Home({ datas }) {
     fetchData()
   }, [datas])
 
-let [totalPayAmount,setTotalPayAmount] = useState(0)
-
   useEffect(() => {
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
@@ -499,15 +494,6 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
           (dayjsDate.isAfter(dayjs(dateRange[0])) && dayjsDate.isBefore(dayjs(dateRange[1])))
         )
       }
-
-      let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
-      if(status){
-       let filterData = deliverys.filter(data => isWithinRange(data.date));
-       let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
-       setTotalPayAmount(totalAmount);
-       console.log(totalAmount);
-      }
-
 
       const newFilteredDelivery = await Promise.all(
         datas.delivery
@@ -556,6 +542,15 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
       )
       setFilteredRawmaterials(newFilteredRawmaterials)
       setSelectedTableData(newFilteredDelivery)
+
+      let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
+      if (status) {
+        let filterData = deliverys.filter((data) => isWithinRange(data.date) && (data.collectiontype === 'delivery' || data.collectiontype === 'customer'))
+        let totalAmount = filterData.map((data) => Number(data.amount) || 0).reduce((a, b) => a + b, 0)
+        setTotalPayAmount(totalAmount)
+        setFilteredPayments(filterData)
+      }
+      
     }
 
     fetchFilteredData()
@@ -616,27 +611,26 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
     )
   }).length
 
-// useEffect(()=>{
-//   async function fetchPayDetails(){
-//     let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
-//     if(status){
-//      let filterData = deliverys.filter(data => data.date === '23/09/2024');
-//      let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
-//      console.log(totalAmount);
-     
-//     }
-//    }
-//    fetchPayDetails()
-// },[])
+  // useEffect(()=>{
+  //   async function fetchPayDetails(){
+  //     let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
+  //     if(status){
+  //      let filterData = deliverys.filter(data => data.date === '23/09/2024');
+  //      let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
+  //      console.log(totalAmount);
 
-  const totalPaid = filteredDelivery.reduce(async(total, product) => {
+  //     }
+  //    }
+  //    fetchPayDetails()
+  // },[])
+
+  const totalPaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
-
       return total + (Number(product.billamount) || 0)
-    } 
-    // else if (product.paymentstatus === 'Partial') {
-    //   return total + (Number(product.partialamount) || 0)
-    // }
+    }
+    else if (product.paymentstatus === 'Partial' && product.type === 'order') {
+      return total + (Number(product.partialamount) || 0)
+    }
     return total
   }, 0)
 
@@ -1290,43 +1284,60 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
     marginform.resetFields(['marginvalue'])
   }
 
- // card
+  // card
   const tabListNoTitle = [
     {
       key: 'total',
-      label: 'Total',
+      label: 'Total'
     },
     {
       key: 'cash',
-      label: 'Cash',
+      label: 'Cash'
     },
     {
       key: 'card',
-      label: 'Card',
+      label: 'Card'
     },
     {
       key: 'upi',
-      label: 'UPI',
-    },
-   
-  ];
+      label: 'UPI'
+    }
+  ]
+
+  const cashAmount = filteredPayments
+  .filter(payment => payment.paymentmode === 'Cash')
+  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+
+const cardAmount = filteredPayments
+  .filter(payment => payment.paymentmode === 'Card')
+  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+
+const upiAmount = filteredPayments
+  .filter(payment => payment.paymentmode === 'UPI')
+  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
 
   const contentListNoTitle = {
-    cash: <p className='pl-4'>article content</p>,
-    card: <p className='pl-4'>app content</p>,
-    upi: <p className='pl-4'>project content</p>,
-    total:<p className='pl-4'>{formatToRupee(totalPaid + Number(totalPayAmount))}</p>
-  };
+    cash: <p className="pl-4">{formatToRupee(cashAmount)}</p>,
+    card: <p className="pl-4">{formatToRupee(cardAmount)}</p>,
+    upi: <p className="pl-4">{formatToRupee(upiAmount)}</p>,
+    total: <p className="pl-4">{totalPaid + Number(totalPayAmount)}</p>
+  }
 
-  const [activeTabKey2, setActiveTabKey2] = useState('total');
+  const [activeTabKey2, setActiveTabKey2] = useState('total')
 
   const onTab2Change = (key) => {
-    setActiveTabKey2(key);
-  };
+    setActiveTabKey2(key)
+    if (key === 'cash') {
+      handlePaymentTypeClick('Cash', { stopPropagation: () => {} });
+    } else if (key === 'card') {
+      handlePaymentTypeClick('Card', { stopPropagation: () => {} });
+    } else if (key === 'upi') {
+      handlePaymentTypeClick('UPI', { stopPropagation: () => {} });
+    }
+  }
 
   return (
     <div>
-    
       <ul>
         <li className="flex gap-x-3 items-center justify-end">
           <RangePicker
@@ -1346,65 +1357,64 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
           </Button>
         </li>
 
-       <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
+        <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
             const isActive = activeCard === card.key
             return (
               <div>
-              
-              {card.key === 'totalPaid' ? <Card
-        style={{
-                  cursor: 'pointer',
-                  borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
-                  borderWidth: 2,
-                  background: isActive ? '#f26723' : '',
-                  color: isActive ? '#ffffff' : '#3f8600'
-                }}
-        tabList={tabListNoTitle}
-        activeTabKey={activeTabKey2}
-        onClick={() => {
-          // document.querySelector('.ant-tabs-tab-btn').classList('testactive')
-          handleCardClick(card.key)
-        }}
-        // tabBarExtraContent={<a href="#">More</a>}
-        onTabChange={onTab2Change}
-        tabProps={{
-          size: 'middle',
-        }}
-      >
-        {contentListNoTitle[activeTabKey2]}
-      </Card> :  <Card
-                key={card.key}
-                onClick={(e) =>  {
-                 
-                  handleCardClick(card.key)
-                }}
-                style={{
-                  cursor: 'pointer',
-                  borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
-                  borderWidth: 2,
-                  background: isActive ? '#f26723' : '',
-                  color: isActive ? '#ffffff' : ''
-                }}
-              >
-                <div className="flex flex-col">
-                  <div className="flex justify-between">
-                    <Statistic
-                      title={
-                        isActive ? (
-                          <span className="text-white">{card.title}</span>
-                        ) : (
-                          <span>{card.title}</span>
-                        )
-                      }
-                      value={card.value}
-                      precision={card.key === 'totalBooking' ? 0 : 2}
-                      valueStyle={{
-                        color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
-                      }}
-                      prefix={card.prefix}
-                    />
-                    {card.key === 'totalPaid' && (
+                {card.key === 'totalPaid' ? (
+                  <Card
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
+                      borderWidth: 2,
+                      background: isActive ? '#f26723' : '',
+                      color: isActive ? '#ffffff' : '#3f8600'
+                    }}
+                    tabList={tabListNoTitle}
+                    activeTabKey={activeTabKey2}
+                    onClick={() => {
+                      handleCardClick(card.key)
+                    }}
+                    onTabChange={onTab2Change}
+                    tabProps={{
+                      size: 'middle'
+                    }}
+                  >
+                    {contentListNoTitle[activeTabKey2]}
+                  </Card>
+                ) : (
+                  <Card
+                    key={card.key}
+                    onClick={(e) => {
+                      handleCardClick(card.key)
+                    }}
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: isActive ? '#f26723' : card.value > 0 ? '#3f8600' : '#cf1322',
+                      borderWidth: 2,
+                      background: isActive ? '#f26723' : '',
+                      color: isActive ? '#ffffff' : ''
+                    }}
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <Statistic
+                          title={
+                            isActive ? (
+                              <span className="text-white">{card.title}</span>
+                            ) : (
+                              <span>{card.title}</span>
+                            )
+                          }
+                          value={card.value}
+                          precision={card.key === 'totalBooking' ? 0 : 2}
+                          valueStyle={{
+                            color: isActive ? '#ffffff' : card.value > 0 ? '#3f8600' : '#cf1322'
+                          }}
+                          prefix={card.prefix}
+                        />
+                        {/* {card.key === 'totalPaid' && (
                       <div className="flex gap-x-2">
                         <Button
                           style={{ width: '42px', height: '28px' }}
@@ -1428,20 +1438,15 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
                           UPI
                         </Button>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </Card>}
-
-
-             
-
-        
-   </div>
-              
+                    )} */}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+              </div>
             )
           })}
-        </ul> 
+        </ul>
 
         <li className="mt-2">
           <Table

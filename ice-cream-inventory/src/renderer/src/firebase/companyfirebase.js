@@ -3,12 +3,12 @@ import { getFirestore, collection, getDocs } from 'firebase/firestore'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 
 const firebaseConfigDate = {
-  apiKey: "AIzaSyAwUi2QrllSi_8szzypanMrfs0asbgfbnM",
-  authDomain: "new-saranya-ice-creams.firebaseapp.com",
-  projectId: "new-saranya-ice-creams",
-  storageBucket: "new-saranya-ice-creams.appspot.com",
-  messagingSenderId: "598800808443",
-  appId: "1:598800808443:web:58597e732f77b8c105335e"
+  apiKey: "AIzaSyDIBNBTyma9AX6IzDMvGPAqw0lncMXoG0g",
+  authDomain: "icecream-inventory-9b07a.firebaseapp.com",
+  projectId: "icecream-inventory-9b07a",
+  storageBucket: "icecream-inventory-9b07a.appspot.com",
+  messagingSenderId: "821151819231",
+  appId: "1:821151819231:web:729d20ef74aa71e2b8906a"
 };
 
 const dateApp = initializeApp(firebaseConfigDate, 'dateApp')
