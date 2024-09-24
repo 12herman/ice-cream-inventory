@@ -32,10 +32,10 @@ const App = () => {
       'Production',
       'Delivery',
       'Storage',
-      'Product List',
-      'Supplier List',
-      'Customer List',
-      'Employee List',
+      'Product',
+      'Supplier',
+      'Customer',
+      'Employee',
       'Balance Sheet'
     ],
     icons: [

@@ -233,7 +233,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           <span className="flex gap-x-0">
             <Tag color="yellow">Partial</Tag> <Tag color="blue">{formatToRupee(record.partialamount,true)}</Tag>
           </span>
-        ) : text === 'Return' ? <Tag color="red">Return</Tag>
+        ) : text === 'Return' ? <Tag color="red">Returned</Tag>
         : (
           <Tag color="red">Unpaid</Tag>
         )

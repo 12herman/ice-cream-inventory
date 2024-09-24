@@ -46,6 +46,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
+import { latestFirstSort } from '../js-files/sort-time-date-sec'
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -477,7 +478,6 @@ export default function Home({ datas }) {
             }
           })
       )
-
       setDeliveryData(initialDeliveryData)
     }
     fetchData()
@@ -519,6 +519,7 @@ export default function Home({ datas }) {
             }
           })
       )
+
       setFilteredDelivery(newFilteredDelivery)
 
       const newFilteredRawmaterials = await Promise.all(
@@ -551,7 +552,8 @@ export default function Home({ datas }) {
           })
       )
       setFilteredRawmaterials(newFilteredRawmaterials)
-      setSelectedTableData(newFilteredDelivery)
+      let latestDataFilter = await latestFirstSort(newFilteredDelivery)
+      setSelectedTableData(latestDataFilter)
 
       let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
       if (status) {
@@ -671,7 +673,7 @@ export default function Home({ datas }) {
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
   ]
 
-  const handleCardClick = (type) => {
+  const handleCardClick =  async(type) => {
     setActiveCard(type)
     let newSelectedTableData = []
     switch (type) {
@@ -719,7 +721,8 @@ export default function Home({ datas }) {
       default:
         newSelectedTableData = filteredDelivery
     }
-    setSelectedTableData(newSelectedTableData)
+    let filterLatestData = await latestFirstSort(newSelectedTableData)
+    setSelectedTableData(filterLatestData)
     // console.log(newSelectedTableData)
   }
 
@@ -963,15 +966,15 @@ export default function Home({ datas }) {
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date',
+      key: 'date', 
       width: 150,
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY'
+        const format = 'DD/MM/YYYY' 
         const dateA = dayjs(a.date, format)
         const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
-      defaultSortOrder: 'descend'
+      // defaultSortOrder: 'descend'
     },
     {
       title: 'Customer / Supplier',
@@ -1003,7 +1006,7 @@ export default function Home({ datas }) {
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
-        } else if (text === 'Partial' && record.type !== 'Added') {
+        } else if (text === 'Partial' ) {
           return (
             <>
               <Tag color="yellow">
@@ -1299,7 +1302,7 @@ export default function Home({ datas }) {
   const tabListNoTitle = [
     {
       key: 'total',
-      label: 'Total'
+      label: 'Total Paid'
     },
     {
       key: 'cash',
@@ -1488,7 +1491,7 @@ export default function Home({ datas }) {
       >
         {selectedRecord && (
           <div>
-            <Descriptions bordered column={2}>
+            <Descriptions size='small' bordered column={2}>
               <Descriptions.Item label="Customer">{selectedRecord.customername}</Descriptions.Item>
               <Descriptions.Item label="Date">{selectedRecord.date}</Descriptions.Item>
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>

@@ -860,10 +860,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       >
         <Spin spinning={isLoadingModal}>
           <Form
+           className='flex flex-col gap-y-2'
             onFinish={createAddMaterial}
             form={form}
             layout="vertical"
-            initialValues={{ date: dayjs(), paymentstatus: 'Paid' }}
+            initialValues={{ date: dayjs(), paymentstatus: 'Paid',paymentmode:'Cash' }}
           >
             <Form.Item
               className="mb-0"
@@ -1004,8 +1005,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               />
             </Form.Item>
 
-            <Form.Item
-              className="mb-1"
+         <span className='flex justify-between items-center'>
+         <Form.Item
+              className="mb-0"
               name="paymentstatus"
               label="Status"
               rules={[{ required: true, message: false }]}
@@ -1040,6 +1042,22 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 type="number"
               />
             </Form.Item>
+         </span>
+
+            <Form.Item
+            label='Payment Mode'
+                className="mb-0 "
+                name="paymentmode"
+                rules={[{ required: true, message: 'Please select a payment method' }]}
+              >
+                <Radio.Group
+                  // disabled={option.tempproduct.length <= 0 ? true : false}
+                >
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item>
           </Form>
         </Spin>
       </Modal>
