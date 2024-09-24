@@ -63,6 +63,7 @@ export default function Home({ datas }) {
   const [form] = Form.useForm()
   const [marginform] = Form.useForm()
   const [totalPayAmount, setTotalPayAmount] = useState(0)
+  const [totalSpendAmount, setTotalSpendAmount] = useState(0)
   const [temform] = Form.useForm()
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
   const [deliveryData, setDeliveryData] = useState([])
@@ -506,7 +507,7 @@ export default function Home({ datas }) {
 
       const newFilteredDelivery = await Promise.all(
         datas.delivery
-          .filter((product) => isWithinRange(product.date))
+          .filter((product) => !product.isdeleted && isWithinRange(product.date))
           .map(async (item) => {
             const result = await getCustomerById(item.customerid)
             const customerName =
@@ -522,7 +523,7 @@ export default function Home({ datas }) {
 
       const newFilteredRawmaterials = await Promise.all(
         datas.rawmaterials
-          .filter((material) => isWithinRange(material.date))
+          .filter((material) => !material.isdeleted && isWithinRange(material.date))
           .map(async (item) => {
             let supplierName = '-'
             let materialName = '-'
@@ -558,10 +559,10 @@ export default function Home({ datas }) {
         let totalAmount = filterData.map((data) => Number(data.amount) || 0).reduce((a, b) => a + b, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
+        let spendData = deliverys.filter((data) => isWithinRange(data.date) && (data.collectiontype === 'supplier' || data.collectiontype === 'employee'))
+        setTotalSpendAmount(spendData)
       }
-      
     }
-
     fetchFilteredData()
   }, [dateRange, datas.delivery, datas.rawmaterials])
 
@@ -600,9 +601,11 @@ export default function Home({ datas }) {
     .filter((product) => product.type !== 'return')
     .reduce((total, product) => total + product.billamount, 0)
 
-  const totalSpend = filteredRawmaterials
+  const totalRawSpend = filteredRawmaterials
     .filter((material) => material.type === 'Added')
     .reduce((total, material) => total + material.price, 0)
+
+  const totalSpend = totalRawSpend + (Number(totalSpendAmount) || 0)
 
   const totalProfit = totalSales - totalSpend
 
@@ -619,19 +622,6 @@ export default function Home({ datas }) {
       product.type === 'booking' && dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
     )
   }).length
-
-  // useEffect(()=>{
-  //   async function fetchPayDetails(){
-  //     let {deliverys,status} = await getAllPayDetailsFromAllDelivery()
-  //     if(status){
-  //      let filterData = deliverys.filter(data => data.date === '23/09/2024');
-  //      let totalAmount = filterData.map(data=>data.amount).reduce((a,b)=> a + b, 0);
-  //      console.log(totalAmount);
-
-  //     }
-  //    }
-  //    fetchPayDetails()
-  // },[])
 
   const totalPaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
@@ -1313,22 +1303,29 @@ export default function Home({ datas }) {
     }
   ]
 
-const cashAmount = filteredPayments
-.filter(payment => payment.paymentmode === 'Cash')
-.reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+  const calculateCombinedAmount = (paymentMode) => {
+    const paymentAmount = filteredPayments
+      .filter(payment => payment.paymentmode === paymentMode)
+      .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+    const deliveryAmount = filteredDelivery.reduce((total, product) => {
+      if (product.paymentstatus === 'Paid' && product.type !== 'return' && product.paymentmode === paymentMode) {
+        return total + (Number(product.billamount) || 0);
+      } else if (product.paymentstatus === 'Partial' && product.type === 'order' && product.paymentmode === paymentMode) {
+        return total + (Number(product.partialamount) || 0);
+      }
+      return total;
+    }, 0);
+    return paymentAmount + deliveryAmount;
+  };
 
-const cardAmount = filteredPayments
-  .filter(payment => payment.paymentmode === 'Card')
-  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
-
-const upiAmount = filteredPayments
-  .filter(payment => payment.paymentmode === 'UPI')
-  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+  const combinedCashAmount = calculateCombinedAmount('Cash');
+  const combinedCardAmount = calculateCombinedAmount('Card');
+  const combinedUpiAmount = calculateCombinedAmount('UPI');
 
   const contentListNoTitle = {
-    cash: <p className="pl-4">{formatToRupee(cashAmount)}</p>,
-    card: <p className="pl-4">{formatToRupee(cardAmount)}</p>,
-    upi: <p className="pl-4">{formatToRupee(upiAmount)}</p>,
+    cash: <p className="pl-4">{formatToRupee(combinedCashAmount)}</p>,
+    card: <p className="pl-4">{formatToRupee(combinedCardAmount)}</p>,
+    upi: <p className="pl-4">{formatToRupee(combinedUpiAmount)}</p>,
     total: <p className="pl-4">{formatToRupee(totalPaid + Number(totalPayAmount))}</p>
   }
 
@@ -1342,6 +1339,8 @@ const upiAmount = filteredPayments
       handlePaymentTypeClick('Card', { stopPropagation: () => {} });
     } else if (key === 'upi') {
       handlePaymentTypeClick('UPI', { stopPropagation: () => {} });
+    }else{
+      handleCardClick('totalPaid')
     }
   }
 
