@@ -293,7 +293,8 @@ export default function BalanceSheet({ datas }) {
       type: type,
       paymentmode: description === 'Pay' ? paymentmode : '',
       description: description,
-      createddate: TimestampJs()
+      createddate: TimestampJs(),
+      collectiontype:description === 'Pay' ? 'customer' : '' 
     }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)

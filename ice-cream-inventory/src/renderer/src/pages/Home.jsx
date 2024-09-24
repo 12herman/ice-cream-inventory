@@ -1304,9 +1304,9 @@ export default function Home({ datas }) {
     }
   ]
 
-  const cashAmount = filteredPayments
-  .filter(payment => payment.paymentmode === 'Cash')
-  .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+const cashAmount = filteredPayments
+.filter(payment => payment.paymentmode === 'Cash')
+.reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
 
 const cardAmount = filteredPayments
   .filter(payment => payment.paymentmode === 'Card')
@@ -1375,6 +1375,17 @@ const upiAmount = filteredPayments
                     activeTabKey={activeTabKey2}
                     onClick={() => {
                       handleCardClick(card.key)
+                     
+      let el = document.querySelectorAll('.ant-tabs-tab-btn');
+      let activeel = document.querySelector('.ant-tabs-tab-active');
+
+      if (el) {
+        el.forEach(data => {
+          
+          data.classList.add('active-text-white')
+        })
+      }
+
                     }}
                     onTabChange={onTab2Change}
                     tabProps={{
@@ -1386,8 +1397,16 @@ const upiAmount = filteredPayments
                 ) : (
                   <Card
                     key={card.key}
-                    onClick={(e) => {
+                    onClick={() => {
                       handleCardClick(card.key)
+                      let el = document.querySelectorAll('.ant-tabs-tab-btn');
+                      console.log(el)
+      if (el) {
+        el.forEach(data => {
+          data.classList.remove('active-text-white')
+        })
+        
+      }
                     }}
                     style={{
                       cursor: 'pointer',
