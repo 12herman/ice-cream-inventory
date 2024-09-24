@@ -1374,6 +1374,17 @@ export default function Home({ datas }) {
                     activeTabKey={activeTabKey2}
                     onClick={() => {
                       handleCardClick(card.key)
+                     
+      let el = document.querySelectorAll('.ant-tabs-tab-btn');
+      let activeel = document.querySelector('.ant-tabs-tab-active');
+
+      if (el) {
+        el.forEach(data => {
+          
+          data.classList.add('active-text-white')
+        })
+      }
+
                     }}
                     onTabChange={onTab2Change}
                     tabProps={{
@@ -1385,8 +1396,16 @@ export default function Home({ datas }) {
                 ) : (
                   <Card
                     key={card.key}
-                    onClick={(e) => {
+                    onClick={() => {
                       handleCardClick(card.key)
+                      let el = document.querySelectorAll('.ant-tabs-tab-btn');
+                      console.log(el)
+      if (el) {
+        el.forEach(data => {
+          data.classList.remove('active-text-white')
+        })
+        
+      }
                     }}
                     style={{
                       cursor: 'pointer',

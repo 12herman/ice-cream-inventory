@@ -1,5 +1,3 @@
-
-
 .ant-tabs-tab-btn {
     color: #4f4e4e !important;
 }
@@ -12,8 +10,14 @@
     color: #727272 !important;
 }
 
+.active-text-white{
+    color: #ffffff !important;
+}
 
-
+.ant-tabs-tab-active .active-text-white{
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
 /*
  
 .ant-tabs-tab-btn .active{
