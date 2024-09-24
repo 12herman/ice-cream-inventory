@@ -598,7 +598,7 @@ export default function Home({ datas }) {
 
   const totalSpend = totalRawSpend + (Number(totalSpendAmount) || 0)
 
-  const totalProfit = totalSales - totalCombinedSpend
+  const totalProfit = totalSales - totalSpend
 
   const totalReturn = filteredDelivery
     .filter((product) => product.type === 'return')
