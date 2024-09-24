@@ -546,12 +546,25 @@ export default function Home({ datas }) {
 
       let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
       if (status) {
-        let filterData = deliverys.filter((data) => isWithinRange(data.date) && (data.collectiontype === 'delivery' || data.collectiontype === 'customer'))
-        let totalAmount = filterData.map((data) => Number(data.amount) || 0).reduce((a, b) => a + b, 0)
+        let filterData = deliverys.filter(
+          (data) =>
+            isWithinRange(data.date) &&
+            (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
+        )
+        let totalAmount = filterData
+          .map((data) => Number(data.amount) || 0)
+          .reduce((a, b) => a + b, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
-        let spendData = deliverys.filter((data) => isWithinRange(data.date) && (data.collectiontype === 'supplier' || data.collectiontype === 'employee'))
-        setTotalSpendAmount(spendData)
+        let spendData = deliverys.filter(
+          (data) =>
+            isWithinRange(data.date) &&
+            (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
+        )
+        let spendAmount = spendData
+          .map((data) => Number(data.amount) || 0)
+          .reduce((a, b) => a + b, 0)
+        setTotalSpendAmount(spendAmount)
       }
     }
     fetchFilteredData()
@@ -596,7 +609,7 @@ export default function Home({ datas }) {
     .filter((material) => material.type === 'Added')
     .reduce((total, material) => total + material.price, 0)
 
-  const totalSpend = totalRawSpend + (Number(totalSpendAmount) || 0)
+  const totalSpend = totalRawSpend + (Number(totalSpendAmount))
 
   const totalProfit = totalSales - totalSpend
 
@@ -617,8 +630,7 @@ export default function Home({ datas }) {
   const totalPaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
       return total + (Number(product.billamount) || 0)
-    }
-    else if (product.paymentstatus === 'Partial' && product.type === 'order') {
+    } else if (product.paymentstatus === 'Partial' && product.type === 'order') {
       return total + (Number(product.partialamount) || 0)
     }
     return total
@@ -1296,22 +1308,30 @@ export default function Home({ datas }) {
 
   const calculateCombinedAmount = (paymentMode) => {
     const paymentAmount = filteredPayments
-      .filter(payment => payment.paymentmode === paymentMode)
-      .reduce((total, payment) => total + (Number(payment.amount) || 0), 0);
+      .filter((payment) => payment.paymentmode === paymentMode)
+      .reduce((total, payment) => total + (Number(payment.amount) || 0), 0)
     const deliveryAmount = filteredDelivery.reduce((total, product) => {
-      if (product.paymentstatus === 'Paid' && product.type !== 'return' && product.paymentmode === paymentMode) {
-        return total + (Number(product.billamount) || 0);
-      } else if (product.paymentstatus === 'Partial' && product.type === 'order' && product.paymentmode === paymentMode) {
-        return total + (Number(product.partialamount) || 0);
+      if (
+        product.paymentstatus === 'Paid' &&
+        product.type !== 'return' &&
+        product.paymentmode === paymentMode
+      ) {
+        return total + (Number(product.billamount) || 0)
+      } else if (
+        product.paymentstatus === 'Partial' &&
+        product.type === 'order' &&
+        product.paymentmode === paymentMode
+      ) {
+        return total + (Number(product.partialamount) || 0)
       }
-      return total;
-    }, 0);
-    return paymentAmount + deliveryAmount;
-  };
+      return total
+    }, 0)
+    return paymentAmount + deliveryAmount
+  }
 
-  const combinedCashAmount = calculateCombinedAmount('Cash');
-  const combinedCardAmount = calculateCombinedAmount('Card');
-  const combinedUpiAmount = calculateCombinedAmount('UPI');
+  const combinedCashAmount = calculateCombinedAmount('Cash')
+  const combinedCardAmount = calculateCombinedAmount('Card')
+  const combinedUpiAmount = calculateCombinedAmount('UPI')
 
   const contentListNoTitle = {
     cash: <p className="pl-4">{formatToRupee(combinedCashAmount)}</p>,
@@ -1325,12 +1345,12 @@ export default function Home({ datas }) {
   const onTab2Change = (key) => {
     setActiveTabKey2(key)
     if (key === 'cash') {
-      handlePaymentTypeClick('Cash', { stopPropagation: () => {} });
+      handlePaymentTypeClick('Cash', { stopPropagation: () => {} })
     } else if (key === 'card') {
-      handlePaymentTypeClick('Card', { stopPropagation: () => {} });
+      handlePaymentTypeClick('Card', { stopPropagation: () => {} })
     } else if (key === 'upi') {
-      handlePaymentTypeClick('UPI', { stopPropagation: () => {} });
-    }else{
+      handlePaymentTypeClick('UPI', { stopPropagation: () => {} })
+    } else {
       handleCardClick('totalPaid')
     }
   }
@@ -1374,17 +1394,13 @@ export default function Home({ datas }) {
                     activeTabKey={activeTabKey2}
                     onClick={() => {
                       handleCardClick(card.key)
-                     
-      let el = document.querySelectorAll('.ant-tabs-tab-btn');
-      let activeel = document.querySelector('.ant-tabs-tab-active');
-
-      if (el) {
-        el.forEach(data => {
-          
-          data.classList.add('active-text-white')
-        })
-      }
-
+                      let el = document.querySelectorAll('.ant-tabs-tab-btn')
+                      let activeel = document.querySelector('.ant-tabs-tab-active')
+                      if (el) {
+                        el.forEach((data) => {
+                          data.classList.add('active-text-white')
+                        })
+                      }
                     }}
                     onTabChange={onTab2Change}
                     tabProps={{
@@ -1398,14 +1414,12 @@ export default function Home({ datas }) {
                     key={card.key}
                     onClick={() => {
                       handleCardClick(card.key)
-                      let el = document.querySelectorAll('.ant-tabs-tab-btn');
-                      console.log(el)
-      if (el) {
-        el.forEach(data => {
-          data.classList.remove('active-text-white')
-        })
-        
-      }
+                      let el = document.querySelectorAll('.ant-tabs-tab-btn')
+                      if (el) {
+                        el.forEach((data) => {
+                          data.classList.remove('active-text-white')
+                        })
+                      }
                     }}
                     style={{
                       cursor: 'pointer',
@@ -1432,31 +1446,6 @@ export default function Home({ datas }) {
                           }}
                           prefix={card.prefix}
                         />
-                        {/* {card.key === 'totalPaid' && (
-                      <div className="flex gap-x-2">
-                        <Button
-                          style={{ width: '42px', height: '28px' }}
-                          onClick={(event) => handlePaymentTypeClick('Cash', event)}
-                          type="default"
-                        >
-                          Cash
-                        </Button>
-                        <Button
-                          style={{ width: '42px', height: '28px' }}
-                          onClick={(event) => handlePaymentTypeClick('Card', event)}
-                          type="default"
-                        >
-                          Card
-                        </Button>
-                        <Button
-                          style={{ width: '42px', height: '28px' }}
-                          onClick={(event) => handlePaymentTypeClick('UPI', event)}
-                          type="default"
-                        >
-                          UPI
-                        </Button>
-                      </div>
-                    )} */}
                       </div>
                     </div>
                   </Card>
