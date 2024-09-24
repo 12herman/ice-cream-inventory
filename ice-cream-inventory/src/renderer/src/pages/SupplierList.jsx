@@ -156,11 +156,12 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   }
 
   const [payModalLoading, setPayModalLoading] = useState(false)
+  
   const supplierPay = async (value) => {
     setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs() }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier' }
     try {
       const customerDocRef = doc(db, 'supplier', supplierPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')

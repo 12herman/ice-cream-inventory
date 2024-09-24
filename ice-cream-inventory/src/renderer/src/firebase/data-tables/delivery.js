@@ -1,4 +1,4 @@
-import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs, getDoc } from "firebase/firestore";
+import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs, getDoc, collectionGroup } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Get all delivery
@@ -120,25 +120,57 @@ export const deleteDelivery = async (deliveryId) => {
   // To get all deliverys from all Delivery
   export const getAllPayDetailsFromAllDelivery = async () => {
     try {
-      const DeliveryCollectionRef = collection(db, 'delivery');
-      const DeliverySnapshot = await getDocs(DeliveryCollectionRef);
-      const alldeliveryDetails = [];
-      for (const supplierDoc of DeliverySnapshot.docs) {
-        const DeliveryId = supplierDoc.id;
-        const DeliveryDetailsRef = collection(db, 'delivery', DeliveryId, 'paydetails');
-        const deliveryDetailsSnapshot = await getDocs(DeliveryDetailsRef);
-        deliveryDetailsSnapshot.forEach(deliveryDoc => {
-          alldeliveryDetails.push({
-            DeliveryId,
-            deliveryId: deliveryDoc.id,
-            ...deliveryDoc.data(),
+      const deliveryCollectionRef = collection(db, 'delivery'); // Reference to 'delivery' collection
+      const deliverySnapshot = await getDocs(deliveryCollectionRef); // Get all documents from 'delivery' collection
+  
+      const allPayDetails = [];
+  
+      // Loop over each 'delivery' document
+      for (const deliveryDoc of deliverySnapshot.docs) {
+        const deliveryId = deliveryDoc.id; // Get the delivery document ID
+        const paydetailsCollectionRef = collection(db, 'delivery', deliveryId, 'paydetails'); // Reference to 'paydetails' subcollection
+        const paydetailsSnapshot = await getDocs(paydetailsCollectionRef); // Fetch all paydetails for this delivery
+  
+        // Loop over each paydetails document and add it to the results
+        paydetailsSnapshot.forEach(paydetailsDoc => {
+          allPayDetails.push({
+            deliveryid, // Attach the parent delivery document ID
+            paydetailsid: paydetailsDoc.id, // Attach the paydetails document ID
+            ...paydetailsDoc.data(), // Attach the paydetails data
           });
         });
       }
-      return { deliverys: alldeliveryDetails, status: 200 };
-    } catch (err) {
-      console.error("Error fetching delivery details from all delivery: ", err);
-      return { status: 500, message: err.message };
+  
+      console.log(allPayDetails);
+  
+      return { paydetails: allPayDetails, status: 200 };
+    } catch (e) {
+      console.log("Error fetching paydetails:", e);
+      return { paydetails: [], status: 500, error: e.message };
     }
   };
 
+
+
+
+// export const getAllPayDetailsFromAllDelivery = async () => {
+// try{
+//   const paydetailsCollectionGroup = collectionGroup(db, 'paydetails');
+//   // Fetch all documents from the 'paydetails' subcollections
+//   const deliveryDetailsSnapshot = await getDocs(paydetailsCollectionGroup);
+
+//   const alldeliveryDetails = [];
+//   deliveryDetailsSnapshot.forEach(deliveryDoc => {
+//     alldeliveryDetails.push({
+//       deliveryId: deliveryDoc.id,
+//       ...deliveryDoc.data(),
+//     });
+//   });
+//   console.log(alldeliveryDetails);
+  
+//   return { deliverys: alldeliveryDetails, status: 200 };
+// }
+// catch(e){
+//   console.log(e);
+// }
+// }

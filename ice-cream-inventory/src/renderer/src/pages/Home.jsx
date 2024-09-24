@@ -24,7 +24,9 @@ import { FaRupeeSign } from 'react-icons/fa'
 import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
-import { fetchItemsForDelivery, getAllPayDetailsFromAllDelivery } from '../firebase/data-tables/delivery'
+import { fetchItemsForDelivery, 
+  getAllPayDetailsFromAllDelivery 
+} from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
@@ -1344,7 +1346,7 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
           </Button>
         </li>
 
-        <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
+       <ul className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
             const isActive = activeCard === card.key
             return (
@@ -1439,7 +1441,7 @@ let [totalPayAmount,setTotalPayAmount] = useState(0)
               
             )
           })}
-        </ul>
+        </ul> 
 
         <li className="mt-2">
           <Table

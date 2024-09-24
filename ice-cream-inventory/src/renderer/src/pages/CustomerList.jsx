@@ -119,6 +119,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     let formateDate = dayjs(date).format('DD/MM/YYYY')
     const payData = {
       ...Datas,
+      collectiontype:'customer',
       date: formateDate,
       description: description || '',
       type: 'Payment',

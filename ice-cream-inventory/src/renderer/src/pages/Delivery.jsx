@@ -1008,9 +1008,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       price: findPrice * values.numberofpacks
     };
 
-    console.log(newProduct);
+    // console.log(newProduct);
     
-    console.log(option.tempproduct);
+    // console.log(option.tempproduct);
     
 
     const checkExsit = option.tempproduct.some((item) =>
@@ -1030,7 +1030,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       
 
       let compainData = [...option.tempproduct,newProduct]
-      console.log(compainData);
+      // console.log(compainData);
       
       let netamt = compainData.map(data => data.price).reduce((a,b)=> a + b ,0);
 
@@ -1146,9 +1146,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
       await setOption((prev) => ({ ...prev, tempproduct: [] }))
-      console.log(productItems)
+      // console.log(productItems)
       for (const item of productItems) {
-        console.log(item,productItems)
+        // console.log(item,productItems)
         await addDoc(itemsCollectionRef, item)
 
         const { product, status } = await getProductById(item.id);
@@ -1164,7 +1164,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             }
             else if(returnDelivery.state === true && item.returntype === 'damage')
             {
-              console.log('damage')
+              // console.log('damage')
             }
             else {
               await updateStorage(existingProduct.id, {
@@ -1946,7 +1946,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   };
 
   const quickSalePayMt = async () => {
-   
     // setQuickSalePay((pre) => ({ ...pre, loading: true }));
     let { date, description, ...paydetails } = quicksalepayForm.getFieldValue();
     let formateDate = dayjs(date).format('DD/MM/YYYY');
@@ -1954,6 +1953,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   
     let newData = {
       ...paydetails,
+      collectiontype:'delivery',
       date: formateDate,
       createddate: TimestampJs(),
       description: description === undefined || description === null ? '' : description,
@@ -2004,7 +2004,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       // Ensure the delivery update finishes
       await setTimeout(async()=> {
         let {delivery,status} = await getDeliveryById(deliveryBill.prdata.id);
-        console.log(delivery);
+        // console.log(delivery);
         
         if(status){
           await setDeliveryBill((pre) => ({
@@ -2115,7 +2115,7 @@ const [payModalState,setPayModalState] = useState({
      let payIdChild = payModalState.data.id;
      let PayId = deliveryBill.data.id;
      let lessAmount = partialAmount - oldAmount;
-     console.log(billingAmount,lessAmount);
+    //  console.log(billingAmount,lessAmount);
     //  await updatePaydetailsChild(PayId,payIdChild,updatePayData);
     //  await historyBtnMt();
     //  setPopupModal(pre=>({...pre,quicksaleform:false}));
@@ -2679,7 +2679,7 @@ const [payModalState,setPayModalState] = useState({
                         finally{
                           await setTimeout(async()=> {
                           let {delivery,status} = await getDeliveryById(deliveryBill.data.id);
-                          console.log(delivery);
+                          // console.log(delivery);
                           
                           if(status){
                             await setDeliveryBill((pre) => ({
@@ -2712,7 +2712,7 @@ const [payModalState,setPayModalState] = useState({
                         finally{
                           await setTimeout(async()=> {
                           let {delivery,status} = await getDeliveryById(deliveryBill.data.id);
-                          console.log(delivery);
+                          // console.log(delivery);
                           
                           if(status){
                             await setDeliveryBill((pre) => ({

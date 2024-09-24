@@ -481,6 +481,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     const empId = employeePay.name.id
     const payData = {
       ...Datas,
+      collectiontype:'employee',
       date: formateDate,
       description: description === undefined ? '' : description,
       type: 'pay',

@@ -391,7 +391,7 @@ export default function NavBar({
         margin: data.margin,
         productprice: data.productprice
       }));
-      console.log(productItems);
+      // console.log(productItems);
       
       if (isQuickSale.type === 'quick') {
        
@@ -439,7 +439,8 @@ export default function NavBar({
         createddate:TimestampJs(),
         date:dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
         description:'',
-        paymentmode:isQuickSale.paymentmode
+        paymentmode:isQuickSale.paymentmode,
+        collectiontype:'delivery'
       }
 
       try {
@@ -949,7 +950,7 @@ export default function NavBar({
     setPersonOnchangeSt(e)
   }, 200)
 
-  console.log(isQuickSale.marginstate , !isSpinners , isQuickSale.temdata.length > 0);
+  // console.log(isQuickSale.marginstate , !isSpinners , isQuickSale.temdata.length > 0);
   
   return (
     <nav className="border-r-2 h-screen col-span-2 relative">
