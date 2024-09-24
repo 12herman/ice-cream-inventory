@@ -1020,7 +1020,7 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="red">{text}</Tag>
-              <Tag color="red">{record.type}</Tag>
+              <Tag color="red">{record.type === 'return' ? 'Returned' : record.type}</Tag>
             </>
           )
         } else {
