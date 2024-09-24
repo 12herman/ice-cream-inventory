@@ -26,7 +26,8 @@ import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
 import {
   fetchItemsForDelivery,
-  getAllPayDetailsFromAllDelivery
+  getAllPayDetailsFromAllDelivery,
+  // getDeliveryUsingDates
 } from '../firebase/data-tables/delivery'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
@@ -483,6 +484,14 @@ export default function Home({ datas }) {
   }, [datas])
 
   useEffect(() => {
+
+  // let testfetch = async()=>{
+  //   // let {delivery,status} =await getDeliveryUsingDates();
+  //   // console.log(delivery);
+    
+  // }
+  // testfetch()
+
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
         if (!dateRange[0] || !dateRange[1]) {
@@ -723,7 +732,7 @@ export default function Home({ datas }) {
         product.paymentmode === paymentMode
     )
     setSelectedTableData(filtered)
-    console.log(filtered, paymentMode)
+    // console.log(filtered, paymentMode)
   }
 
   const componentRef = useRef()
