@@ -14,6 +14,7 @@ import {
   Dropdown,
   Menu
 } from 'antd'
+import { debounce } from 'lodash'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
@@ -32,6 +33,7 @@ import { generatPDF } from '../js-files/pdf-generator'
 // import loadingGif from '../assets/Loopy-ezgif.com-gif-maker.gif'
 // import loadingGif from '../assets/Dessertanyone_Steemit-ezgif.com-effects.gif'
 import loadingGif from '../assets/Dessertanyone_Steemit-ezgif.com-effects.gif'
+import { formatName } from '../js-files/letter-or-name'
 
 const { Search } = Input
 
@@ -67,6 +69,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   const [isProductLoading, setIsProductLoading] = useState(false)
   // create new project
   const createNewProduct = async (values) => {
+  
     setIsProductLoading(true)
     try {
       const productExists = datas.product.find(
@@ -77,16 +80,19 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       )
       const productRef = await createproduct({
         ...values,
+        productname: formatName(values.productname),
+        flavour: formatName(values.flavour),
         createddate: TimestampJs(),
         updateddate: '',
         isdeleted: false
-      })
+      });
       const productId = productRef.res.id
       console.log(productId, productRef)
+      
       if (!productExists) {
         await createStorage({
-          // productname: values.productname,
-          // flavour: values.flavour,
+          // productname: formatName(values.productname),
+          // flavour: formatName(values.flavour),
           // quantity: values.quantity,
           // unit: values.unit,
           //productperpack: values.productperpack,
@@ -494,9 +500,9 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   // },[pdf.isGenerate]);
 
   const [productOnchangeValue, setProductOnchangeValue] = useState('')
-  const productOnchange = (value) => {
+  const productOnchange = debounce((value) => {
     setProductOnchangeValue(value)
-  }
+  },500)
 
   const [isCloseWarning, setIsCloseWarning] = useState(false)
 

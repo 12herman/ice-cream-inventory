@@ -28,10 +28,12 @@ import { updateStorage } from '../firebase/data-tables/storage'
 import { getProductById } from '../firebase/data-tables/products'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
 
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
+  const [form3]= Form.useForm()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
@@ -349,19 +351,19 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       title: 'Product',
       dataIndex: 'productname',
       key: 'productname',
-      editable: true
+      editable: false
     },
     {
       title: 'Flavor',
       dataIndex: 'flavour',
       key: 'flavour',
-      editable: true
+      editable: false
     },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true
+      editable: false
       //width: 120
     },
     {
@@ -377,22 +379,57 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       fixed: 'right',
       width: 80,
       render: (_, record) => {
-        return (
-          <Popconfirm
-            className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
-            title="Sure to delete?"
-            onConfirm={() => removeTemProduct(record)}
-            disabled={editingKey !== ''}
-          >
-            <AiOutlineDelete
-              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+        const editable = temisEditing(record)
+        return !editable ? (
+          <span className="flex gap-x-2">
+            <MdOutlineModeEditOutline
+              className={` ${editingKey !== '' ?'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer'}`}
               size={19}
+              onClick={() => editingKey !== '' ? console.log('') : temedit(record)}
             />
-          </Popconfirm>
+            <Popconfirm
+              className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => removeTemProduct(record)}
+              disabled={editingKey !== ''}
+            >
+              <AiOutlineDelete
+                className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        ) : (
+          <span className="flex gap-x-2">
+            <Typography.Link style={{ marginRight: 8 }} onClick={() => temsave(record)}>
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={temcancel}>
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
         )
+        // return (
+        //   <Popconfirm
+        //     className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+        //     title="Sure to delete?"
+        //     onConfirm={() => removeTemProduct(record)}
+        //     disabled={editingKey !== ''}
+        //   >
+        //     <AiOutlineDelete
+        //       className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+        //       size={19}
+        //     />
+        //   </Popconfirm>
+        // )
       }
     }
-  ]
+  ];
+
+ 
 
   const [option, setOption] = useState({
     flavour: [],
@@ -402,7 +439,88 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     quantity: [],
     quantitystatus: true,
     tempproduct: []
+  });
+
+
+  const temEditableCell = ({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  }) => {
+    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <Form.Item
+            name={dataIndex}
+            style={{
+              margin: 0
+            }}
+            rules={[
+              {
+                required: true,
+                message: false
+              }
+            ]}
+          >
+            {inputNode}
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    )
+  }
+  const temisEditing = (record) => record.key === editingKey
+ 
+  const temedit = (record) => {
+    form3.setFieldsValue({ ...record })
+    setEditingKey(record.key)
+  }
+
+  const temmergedColumns = columns2.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'numberofpacks' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: temisEditing(record)
+      })
+    }
   })
+  const temcancel = () => {
+    setEditingKey('')
+  }
+
+  //update method
+  const temsave = async (key) => {
+    try {
+      const row = await form3.validateFields()
+      const newData = [...option.tempproduct]
+      const index = newData.findIndex((item) => key.id === item.key)
+      if (index != null && row.numberofpacks === key.numberofpacks) {
+        message.open({ type: 'info', content: 'No changes made' })
+        setEditingKey('')
+      } else {
+        let updateData = newData.map(data => data.key === key.key ? {...data,numberofpacks:row.numberofpacks} : data );
+        setOption(pre=>({...pre,tempproduct:updateData}))
+        message.open({ type: 'success', content: 'Updated Successfully' })
+        setEditingKey('')
+      }
+    } catch (errInfo) {
+      console.log('Validate Failed:', errInfo)
+    }
+  }
 
   //product initial value
   useEffect(() => {
@@ -425,9 +543,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       new Set(
         datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour)
-      )
-    ).map((flavour) => ({ label: flavour, value: flavour }))
+          .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }))
     await setOption((pre) => ({
       ...pre,
       flavourstatus: false,
@@ -448,9 +564,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             item.isdeleted === false &&
             item.flavour === value &&
             item.productname === option.productvalue
-        )
-      )
-    ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
+        ))).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
     await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
   }
 
@@ -527,8 +641,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           numberofpacks: newProduction.numberofpacks
         });
         
-        await productionUpdateMt();
-
         const existingProduct = datas.storage.find((storageItem) => storageItem.productid === existingProductList.id  && storageItem.category === 'Product List' )
         
         console.log(existingProduct);
@@ -537,10 +649,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
           numberofpacks: existingProduct.numberofpacks + newProduction.numberofpacks,
           updateddate:TimestampJs()
         })
-        await storageUpdateMt()
       }
       message.open({ type: 'success', content: 'Production added successfully' })
       setIsModalOpen(false)
+      await productionUpdateMt();
+      await storageUpdateMt();
       form2.resetFields()
       setOption((pre) => ({
         ...pre,
@@ -554,7 +667,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     } catch (error) {
       console.error('An error occurred while adding new production:', error)
     } finally {
-     await setIsAddProductModal(false)
+     await setIsAddProductModal(false);
     }
   }
 
@@ -573,6 +686,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         quantitystatus: true
       }))
       setCount(0)
+      setEditingKey('')
     }
   }
 
@@ -615,6 +729,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       quantitystatus: true
     }))
     setCount(0)
+    setEditingKey('')
   }
 
   return (
@@ -797,14 +912,21 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
               </Form>
             </span>
             <span className="col-span-3">
+            <Form form={form3} component={false}>
               <Table
                 virtual
+                components={{
+                body: {
+                  cell: temEditableCell
+                }
+              }}
                 className="w-full"
-                columns={columns2}
+                columns={temmergedColumns}
                 dataSource={option.tempproduct}
                 pagination={{ pageSize: 4 }}
                 scroll={{ x: false, y: false }}
               />
+              </Form>
             </span>
           </div>
         </Spin>

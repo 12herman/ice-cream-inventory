@@ -1183,7 +1183,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   </Form.Item> */}
                 </span>
 
-                <Form.Item className=" w-full">
+                <Form.Item className=" w-full mt-2">
                   <Button className="w-full" type="primary" htmlType="submit">
                     Add To List
                   </Button>
