@@ -629,15 +629,15 @@ export default function Home({ datas }) {
 
   const totalSpend = totalRawSpend + (Number(totalSpendAmount))
 
-  const totalRawPurchase = filteredRawmaterials
-    .filter((material) => material.type === 'Added')
-    .reduce((total, material) => total + material.price, 0)
-
-  const totalProfit = totalSales - totalRawPurchase
+  // const totalRawPurchase = filteredRawmaterials
+  //   .filter((material) => material.type === 'Added')
+  //   .reduce((total, material) => total + material.price, 0)
 
   const totalReturn = filteredDelivery
     .filter((product) => product.type === 'return')
     .reduce((total, product) => total + product.billamount, 0)
+
+  const totalProfit = totalSales - totalSpend - totalReturn
 
   const totalQuickSale = filteredDelivery
     .filter((product) => product.type === 'quick')
@@ -670,9 +670,9 @@ export default function Home({ datas }) {
   const [activeCard, setActiveCard] = useState('')
   const cardsData = [
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
-    { key: 'totalSpend', title: 'Total Expense', value: totalSpend, prefix: <FaRupeeSign /> },
-    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
+    { key: 'totalSpend', title: 'Total Expenses', value: totalSpend, prefix: <FaRupeeSign /> },
     { key: 'totalReturn', title: 'Total Return', value: totalReturn, prefix: <FaRupeeSign /> },
+    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
     {
