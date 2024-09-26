@@ -616,13 +616,24 @@ export default function Home({ datas }) {
     .filter((product) => product.type !== 'return')
     .reduce((total, product) => total + product.billamount, 0)
 
-  const totalRawSpend = filteredRawmaterials
+    const totalRawSpend = filteredRawmaterials
     .filter((material) => material.type === 'Added')
-    .reduce((total, material) => total + material.price, 0)
+    .reduce((total, material) => {
+      if(material.paymentstatus === 'Paid'){
+        return total + material.price;
+      }else if(material.paymentstatus === 'Partial'){
+        return total + material.partialamount;
+      }
+      return total;
+    }, 0)
 
   const totalSpend = totalRawSpend + (Number(totalSpendAmount))
 
-  const totalProfit = totalSales - totalSpend
+  const totalRawPurchase = filteredRawmaterials
+    .filter((material) => material.type === 'Added')
+    .reduce((total, material) => total + material.price, 0)
+
+  const totalProfit = totalSales - totalRawPurchase
 
   const totalReturn = filteredDelivery
     .filter((product) => product.type === 'return')
@@ -659,7 +670,7 @@ export default function Home({ datas }) {
   const [activeCard, setActiveCard] = useState('')
   const cardsData = [
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
-    { key: 'totalSpend', title: 'Total Spending', value: totalSpend, prefix: <FaRupeeSign /> },
+    { key: 'totalSpend', title: 'Total Expense', value: totalSpend, prefix: <FaRupeeSign /> },
     { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalReturn', title: 'Total Return', value: totalReturn, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
@@ -996,7 +1007,7 @@ export default function Home({ datas }) {
       key: 'paymentstatus',
       render: (text, record) => {
         const { partialamount } = record
-        if (text === 'Paid' && record.type !== 'Added') {
+        if (text === 'Paid') {
           return (
             <>
               <Tag color="green">{text}</Tag>
@@ -1508,7 +1519,6 @@ export default function Home({ datas }) {
       </Modal>
 
       <Modal
-      centered
         className="relative"
         width={1100}
         title={

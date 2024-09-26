@@ -63,6 +63,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   const [supplierTbLoading, setSupplierTbLoading] = useState(true)
   const [totalBalanceAmount, setTotalBalanceAmount] = useState(0)
   const [totalPurchaseAmount, setTotalPurchaseAmount] = useState(0)
+  const [totalPaymentAmount, setTotalPaymentAmount] = useState(0)
 
   // side effect
   useEffect(() => {
@@ -275,6 +276,14 @@ if(duplicateNames.length > 0){
         }
       }, 0);
       setTotalBalanceAmount(totalBalance);
+
+      const totalPayment = combinedData.reduce((total, item) => {
+        if (item.type !== 'Added') {
+          return total + (Number(item.amount) || 0);
+        }
+        return total;
+      }, 0);
+      setTotalPaymentAmount(totalPayment);
 
       const totalPurchase = combinedData.reduce((total, item) => {
         if (item.type === 'Added') {
@@ -1531,6 +1540,7 @@ setSupplierTbLoading(false)
         />
         <div className="flex justify-between mt-2 font-semibold">
             <div>Purchase: {totalPurchaseAmount.toFixed(2)}</div>
+            <div>Payment: {totalPaymentAmount.toFixed(2)}</div>
             <div>Balance: {totalBalanceAmount.toFixed(2)}</div>
           </div>
       </Modal>

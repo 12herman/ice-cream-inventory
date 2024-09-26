@@ -1404,7 +1404,7 @@ export default function NavBar({
             form={spendingForm}
             layout="vertical"
             onFinish={handleSpendingFinish}
-            initialValues={{ date: dayjs() }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
           >
             <Form.Item
               className="absolute top-[-3rem]"
@@ -1451,6 +1451,21 @@ export default function NavBar({
             <Form.Item name="description" label="Description" className="mb-1">
               <TextArea rows={4} placeholder="Write the Description" />
             </Form.Item>
+
+            <Form.Item
+                className="mb-0"
+                name="paymentmode"
+                label="Payment Mode"
+                rules={[{ required: true, message: false }]}
+              >
+                <Radio.Group
+                   size='small'>
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item>
+
           </Form>
         </Spin>
       </Modal>
