@@ -9,7 +9,7 @@ import { MdOutlinePeopleAlt } from 'react-icons/md'
 import { PiUserListBold } from 'react-icons/pi'
 import { GrUserWorker } from 'react-icons/gr'
 import { LuMilk } from 'react-icons/lu'
-import { notification } from 'antd'
+import { notification, Button } from 'antd'
 import { FaBoxesPacking } from 'react-icons/fa6'
 import { TbFileSpreadsheet } from 'react-icons/tb'
 import Pages from './components/Pages'
@@ -201,6 +201,9 @@ const App = () => {
   // Notification logic
   useEffect(() => {
     const storageAlert = async () => {
+      const closeAllNotifications = () => {
+        notification.destroy();
+      };
       for (const record of datas.storage) {
         if (record.category === 'Product List') {
           try {
@@ -209,6 +212,11 @@ const App = () => {
               notification.warning({
                 message: 'Alert',
                 duration: 0,
+                btn: (
+                  <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+                    Close All
+                  </Button>
+                ),
                 description: `${product.productname} ${product.flavour} ${product.quantity} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`
               })
             }
@@ -220,6 +228,11 @@ const App = () => {
             notification.warning({
               message: 'Alert',
               duration: 0,
+              btn: (
+                <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+                  Close All
+                </Button>
+              ),
               description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`
             })
           }
@@ -233,6 +246,9 @@ const App = () => {
     const today = dayjs().format('DD/MM/YYYY')
     const tomorrow = dayjs().add(1, 'day').format('DD/MM/YYYY')
     const dayAfterTomorrow = dayjs().add(2, 'day').format('DD/MM/YYYY')
+    const closeAllNotifications = () => {
+      notification.destroy();
+    };
     datas.delivery.forEach((record) => {
       if (record.type === 'booking') {
         if (record.date === today || record.date === tomorrow || record.date === dayAfterTomorrow) {
@@ -240,7 +256,12 @@ const App = () => {
             message: 'Alert',
             icon: <FaBoxesPacking style={{ color: '#f26723' }} />,
             duration: 0,
-            description: `${record.customername} have a booking on ${record.date}!`
+            description: `${record.customername} have a booking on ${record.date}!`,
+            btn: (
+              <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+                Close All
+              </Button>
+            ),
           })
         }
       }
