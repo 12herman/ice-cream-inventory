@@ -618,14 +618,18 @@ export default function Home({ datas }) {
 
   const totalRawSpend = filteredRawmaterials
     .filter((material) => material.type === 'Added')
-    .reduce((total, material) => {
-      if(material.paymentstatus === 'Paid'){
-        return total + material.price;
-      }else if(material.paymentstatus === 'Partial'){
-        return total + material.partialamount;
-      }
-      return total;
-    }, 0)
+    .reduce((total, material) => total + material.price, 0)
+
+    // const totalRawSpend = filteredRawmaterials
+    // .filter((material) => material.type === 'Added')
+    // .reduce((total, material) => {
+    //   if(material.paymentstatus === 'Paid'){
+    //     return total + material.price;
+    //   }else if(material.paymentstatus === 'Partial'){
+    //     return total + material.partialamount;
+    //   }
+    //   return total;
+    // }, 0)
 
   const totalSpend = totalRawSpend + (Number(totalSpendAmount))
 
@@ -1515,7 +1519,6 @@ export default function Home({ datas }) {
       </Modal>
 
       <Modal
-      centered
         className="relative"
         width={1100}
         title={
