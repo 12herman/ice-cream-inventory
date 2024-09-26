@@ -555,15 +555,20 @@ export default function Employee({ datas, employeeUpdateMt }) {
       width: 160
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Mode',
+      dataIndex: 'paymentmode',
+      key: 'paymentmode',
+      width: 70,
       render: (_, record) => (
         <> 
         <Tag color="cyan">{record.paymentmode ? record.paymentmode : ''}</Tag>
-        <span>{record.description}</span>
         </>
       )
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
     }
   ]
 
