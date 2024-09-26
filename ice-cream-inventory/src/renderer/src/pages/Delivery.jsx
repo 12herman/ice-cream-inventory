@@ -137,7 +137,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {
@@ -281,6 +281,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             </Popconfirm>
 
             <Popconfirm
+            placement='left'
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
               onConfirm={() => deleteProduct(record)}

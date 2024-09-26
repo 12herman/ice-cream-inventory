@@ -141,7 +141,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {
@@ -327,6 +327,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Popconfirm
+              placement='left'
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
               onConfirm={() => deleteProduct(record)}
@@ -576,6 +577,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       render: (_, record) => {
         return (
           <Popconfirm
+          
             className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
             title="Sure to delete?"
             onConfirm={() => removeTemMaterial(record)}
@@ -811,12 +813,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       </Modal>
 
       <Modal
+      // okButtonProps={{ disabled: true }}
         centered={true}
         title={
           <div className="flex  justify-center py-3">
             <h1>ADD MATERIAL</h1>
           </div>
         }
+        
         open={isModalOpen}
         onOk={async () => {
           form.submit()
@@ -845,7 +849,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             setSelectedSupplierName(null)
           }
         }}
-        okButtonProps={{ disabled: isLoadingModal }}
+        okButtonProps={{ disabled: selectedSupplierName === null || isLoadingModal }}
         onCancel={() => {
           if (selectedSupplierName !== null) {
             setIsCloseWarning(true)

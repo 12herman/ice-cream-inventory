@@ -173,6 +173,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         ) : (
           <span className="flex gap-x-3 justify-center items-center">
             <Popconfirm
+            placement='left'
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
               onConfirm={() => deleteProduct(record)}

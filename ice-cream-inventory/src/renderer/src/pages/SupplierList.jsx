@@ -88,7 +88,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {
@@ -100,9 +100,27 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
   // create new project
   const createNewSupplier = async (values) => {
 
+    let correctNameData = values.material.map(data=>({...data,materialname:formatName(data.materialname)}));
+    // Create a map to count occurrences of each materialname
+const nameCount = correctNameData.reduce((acc, data) => {
+  acc[data.materialname] = (acc[data.materialname] || 0) + 1;
+  return acc;
+}, {});
+
+// Find all material names that have more than 1 occurrence
+const duplicateNames = Object.keys(nameCount).filter(name => nameCount[name] > 1);
+
+if(duplicateNames.length > 0){
+  return message.open({type:'warning',content:`Same material found ${duplicateNames.map(data => data)}`})
+}
+
+    
+    
     if (values.material.length === 0) {
       return message.open({ type: 'info', content: 'Add one material' })
     }
+
+
 
     const { material, ...value } = values;
 
@@ -324,7 +342,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         record.paymentstatus === undefined ? (
           <>
           <Tag color="cyan">{record.paymentmode}</Tag>
-          <span>-</span>
+          <span></span>
           </>
         ) : record.paymentstatus === 'Paid' ? (
           <span className="flex items-center">
@@ -344,7 +362,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
         ) : (
           <></>
         ),
-      width: 139
+      width: 180
     },
     {
       title: 'Description',
@@ -490,6 +508,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
             <Popconfirm
+            placement='left'
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -530,15 +549,19 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
     let {id,...olddata} = editBtnData;
     let supplerId = id
     let {material,...newdata} = form.getFieldValue();
+    let oldmaterial = olddata.item.filter(data => data.isdeleted === false);
 
     let missingIds = await getMissingIds(olddata.item,material)
     // let missingIds = await material.filter(aObj => !olddata.item.some(bObj => aObj.id === bObj.id));
-    let newMaterialItems = material.filter(item => !item.hasOwnProperty('id'));
+    let newMaterialItems = material.filter(item => !item.hasOwnProperty('id')).map(data => ({...data,materialname:formatName(data.materialname)}));
     let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
-    
     let compareArrObj = await areArraysEqual(updatedMaterialItems,olddata.item)
+   
+    // check same material
+   let sameItem = oldmaterial.filter(old => newMaterialItems.find(newdata => newdata.materialname === old.materialname));
+   if(sameItem.length > 0) { return message.open({type:'warning',content:`Not allow same material ${sameItem.map(data=> { return data.materialname})}`})}
+   
     
-
     if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
       message.open({content:'No changes found', type:'info'})
     }
@@ -639,7 +662,9 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       await setSupplierModalLoading(false)
       await message.open({content:'Updated successfully', type:'success'})
     }
-  }
+   
+  
+  };
 
 
   const handlePopoverClick = (id) => {
@@ -1491,7 +1516,7 @@ setSupplierTbLoading(false)
         </div>}
         open={isPayDetailsModelOpen}
         footer={null}
-        width={1000}
+        width={1200}
         onCancel={() => {
           setIsPayDetailsModelOpen(false)
         }}

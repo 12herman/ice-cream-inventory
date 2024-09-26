@@ -70,7 +70,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {
@@ -407,6 +407,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
             <Popconfirm
+            placement='left'
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -644,7 +645,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       // deletedby: 'admin',
       deleteddate: TimestampJs()
     })
-    //customerUpdateMt();
+    customerUpdateMt();
     message.open({ type: 'success', content: 'Deleted Successfully' })
   }
 

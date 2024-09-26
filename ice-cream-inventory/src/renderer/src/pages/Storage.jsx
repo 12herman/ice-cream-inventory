@@ -73,7 +73,7 @@ export default function Storage({ datas, storageUpdateMt }) {
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {

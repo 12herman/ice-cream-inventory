@@ -58,7 +58,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   // search
   const [searchText, setSearchText] = useState('')
   const onSearchEnter = (value, _e) => {
-    setSearchText(value)
+    setSearchText(value.trim())
   }
   const onSearchChange = (e) => {
     if (e.target.value === '') {
@@ -216,6 +216,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
             <Popconfirm
+              placement='left'
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
