@@ -44,6 +44,7 @@ import { debounce } from 'lodash'
 import { areArraysEqual } from '../js-files/compare-two-array-of-object';
 import { getMissingIds } from '../js-files/missing-id';
 import { latestFirstSort } from '../js-files/sort-time-date-sec';
+import { formatName } from '../js-files/letter-or-name';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -103,42 +104,83 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       return message.open({ type: 'info', content: 'Add one material' })
     }
 
-    const { material, ...value } = values
+    const { material, ...value } = values;
+
+    const correctMaterialName = await Promise.all(
+      material.map(async data => ({
+        ...data,
+        materialname: await formatName(data.materialname)
+      }))
+    );
+    
 
     const supplierDatas = {
       ...value,
+      suppliername:formatName(value.suppliername),
       createddate: TimestampJs(),
       updateddate: '',
       isdeleted: false
     }
+
+    // const materialExists = datas.storage.find(storageItem => 
+    //   material.some( item => 
+    //     storageItem.materialname === item.materialname &&
+    //     storageItem.category === 'Material List' &&
+    //     storageItem.unit === item.unit
+    //   )
+    // );
+
+    const materialExist = correctMaterialName.filter(item =>
+      !datas.storage.some(storage =>
+        storage.materialname === item.materialname &&
+        storage.category === 'Material List' &&
+        storage.unit === item.unit
+      )
+    );
+   
+    console.log('newmaterial',materialExist);
 
     setSupplierModalLoading(true)
     try {
       const supplierCollectionRef = collection(db, 'supplier')
       const supplierDocRef = await addDoc(supplierCollectionRef, supplierDatas)
       const materialCollectionRef = await collection(supplierDocRef, 'materialdetails')
-      for (const materialItem of material) {
-        await addDoc(materialCollectionRef, {...materialItem,isdeleted:false,createddate:TimestampJs()})
-      
-        const materialExists = datas.storage.find(
-          (storageItem) => storageItem.materialname === materialItem.materialname && storageItem.category === 'Material List' && storageItem.unit === materialItem.unit
-        )
-        if (!materialExists) {
+      for (const materialItem of correctMaterialName) {
+        await addDoc(materialCollectionRef, {...materialItem,isdeleted:false,createddate:TimestampJs()});
+        // const materialExists = datas.storage.find(
+        //   (storageItem) => storageItem.materialname === materialItem.materialname && storageItem.category === 'Material List' && storageItem.unit === materialItem.unit
+        // )
+        // if (!materialExists) {
+        //   await createStorage({
+        //     materialname: formatName(materialItem.materialname),
+        //     unit: materialItem.unit,
+        //     alertcount: 0,
+        //     quantity: 0,
+        //     isdeleted: false,
+        //     category: 'Material List',
+        //     createddate: TimestampJs()
+        //   })
+        // }
+      }
+
+      // new material add storage
+      if(materialExist.length > 0){
+        for (const items of materialExist){
           await createStorage({
-            materialname: materialItem.materialname,
-            unit: materialItem.unit,
+            materialname: items.materialname,
+            unit: items.unit,
             alertcount: 0,
             quantity: 0,
             isdeleted: false,
             category: 'Material List',
             createddate: TimestampJs()
           })
-          storageUpdateMt()
         }
       }
-
-      form.resetFields()
-      supplierUpdateMt()
+     
+      await supplierUpdateMt()
+      await storageUpdateMt()
+      await form.resetFields()
       message.open({ type: 'success', content: 'Supplier Added Successfully' })
     } catch (e) {
       console.log(e)
@@ -147,6 +189,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       setSupplierModalLoading(false)
       setIsModalOpen(false)
     }
+  
   }
 
   const showPayModal = (record) => {

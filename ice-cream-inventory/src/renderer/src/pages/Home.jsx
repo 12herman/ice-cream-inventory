@@ -1508,6 +1508,7 @@ export default function Home({ datas }) {
       </Modal>
 
       <Modal
+      centered
         className="relative"
         width={1100}
         title={
