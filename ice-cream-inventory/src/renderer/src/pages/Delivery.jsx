@@ -923,8 +923,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         // console.log(compainddata);
         
         setLastOrderData({customerdetails:customerDetails,products:uniqueArray}); }
+        setlastOrderBtnState(false)
       };
-       setlastOrderBtnState(false)
+       
     }
     // end last order data
     form2.resetFields(['productname'])
