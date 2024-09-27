@@ -572,9 +572,15 @@ export default function Home({ datas }) {
             isWithinRange(data.date) &&
             (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
         )
-        let spendAmount = spendData
-          .map((data) => Number(data.amount) || 0)
-          .reduce((a, b) => a + b, 0)
+        let spendAmount = spendData.reduce((total, data) => {
+          const amount = Number(data.amount) || 0;
+          if (data.type === 'pay') {
+            return total + amount;
+          } else if (data.type === 'Return') {
+            return total - amount;
+          }
+          return total;
+        }, 0);
         setTotalSpendAmount(spendAmount)
       }
     }

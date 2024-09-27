@@ -541,13 +541,13 @@ export default function NavBar({
       ...spendDatas,
       createddate: TimestampJs(),
       isdeleted: false,
+      collectiontype: "employee",
       description:
         spendDatas.description === '' ||
         spendDatas.description === undefined ||
         spendDatas.description === null
           ? ''
           : spendDatas.description,
-      type: 'spend',
       date: dayjs(spendDatas.date).format('DD/MM/YYYY')
     }
     try {
@@ -1404,7 +1404,7 @@ export default function NavBar({
             form={spendingForm}
             layout="vertical"
             onFinish={handleSpendingFinish}
-            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash', type: 'Spend' }}
           >
             <Form.Item
               className="absolute top-[-3rem]"
@@ -1414,6 +1414,20 @@ export default function NavBar({
             >
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
+
+            <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  >
+                    <Radio.Button value="Spend" style={{ width: '50%' }}>
+                      SPEND
+                    </Radio.Button>
+                    <Radio.Button value="Return" style={{ width: '50%' }}>
+                      RETURN
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
 
             <Form.Item
               className="mb-1"

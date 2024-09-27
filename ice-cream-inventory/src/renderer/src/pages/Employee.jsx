@@ -207,7 +207,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                   setTotalPaymentAmount(totalPayment);
                   
                   const totalReturn = checkPayData.reduce((total, item) => {
-                    if (item.type === 'spend') {
+                    if (item.type === 'Return') {
                       return total + (Number(item.amount) || 0);
                     }
                     return total;
@@ -540,18 +540,27 @@ export default function Employee({ datas, employeeUpdateMt }) {
     {
       title: 'Payment',
       dataIndex: 'amount',
-      key: 'amount',
+      key: 'pay',
       render: (_, record) => (
         <span>{record.type === 'pay' ? formatToRupee(record.amount, true) : ''}</span>
       ),
       width: 160
     },
     {
-      title: 'Return',
-      dataIndex: 'type',
-      key: 'type',
+      title: 'Spend',
+      dataIndex: 'amount',
+      key: 'spend',
       render: (_, record) => (
-        <span>{record.type === 'spend' ? formatToRupee(record.amount, true) : ''}</span>
+        <span>{record.type === 'Spend' ? formatToRupee(record.amount, true) : ''}</span>
+      ),
+      width: 160
+    },
+    {
+      title: 'Return',
+      dataIndex: 'amount',
+      key: 'return',
+      render: (_, record) => (
+        <span>{record.type === 'Return' ? formatToRupee(record.amount, true) : ''}</span>
       ),
       width: 160
     },
