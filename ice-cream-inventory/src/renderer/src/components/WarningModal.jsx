@@ -19,7 +19,7 @@ export default function WarningModal({state,cancel,ok}) {
         cancelText="Cancel"
         className="center-buttons-modal"
       >
-        <p className="text-center">Are your sure to Cancel</p>
+        <p className="text-center">Are you sure you want to cancel?</p>
       </Modal>
   )
 }
