@@ -159,15 +159,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       let sortedData = await latestFirstSort(combinedData)
       setPayDetailsData(sortedData)
 
-      const totalPayment = combinedData.reduce((total, item) => {
-        if (item.type === 'Payment') {
-          return total + (Number(item.amount) || 0)
-        }
-        return total
-      }, 0)
-
-      setTotalPaymentAmount(totalPayment)
-
       const totalPurchase = combinedData.reduce((total, item) => {
         if (item.type === 'order') {
           return total + (Number(item.billamount) || 0)
@@ -183,6 +174,20 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         return total
       }, 0)
       setTotalReturnAmount(totalReturn)
+
+      const totalPayment = combinedData.reduce((total, item) => {
+        if (item.type === 'order') {
+          if (item.paymentstatus === 'Paid') {
+            return total + (Number(item.billamount) || 0)
+          } else if (item.paymentstatus === 'Partial'){
+            return total + (Number(item.partialamount) || 0)
+          }
+        } else if (item.type === 'Payment') {
+          return total + (Number(item.amount) || 0)
+        }
+        return total
+      }, 0)
+      setTotalPaymentAmount(totalPayment)
 
       const totalBalance = combinedData.reduce((total, item) => {
         const billAmount = Number(item.billamount) || 0
@@ -202,6 +207,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         return total
       }, 0)
       setTotalBalanceAmount(totalBalance)
+      
     } catch (e) {
       console.log(e)
     }
@@ -232,13 +238,43 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     {
       title: 'Amount',
       dataIndex: 'amount',
-      key: 'amount',
+      key: 'payment',
       render: (_, record) => {
-        return record.amount === undefined
-          ? formatToRupee(record.billamount, true)
-          : formatToRupee(record.amount, true)
+        if (record.amount !== undefined) {
+          if (record.type === 'Payment') {
+            return formatToRupee(record.amount, true);
+          } 
+        }else {
+          return formatToRupee(record.billamount, true);
+        }
+        return null;
       },
       width: 120
+    },
+    {
+      title: 'Spend',
+      dataIndex: 'amount',
+      key: 'spend',
+      render: (_, record) => {
+        if (record.amount !== undefined && record.type === 'Spend') {
+            return formatToRupee(record.amount, true);
+        }
+        return null;
+      },
+      width: 100
+    },
+    {
+      title: 'Return',
+      dataIndex: 'amount',
+      key: 'return',
+      render: (_, record) => {
+        if (record.amount !== undefined) {
+          if (record.type === 'Return') {
+            return formatToRupee(record.amount, true);
+          }
+        }
+      },
+      width: 100
     },
     {
       title: 'Type',

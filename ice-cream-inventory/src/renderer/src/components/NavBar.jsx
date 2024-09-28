@@ -528,9 +528,9 @@ export default function NavBar({
   const [spendingForm] = Form.useForm()
 
   useEffect(() => {
-    let employeeOtSet = datas.employees
+    let employeeOtSet = datas.customers
       .filter((data) => data.isdeleted === false)
-      .map((data) => ({ label: data.employeename, value: data.id }))
+      .map((data) => ({ label: data.customername, value: data.id }))
     setIsSpendingModalOpen((pre) => ({ ...pre, employeeoption: employeeOtSet }))
   }, [!isSpendingModalOpen.model])
 
@@ -541,7 +541,7 @@ export default function NavBar({
       ...spendDatas,
       createddate: TimestampJs(),
       isdeleted: false,
-      collectiontype: "employee",
+      collectiontype: "customer",
       description:
         spendDatas.description === '' ||
         spendDatas.description === undefined ||
@@ -552,7 +552,7 @@ export default function NavBar({
     }
     try {
       setSpendSpin(true)
-      const employeeDocRef = doc(db, 'employee', empid)
+      const employeeDocRef = doc(db, 'customer', empid)
       const payDetialsRef = collection(employeeDocRef, 'paydetails')
       await addDoc(payDetialsRef, newSpendingData)
       setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
@@ -1432,7 +1432,7 @@ export default function NavBar({
             <Form.Item
               className="mb-1"
               name="empid"
-              label="Person"
+              label="Customer"
               rules={[{ required: true, message: false }]}
             >
               <Select

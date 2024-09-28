@@ -199,7 +199,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                   let lastestSrot =await latestFirstSort(checkPayData);
                   console.log(lastestSrot)
                   const totalPayment = checkPayData.reduce((total, item) => {
-                    if (item.type === 'pay') {
+                    if (item.type === 'Payment') {
                       return total + (Number(item.amount) || 0);
                     }
                     return total;
@@ -485,7 +485,6 @@ export default function Employee({ datas, employeeUpdateMt }) {
       collectiontype:'employee',
       date: formateDate,
       description: description === undefined ? '' : description,
-      type: 'pay',
       createddate: TimestampJs(),
       isdeleted: false,
     }
@@ -540,18 +539,9 @@ export default function Employee({ datas, employeeUpdateMt }) {
     {
       title: 'Payment',
       dataIndex: 'amount',
-      key: 'pay',
+      key: 'payment',
       render: (_, record) => (
-        <span>{record.type === 'pay' ? formatToRupee(record.amount, true) : ''}</span>
-      ),
-      width: 160
-    },
-    {
-      title: 'Spend',
-      dataIndex: 'amount',
-      key: 'spend',
-      render: (_, record) => (
-        <span>{record.type === 'Spend' ? formatToRupee(record.amount, true) : ''}</span>
+        <span>{record.type === 'Payment' ? formatToRupee(record.amount, true) : ''}</span>
       ),
       width: 160
     },
@@ -952,16 +942,27 @@ export default function Employee({ datas, employeeUpdateMt }) {
         okButtonProps={{ disabled: isEmpLoading }}
       >
         <Spin spinning={isEmpLoading}>
-          <span className="block w-full text-center mb-7 text-2xl font-bold">PAY</span>
-          <span className="w-full text-center block text-sm font-medium uppercase">
-            {employeePay.name.employeename}
-          </span>
+          <span className="block w-full text-center mb-7 text-xl font-bold">{employeePay.name.employeename}</span>
           <Form
             onFinish={empPayMt}
             form={employeePayForm}
-            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash', type: 'Payment' }}
             layout="vertical"
           >
+            <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  >
+                    <Radio.Button value="Payment" style={{ width: '50%' }}>
+                      PAID
+                    </Radio.Button>
+                    <Radio.Button value="Return" style={{ width: '50%' }}>
+                      RETURN
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
             <Form.Item className="mb-1" name="amount" label="Amount" rules={[{ required: true, message: false }]}>
               <InputNumber
                 onChange={(e) => employeeOnchangeMt(e)}
@@ -977,7 +978,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             </Form.Item>
 
             <Form.Item
-              className=" absolute top-5"
+              className=" absolute top-1"
               name="date"
               label=""
               rules={[{ required: true, message: false }]}
