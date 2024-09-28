@@ -264,12 +264,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 100
     },
     {
-      title: 'Return',
+      title: 'Advance',
       dataIndex: 'amount',
-      key: 'return',
+      key: 'advance',
       render: (_, record) => {
         if (record.amount !== undefined) {
-          if (record.type === 'Return') {
+          if (record.type === 'Advance') {
             return formatToRupee(record.amount, true);
           }
         }

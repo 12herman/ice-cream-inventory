@@ -1423,8 +1423,8 @@ export default function NavBar({
                     <Radio.Button value="Spend" style={{ width: '50%' }}>
                       SPEND
                     </Radio.Button>
-                    <Radio.Button value="Return" style={{ width: '50%' }}>
-                      RETURN
+                    <Radio.Button value="Advance" style={{ width: '50%' }}>
+                      ADVANCE
                     </Radio.Button>
                   </Radio.Group>
                 </Form.Item>
