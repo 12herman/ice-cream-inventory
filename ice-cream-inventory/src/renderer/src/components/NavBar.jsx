@@ -528,9 +528,9 @@ export default function NavBar({
   const [spendingForm] = Form.useForm()
 
   useEffect(() => {
-    let employeeOtSet = datas.employees
+    let employeeOtSet = datas.customers
       .filter((data) => data.isdeleted === false)
-      .map((data) => ({ label: data.employeename, value: data.id }))
+      .map((data) => ({ label: data.customername, value: data.id }))
     setIsSpendingModalOpen((pre) => ({ ...pre, employeeoption: employeeOtSet }))
   }, [!isSpendingModalOpen.model])
 
@@ -541,18 +541,18 @@ export default function NavBar({
       ...spendDatas,
       createddate: TimestampJs(),
       isdeleted: false,
+      collectiontype: "customer",
       description:
         spendDatas.description === '' ||
         spendDatas.description === undefined ||
         spendDatas.description === null
           ? ''
           : spendDatas.description,
-      type: 'spend',
       date: dayjs(spendDatas.date).format('DD/MM/YYYY')
     }
     try {
       setSpendSpin(true)
-      const employeeDocRef = doc(db, 'employee', empid)
+      const employeeDocRef = doc(db, 'customer', empid)
       const payDetialsRef = collection(employeeDocRef, 'paydetails')
       await addDoc(payDetialsRef, newSpendingData)
       setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
@@ -1408,7 +1408,7 @@ export default function NavBar({
             form={spendingForm}
             layout="vertical"
             onFinish={handleSpendingFinish}
-            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash', type: 'Spend' }}
           >
             <Form.Item
               className="absolute top-[-3rem]"
@@ -1419,10 +1419,24 @@ export default function NavBar({
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
 
+            <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  >
+                    <Radio.Button value="Spend" style={{ width: '50%' }}>
+                      SPEND
+                    </Radio.Button>
+                    <Radio.Button value="Advance" style={{ width: '50%' }}>
+                      ADVANCE
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
             <Form.Item
               className="mb-1"
               name="empid"
-              label="Person"
+              label="Customer"
               rules={[{ required: true, message: false }]}
             >
               <Select

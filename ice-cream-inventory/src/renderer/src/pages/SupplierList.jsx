@@ -286,24 +286,29 @@ if(duplicateNames.length > 0){
     //   let sortedData = await latestFirstSort(combinedData)
     //   setPayDetailsData(sortedData)
 
-    //   const totalBalance = combinedData.reduce((total, item) => {
-    //     if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
-    //       return total + (Number(item.price) || 0);
-    //     }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
-    //       return total + ((Number(item.price)-Number(item.partialamount)) || 0);
-    //     }else {
-    //       return total - (Number(item.amount) || 0);
-    //     }
-    //   }, 0);
-    //   setTotalBalanceAmount(totalBalance);
+      const totalBalance = combinedData.reduce((total, item) => {
+        if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
+          return total + (Number(item.price) || 0);
+        }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
+          return total + ((Number(item.price)-Number(item.partialamount)) || 0);
+        }else if (item.type !== 'Added') {
+          return total - (Number(item.amount) || 0);
+        }
+        return total;
+      }, 0);
+      setTotalBalanceAmount(totalBalance);
 
-    //   const totalPayment = combinedData.reduce((total, item) => {
-    //     if (item.type !== 'Added') {
-    //       return total + (Number(item.amount) || 0);
-    //     }
-    //     return total;
-    //   }, 0);
-    //   setTotalPaymentAmount(totalPayment);
+      const totalPayment = combinedData.reduce((total, item) => {
+        if (item.type === 'Added' && item.paymentstatus === 'Paid') {
+          return total + (Number(item.price) || 0);
+        }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
+          return total + (Number(item.partialamount) || 0);
+        }else if (item.type !== 'Added') {
+          return total + (Number(item.amount) || 0);
+        }
+        return total;
+      }, 0);
+      setTotalPaymentAmount(totalPayment);
 
     //   const totalPurchase = combinedData.reduce((total, item) => {
     //     if (item.type === 'Added') {

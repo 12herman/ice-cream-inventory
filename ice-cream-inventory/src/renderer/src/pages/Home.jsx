@@ -460,7 +460,6 @@ export default function Home({ datas }) {
       )
 
       setSelectedTableData(initialData)
-
       setTableLoading(false)
 
       const initialDeliveryData = await Promise.all(
@@ -484,13 +483,6 @@ export default function Home({ datas }) {
   }, [datas])
 
   useEffect(() => {
-
-  // let testfetch = async()=>{
-  //   // let {delivery,status} =await getDeliveryUsingDates();
-  //   // console.log(delivery);
-    
-  // }
-  // testfetch()
 
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
@@ -521,6 +513,8 @@ export default function Home({ datas }) {
       )
 
       setFilteredDelivery(newFilteredDelivery)
+      let latestDataFilter = await latestFirstSort(newFilteredDelivery)
+      setSelectedTableData(latestDataFilter)
 
       const newFilteredRawmaterials = await Promise.all(
         datas.rawmaterials
@@ -552,8 +546,6 @@ export default function Home({ datas }) {
           })
       )
       setFilteredRawmaterials(newFilteredRawmaterials)
-      let latestDataFilter = await latestFirstSort(newFilteredDelivery)
-      setSelectedTableData(latestDataFilter)
 
       let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
       if (status) {
@@ -562,9 +554,13 @@ export default function Home({ datas }) {
             isWithinRange(data.date) &&
             (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
         )
-        let totalAmount = filterData
-          .map((data) => Number(data.amount) || 0)
-          .reduce((a, b) => a + b, 0)
+        let totalAmount = filterData.reduce((total, data) => {
+          const amount = Number(data.amount) || 0;
+          if (data.type === 'Payment') {
+            return total + amount;
+          }
+          return total;
+        }, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
         let spendData = deliverys.filter(
@@ -572,9 +568,15 @@ export default function Home({ datas }) {
             isWithinRange(data.date) &&
             (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
         )
-        let spendAmount = spendData
-          .map((data) => Number(data.amount) || 0)
-          .reduce((a, b) => a + b, 0)
+        let spendAmount = spendData.reduce((total, data) => {
+          const amount = Number(data.amount) || 0;
+          if (data.type === 'Payment') {
+            return total + amount;
+          } else if (data.type === 'Return') {
+            return total - amount;
+          }
+          return total;
+        }, 0);
         setTotalSpendAmount(spendAmount)
       }
     }
@@ -675,12 +677,7 @@ export default function Home({ datas }) {
     { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
-    {
-      key: 'totalQuickSale',
-      title: 'Total Quick Sale',
-      value: totalQuickSale,
-      prefix: <FaRupeeSign />
-    },
+    { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
   ]
 
@@ -986,7 +983,7 @@ export default function Home({ datas }) {
       // defaultSortOrder: 'descend'
     },
     {
-      title: 'Customer / Supplier',
+      title: 'Name',
       dataIndex: 'customername',
       key: 'customername'
     },
@@ -1797,7 +1794,7 @@ export default function Home({ datas }) {
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <div ref={componentRef}>
-          <section className="w-[90%] mx-auto mt-5">
+          <section className="w-[90%] mx-auto mt-1">
             <ul className="flex justify-center items-center gap-x-5">
               <li>
                 {' '}
@@ -1810,21 +1807,21 @@ export default function Home({ datas }) {
               </li>
             </ul>
 
-            <ul className="mt-5 flex justify-between">
-              <li>
-                <div
-                  className={`font-bold ${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}
-                >
-                  <span>GSTIN :</span> 33AAIFN6367K1ZV
-                </div>
+            <ul className="mt-1 flex justify-between">
+              <li>      
                 <div>
-                  {' '}
                   <span className="font-bold">Date :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.date
                       : null}
                   </span>
+                  {' '}
+                </div>
+                <div
+                  className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}
+                >
+                  <span className='font-bold'>GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
                 <div
                   className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}
@@ -1912,16 +1909,16 @@ export default function Home({ datas }) {
                   : 'No Data'}
               </tbody>
             </table>
-            <p className="text-end mt-5">
+            {/* <p className="text-end mt-5">
               Total Amount :{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.total)
                   : null}
               </span>{' '}
-            </p>
+            </p> */}
             <p className="text-end">
-              Billing Amount :{' '}
+              Bill Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.billamount)
@@ -1929,15 +1926,27 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-              className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-            >
-              Partial Amount :{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.partialamount)
-                  : null}
-              </span>
-            </p>
+            className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === "Paid" ? 'block text-end' : 'hidden'}`}
+          >
+            Paid Amount:{' '}
+            <span className=" font-bold">
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                ? invoiceDatas.customerdetails.paymentstatus === "Paid"
+                ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                : formatToRupee(invoiceDatas.customerdetails.partialamount)
+                : null}
+            </span>
+          </p>
+            <p
+            className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+          >
+            Balance:{' '}
+            <span className=" font-bold">
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                ? formatToRupee(invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
+                : null}
+            </span>
+          </p>
             <p className="text-end mt-28 p-2">Authorised Signature</p>
           </section>
         </div>
