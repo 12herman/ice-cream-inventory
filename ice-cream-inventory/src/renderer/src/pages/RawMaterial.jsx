@@ -26,7 +26,7 @@ import { createRawmaterial, fetchMaterials, updateRawmaterial } from '../firebas
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs'
-import { getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } from '../firebase/data-tables/supplier'
+import { getAllMaterialDetailsFromAllSuppliers, getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
 const { RangePicker } = DatePicker
 import { PiWarningCircleFill } from 'react-icons/pi'
@@ -815,7 +815,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     material: [],
     tempproduct: [],
     count: 0
-  })
+  });
+
+  const [materialType,setMaterialType] = useState('Used')
 
   useEffect(() => {
 
@@ -880,8 +882,76 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // add new material to data base
   const addNewTemMaterial = async () => {
-    setIsLoadMaterialUsedModal(true)
+  
+    setIsLoadMaterialUsedModal(true);
+
     try {
+      let materialDetailData = mtOption.tempproduct.map(data=>({
+        date:data.date,
+        isdeleted:false,
+        type:materialType,
+        paymentstatus: materialType === 'Return' ? 'Returned' : 'Used',
+        createddate:TimestampJs(),
+      }))[0];
+  
+      // material type data
+      const supplierDbRef =await collection(db,'rawmaterial');
+      const createSupplierRef = await addDoc(supplierDbRef,{...materialDetailData});
+      const materialDbRef = await collection(createSupplierRef,'materialdetails');
+       console.log(materialDetailData);
+
+      let {materials,status} = await getAllMaterialDetailsFromAllSuppliers();
+
+      if(status){
+        let materialItems = materials.map(material => {
+          // Find the matching product in mtOption.tempproduct
+          let matchingProduct = mtOption.tempproduct.find(data => 
+            material.materialname === data.materialname && material.unit === data.quantity.split(' ')[1]
+          );
+          // If a match is found, return the desired properties, otherwise return an empty object
+          return matchingProduct ? {
+            supplierid: material.supplierId,
+            materialid: material.materialId, // Add other properties if needed
+            quantity: Number(matchingProduct.quantity.split(' ')[0]),
+            isdeleted:false  // Example of getting data from matchingProduct
+          } : {};
+        }).filter(item => Object.keys(item).length > 0);  // Filter out empty objects
+
+      // materil item loop
+       await materialItems.forEach(async item=> {
+        await addDoc(materialDbRef,item)
+       });
+
+      mtOption.tempproduct.map( data=> ({...data,type:materialType,quantity:Number(data.quantity.split(' ')[0])})).forEach(async material =>{
+       
+        let existingMaterial = await  datas.storage.find( storage =>  storage.materialname === material.materialname && storage.category === 'Material List');
+       
+        if(material.type === 'Return'){
+          await updateStorage(existingMaterial.id,{
+              quantity: existingMaterial.quantity + material.quantity
+            });
+        }
+        else{
+          await updateStorage(existingMaterial.id,{
+            quantity: existingMaterial.quantity - material.quantity
+          });
+        }
+      })
+      
+
+      // const existingMaterial =  datas.storage.find(
+      //   (storageItem) =>
+      //     storageItem.materialname === newMaterial.materialname &&
+      //     storageItem.category === 'Material List'
+      // )
+
+      }
+      
+      
+
+     
+
+/*
       mtOption.tempproduct.map(async (item) => {
         let { key, quantity, type, ...newMaterial } = item
         let quantityNumber = Number(quantity.split(' ')[0]);
@@ -917,12 +987,19 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       usedmaterialform.resetFields()
       setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }))
       message.open({ type: 'success', content: 'Added Successfully' })
+      */
+      await rawmaterialUpdateMt();
+      await storageUpdateMt();
+      setMtOption((pre) => ({ ...pre, tempproduct: [], count: 0 }));
+      message.open({ type: 'success', content: 'Added Successfully' });
+      setUsedMaterialModal(false)
     } catch (error) {
       console.log(error)
     } finally {
       setIsLoadMaterialUsedModal(false);
       setUnitOnchange('')
     }
+   
   }
 
   // model cancel
@@ -960,7 +1037,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
    await setSelectedSupplierName(value);
   },300);
 
+
+  
   // new add material
+  // do not touch
   const AddNewMaterial = async ()=>{
     
     let supplierObject = {...addMaterialMethod.supplierdata, partialamount:addmaterialpaymentform.getFieldsValue().partialamount === undefined ? 0 : addmaterialpaymentform.getFieldsValue().partialamount, paymentmode:addmaterialpaymentform.getFieldsValue().paymentstatus === 'Unpaid' ? '' : addmaterialpaymentform.getFieldsValue().paymentmode, paymentstatus:addmaterialpaymentform.getFieldsValue().paymentstatus, type:"Added", isdeleted:false, createddate:TimestampJs()};
@@ -1001,7 +1081,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       // Update storage and raw material
       
       await rawmaterialUpdateMt();
-  
       
       await setIsModalOpen(false);
 
@@ -1127,14 +1206,21 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     modal:false
   });
 
+  console.log(materialbill);
+  
+
   const materialbillbtn = async (record) => {
+
     setMaterialBillState(pre=>({...pre,modal:true,loading:true}));
+    
     let { materialitem, status } = await fetchMaterials(record.id);
     if (status) {
+
       // Use Promise.all to wait for all promises to resolve
       let materialdatas = await Promise.all(
         materialitem.map(async (data) => {
-          let { material, status } = await getOneMaterialDetailsById(record.supplierid, data.materialid); 
+
+          let { material, status } = await getOneMaterialDetailsById( record.type === 'Return' || record.type === 'Used' ? data.supplierid :record.supplierid, data.materialid); 
           if(status){
             return {...material,price:data.price,quantity:data.quantity,date:record.date};
           }
@@ -1144,16 +1230,18 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         })
       );
 
-      setmaterialbill({materialdeails:materialdatas,
+      setmaterialbill(
+        {materialdeails:materialdatas,
         supplierdetails:{
-          name:record.supplier.suppliername,
-          partialamount:record.partialamount,
-          paymentmode:record.paymentmode,
-          paymentstatus:record.paymentstatus,
+          name:record.type === 'Return' || record.type ==='Used' ? '' : record.supplier.suppliername ,
+          partialamount:record.type === 'Return' || record.type === 'Used' ? '' :record.partialamount,
+          paymentmode:record.type === 'Return' || record.type === 'Used' ? '' :record.paymentmode,
+          paymentstatus:record.type === 'Return' || record.type === 'Used' ? '' :record.paymentstatus,
           type:record.type,
-          billamount:record.billamount,
+          billamount:record.type === 'Return' || record.type === 'Used' ? '' : record.billamount,
           date:record.date
-        }});
+        },
+      });
       await setMaterialBillState(pre=>({...pre,loading:false}));
     }
   };
@@ -1165,13 +1253,13 @@ const materialBillColumn = [
       width: 50,
       render: (_, __, index) => index + 1,
     },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      render:(text) => text,
-      width: 115
-    },
+    // {
+    //   title: 'Date',
+    //   dataIndex: 'date',
+    //   key: 'date',
+    //   render:(text) => text,
+    //   width: 115
+    // },
     {
       title: 'Material Name',
       dataIndex: 'materialname',
@@ -1193,8 +1281,8 @@ const materialBillColumn = [
       dataIndex: 'price',
       key: 'price',
       editable: true,
-      render:(text)=>{ return text
-      }
+      render:(text)=>{ 
+       return text === undefined ? '-' : text}
     },
     
   ]
@@ -1561,6 +1649,7 @@ const materialBillColumn = [
                   <Radio.Group
                     buttonStyle="solid"
                     style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                    onChange={(e)=>{setMaterialType(e.target.value)}}
                   >
                     <Radio.Button value="Used" style={{ width: '50%' }}>
                       USED
@@ -1641,11 +1730,15 @@ const materialBillColumn = [
           columns={materialBillColumn}
           pagination={false}
         />
-        <span className='absolute -top-9 -translate-x-1/2 left-1/2 flex '><Tag color='blue' >{materialbill.supplierdetails.name}</Tag> <Tag color={`${materialbill.supplierdetails.paymentstatus === 'Partial'?'yellow' : materialbill.supplierdetails.paymentstatus=== 'Paid'? 'green': materialbill.supplierdetails.paymentstatus === 'Unpaid'?'red': ''}`}>{materialbill.supplierdetails.paymentstatus}</Tag> </span>
+        <span className='absolute -top-9 -translate-x-1/2 left-1/2 flex '> <span className='font-semibold inline-block pr-2'> {materialbill.supplierdetails.type === 'Return' ? 'RETRUN ON' : materialbill.supplierdetails.type === 'Used'? 'USED ON' : 'RECEIVED ON' }  {materialbill.supplierdetails.date}</span>  
+        <Tag  className={`${materialbill.supplierdetails.paymentstatus === '' ? 'hidden':''}`} color={`${materialbill.supplierdetails.paymentstatus === 'Partial'?'yellow' : materialbill.supplierdetails.paymentstatus=== 'Paid'? 'green': materialbill.supplierdetails.paymentstatus === 'Unpaid'?'red': ''}`}>{materialbill.supplierdetails.paymentstatus}</Tag> 
+        <Tag className={`${materialbill.supplierdetails.paymentstatus === 'Unpaid' || materialbill.supplierdetails.paymentstatus === ''  ? 'hidden' : 'inline-block'}`} color='blue' >{materialbill.supplierdetails.paymentmode}  </Tag> </span>
+
+        <span className={`absolute -top-9 left-6 ${materialbill.supplierdetails.name === '' ?'hidden':''}`}><Tag color='blue' >{materialbill.supplierdetails.name}  </Tag>  </span>
         
-        <span className={`text-[0.75rem] font-medium inline-block pt-4 `}>Billing Amount: <Tag color='green'>{materialbill.supplierdetails.billamount}</Tag></span>
-        <span className={`text-[0.75rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus === 'Partial' ? 'inline-block' :'hidden'}`}>Partial Amount: <Tag color='yellow'>{materialbill.supplierdetails.partialamount}</Tag></span>
-        <span className={`text-[0.75rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus === 'Partial' ? 'inline-block' :'hidden'}`}>Balance: <Tag color='red'>{materialbill.supplierdetails.billamount - materialbill.supplierdetails.partialamount}</Tag></span>
+        <span className={`text-[0.8rem] font-medium inline-block pt-4 ${materialbill.supplierdetails.billamount === '' ? 'hidden': ''}`}>Billing Amount: <Tag color='green'>{materialbill.supplierdetails.billamount}</Tag></span>
+        <span className={`text-[0.8rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus !== 'Partial'  ? 'hidden' :'inline-bock'}`}>Partial Amount: <Tag color='yellow'>{materialbill.supplierdetails.partialamount}</Tag></span>
+        <span className={`text-[0.8rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus !== 'Partial' ? 'hidden' :'inline-bock'}`}>Balance: <Tag color='red'>{materialbill.supplierdetails.billamount - materialbill.supplierdetails.partialamount}</Tag></span>
 
         {/* ${materialbill.supplierdetails.paymentstatus === ''} */}
         </div>

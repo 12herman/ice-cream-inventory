@@ -107,6 +107,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   }
 
   const showPayModal = (record) => {
+    setCustomerName(record.customername)
     payForm.resetFields()
     setCustomerPayId(record.id)
     setIsPayModelOpen(true)
@@ -144,7 +145,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     }
   }
 
+  const [customerName,setCustomerName] = useState('');
   const showPayDetailsModal = async (record) => {
+    
+    setCustomerName(record.customername)
     try {
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
       let payDetails = []
@@ -153,12 +157,12 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       }
       const deliveryDocRef = await datas.delivery.filter(
         (item) => item.isdeleted === false && item.customerid === record.id
-      )
+      ).map(data=>({...data,customername:record.customername}))
 
       const combinedData = payDetails.concat(deliveryDocRef)
       let sortedData = await latestFirstSort(combinedData)
       setPayDetailsData(sortedData)
-
+      
       const totalPurchase = combinedData.reduce((total, item) => {
         if (item.type === 'order') {
           return total + (Number(item.billamount) || 0)
@@ -931,7 +935,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         title={
           <div className="flex  justify-center py-3">
             {' '}
-            <h1>PAY</h1>{' '}
+            <h1 className='text-xl font-bold'>{customerName}</h1>{' '}
           </div>
         }
         open={isPayModelOpen}
@@ -999,7 +1003,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       </Modal>
 
       <Modal
-        title={<span className="text-center w-full block pb-1">PAY DETAILS</span>}
+        title={<div>
+        <Tag className='absolute left-12' color='blue'>{customerName}</Tag>
+          <span className="text-center w-full block pb-1">PAY DETAILS</span>
+        </div>}
         open={isPayDetailsModelOpen}
         footer={null}
         width={1000}

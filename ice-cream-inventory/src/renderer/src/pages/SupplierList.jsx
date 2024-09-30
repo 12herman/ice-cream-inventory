@@ -213,6 +213,7 @@ if(duplicateNames.length > 0){
   }
 
   const showPayModal = (record) => {
+    setSupplierName(record.suppliername)
     payForm.resetFields()
     setSupplierPayId(record.id)
     setIsPayModelOpen(true)
@@ -241,6 +242,8 @@ if(duplicateNames.length > 0){
     }
   }
 
+const [supplierName,setSupplierName] = useState('');
+
   const showPayDetailsModal = async (record) => {
 
     try{
@@ -252,8 +255,7 @@ if(duplicateNames.length > 0){
       
       let sortData = await latestFirstSort([...filterBillOrders,...getPaydetials])
       setPayDetailsData(sortData)
-
-        
+      setSupplierName(record.suppliername)
        setIsPayDetailsModelOpen(true)
       }
     }catch(e){console.log(e)
@@ -1485,7 +1487,7 @@ setSupplierTbLoading(false)
         }
         title={
           <div className="flex  justify-center py-3">
-            <h1>PAY</h1>
+            <h1 className='text-xl font-bold'>{supplierName}</h1>
           </div>
         }
         open={isPayModelOpen}
@@ -1557,6 +1559,7 @@ setSupplierTbLoading(false)
 
       <Modal
         title={<div className="text-center w-full block pb-5">
+          <Tag color='blue' className={`absolute left-14`}>{supplierName}</Tag>
           <span>PAY DETAILS</span>
         </div>}
         open={isPayDetailsModelOpen}

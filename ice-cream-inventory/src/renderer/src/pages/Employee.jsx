@@ -191,6 +191,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
               className="py-0 text-[0.7rem] h-[1.7rem]"
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               onClick={async () => {
+                setEmployeePay((pre) => ({ ...pre, name: record }))
                 setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {
@@ -234,7 +235,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             </Typography.Link>
 
             <Popconfirm
-            placement='left'
+              placement='left'
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
               className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
@@ -347,8 +348,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         title: col.title,
         editing: isEditing(record)
       })
-    }
-  })
+    }});
 
   const cancel = () => {
     setEditingKeys([])
@@ -1005,7 +1005,12 @@ export default function Employee({ datas, employeeUpdateMt }) {
       </Modal>
 
       <Modal
-        title={<span className="text-center w-full block pb-5">PAY DETAILS</span>}
+        title={
+         <div className='relative'>
+           <Tag color='blue' className='absolute left-4'>{employeePay.name.employeename}</Tag>
+           <span className="text-center w-full block pb-5">PAY DETAILS</span>
+         </div>
+        }
         open={employeePayDetails.modal}
         footer={null}
         pagination={{ pageSize: 5 }}
