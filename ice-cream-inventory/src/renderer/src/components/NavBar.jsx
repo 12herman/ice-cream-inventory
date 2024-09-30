@@ -41,7 +41,7 @@ export default function NavBar({
   setNavPages,
   datas,
   deliveryUpdateMt,
-  storageUpdateMt
+  storageUpdateMt,
 }) {
   const [isQuickSale, setIsQuickSale] = useState({
     model: false,
@@ -560,9 +560,13 @@ export default function NavBar({
       message.open({ type: 'success', content: 'Spending added successfully' })
       setSpendSpin(false)
       setPersonOnchangeSt('')
+      await deliveryUpdateMt()
     } catch (error) {
       console.log(error)
     }
+    // finally{
+
+    // }
   }
 
   const [firstValue, setFirstValue] = useState(null)

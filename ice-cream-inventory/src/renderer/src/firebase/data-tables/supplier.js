@@ -64,7 +64,7 @@ export const getSupplierPayDetailsById = async (supplierId) => {
     try {
       // Step 1: Reference the specific material document by its ID
       const itemDocRef = doc(db, 'supplier', supplierId, 'materialdetails', materialId);
-      
+
       // Step 2: Fetch the document
       const docSnap = await getDoc(itemDocRef);
   

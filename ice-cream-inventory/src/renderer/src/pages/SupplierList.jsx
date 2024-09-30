@@ -45,6 +45,7 @@ import { areArraysEqual } from '../js-files/compare-two-array-of-object';
 import { getMissingIds } from '../js-files/missing-id';
 import { latestFirstSort } from '../js-files/sort-time-date-sec';
 import { formatName } from '../js-files/letter-or-name';
+import { getRawmaterial } from '../firebase/data-tables/rawmaterial';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -241,62 +242,82 @@ if(duplicateNames.length > 0){
   }
 
   const showPayDetailsModal = async (record) => {
-    try {
-      const payDetailsRef = await getSupplierPayDetailsById(record.id)
-      let payDetails = []
-      if(payDetailsRef.status === 200){
-        payDetails = payDetailsRef.paydetails
-      }
-      const rawmaterialsRef = datas.rawmaterials.filter(
-        (item) => item.isdeleted === false && item.supplierid === record.id
-      )
-      const rawmaterialNameRef = await Promise.all(
-        rawmaterialsRef.map(async (material) => {
-          const materialName = await getOneMaterialDetailsById(material.supplierid, material.materialid)
-          return{
-            ...material,
-            materialname: materialName.material.materialname,
-            unit: materialName.material.unit
-          }
-        })
-      );
 
-      const combinedData = payDetails.concat(rawmaterialNameRef)
+    try{
+      let {rawmaterial,status} = await getRawmaterial();
+      let {paydetails} = await getSupplierPayDetailsById(record.id)
+      if(status){
+      let filterBillOrders = rawmaterial.filter(data=> record.id === data.supplierid && data.isdeleted === false).map(data => ({...data,suppliername: record.suppliername}));
+      let getPaydetials = paydetails;
       
-      let sortedData = await latestFirstSort(combinedData)
-      setPayDetailsData(sortedData)
+      let sortData = await latestFirstSort([...filterBillOrders,...getPaydetials])
+      setPayDetailsData(sortData)
 
-      const totalBalance = combinedData.reduce((total, item) => {
-        if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
-          return total + (Number(item.price) || 0);
-        }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
-          return total + ((Number(item.price)-Number(item.partialamount)) || 0);
-        }else {
-          return total - (Number(item.amount) || 0);
-        }
-      }, 0);
-      setTotalBalanceAmount(totalBalance);
-
-      const totalPayment = combinedData.reduce((total, item) => {
-        if (item.type !== 'Added') {
-          return total + (Number(item.amount) || 0);
-        }
-        return total;
-      }, 0);
-      setTotalPaymentAmount(totalPayment);
-
-      const totalPurchase = combinedData.reduce((total, item) => {
-        if (item.type === 'Added') {
-          return total + (Number(item.price) || 0);
-        }
-        return total;
-      }, 0);
-      setTotalPurchaseAmount(totalPurchase);
-
-    } catch (e) {
-      console.log(e)
+        
+       setIsPayDetailsModelOpen(true)
+      }
+    }catch(e){console.log(e)
     }
-    setIsPayDetailsModelOpen(true)
+
+ 
+    // try {
+    //   const payDetailsRef = await getSupplierPayDetailsById(record.id)
+    //   let payDetails = []
+    //   if(payDetailsRef.status === 200){
+    //     payDetails = payDetailsRef.paydetails
+    //   }
+    //   console.log(payDetailsRef);
+    //   const rawmaterialsRef = datas.rawmaterials.filter(
+    //     (item) => item.isdeleted === false && item.supplierid === record.id
+    //   )
+    //   const rawmaterialNameRef = await Promise.all(
+    //     rawmaterialsRef.map(async (material) => {
+    //       const materialName = await getOneMaterialDetailsById(material.supplierid, material.materialid)
+    //       return{
+    //         ...material,
+    //         materialname: materialName.material.materialname,
+    //         unit: materialName.material.unit
+    //       }
+    //     })
+    //   );
+
+    //   const combinedData = payDetails.concat(rawmaterialNameRef)
+      
+    //   let sortedData = await latestFirstSort(combinedData)
+    //   setPayDetailsData(sortedData)
+
+    //   const totalBalance = combinedData.reduce((total, item) => {
+    //     if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
+    //       return total + (Number(item.price) || 0);
+    //     }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
+    //       return total + ((Number(item.price)-Number(item.partialamount)) || 0);
+    //     }else {
+    //       return total - (Number(item.amount) || 0);
+    //     }
+    //   }, 0);
+    //   setTotalBalanceAmount(totalBalance);
+
+    //   const totalPayment = combinedData.reduce((total, item) => {
+    //     if (item.type !== 'Added') {
+    //       return total + (Number(item.amount) || 0);
+    //     }
+    //     return total;
+    //   }, 0);
+    //   setTotalPaymentAmount(totalPayment);
+
+    //   const totalPurchase = combinedData.reduce((total, item) => {
+    //     if (item.type === 'Added') {
+    //       return total + (Number(item.price) || 0);
+    //     }
+    //     return total;
+    //   }, 0);
+    //   setTotalPurchaseAmount(totalPurchase);
+
+    // } catch (e) {
+    //   console.log(e)
+    // }
+    // setIsPayDetailsModelOpen(true)
+
   }
 
   const payDetailsColumns = [
@@ -319,28 +340,38 @@ if(duplicateNames.length > 0){
       defaultSortOrder: 'descend',
       width: 115
     },
-    {
-      title: 'Material',
-      dataIndex: 'materialname',
-      key: 'materialname',
-      render: (text) => text ? text : '-'
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      render: (text, record) =>
-        record.quantity !== undefined ? record.quantity + ' ' + record.unit : '-',
-      width: 100
-    },
+    // {
+    //   title: 'Material',
+    //   dataIndex: 'materialname',
+    //   key: 'materialname',
+    //   render: (text) => text ? text : '-'
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   render: (text, record) =>
+    //     record.quantity !== undefined ? record.quantity + ' ' + record.unit : '-',
+    //   width: 100
+    // },
     {
       title: 'Amount',
       dataIndex: 'price',
       key: 'price',
       render: (text, record) =>
-        record.price === undefined
+        record.billamount === undefined
           ? formatToRupee(record.amount, true)
-          : formatToRupee(record.price, true),
+          : formatToRupee(record.billamount, true),
+      width: 130
+    },
+    {
+      title: 'Type',
+      dataIndex: 'price',
+      key: 'price',
+      render: (text, record) =>
+        record.type === undefined
+          ? '-'
+          : <Tag color='green'>{record.type}</Tag>,
       width: 130
     },
     {

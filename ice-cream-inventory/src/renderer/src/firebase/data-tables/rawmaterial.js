@@ -17,6 +17,19 @@ export const getRawmaterial = async () => {
     }
   };
 
+  // get items for delivery
+export const fetchMaterials = async (materialId) => {
+  try {
+    const materialCollectionRef = collection(db, 'rawmaterial', materialId, 'materialdetails')
+    const querySnapshot = await getDocs(materialCollectionRef)
+    const materialitem = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    return { materialitem, status: 200 }
+  } catch (err) {
+    console.error('Error fetching items: ', err)
+    return { status: 500, message: err.message }
+  }
+}
+
   // Create a new rawmaterial
 export const createRawmaterial = async (task) => {
   try {

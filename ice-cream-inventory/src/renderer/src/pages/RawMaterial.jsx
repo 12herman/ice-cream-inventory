@@ -15,13 +15,14 @@ import {
   Tag,
   Spin
 } from 'antd'
+import { debounce } from 'lodash'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { IoMdRemove } from 'react-icons/io'
 import { AiOutlineDelete } from 'react-icons/ai'
-import { createRawmaterial, updateRawmaterial } from '../firebase/data-tables/rawmaterial'
+import { createRawmaterial, fetchMaterials, updateRawmaterial } from '../firebase/data-tables/rawmaterial'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs'
@@ -30,10 +31,18 @@ const { Search } = Input
 const { RangePicker } = DatePicker
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
+import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { addDoc, collection } from 'firebase/firestore'
+import { db } from '../firebase/firebase'
+import { formatToRupee } from '../js-files/formate-to-rupee'
+import { FaClipboardList } from 'react-icons/fa'
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
-  const [form] = Form.useForm()
+  const [form] = Form.useForm();
+  const [addmaterialaddform]= Form.useForm();
+  const [addmaterialpaymentform] =Form.useForm();
+  const [addmaterialtemtableform] =Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKey, setEditingKey] = useState('')
   const [data, setData] = useState([])
@@ -111,9 +120,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // Dropdown select
   useEffect(() => {
     async function process(params) {
+      addmaterialaddform.resetFields(['materialname'])
       setUnitOnchange('')
       if (selectedSupplierName) {
-
         // const filteredMaterials = await datas.suppliers
         //   .filter((supplier) => supplier.id === selectedSupplierName)
         //   .map((supplier) => ({
@@ -121,7 +130,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         //     label: supplier.materialname,
         //     key: supplier.id
         //   }));
-
           const filteredMaterials = await datas.suppliers.filter((supplier) => supplier.id === selectedSupplierName)[0].materials.filter(data=> data.isdeleted === false).map(data=>({
             label:data.materialname,
             value:data.id,
@@ -151,8 +159,204 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   const [isLoadingModal, setIsLoadingModal] = useState(false)
 
+
+  const addNewMaterialTempColoumn = [
+    {
+      title: <span className="text-[0.8rem]">S.No</span>,
+      dataIndex: 'sno',
+      key: 'sno',
+      editable: false,
+      render: (text,data,i) => {
+       return <span className="text-[0.8rem]">{i+1}</span>
+      },
+      width:80
+    },
+    {
+      title: <span className="text-[0.8rem]">Product</span>,
+      dataIndex: 'materialname',
+      key: 'materialname',
+      editable: false,
+      render: (text) => <span className="text-[0.8rem]">{text}</span>
+    },
+    {
+      title: <span className="text-[0.8rem]">Quantity</span>,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: true,
+      render: (text,data) => <span className="text-[0.8rem]">{text +' '+ data.unit}</span>,
+      width:150
+    },
+    {
+      title: <span className="text-[0.8rem]">Price</span>,
+      dataIndex: 'price',
+      key: 'price',
+      editable: true,
+      render: (text) => <span className="text-[0.8rem]">{text}</span>,
+      width:150
+    },
+    {
+      title: <span className="text-[0.8rem]">Action</span>,
+      dataIndex: 'operation',
+      fixed: 'right',
+      width: 80,
+      render: (_, record) => {
+        let iseditable = isEditAddMaterialTemp(record)
+        return !iseditable ? (
+          <span className="flex gap-x-2">
+            <MdOutlineModeEditOutline
+              className="text-blue-500 cursor-pointer"
+              size={19}
+              onClick={() => temTbAddMaterialEdit(record)}
+            />
+            <Popconfirm
+              className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={() => removeTemProduct(record)}
+              disabled={editingKey !== ''}
+            >
+              <AiOutlineDelete
+                className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}
+              />
+            </Popconfirm>
+          </span>
+        ) : (
+          <span className="flex gap-x-2">
+            <Typography.Link style={{ marginRight: 8 }} onClick={() => tempSave(record)}>
+              <LuSave size={17} />
+            </Typography.Link>
+
+            <Popconfirm
+              title="Sure to cancel?"
+              onConfirm={() => setAddMaterialMethod((pre) => ({ ...pre, editingKeys: [] }))}
+            >
+              <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+            </Popconfirm>
+          </span>
+        )
+      }
+    }
+  ];
+
+  const materialNameOnchange=debounce((_,value)=> {
+    addmaterialaddform.resetFields(['quantity','price'])
+    setUnitOnchange(value.unit)
+  },300);
+
+  const [addMaterialMethod,setAddMaterialMethod] = useState({
+    temperorarydata:[],
+    editingKeys:[],
+    supplierdata:{}
+  });
+
+  const isEditAddMaterialTemp = (re) => {
+    return addMaterialMethod.editingKeys.includes(re.id)
+  };
+
+  const temTbAddMaterialEdit = (re) => {
+    addmaterialtemtableform.setFieldsValue({ ...re })
+    setAddMaterialMethod((pre) => ({ ...pre, editingKeys: [re.id] }))
+  };
+
+  const tempMergedColumns = addNewMaterialTempColoumn.map((col) => {
+        if (!col.editable) {
+          return col
+        }
+        return {
+          ...col,
+          onCell: (record) => ({
+            record,
+            inputType: col.dataIndex === 'margin' ? 'number' : 'text',
+            dataIndex: col.dataIndex,
+            title: col.title,
+            editing: isEditAddMaterialTemp(record)
+          })
+        }
+      });
+
+      const TempEditableCell = ({
+        editing,
+        dataIndex,
+        title,
+        inputType,
+        record,
+        index,
+        children,
+        ...restProps
+      }) => {
+        const inputNode = inputType === 'number' ? <InputNumber className="text-[0.8rem]" size='small' /> : <Input className="text-[0.8rem]" size='small' />;
+        return (
+          <td {...restProps}>
+            {editing ? (
+              <span className="flex gap-x-1">
+                <Form.Item
+                  name={dataIndex}
+                  style={{ margin: 0 }}
+                  rules={[{ required: true, message: false}]} // Adjust message or handle error
+                >
+                  {inputNode}
+                </Form.Item>
+              </span>
+            ) : (
+              children
+            )}
+          </td>
+        );
+      };
+
+    
+      const removeTemProduct = async (data) => {
+        const newTempProduct = await addMaterialMethod.temperorarydata.filter((item) => item.id !== data.id)
+        setAddMaterialMethod(pre=>({...pre,temperorarydata:newTempProduct}))
+      };
+
+      const tempSave = async (data) => {
+        const row = addmaterialtemtableform.getFieldsValue();
+      
+        // Check if the values are unchanged
+        if (data.quantity === row.quantity && data.price === row.price) {
+          setAddMaterialMethod(pre => ({ ...pre, editingKeys: [] }));
+          return message.open({ type: 'info', content: 'No Changes Made' });
+        }
+      
+        try {
+          // Update the specific item in the temporary data array
+          setAddMaterialMethod(pre => ({
+            ...pre,
+            temperorarydata: pre.temperorarydata.map(item => 
+              item.id === data.id ? { ...item, quantity: Number(row.quantity), price: Number(row.price) } : item
+            ),
+            editingKeys: []
+          }));
+        } catch (e) {
+          console.log(e);
+        }
+      };
+      
   // create the new add material entry
-  const createAddMaterial = async (values) => {
+  const AddTemMaterial = async (values) => {
+
+    let {material,status} = await getOneMaterialDetailsById(values.suppliername,values.materialname);
+    let exsitingData = addMaterialMethod.temperorarydata.some(data => data.id === values.materialname);
+
+    // supplier data
+    let supplierDatas = { 
+    supplierid:values.suppliername,
+    date:dayjs(values.date).format('DD/MM/YYYY'),
+    };
+    
+    // setAddMaterialMethod(pre=>({...pre,supplierdata:supplierDatas}));
+
+  if(exsitingData){
+    message.open({type:'warning',content:'Already Exists'})
+  }
+  else{
+    let compainAddData = {...material,quantity:values.quantity,price:values.price}
+    setAddMaterialMethod(pre=>({...pre,temperorarydata:[...pre.temperorarydata,compainAddData],supplierdata:supplierDatas}))
+  }
+    
+    
+    /*
     setIsLoadingModal(true)
     try {
       if (form.getFieldValue('partialamount') === '0') {
@@ -173,6 +377,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         });
          
         const materialData = await getOneMaterialDetailsById (suppliername,materialname)
+        
         const existingMaterial = datas.storage.find(
           (storageItem) =>
             storageItem.category === 'Material List' &&
@@ -198,6 +403,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     finally {
       setIsLoadingModal(false)
     }
+    */
   };
 
   const columns = [
@@ -245,35 +451,38 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
        return record.supplier === undefined ? '-' : record.supplier.suppliername 
       }
     },
-    {
-      title: 'Material',
-      dataIndex: 'materialname',
-      key: 'materialname',
-      editable: true,
-      render:(_,record)=>{
-        return record.material === undefined ? record.materialname : record.material.materialname
-      }
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: true,
-      width: 120,
-      render: (_, record) => {
-        // Check if record.material and record.material.unit exist, then return the appropriate string
-        return record.quantity + ' ' + (record.material && record.material.unit ? record.material.unit : record.unit);
-      }
+    // {
+    //   title: 'Material',
+    //   dataIndex: 'materialname',
+    //   key: 'materialname',
+    //   editable: true,
+    //   render:(_,record)=>{
+    //     return record.material === undefined ? record.materialname : record.material.materialname
+    //   }
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: true,
+    //   width: 120,
+    //   render: (_, record) => {
+    //     // Check if record.material and record.material.unit exist, then return the appropriate string
+    //     return record.quantity + ' ' + (record.material && record.material.unit ? record.material.unit : record.unit);
+    //   }
       
-    },
+    // },
     {
       title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
+      dataIndex: 'billamount',
+      key: 'billamount',
       editable: true,
       width: 120,
+      // render:(text)=>{
+      //   return text === undefined || text === null || text === '' ? '-' : text
+      // }
       render:(text)=>{
-        return text === undefined || text === null || text === '' ? '-' : text
+        return formatToRupee(text,true) === 'NaN' ? '-' : formatToRupee(text,true)
       }
     },
     {
@@ -325,6 +534,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             </Popconfirm>
           </span>
         ) : (
+          <div className='flex gap-x-4 w-full'>
+            
+          <FaClipboardList
+              onClick={()=> materialbillbtn(record) }
+              size={17}
+              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer text-green-500'}`}
+            />
+
           <span className="flex gap-x-3 justify-center items-center">
             <Popconfirm
               placement='left'
@@ -339,6 +556,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               />
             </Popconfirm>
           </span>
+          </div>
         )
       }
     }
@@ -548,12 +766,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     status: true,
     value: '',
     partialamount: 0
-  })
+  });
 
-  const radioOnchange = (e) => {
+  const radioOnchange = debounce((e) => {
     setRadioBtn((pre) => ({ ...pre, status: false, value: e.target.value }))
-    form.setFieldsValue({ partialamount: 0 })
-  }
+    addmaterialpaymentform.setFieldsValue({ partialamount: 0 })
+  },300);
 
   // material used
   const usedmaterialcolumns = [
@@ -736,6 +954,250 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
   }
 
+  // supplier onchange
+  const supplierOnchange = debounce(async (value,i)=>{
+   await setAddMaterialMethod({temperorarydata:[], editingKeys:[]});
+   await setSelectedSupplierName(value);
+  },300);
+
+  // new add material
+  const AddNewMaterial = async ()=>{
+    
+    let supplierObject = {...addMaterialMethod.supplierdata, partialamount:addmaterialpaymentform.getFieldsValue().partialamount === undefined ? 0 : addmaterialpaymentform.getFieldsValue().partialamount, paymentmode:addmaterialpaymentform.getFieldsValue().paymentstatus === 'Unpaid' ? '' : addmaterialpaymentform.getFieldsValue().paymentmode, paymentstatus:addmaterialpaymentform.getFieldsValue().paymentstatus, type:"Added", isdeleted:false, createddate:TimestampJs()};
+    let materialArray= addMaterialMethod.temperorarydata.map(data=>({id:data.id,isdeleted:false,price:data.price,quantity:data.quantity,createddate:TimestampJs()}));
+    let totalprice = materialArray.map(data=> data.price).reduce((a,b)=> a +b,0);
+
+    let materialArrayOld = addMaterialMethod.temperorarydata.map(data=>(
+                          { 
+                            ...supplierObject,
+                            materialid:data.id,
+                            price:data.price,
+                            quantity:data.quantity,
+                          }));
+
+    if(radioBtn.value === 'Partial' && addmaterialpaymentform.getFieldsValue().partialamount <=0 ){
+      return message.open({type:'warning',content:'Check the partial amount value'})
+    }
+   
+    try{
+     await setIsLoadingModal(true);
+    // DB Ref
+    const supplierDbRef =await collection(db,'rawmaterial');
+    // New Supplier
+    const createSupplierRef = await addDoc(supplierDbRef,{...supplierObject,billamount:totalprice});
+    // DB Ref
+    const materialDbRef = await collection(createSupplierRef,'materialdetails');
+
+     // New Material Add
+     await addMaterialMethod.temperorarydata.forEach(async newmaterial => {
+      let existingMaterial = await datas.storage.find((storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === newmaterial.materialname?.trim().toLowerCase() &&  storageItem.unit?.trim().toLowerCase() === newmaterial.unit?.trim().toLowerCase());
+      let material = {materialid:newmaterial.id,isdeleted:false,price:newmaterial.price,quantity:newmaterial.quantity,createddate:TimestampJs()}
+      await addDoc(materialDbRef,material)
+      if (existingMaterial){ 
+        await updateStorage(existingMaterial.id,{ quantity: existingMaterial.quantity + newmaterial.quantity});
+      }
+     });
+
+      // Update storage and raw material
+      
+      await rawmaterialUpdateMt();
+  
+      
+      await setIsModalOpen(false);
+
+      await storageUpdateMt();
+      setRadioBtn({ status: true, value: '' })
+      form.resetFields()
+      setSelectedSupplierName(null)
+      message.open({type:'success',content:"Material Added Successfully"})
+      await setIsLoadingModal(false);
+      /*
+      // DB Ref
+      const supplierDbRef =await collection(db,'rawmaterial');
+      // New Supplier
+      const createSupplierRef = await addDoc(supplierDbRef,supplierObject);
+      // DB Ref
+      const materialDbRef = await collection(createSupplierRef,'materialdetails');
+     // New Material
+     await materialArray.forEach(async material =>{
+        await addDoc(materialDbRef,material)
+      });
+
+      await addMaterialMethod.temperorarydata.forEach(async material =>{
+      const materialdata = {material}
+      const existingMaterial = datas.storage.find((storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === material.materialname?.trim().toLowerCase() && storageItem.unit?.trim().toLowerCase() === material.unit?.trim().toLowerCase())
+      console.log(material);
+      console.log(existingMaterial);     
+                            }); 
+
+     const existingMaterial = datas.storage.filter(storage=> addMaterialMethod.temperorarydata.find(mateial => storage.category === 'Material List' &&
+                              storage.materialname?.trim().toLowerCase() ===mateial.materialname?.trim().toLowerCase() &&
+                              storage.unit?.trim().toLowerCase() ===mateial.unit?.trim().toLowerCase()));
+       */ 
+    }
+    catch(e){
+      console.log(e);
+      await setIsLoadingModal(false);
+      setIsModalOpen(false)
+      setRadioBtn({ status: true, value: '' })
+      form.resetFields()
+      setSelectedSupplierName(null)
+    }
+    
+  };
+
+  // const AddNewMaterial = async () => {
+  //   if (radioBtn.value === 'Partial' && addmaterialpaymentform.getFieldsValue().partialamount <= 0) {
+  //     return message.open({ type: 'warning', content: 'Check the partial amount value' });
+  //   }
+  
+  //   try {
+  //     await setIsLoadingModal(true);
+  
+  //     let supplierObject = {
+  //       ...addMaterialMethod.supplierdata,
+  //       partialamount: addmaterialpaymentform.getFieldsValue().partialamount === undefined ? 0 : addmaterialpaymentform.getFieldsValue().partialamount,
+  //       paymentmode: addmaterialpaymentform.getFieldsValue().paymentstatus === 'Unpaid' ? '' : addmaterialpaymentform.getFieldsValue().paymentmode,
+  //       paymentstatus: addmaterialpaymentform.getFieldsValue().paymentstatus,
+  //       type: "Added",
+  //       isdeleted: false,
+  //       createddate: TimestampJs(),
+  //     };
+  
+  //     // New Material Add
+  //     const materialPromises = addMaterialMethod.temperorarydata.map(async (newmaterial) => {
+  //       let materialAndSupplierData = {
+  //         ...supplierObject,
+  //         materialid: newmaterial.id,
+  //         price: newmaterial.price,
+  //         quantity: newmaterial.quantity,
+  //       };
+  
+  //       // Add material to raw material
+  //       await createRawmaterial(materialAndSupplierData);
+  
+  //       // Check if material exists in storage
+  //       let existingMaterial = await datas.storage.find((storageItem) =>
+  //         storageItem.category === 'Material List' &&
+  //         storageItem.materialname?.trim().toLowerCase() === newmaterial.materialname?.trim().toLowerCase() &&
+  //         storageItem.unit?.trim().toLowerCase() === newmaterial.unit?.trim().toLowerCase()
+  //       );
+  
+  //       // Update storage if material exists
+  //       if (existingMaterial) {
+  //         await updateStorage(existingMaterial.id, {
+  //           quantity: existingMaterial.quantity + newmaterial.quantity,
+  //         });
+  //       }
+  //     });
+  
+  //     // Wait for all materials to be added and updated
+  //     await Promise.all(materialPromises);
+  
+  //     // Update storage and raw material
+  //     await storageUpdateMt();
+  //     await rawmaterialUpdateMt();
+  
+  //     await setIsLoadingModal(false);
+  //     setIsModalOpen(false)
+  //     setRadioBtn({ status: true, value: '' })
+  //     form.resetFields()
+  //     setSelectedSupplierName(null)
+  //     message.open({type:'success',content:"Material Added Successfully"})
+  //   } catch (e) {
+  //     console.log(e);
+  //     await setIsLoadingModal(false); // Make sure loading is stopped in case of an error
+  //     setIsModalOpen(false)
+  //     setRadioBtn({ status: true, value: '' })
+  //     form.resetFields()
+  //     setSelectedSupplierName(null)
+  //   }
+  // };
+  
+  const [materialbill,setmaterialbill] = useState({materialdeails:[],
+    supplierdetails:{name:'',
+          partialamount:0,
+          paymentmode:'',
+          paymentstatus:'',
+          type:'',
+          billamount:0,
+          date:''}});
+  const [materialBillState,setMaterialBillState] = useState({
+    loading:false,
+    modal:false
+  });
+
+  const materialbillbtn = async (record) => {
+    setMaterialBillState(pre=>({...pre,modal:true,loading:true}));
+    let { materialitem, status } = await fetchMaterials(record.id);
+    if (status) {
+      // Use Promise.all to wait for all promises to resolve
+      let materialdatas = await Promise.all(
+        materialitem.map(async (data) => {
+          let { material, status } = await getOneMaterialDetailsById(record.supplierid, data.materialid); 
+          if(status){
+            return {...material,price:data.price,quantity:data.quantity,date:record.date};
+          }
+          else{
+            return [];
+          }
+        })
+      );
+
+      setmaterialbill({materialdeails:materialdatas,
+        supplierdetails:{
+          name:record.supplier.suppliername,
+          partialamount:record.partialamount,
+          paymentmode:record.paymentmode,
+          paymentstatus:record.paymentstatus,
+          type:record.type,
+          billamount:record.billamount,
+          date:record.date
+        }});
+      await setMaterialBillState(pre=>({...pre,loading:false}));
+    }
+  };
+  
+const materialBillColumn = [
+    {
+      title: 'S.No',
+      key: 'sno',
+      width: 50,
+      render: (_, __, index) => index + 1,
+    },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render:(text) => text,
+      width: 115
+    },
+    {
+      title: 'Material Name',
+      dataIndex: 'materialname',
+      key: 'materialname',
+      editable: true,
+      render:(text)=>{
+       return text
+      }
+    },
+    {
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      editable: true,
+      render:(text,record)=>{ return text + " " + record.unit}
+    },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
+      editable: true,
+      render:(text)=>{ return text
+      }
+    },
+    
+  ]
   return (
     <div>
       <ul>
@@ -763,10 +1225,14 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             <Button
               disabled={editingKey !== ''}
               type="primary"
-              onClick={() => {
+              onClick={ () => {
+                setAddMaterialMethod({temperorarydata:[],editingKeys:[],supplierdata:{}});
                 setIsModalOpen(true)
+                addmaterialaddform.resetFields()
+                addmaterialpaymentform.resetFields()
+                addmaterialtemtableform.resetFields()
                 form.setFields({ paymentstatus: 'Paid' })
-                form.resetFields()
+                form.resetFields() 
               }}
             >
               Add Material <IoMdAdd />
@@ -820,39 +1286,37 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             <h1>ADD MATERIAL</h1>
           </div>
         }
-        
+        width={1100}
         open={isModalOpen}
         onOk={async () => {
-          form.submit()
-
-          const formValues = form.getFieldsValue()
-          const { materialname, quantity } = formValues
-          const quantityNumber = parseFloat(quantity)
-          const existingMaterial = datas.storage.find(
-            (storageItem) =>
-              storageItem.materialname === materialname && storageItem.category === 'Material List'
-          )
-
-          if (existingMaterial) {
-            // Update the storage with the new quantity
-            await updateStorage(existingMaterial.id, {
-              quantity: existingMaterial.quantity + quantityNumber
-            })
-            // Call a function to refresh or update the storage data
-            storageUpdateMt()
-          }
-
-          if (!selectedSupplierName) {
-            setIsModalOpen(false)
-            setRadioBtn({ status: true, value: '' })
-            form.resetFields()
-            setSelectedSupplierName(null)
-          }
+          console.log('add new material')
+          // form.submit()
+          // const formValues = form.getFieldsValue()
+          // const { materialname, quantity } = formValues
+          // const quantityNumber = parseFloat(quantity)
+          // const existingMaterial = datas.storage.find(
+          //   (storageItem) =>
+          //     storageItem.materialname === materialname && storageItem.category === 'Material List'
+          // )
+          // if (existingMaterial) {
+          //   // Update the storage with the new quantity
+          //   await updateStorage(existingMaterial.id, {
+          //     quantity: existingMaterial.quantity + quantityNumber
+          //   })
+          //   // Call a function to refresh or update the storage data
+          //   storageUpdateMt()
+          // }
+          // if (!selectedSupplierName) {
+          //   setIsModalOpen(false)
+          //   setRadioBtn({ status: true, value: '' })
+          //   form.resetFields()
+          //   setSelectedSupplierName(null)
+          // }
         }}
         okButtonProps={{ disabled: selectedSupplierName === null || isLoadingModal }}
         onCancel={() => {
           if (selectedSupplierName !== null) {
-            setIsCloseWarning(true)
+            setIsCloseWarning(true);
           } else {
             setIsModalOpen(false)
             setRadioBtn({ status: true, value: '' })
@@ -861,14 +1325,79 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           }
         }}
         maskClosable={selectedSupplierName !== null ? false : true}
+
+        footer={
+          <Form 
+          onFinish={AddNewMaterial}
+          form={addmaterialpaymentform}
+          initialValues={{ paymentstatus: 'Paid',paymentmode:'Cash' }}
+          layout='horizontal'
+          className='flex gap-x-2 justify-end'
+          >
+          <Form.Item
+            // label='Payment Mode'
+                className="mb-0 absolute top-7 left-44"
+                name="paymentmode"
+                rules={[{ required: true, message: 'Please select a payment method' }]}
+              >
+                <Radio.Group
+                disabled={radioBtn.value === 'Unpaid' ? true : false}
+                  // disabled={option.tempproduct.length <= 0 ? true : false}
+                >
+                  <Radio value="Cash">Cash</Radio>
+                  <Radio value="Card">Card</Radio>
+                  <Radio value="UPI">UPI</Radio>
+                </Radio.Group>
+              </Form.Item>
+         <Form.Item
+              className="mb-0"
+              name="paymentstatus"
+              // label="Status"
+              rules={[{ required: true, message: false }]}
+            >
+              <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
+                <Radio.Button value="Paid">PAID</Radio.Button>
+                <Radio.Button value="Unpaid">UNPAID</Radio.Button>
+                <Radio.Button value="Partial">PARTIAL</Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+
+            <Form.Item
+              className="mb-0"
+              name="partialamount"
+              // label="Partial Amount"
+              rules={[
+                {
+                  required:
+                    radioBtn.value === 'Partial' || form.getFieldValue('partialamount') === 0
+                      ? true
+                      : false,
+                  message: false
+                },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber
+                formatter={(value) => `${value}`}
+                disabled={radioBtn.value === 'Partial' ? false : true}
+                className="w-full"
+                placeholder="Partial Amount"
+                type="number"
+              />
+            </Form.Item>
+              <Form.Item><Button disabled={addMaterialMethod.temperorarydata.length <= 0 || isLoadingModal ? true : false} className="w-full" type="primary" htmlType="submit">Add Material</Button></Form.Item>
+         </Form>
+        }
       >
         <Spin spinning={isLoadingModal}>
+          <div className='w-full grid grid-cols-7 gap-x-2'>
+          <span className='col-span-2'>
           <Form
            className='flex flex-col gap-y-2'
-            onFinish={createAddMaterial}
-            form={form}
+            onFinish={AddTemMaterial}
+            form={addmaterialaddform}
             layout="vertical"
-            initialValues={{ date: dayjs(), paymentstatus: 'Paid',paymentmode:'Cash' }}
+            initialValues={{ date: dayjs() }}
           >
             <Form.Item
               className="mb-0"
@@ -885,19 +1414,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     .toLowerCase()
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
-                // options={Array.from(
-                //   new Map(
-                //     datas.suppliers.map((supplier) => [supplier.suppliername, supplier])
-                //   ).values()
-                // ).map((supplier, index) => {
-                //   return {
-                //     value: supplier.suppliername,
-                //     label: supplier.suppliername,
-                //     key: index
-                //   }
-                // })}
                 options={datas.suppliers.map(sp =>({value:sp.id,label:sp.suppliername}))}
-                onChange={(value) => setSelectedSupplierName(value)}
+                onChange={(value,i) => supplierOnchange(value,i)}
               />
             </Form.Item>
 
@@ -927,7 +1445,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
                 options={materials}
-                onChange={(_,value)=> setUnitOnchange(value.unit)}
+                onChange={(_,value)=> materialNameOnchange(_,value)}
               />
             </Form.Item>
 
@@ -949,47 +1467,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                   placeholder="Enter the Quantity"
                 />
               </Form.Item>
-
-              {/* <Form.Item
-                className="mb-0"
-                name="unit"
-                label="Unit"
-                rules={[{ required: true, message: false }]}
-              >
-                <Select
-                  showSearch
-                  placeholder="Select the Unit"
-                  optionFilterProp="label"
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? '')
-                      .toLowerCase()
-                      .localeCompare((optionB?.label ?? '').toLowerCase())
-                  }
-                  options={[
-                    {
-                      value: 'gm',
-                      label: 'GM'
-                    },
-                    {
-                      value: 'ml',
-                      label: 'ML'
-                    },
-                    {
-                      value: 'kg',
-                      label: 'KG'
-                    },
-                    {
-                      value: 'lt',
-                      label: 'LT'
-                    },
-                    {
-                      label: 'Box',
-                      value: 'box'
-                    },
-                    { label: 'Piece', value: 'piece' }
-                  ]}
-                />
-              </Form.Item> */}
             </span>
 
             <Form.Item
@@ -1008,63 +1485,33 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                 placeholder="Enter the Amount"
               />
             </Form.Item>
-
-         <span className='flex justify-between items-center'>
-         <Form.Item
-              className="mb-0"
-              name="paymentstatus"
-              label="Status"
-              rules={[{ required: true, message: false }]}
-            >
-              <Radio.Group buttonStyle="solid" onChange={radioOnchange}>
-                <Radio.Button value="Paid">PAID</Radio.Button>
-                <Radio.Button value="Unpaid">UNPAID</Radio.Button>
-                <Radio.Button value="Partial">PARTIAL</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-
-            <Form.Item
-              className="mb-0"
-              name="partialamount"
-              label="Partial Amount"
-              rules={[
-                {
-                  required:
-                    radioBtn.value === 'Partial' || form.getFieldValue('partialamount') === 0
-                      ? true
-                      : false,
-                  message: false
-                },
-                { type: 'number', message: false }
-              ]}
-            >
-              <InputNumber
-                formatter={(value) => `${value}`}
-                disabled={radioBtn.value === 'Partial' ? false : true}
-                className="w-full"
-                placeholder="Enter the Partial Amount"
-                type="number"
-              />
-            </Form.Item>
-         </span>
-
-            <Form.Item
-            label='Payment Mode'
-                className="mb-0 "
-                name="paymentmode"
-                rules={[{ required: true, message: 'Please select a payment method' }]}
-              >
-                <Radio.Group
-                  // disabled={option.tempproduct.length <= 0 ? true : false}
-                >
-                  <Radio value="Cash">Cash</Radio>
-                  <Radio value="Card">Card</Radio>
-                  <Radio value="UPI">UPI</Radio>
-                </Radio.Group>
-              </Form.Item>
+            <Form.Item><Button className="w-full mt-3" type="primary" htmlType="submit">Add To List</Button></Form.Item>
           </Form>
+            </span>
+
+            <span className='col-span-5'>
+            <Form form={addmaterialtemtableform} component={false}>
+              <Table 
+              components={{
+                body: {
+                  cell: TempEditableCell
+                }
+              }}
+              columns={tempMergedColumns}
+              dataSource={addMaterialMethod.temperorarydata}
+              virtual
+              className="w-full"
+              scroll={{ x: false, y: false }}
+              />
+              </Form>
+            </span>
+          </div>
+
         </Spin>
       </Modal>
+
+
+
 
       {/* material used model */}
       <Modal
@@ -1159,32 +1606,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
                       suffix={<span className='pr-6'>{unitOnchange}</span>}
                     />
                   </Form.Item>
-
-                  {/* <Form.Item
-                    className=""
-                    name="unit"
-                    label="Unit"
-                    rules={[{ required: true, message: false }]}
-                  >
-                    <Select
-                      showSearch
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      filterSort={(optionA, optionB) =>
-                        (optionA?.label ?? '')
-                          .toLowerCase()
-                          .localeCompare((optionB?.label ?? '').toLowerCase())
-                      }
-                      options={[
-                        { label: 'GM', value: 'gm' },
-                        { label: 'KG', value: 'kg' },
-                        { label: 'LT', value: 'lt' },
-                        { label: 'ML', value: 'ml' },
-                        { label: 'Box', value: 'box' },
-                        { label: 'Piece', value: 'piece' }
-                      ]}
-                    />
-                  </Form.Item> */}
                 </span>
 
                 <Form.Item className=" w-full mt-2">
@@ -1204,6 +1625,30 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
               />
             </span>
           </div>
+        </Spin>
+      </Modal>
+
+      <Modal 
+      width={800}
+      footer={<></>}
+      open={materialBillState.modal} 
+      onCancel={()=> setMaterialBillState(pre=>({...pre,modal:false}))}>
+        <Spin spinning={materialBillState.loading}>
+        <div className='relative'>
+        <Table
+        className='mt-8'
+          dataSource={materialbill.materialdeails}
+          columns={materialBillColumn}
+          pagination={false}
+        />
+        <span className='absolute -top-9 -translate-x-1/2 left-1/2 flex '><Tag color='blue' >{materialbill.supplierdetails.name}</Tag> <Tag color={`${materialbill.supplierdetails.paymentstatus === 'Partial'?'yellow' : materialbill.supplierdetails.paymentstatus=== 'Paid'? 'green': materialbill.supplierdetails.paymentstatus === 'Unpaid'?'red': ''}`}>{materialbill.supplierdetails.paymentstatus}</Tag> </span>
+        
+        <span className={`text-[0.75rem] font-medium inline-block pt-4 `}>Billing Amount: <Tag color='green'>{materialbill.supplierdetails.billamount}</Tag></span>
+        <span className={`text-[0.75rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus === 'Partial' ? 'inline-block' :'hidden'}`}>Partial Amount: <Tag color='yellow'>{materialbill.supplierdetails.partialamount}</Tag></span>
+        <span className={`text-[0.75rem] font-medium inline-block pt-4  ${materialbill.supplierdetails.paymentstatus === 'Partial' ? 'inline-block' :'hidden'}`}>Balance: <Tag color='red'>{materialbill.supplierdetails.billamount - materialbill.supplierdetails.partialamount}</Tag></span>
+
+        {/* ${materialbill.supplierdetails.paymentstatus === ''} */}
+        </div>
         </Spin>
       </Modal>
     </div>
