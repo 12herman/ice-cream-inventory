@@ -123,12 +123,15 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
+        console.log(record);
+        
         return (
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.price * record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.quantity + ' ' + record.unit).toLowerCase().includes(value.toLowerCase())
         )
       }
     },

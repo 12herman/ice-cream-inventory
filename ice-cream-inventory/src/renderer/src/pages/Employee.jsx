@@ -106,11 +106,11 @@ export default function Employee({ datas, employeeUpdateMt }) {
       filteredValue: [searchText],
       onFilter: (value, record) => {
         return (
-          String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.position).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          String(record.employeename).toLowerCase().includes(value.toLowerCase()) || 
+          String(record.gender).toLowerCase().includes(value.toLowerCase()) 
         )
       }
     },
