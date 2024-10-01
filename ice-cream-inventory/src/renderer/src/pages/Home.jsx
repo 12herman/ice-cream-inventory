@@ -1066,13 +1066,15 @@ export default function Home({ datas }) {
     {
       title: 'Gross Amount',
       dataIndex: 'total',
-      key: 'total'
+      key: 'total',
+      width:140,
     },
     {
       title: 'Amount',
       dataIndex: 'billamount',
       key: 'billamount',
-      render: (text) => <span>{formatToRupee(text, true)}</span>
+      render: (text) => <span>{formatToRupee(text, true)}</span>,
+      width:120,
     },
     {
       title: 'Status',
@@ -1084,33 +1086,33 @@ export default function Home({ datas }) {
         if (text === 'Paid') {
           return (
             <>
+            <Tag color="blue">{record.type}</Tag>
               <Tag color="green">{text}</Tag>
-              <Tag color="blue">{record.type}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
         } else if (text === 'Partial') {
           return (
             <>
+              <Tag color="blue">{record.type}</Tag>
               <Tag color="yellow">
                 {text} - {partialamount}
               </Tag>
-              <Tag color="blue">{record.type}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
         } else if (text === 'Return') {
           return (
             <>
-              <Tag color="red">{text}</Tag>
               <Tag color="red">{record.type === 'return' ? 'Returned' : record.type}</Tag>
+              <Tag color="red">{text}</Tag>
             </>
           )
         } else {
           return (
             <>
-              <Tag  className={`${text === undefined ? 'hidden': ''}`} color="red">{text}</Tag>
               <Tag color="blue">{record.type}</Tag>
+              <Tag  className={`${text === undefined ? 'hidden': ''}`} color="red">{text}</Tag>
               <Tag className={record.paymentmode ? '' :'hidden'} color='cyan'>{record.paymentmode}</Tag>
             </>
           )
