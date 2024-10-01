@@ -290,9 +290,9 @@ const [supplierName,setSupplierName] = useState('');
 
       const totalBalance = combinedData.reduce((total, item) => {
         if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
-          return total + (Number(item.price) || 0);
+          return total + (Number(item.billamount) || 0);
         }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
-          return total + ((Number(item.price)-Number(item.partialamount)) || 0);
+          return total + ((Number(item.billamount)-Number(item.partialamount)) || 0);
         }else if (item.type !== 'Added') {
           return total - (Number(item.amount) || 0);
         }
@@ -302,7 +302,7 @@ const [supplierName,setSupplierName] = useState('');
 
       const totalPayment = combinedData.reduce((total, item) => {
         if (item.type === 'Added' && item.paymentstatus === 'Paid') {
-          return total + (Number(item.price) || 0);
+          return total + (Number(item.billamount) || 0);
         }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
           return total + (Number(item.partialamount) || 0);
         }else if (item.type !== 'Added') {
