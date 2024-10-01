@@ -887,14 +887,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   const [lastOrderBtnState, setlastOrderBtnState] = useState(true)
 
   const customerOnchange = debounce(async (value, i) => {
-    let itemsObject = []
+   
+
     if (returnDelivery.state === false) {
       setlastOrderBtnState(true)
-      // setLastOrderData({ customerdetails:{}, products:[] });
       // get last order data
-      let lastOrderDatas = datas.delivery.filter(
-        (data) => data.customerid === value && data.type === 'order'
-      )
+      let lastOrderDatas = datas.delivery.filter( (data) => data.customerid === value && data.type === 'order')
 
       if (lastOrderDatas.length > 0) {
         let latestOrderData = await latestFirstSort(lastOrderDatas)
@@ -932,13 +930,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
+    
     if (lastOrderData.products.length > 0) {
     } else {
-      setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: [] }))
+      setOption((pre) => ({ ...pre, customerstatus: false, tempproduct: [] }));
+      setTotalAmount(0)
+      form5.resetFields(['marginvalue'])
+      setMarginValue({ amount: 0, discount: 0, percentage: 0 })
     }
-    setTotalAmount(0)
-    form5.resetFields(['marginvalue'])
-    setMarginValue({ amount: 0, discount: 0, percentage: 0 })
   }, 300)
 
   //product onchange value
@@ -1109,13 +1108,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     )
 
     // Partial amount (value)
-    let { partialamount } = form4.getFieldsValue()
-    let { paymentmode } = form4.getFieldsValue()
+    let { partialamount,paymentmode } = form4.getFieldsValue()
+    let { customername } = form2.getFieldsValue()
     // Create delivery new
     const newDelivery =
       returnDelivery.state === true
         ? {
-            customerid: option.tempproduct[0].customername,
+            customerid: customername,
             date: dayjs(form2.getFieldValue().date).format('DD/MM/YYYY'),
             total: totalamount,
             billamount: option.tempproduct.map((data) => data.price).reduce((a, b) => a + b, 0),
@@ -1127,7 +1126,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             createddate: TimestampJs()
           }
         : {
-            customerid: option.tempproduct[0].customername,
+            customerid: customername,
             date: dayjs(form2.getFieldValue().date).format('DD/MM/YYYY'),
             total: totalamount,
             billamount: marginValue.amount,
@@ -2926,7 +2925,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           </span>
         </div>
 
-        <div className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}>
+        <div
+
+          className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}
+        >
           <div className="w-full flex items-center justify-end">
             <Button
               className="py-0 text-[0.7rem] h-[1.7rem]"
