@@ -1304,7 +1304,10 @@ const materialBillColumn = [
               Export <PiExport />
             </Button>
             <Button
-              onClick={() => setUsedMaterialModal(true)}
+              onClick={() => {
+                usedmaterialform.resetFields();
+                setUsedMaterialModal(true)
+              }}
               type="primary"
               disabled={editingKey !== ''}
             >
