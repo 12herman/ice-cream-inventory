@@ -483,6 +483,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     const payData = {
       ...Datas,
       collectiontype:'employee',
+      employeeid: empId,
       date: formateDate,
       description: description === undefined ? '' : description,
       createddate: TimestampJs(),

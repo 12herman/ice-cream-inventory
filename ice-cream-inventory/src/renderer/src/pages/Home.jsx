@@ -24,11 +24,14 @@ import { FaRupeeSign } from 'react-icons/fa'
 import { FaRegFilePdf } from 'react-icons/fa6'
 import { IoPerson } from 'react-icons/io5'
 import { DatestampJs } from '../js-files/date-stamp'
+import { fetchMaterials } from '../firebase/data-tables/rawmaterial'
 import {
+  getDeliveryById,
   fetchItemsForDelivery,
-  getAllPayDetailsFromAllDelivery,
+  getAllPayDetailsFromAllDelivery
   // getDeliveryUsingDates
 } from '../firebase/data-tables/delivery'
+import { getEmployeeById } from '../firebase/data-tables/employee'
 import { getCustomerById } from '../firebase/data-tables/customer'
 import { getSupplierById, getOneMaterialDetailsById } from '../firebase/data-tables/supplier'
 import { jsPDF } from 'jspdf'
@@ -61,6 +64,7 @@ export default function Home({ datas }) {
   const [selectedTableData, setSelectedTableData] = useState([])
   const [tableLoading, setTableLoading] = useState(true)
   const [filteredPayments, setFilteredPayments] = useState([])
+  const [filteredSpendingPayments, setFilteredSpendingPayments] = useState([])
   const [form] = Form.useForm()
   const [marginform] = Form.useForm()
   const [totalPayAmount, setTotalPayAmount] = useState(0)
@@ -483,7 +487,6 @@ export default function Home({ datas }) {
   }, [datas])
 
   useEffect(() => {
-
     const fetchFilteredData = async () => {
       const isWithinRange = (date) => {
         if (!dateRange[0] || !dateRange[1]) {
@@ -518,30 +521,19 @@ export default function Home({ datas }) {
 
       const newFilteredRawmaterials = await Promise.all(
         datas.rawmaterials
-          .filter((material) => !material.isdeleted && isWithinRange(material.date))
+          .filter((rawmaterial) => !rawmaterial.isdeleted && isWithinRange(rawmaterial.date))
           .map(async (item) => {
-            let supplierName = '-'
-            let materialName = '-'
-            let materialUnit = '-'
+            let supplierName;
             if (item.type === 'Added') {
               const result = await getSupplierById(item.supplierid)
-              supplierName = result.supplier.suppliername
-              const materialresult = await getOneMaterialDetailsById(
-                item.supplierid,
-                item.materialid
-              )
-              materialName = materialresult.material.materialname
-              materialUnit = materialresult.material.unit
+              supplierName = result.status === 200 ? result.supplier.suppliername : ''
             }
             return {
               ...item,
               key: item.id,
               customername: supplierName,
-              total: item.price,
-              billamount: item.price,
-              materialname: materialName,
-              unit: materialUnit,
-              materialquantity: item.quantity
+              total: item.billamount,
+              billamount: item.billamount,
             }
           })
       )
@@ -553,13 +545,31 @@ export default function Home({ datas }) {
           (data) =>
             isWithinRange(data.date) &&
             (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
-        )
-        let totalAmount = filterData.reduce((total, data) => {
-          const amount = Number(data.amount) || 0;
-          if (data.type === 'Payment') {
-            return total + amount;
+        ).map(async (data) => {
+          let name = ''
+          if (data.customerid) {
+            const result = await getCustomerById(data.customerid)
+            if (result.status) {
+              name = result.customer.customername
+            }
           }
-          return total;
+          if (data.deliveryid) {
+            const result = await getDeliveryById(data.deliveryid)
+            if (result.status) {
+              name = result.delivery.deliveryname
+            }
+          }
+          return {
+            ...data,
+            name: name || 'N/A'
+          }
+        })
+        let totalAmount = filterData.reduce((total, data) => {
+          const amount = Number(data.amount) || 0
+          if (data.type === 'Payment') {
+            return total + amount
+          }
+          return total
         }, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
@@ -567,17 +577,36 @@ export default function Home({ datas }) {
           (data) =>
             isWithinRange(data.date) &&
             (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
-        )
-        let spendAmount = spendData.reduce((total, data) => {
-          const amount = Number(data.amount) || 0;
-          if (data.type === 'Payment') {
-            return total + amount;
-          } else if (data.type === 'Return') {
-            return total - amount;
+        ).map(async (data) => {
+          let name = ''
+          if (data.supplierid) {
+            const result = await getSupplierById(data.supplierid)
+            if (result.status) {
+              name = result.supplier.suppliername
+            }
           }
-          return total;
-        }, 0);
+          if (data.employeeid) {
+            const result = await getEmployeeById(data.employeeid)
+            if (result.status) {
+              name = result.employee.employeename
+            }
+          }
+          return {
+            ...data,
+            name: name || 'N/A'
+          }
+        })
+        let spendAmount = spendData.reduce((total, data) => {
+          const amount = Number(data.amount) || 0
+          if (data.type === 'Payment') {
+            return total + amount
+          } else if (data.type === 'Return') {
+            return total - amount
+          }
+          return total
+        }, 0)
         setTotalSpendAmount(spendAmount)
+        setFilteredSpendingPayments(spendData)
       }
     }
     fetchFilteredData()
@@ -588,48 +617,54 @@ export default function Home({ datas }) {
   }
 
   const showModal = async (record) => {
-    const { items, status } = await fetchItemsForDelivery(record.id)
-    if (status === 200) {
-      let itemsWithProductNames = items.map((item) => {
-        const product = datas.product.find((product) => product.id === item.id)
-        return {
-          ...item,
-          productname: product ? product.productname : '',
-          flavour: product ? product.flavour : '',
-          quantity: product ? product.quantity : ''
-        }
-      })
-      if (items.length === 0) {
-        itemsWithProductNames = [
-          {
-            productname: record.materialname,
-            flavour: '',
-            quantity: record.unit,
-            numberofpacks: record.materialquantity
+    let itemsWithProductNames = []
+    if (record.customerid) {
+      const { items, status } = await fetchItemsForDelivery(record.id)
+      if (status === 200) {
+        itemsWithProductNames = items.map((item) => {
+          const product = datas.product.find((product) => product.id === item.id)
+          return {
+            ...item,
+            productname: product ? product.productname : '',
+            flavour: product ? product.flavour : '',
+            quantity: product ? product.quantity : ''
           }
-        ]
+        })
       }
-      setSelectedRecord({ ...record, items: itemsWithProductNames })
-      setIsModalVisible(true)
+    } else if (record.supplierid) {
+      const { materialitem, status } = await fetchMaterials(record.id)
+      if (status === 200) {
+        itemsWithProductNames = await Promise.all(
+           materialitem.map(async (item) => {
+          let { material, status } = await getOneMaterialDetailsById(record.supplierid,item.materialid)
+          return{
+          productname: material.materialname || '',
+          flavour: '',
+          quantity: material.unit || '',
+          numberofpacks: item.quantity || 0
+        }}))
+      }
     }
+    setSelectedRecord({ ...record, items: itemsWithProductNames })
+    setIsModalVisible(true)
   }
 
   const totalSales = filteredDelivery
     .filter((product) => product.type !== 'return')
     .reduce((total, product) => total + product.billamount, 0)
 
-    const totalRawSpend = filteredRawmaterials
+  const totalRawSpend = filteredRawmaterials
     .filter((material) => material.type === 'Added')
     .reduce((total, material) => {
-      if(material.paymentstatus === 'Paid'){
-        return total + material.price;
-      }else if(material.paymentstatus === 'Partial'){
-        return total + material.partialamount;
+      if (material.paymentstatus === 'Paid') {
+        return total + material.billamount
+      } else if (material.paymentstatus === 'Partial') {
+        return total + material.partialamount
       }
-      return total;
+      return total
     }, 0)
 
-  const totalSpend = totalRawSpend + (Number(totalSpendAmount))
+  const totalSpend = totalRawSpend + Number(totalSpendAmount)
 
   // const totalRawPurchase = filteredRawmaterials
   //   .filter((material) => material.type === 'Added')
@@ -677,20 +712,33 @@ export default function Home({ datas }) {
     { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
-    { key: 'totalQuickSale', title: 'Total Quick Sale', value: totalQuickSale, prefix: <FaRupeeSign /> },
+    {
+      key: 'totalQuickSale',
+      title: 'Total Quick Sale',
+      value: totalQuickSale,
+      prefix: <FaRupeeSign />
+    },
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
   ]
 
-  const handleCardClick =  async(type) => {
+  const handleCardClick = async (type) => {
     setActiveCard(type)
     let newSelectedTableData = []
     switch (type) {
       case 'totalSales':
         newSelectedTableData = filteredDelivery.filter((product) => product.type !== 'return')
         break
-      case 'totalSpend':
-        newSelectedTableData = filteredRawmaterials.filter((material) => material.type === 'Added')
+      case 'totalSpend':{
+        const rawMaterialsData = filteredRawmaterials.filter((material) => material.type === 'Added')
+        const otherSpend = filteredSpendingPayments.map((pay) => ({
+          ...pay,
+        customername:pay.name,
+        billamount:pay.amount
+      }))
+        newSelectedTableData = [...rawMaterialsData, ...otherSpend];
+        console.log(newSelectedTableData)
         break
+      }
       case 'totalQuickSale':
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'quick')
         break
@@ -714,13 +762,15 @@ export default function Home({ datas }) {
             }
           })
         break
-      case 'totalPaid':
-        newSelectedTableData = filteredDelivery.filter(
+      case 'totalPaid': {
+        const deliveryData = filteredDelivery.filter(
           (product) =>
             product.type !== 'return' &&
             (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
+        newSelectedTableData = [...deliveryData,...filteredPayments]
         break
+      }
       case 'totalUnpaid':
         newSelectedTableData = filteredDelivery.filter(
           (product) => product.paymentstatus === 'Unpaid' || product.paymentstatus === 'Partial'
@@ -734,14 +784,21 @@ export default function Home({ datas }) {
     // console.log(newSelectedTableData)
   }
 
-  const handlePaymentTypeClick = (paymentMode) => {
+  const handlePaymentTypeClick = async (paymentMode) =>{
     const filtered = filteredDelivery.filter(
       (product) =>
         product.type !== 'return' &&
         (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial') &&
         product.paymentmode === paymentMode
     )
-    setSelectedTableData(filtered)
+    const filterPayment = filteredPayments.filter((pay) => pay.paymentmode === paymentMode).map((pay) => ({
+      ...pay,
+      customername:pay.name,
+      billamount:pay.amount
+    }))
+    let combinedData = [...filtered,...filterPayment]
+    let filterLatestData = await latestFirstSort(combinedData)
+    setSelectedTableData(filterLatestData)
   }
 
   const componentRef = useRef()
@@ -972,14 +1029,14 @@ export default function Home({ datas }) {
     {
       title: 'Date',
       dataIndex: 'date',
-      key: 'date', 
+      key: 'date',
       width: 150,
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY' 
+        const format = 'DD/MM/YYYY'
         const dateA = dayjs(a.date, format)
         const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
-      },
+      }
       // defaultSortOrder: 'descend'
     },
     {
@@ -1012,7 +1069,7 @@ export default function Home({ datas }) {
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
-        } else if (text === 'Partial' ) {
+        } else if (text === 'Partial') {
           return (
             <>
               <Tag color="yellow">
@@ -1497,7 +1554,7 @@ export default function Home({ datas }) {
       >
         {selectedRecord && (
           <div>
-            <Descriptions size='small' bordered column={2}>
+            <Descriptions size="small" bordered column={2}>
               <Descriptions.Item label="Customer">{selectedRecord.customername}</Descriptions.Item>
               <Descriptions.Item label="Date">{selectedRecord.date}</Descriptions.Item>
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
@@ -1808,20 +1865,17 @@ export default function Home({ datas }) {
             </ul>
 
             <ul className="mt-1 flex justify-between">
-              <li>      
+              <li>
                 <div>
                   <span className="font-bold">Date :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.date
                       : null}
-                  </span>
-                  {' '}
+                  </span>{' '}
                 </div>
-                <div
-                  className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}
-                >
-                  <span className='font-bold'>GSTIN :</span> 33AAIFN6367K1ZV
+                <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
+                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
                 <div
                   className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}
@@ -1926,27 +1980,30 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-            className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === "Paid" ? 'block text-end' : 'hidden'}`}
-          >
-            Paid Amount:{' '}
-            <span className=" font-bold">
-              {Object.keys(invoiceDatas.customerdetails).length !== 0
-                ? invoiceDatas.customerdetails.paymentstatus === "Paid"
-                ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                : formatToRupee(invoiceDatas.customerdetails.partialamount)
-                : null}
-            </span>
-          </p>
+              className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+            >
+              Paid Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
+                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
+                  : null}
+              </span>
+            </p>
             <p
-            className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-          >
-            Balance:{' '}
-            <span className=" font-bold">
-              {Object.keys(invoiceDatas.customerdetails).length !== 0
-                ? formatToRupee(invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
-                : null}
-            </span>
-          </p>
+              className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            >
+              Balance:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(
+                      invoiceDatas.customerdetails.billamount -
+                        invoiceDatas.customerdetails.partialamount
+                    )
+                  : null}
+              </span>
+            </p>
             <p className="text-end mt-28 p-2">Authorised Signature</p>
           </section>
         </div>

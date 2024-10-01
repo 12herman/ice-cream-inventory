@@ -1,4 +1,4 @@
-import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs } from "firebase/firestore";
+import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs,getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Get all employee
@@ -13,6 +13,22 @@ export const getEmployee = async () => {
       return { employee, status: 200 };
     } catch (err) {
       console.error("Error fetching documents: ", err);
+      return { status: 500, message: err.message };
+    }
+  };
+
+  export const getEmployeeById = async (employeeId) => {
+    try {
+      const docRef = doc(db, "employee", employeeId);
+      const docSnapshot = await getDoc(docRef);
+      
+      if (docSnapshot.exists()) {
+        return { employee: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
+      } else {
+        return { status: 404, message: 'supplier not found' };
+      }
+    } catch (err) {
+      console.error("Error fetching document: ", err);
       return { status: 500, message: err.message };
     }
   };

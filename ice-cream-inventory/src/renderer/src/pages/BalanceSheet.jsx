@@ -294,6 +294,7 @@ export default function BalanceSheet({ datas }) {
       paymentmode: description === 'Pay' ? paymentmode : '',
       description: description,
       createddate: TimestampJs(),
+      customerid: customerPayId,
       collectiontype:description === 'Pay' ? 'customer' : '' 
     }
     try {

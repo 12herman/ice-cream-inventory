@@ -225,7 +225,7 @@ if(duplicateNames.length > 0){
     setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier' }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier',supplierid:supplierPayId }
     try {
       const customerDocRef = doc(db, 'supplier', supplierPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')

@@ -122,6 +122,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       ...Datas,
       collectiontype:'customer',
       date: formateDate,
+      customerid:customerPayId,
       description: description || '',
       type: 'Payment',
       createddate: TimestampJs()

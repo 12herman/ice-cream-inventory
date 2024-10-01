@@ -1972,6 +1972,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     let newData = {
       ...paydetails,
       collectiontype: 'delivery',
+      deliveryid: billId,
       date: formateDate,
       createddate: TimestampJs(),
       description: description === undefined || description === null ? '' : description

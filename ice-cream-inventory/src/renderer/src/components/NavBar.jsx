@@ -542,6 +542,7 @@ export default function NavBar({
       createddate: TimestampJs(),
       isdeleted: false,
       collectiontype: "customer",
+      customerid: empid,
       description:
         spendDatas.description === '' ||
         spendDatas.description === undefined ||
