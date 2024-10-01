@@ -558,12 +558,12 @@ export default function Home({ datas }) {
           if (data.deliveryid) {
             const result = await getDeliveryById(data.deliveryid)
             if (result.status) {
-              name = result.delivery.deliveryname
+              name = result.delivery.customername
             }
           }
           return {
             ...data,
-            name: name || 'N/A'
+            name: name
           }
         }));
 
@@ -603,12 +603,11 @@ export default function Home({ datas }) {
         
               return {
                 ...data,
-                name: name || 'N/A',
+                name: name,
               };
             })
         );
         
-
         let spendAmount = spendData.reduce((total, data) => {
           console.log(data);
           const amount = Number(data.amount) || 0
@@ -747,14 +746,12 @@ export default function Home({ datas }) {
         break
       case 'totalSpend':{
         const rawMaterialsData = filteredRawmaterials.filter((material) => material.type === 'Added' && (material.paymentstatus === 'Paid' || material.paymentstatus === 'Partial'))
-        
         const otherSpend = filteredSpendingPayments.map((pay) => ({
           ...pay,
         customername:pay.name,
         billamount:pay.amount
       }));
         newSelectedTableData = [...rawMaterialsData, ...otherSpend];
-        console.log(newSelectedTableData)
         break
       }
       case 'totalQuickSale':
@@ -786,7 +783,12 @@ export default function Home({ datas }) {
             product.type !== 'return' &&
             (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
-        newSelectedTableData = [...deliveryData,...filteredPayments]
+        const filterPayment = filteredPayments.map((pay) => ({
+          ...pay,
+          customername:pay.name,
+          billamount:pay.amount
+        }));
+        newSelectedTableData = [...deliveryData,...filterPayment]
         break
       }
       case 'totalUnpaid':
@@ -799,7 +801,6 @@ export default function Home({ datas }) {
     }
     let filterLatestData = await latestFirstSort(newSelectedTableData)
     setSelectedTableData(filterLatestData)
-    // console.log(newSelectedTableData)
   }
 
   const handlePaymentTypeClick = async (paymentMode) =>{
@@ -1983,14 +1984,14 @@ export default function Home({ datas }) {
                   : 'No Data'}
               </tbody>
             </table>
-            {/* <p className="text-end mt-5">
-              Total Amount :{' '}
+            <p className="text-end mt-2">
+              Total Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(invoiceDatas.customerdetails.total)
                   : null}
               </span>{' '}
-            </p> */}
+            </p>
             <p className="text-end">
               Bill Amount:{' '}
               <span className=" font-bold">

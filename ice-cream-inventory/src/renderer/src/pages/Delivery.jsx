@@ -2300,14 +2300,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : 'No Data'}
             </tbody>
           </table>
-          {/* <p className="text-end mt-5">
-            Total:{' '}
+          <p className="text-end mt-2">
+            Total Amount:{' '}
             <span className=" font-bold">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
                 ? formatToRupee(invoiceDatas.customerdetails.total)
                 : null}
             </span>{' '}
-          </p> */}
+          </p>
           <p className="text-end">
           Bill Amount:{' '}
             <span className=" font-bold">
