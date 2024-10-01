@@ -2187,6 +2187,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     }
   }
 
+
+  console.log(deliveryBill.prdata.type === 'order');
+  
+
+
   return (
     <div>
       <Modal
@@ -2926,7 +2931,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         </div>
 
         <div
-          className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}
+         className={`${(deliveryBill.prdata.paymentstatus === 'Partial' && deliveryBill.prdata.type === 'order')  || (deliveryBill.prdata.paymentstatus === 'Unpaid' && deliveryBill.prdata.type === 'order') ? 'hidden' : 'hidden'}`}
+          // className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}
           // className={`${(deliveryBill.prdata.paymentstatus === 'Unpaid' && deliveryBill.prdata.paymentstatus === 'Partial') && (deliveryBill.prdata.type === 'quick' || deliveryBill.prdata.type === 'booking' || deliveryBill.prdata.type === 'order') ? 'block' : 'hidden'}`}
         >
           <div className="w-full flex items-center justify-end">

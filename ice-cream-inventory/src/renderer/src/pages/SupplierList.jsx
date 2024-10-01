@@ -225,7 +225,7 @@ if(duplicateNames.length > 0){
     setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier',supplierid:supplierPayId }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier',supplierid:supplierPayId, type: 'Payment' }
     try {
       const customerDocRef = doc(db, 'supplier', supplierPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -253,42 +253,12 @@ const [supplierName,setSupplierName] = useState('');
       let filterBillOrders = rawmaterial.filter(data=> record.id === data.supplierid && data.isdeleted === false).map(data => ({...data,suppliername: record.suppliername}));
       let getPaydetials = paydetails;
       
-      let sortData = await latestFirstSort([...filterBillOrders,...getPaydetials])
-      setPayDetailsData(sortData)
-      setSupplierName(record.suppliername)
-       setIsPayDetailsModelOpen(true)
-      }
-    }catch(e){console.log(e)
-    }
+      let sortData = await latestFirstSort([...filterBillOrders,...getPaydetials]);
+      setPayDetailsData(sortData);
+      setSupplierName(record.suppliername);
 
- 
-    // try {
-    //   const payDetailsRef = await getSupplierPayDetailsById(record.id)
-    //   let payDetails = []
-    //   if(payDetailsRef.status === 200){
-    //     payDetails = payDetailsRef.paydetails
-    //   }
-    //   console.log(payDetailsRef);
-    //   const rawmaterialsRef = datas.rawmaterials.filter(
-    //     (item) => item.isdeleted === false && item.supplierid === record.id
-    //   )
-    //   const rawmaterialNameRef = await Promise.all(
-    //     rawmaterialsRef.map(async (material) => {
-    //       const materialName = await getOneMaterialDetailsById(material.supplierid, material.materialid)
-    //       return{
-    //         ...material,
-    //         materialname: materialName.material.materialname,
-    //         unit: materialName.material.unit
-    //       }
-    //     })
-    //   );
-
-    //   const combinedData = payDetails.concat(rawmaterialNameRef)
-      
-    //   let sortedData = await latestFirstSort(combinedData)
-    //   setPayDetailsData(sortedData)
-
-      const totalBalance = combinedData.reduce((total, item) => {
+      // calculation
+      const totalBalance = sortData.reduce((total, item) => {
         if (item.type === 'Added' && item.paymentstatus === 'Unpaid') {
           return total + (Number(item.billamount) || 0);
         }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
@@ -300,7 +270,7 @@ const [supplierName,setSupplierName] = useState('');
       }, 0);
       setTotalBalanceAmount(totalBalance);
 
-      const totalPayment = combinedData.reduce((total, item) => {
+      const totalPayment = sortData.reduce((total, item) => {
         if (item.type === 'Added' && item.paymentstatus === 'Paid') {
           return total + (Number(item.billamount) || 0);
         }else if (item.type === 'Added' && item.paymentstatus === 'Partial') {
@@ -312,20 +282,20 @@ const [supplierName,setSupplierName] = useState('');
       }, 0);
       setTotalPaymentAmount(totalPayment);
 
-    //   const totalPurchase = combinedData.reduce((total, item) => {
-    //     if (item.type === 'Added') {
-    //       return total + (Number(item.price) || 0);
-    //     }
-    //     return total;
-    //   }, 0);
-    //   setTotalPurchaseAmount(totalPurchase);
+      const totalPurchase = sortData.reduce((total, item) => {
+        if (item.type === 'Added') {
+          return total + (Number(item.billamount) || 0);
+        }
+        return total;
+      }, 0);
+      setTotalPurchaseAmount(totalPurchase);
 
-    // } catch (e) {
-    //   console.log(e)
-    // }
-    // setIsPayDetailsModelOpen(true)
-
-  }
+       setIsPayDetailsModelOpen(true);
+      }
+    }catch(e){
+      console.log(e)
+    };
+  };
 
   const payDetailsColumns = [
     {

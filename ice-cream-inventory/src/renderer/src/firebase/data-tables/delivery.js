@@ -165,7 +165,7 @@ export const getAllPayDetailsFromAllDelivery = async () => {
     const alldeliveryDetails = []
     deliveryDetailsSnapshot.forEach((deliveryDoc) => {
       alldeliveryDetails.push({
-        deliveryId: deliveryDoc.id,
+        // deliveryId: deliveryDoc.id,
         ...deliveryDoc.data()
       })
     })

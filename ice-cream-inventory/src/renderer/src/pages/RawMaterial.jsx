@@ -412,19 +412,23 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'sno',
       width: 50,
       render: (_, __, index) => index + 1,
-      filteredValue: [searchText],
+      filteredValue: [searchText], 
       onFilter: (value, record) => {
-        let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
+        // let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
         let supplierName = record.supplier !== undefined ? record.supplier.suppliername : undefined
         // let quantityWithUnit = record.material !== undefined ? record.quantity+ record.material.unit : undefined;
+        console.log(record.billamount);
+        
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(supplierName).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
-          String(addMaterialName).toLowerCase().includes(value.toLowerCase()) ||
+          // String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
+          // String(addMaterialName).toLowerCase().includes(value.toLowerCase()) ||
           // String(quantityWithUnit).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.price).toLowerCase().includes(value.toLowerCase())
+          // String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.billamount === undefined ? '-' : record.billamount ).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.partialamount === undefined ? '-' : record.partialamount ).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.paymentmode === undefined ? '-' : record.paymentmode ).toLowerCase().includes(value.toLowerCase())
         )
       }
     },

@@ -50,6 +50,7 @@ import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
+
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -541,7 +542,8 @@ export default function Home({ datas }) {
 
       let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
       if (status) {
-        let filterData = deliverys.filter(
+        
+        let filterData = await Promise.all(deliverys.filter(
           (data) =>
             isWithinRange(data.date) &&
             (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
@@ -563,7 +565,8 @@ export default function Home({ datas }) {
             ...data,
             name: name || 'N/A'
           }
-        })
+        }));
+
         let totalAmount = filterData.reduce((total, data) => {
           const amount = Number(data.amount) || 0
           if (data.type === 'Payment') {
@@ -573,30 +576,41 @@ export default function Home({ datas }) {
         }, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
-        let spendData = deliverys.filter(
-          (data) =>
-            isWithinRange(data.date) &&
-            (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
-        ).map(async (data) => {
-          let name = ''
-          if (data.supplierid) {
-            const result = await getSupplierById(data.supplierid)
-            if (result.status) {
-              name = result.supplier.suppliername
-            }
-          }
-          if (data.employeeid) {
-            const result = await getEmployeeById(data.employeeid)
-            if (result.status) {
-              name = result.employee.employeename
-            }
-          }
-          return {
-            ...data,
-            name: name || 'N/A'
-          }
-        })
+        
+        let spendData = await Promise.all(
+          deliverys
+            .filter(
+              (data) =>
+                isWithinRange(data.date) &&
+                (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
+            )
+            .map(async (data) => {
+              let name = '';
+        
+              if (data.supplierid) {
+                const result = await getSupplierById(data.supplierid);
+                if (result.status) {
+                  name = result.supplier.suppliername;
+                }
+              }
+        
+              if (data.employeeid) {
+                const result = await getEmployeeById(data.employeeid);
+                if (result.status) {
+                  name = result.employee.employeename;
+                }
+              }
+        
+              return {
+                ...data,
+                name: name || 'N/A',
+              };
+            })
+        );
+        
+
         let spendAmount = spendData.reduce((total, data) => {
+          console.log(data);
           const amount = Number(data.amount) || 0
           if (data.type === 'Payment') {
             return total + amount
@@ -606,9 +620,12 @@ export default function Home({ datas }) {
           return total
         }, 0)
         setTotalSpendAmount(spendAmount)
+        
+        
         setFilteredSpendingPayments(spendData)
       }
     }
+
     fetchFilteredData()
   }, [dateRange, datas.delivery, datas.rawmaterials])
 
@@ -729,12 +746,13 @@ export default function Home({ datas }) {
         newSelectedTableData = filteredDelivery.filter((product) => product.type !== 'return')
         break
       case 'totalSpend':{
-        const rawMaterialsData = filteredRawmaterials.filter((material) => material.type === 'Added')
+        const rawMaterialsData = filteredRawmaterials.filter((material) => material.type === 'Added' && (material.paymentstatus === 'Paid' || material.paymentstatus === 'Partial'))
+        
         const otherSpend = filteredSpendingPayments.map((pay) => ({
           ...pay,
         customername:pay.name,
         billamount:pay.amount
-      }))
+      }));
         newSelectedTableData = [...rawMaterialsData, ...otherSpend];
         console.log(newSelectedTableData)
         break
@@ -795,7 +813,7 @@ export default function Home({ datas }) {
       ...pay,
       customername:pay.name,
       billamount:pay.amount
-    }))
+    }));
     let combinedData = [...filtered,...filterPayment]
     let filterLatestData = await latestFirstSort(combinedData)
     setSelectedTableData(filterLatestData)
@@ -1060,6 +1078,7 @@ export default function Home({ datas }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (text, record) => {
+        
         const { partialamount } = record
         if (text === 'Paid') {
           return (
@@ -1089,8 +1108,9 @@ export default function Home({ datas }) {
         } else {
           return (
             <>
-              <Tag color="red">{text}</Tag>
+              <Tag  className={`${text === undefined ? 'hidden': ''}`} color="red">{text}</Tag>
               <Tag color="blue">{record.type}</Tag>
+              <Tag className={record.paymentmode ? '' :'hidden'} color='cyan'>{record.paymentmode}</Tag>
             </>
           )
         }
