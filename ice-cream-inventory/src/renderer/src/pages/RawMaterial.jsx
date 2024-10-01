@@ -417,7 +417,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         // let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
         let supplierName = record.supplier !== undefined ? record.supplier.suppliername : undefined
         // let quantityWithUnit = record.material !== undefined ? record.quantity+ record.material.unit : undefined;
-        console.log(record.billamount);
+        console.log(record); 
         
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
@@ -428,7 +428,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
           // String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.billamount === undefined ? '-' : record.billamount ).toLowerCase().includes(value.toLowerCase()) ||
           String(record.partialamount === undefined ? '-' : record.partialamount ).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.paymentmode === undefined ? '-' : record.paymentmode ).toLowerCase().includes(value.toLowerCase())
+          String(record.paymentmode === undefined ? '-' : record.paymentmode ).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.type === undefined ? '-' : record.type ).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.paymentstatus === undefined ? '-' : record.paymentstatus ).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
