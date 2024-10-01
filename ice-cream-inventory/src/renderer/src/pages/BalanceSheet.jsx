@@ -695,8 +695,9 @@ export default function BalanceSheet({ datas }) {
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
                 >
-                  <div>Opening Balance: {openingBalance}</div>
+                  <div>Open Balance: {openingBalance}</div>
                   <div>Total Payment: {totalPayment.toFixed(2)}</div>
+                  <div>Book Balance: {(billUnpaid-totalPayment).toFixed(2)}</div>
                 </div>
               }
               bordered
