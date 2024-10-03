@@ -1166,9 +1166,7 @@ export default function Home({ datas }) {
       title: 'Action',
       dataIndex: 'action',
       width: 150,
-      render: (_, record) =>{
-        console.log(record);
-        
+      render: (_, record) =>{        
        return <span>
         <Button
         disabled={Object.keys(record).includes('collectiontype') ? true:false}

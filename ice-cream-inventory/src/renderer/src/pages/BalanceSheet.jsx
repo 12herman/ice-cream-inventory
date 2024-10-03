@@ -17,6 +17,7 @@ import {
 import { getCustomerById, getCustomerPayDetailsById } from '../firebase/data-tables/customer'
 import { LuFileCog } from 'react-icons/lu'
 import { TimestampJs } from '../js-files/time-stamp'
+import { FaBackward, FaForward } from 'react-icons/fa'
 import { addDoc, collection, doc, getDocs, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
@@ -39,6 +40,12 @@ export default function BalanceSheet({ datas }) {
   const [isCloseDisabled, setIsCloseDisabled] = useState(false)
   const [isPayDisabled, setIsPayDisabled] = useState(false)
   const [isPaySelected, setIsPaySelected] = useState(false)
+
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [prevBookExists, setPrevBookExists] = useState(false)
+  const [nextBookExists, setNextBookExists] = useState(false)
+  const [currentEntryIndex, setCurrentEntryIndex] = useState(0)
+  const [totalBookIndex, setTotalBookIndex] = useState(0)
 
   const fetchData = async () => {
     setBalanceTbLoading(true)
@@ -246,7 +253,6 @@ export default function BalanceSheet({ datas }) {
     setCustomerPayId(record.id)
     try {
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
-      console.log(payDetailsResponse)
       if (payDetailsResponse.status === 200) {
         const payDetails = payDetailsResponse.paydetails || []
         const isOpenOrClose = payDetails
@@ -295,7 +301,7 @@ export default function BalanceSheet({ datas }) {
       description: description,
       createddate: TimestampJs(),
       customerid: customerPayId,
-      collectiontype:description === 'Pay' ? 'customer' : '' 
+      collectiontype: description === 'Pay' ? 'customer' : ''
     }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
@@ -325,6 +331,8 @@ export default function BalanceSheet({ datas }) {
 
   const handleRowClick = (record) => {
     fetchCustomerData(record.id)
+    setSelectedCustomer(record.id)
+    setCurrentEntryIndex(0)
   }
 
   const fetchCustomerData = async (customerId) => {
@@ -341,6 +349,53 @@ export default function BalanceSheet({ datas }) {
       const payDetailsResponse = await getCustomerPayDetailsById(customerId)
       if (payDetailsResponse.status === 200) {
         const payDetails = payDetailsResponse.paydetails || []
+
+        const opencloseEntries = payDetails
+          .filter(
+            (payDetails) => payDetails.description === 'Open' || payDetails.description === 'Close'
+          )
+          .sort((a, b) =>
+            dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
+          )
+
+          let totalPairs = 0;
+          let openCount = 0;
+
+          opencloseEntries.forEach((entry) => {
+            if (entry.description === 'Open') {
+              openCount++;
+            } else if (entry.description === 'Close' && openCount > 0) {
+              totalPairs++;
+              openCount--;
+            }
+          });
+          setCurrentEntryIndex(totalPairs)
+          setTotalBookIndex(totalPairs)
+
+        if (opencloseEntries.length > 0) {
+          if (opencloseEntries[opencloseEntries.length - 1].description === 'Open') {
+            if (opencloseEntries.length > 1) {
+              setPrevBookExists(true)
+              setNextBookExists(false)
+            } else {
+              setPrevBookExists(false)
+              setNextBookExists(false)
+            }
+          } else {
+            if (opencloseEntries.length > 2) {
+              setPrevBookExists(true)
+              setNextBookExists(false)
+            } else {
+              setPrevBookExists(false)
+              setNextBookExists(false)
+            }
+          }
+        }else {
+            setPrevBookExists(false)
+            setNextBookExists(false)
+        }
 
         const openEntry =
           payDetails
@@ -411,19 +466,6 @@ export default function BalanceSheet({ datas }) {
                 dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
             )
           }
-        } else {
-          filteredPayDetails = [
-            ...payDetails.filter((payDetail) =>
-              dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
-                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
-              )
-            )
-          ]
-          filteredPayDetails.sort(
-            (a, b) =>
-              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
-              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
-          )
         }
 
         setPayDetailsList(filteredPayDetails)
@@ -476,15 +518,6 @@ export default function BalanceSheet({ datas }) {
               )
             )
           }
-        } else {
-          filteredDeliveries = deliveries.filter((delivery) =>
-            dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(dayjs().subtract(1, 'year'))
-          )
-          filteredDeliveries.sort((a, b) =>
-            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
-              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
-            )
-          )
         }
         setDeliveryList(filteredDeliveries)
       } else {
@@ -492,6 +525,179 @@ export default function BalanceSheet({ datas }) {
       }
     } catch (e) {
       console.log(e)
+    }
+  }
+
+  const handlePrevClick = async () => {
+    if (prevBookExists) {
+      setCurrentEntryIndex((prevIndex) => {
+        const newIndex = Math.max(prevIndex - 1, 0)
+        setNextBookExists(true)
+        if (newIndex === 0) {
+          setPrevBookExists(false)
+        }
+        return newIndex
+      })
+      await loadListEntriesAtIndex(currentEntryIndex - 1);
+    }
+  }
+
+  const handleNextClick = async () => {
+    if (nextBookExists) {
+      setCurrentEntryIndex((prevIndex) => {
+        const newIndex = Math.max(prevIndex + 1, 0)
+        setPrevBookExists(true)
+        if (newIndex >= totalBookIndex) {
+          setNextBookExists(false)
+        }
+        return newIndex
+      })
+      await loadListEntriesAtIndex(currentEntryIndex + 1);
+    }
+  }
+
+  const loadListEntriesAtIndex = async (index) => {
+    let payDetails = [];
+    const payDetailsResponse = await getCustomerPayDetailsById(selectedCustomer);
+    if (payDetailsResponse.status === 200) {
+      payDetails = payDetailsResponse.paydetails || [];
+    }
+  
+    const opencEntry =
+      payDetails
+        .filter((payDetail) => payDetail.description === 'Open')
+        .sort((a, b) =>
+          dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+          )
+        )[index] || null;
+  
+    const closeEntry =
+      payDetails
+        .filter((payDetail) => payDetail.description === 'Close')
+        .sort((a, b) =>
+          dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+          )
+        )[index] || null;
+  
+    await loadListEntries(opencEntry, closeEntry);
+  };
+
+  const loadListEntries = async (openEntry, closeEntry) => {
+    try {
+      let payDetails = []
+      const payDetailsResponse = await getCustomerPayDetailsById(selectedCustomer)
+      if (payDetailsResponse.status === 200) {
+        payDetails = payDetailsResponse.paydetails || []
+      }
+
+      let filteredPayDetails = []
+      if (openEntry) {
+        if (closeEntry) {
+          const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+            dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+          )
+          if (isCloseAfterOpen) {
+            filteredPayDetails = payDetails.filter((payDetail) => {
+              const payDate = dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss')
+              return (
+                payDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')) &&
+                payDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss'))
+              )
+            })
+            filteredPayDetails = [openEntry, ...filteredPayDetails, closeEntry]
+            filteredPayDetails.sort(
+              (a, b) =>
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
+          } else {
+            filteredPayDetails = [
+              openEntry,
+              ...payDetails.filter((payDetail) =>
+                dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+                )
+              )
+            ]
+            filteredPayDetails.sort(
+              (a, b) =>
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
+          }
+        } else {
+          filteredPayDetails = [
+            openEntry,
+            ...payDetails.filter((payDetail) =>
+              dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+              )
+            )
+          ]
+          filteredPayDetails.sort(
+            (a, b) =>
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss') -
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
+          )
+        }
+      }
+
+      setPayDetailsList(filteredPayDetails)
+
+      const deliveries = deliveryData.filter(
+        (delivery) => delivery.customerid === selectedCustomer && !delivery.isdeleted
+      )
+
+      let filteredDeliveries = []
+
+      if (openEntry) {
+        if (closeEntry) {
+          const isCloseAfterOpen = dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+            dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+          )
+          if (isCloseAfterOpen) {
+            filteredDeliveries = deliveries.filter((delivery) => {
+              const deliveryDate = dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss')
+              return (
+                deliveryDate.isAfter(dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')) &&
+                deliveryDate.isBefore(dayjs(closeEntry.createddate, 'DD/MM/YYYY HH:mm:ss'))
+              )
+            })
+            filteredDeliveries.sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+              )
+            )
+          } else {
+            filteredDeliveries = deliveries.filter((delivery) =>
+              dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+              )
+            )
+            filteredDeliveries.sort((a, b) =>
+              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+              )
+            )
+          }
+        } else {
+          filteredDeliveries = deliveries.filter((delivery) =>
+            dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+              dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
+          )
+          filteredDeliveries.sort((a, b) =>
+            dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+            )
+          )
+        }
+      }
+      setDeliveryList(filteredDeliveries)
+    } catch (error) {
+      console.log('Error', error.message)
     }
   }
 
@@ -592,6 +798,26 @@ export default function BalanceSheet({ datas }) {
             onChange={onSearchChange}
             enterButton
           />
+          <div>
+            <Button
+              className="mx-1"
+              type="primary"
+              disabled={!prevBookExists}
+              onClick={handlePrevClick}
+            >
+              <FaBackward />
+              Prev
+            </Button>
+            <Button
+              className="mx-1"
+              type="primary"
+              disabled={!nextBookExists}
+              onClick={handleNextClick}
+            >
+              Next
+              <FaForward />
+            </Button>
+          </div>
         </li>
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
@@ -697,7 +923,7 @@ export default function BalanceSheet({ datas }) {
                 >
                   <div>Open Balance: {openingBalance}</div>
                   <div>Total Payment: {totalPayment.toFixed(2)}</div>
-                  <div>Book Balance: {(billUnpaid-totalPayment).toFixed(2)}</div>
+                  <div>Book Balance: {(billUnpaid - totalPayment).toFixed(2)}</div>
                 </div>
               }
               bordered
@@ -729,9 +955,7 @@ export default function BalanceSheet({ datas }) {
           payForm.submit()
         }}
         onCancel={() => {
-          payForm.resetFields(),
-          setIsPaySelected(false),
-          setIsModalVisible(false)
+          payForm.resetFields(), setIsPaySelected(false), setIsModalVisible(false)
         }}
       >
         <Form
