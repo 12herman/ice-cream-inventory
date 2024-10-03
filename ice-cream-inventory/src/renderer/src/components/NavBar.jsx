@@ -426,7 +426,7 @@ export default function NavBar({
         type: isQuickSale.type,
         bookingstatus: isQuickSale.type === "booking" ? "" : null,
         isdeleted: false,
-        paymentmode: isQuickSale.paymentmode,
+        paymentmode: qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         createddate: TimestampJs(),
         date: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
       }
@@ -440,7 +440,7 @@ export default function NavBar({
         createddate:TimestampJs(),
         date:dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
         description:'',
-        paymentmode:isQuickSale.paymentmode,
+        paymentmode:qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         collectiontype:'delivery'
       }
 
