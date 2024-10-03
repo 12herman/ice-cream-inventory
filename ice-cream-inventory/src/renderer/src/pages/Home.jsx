@@ -1197,7 +1197,7 @@ export default function Home({ datas }) {
               okButtonProps={{ style: { display: 'none' } }} // Hides the ok button
           >
           <Button
-          disabled={Object.keys(record).includes('collectiontype') ? true:false}
+          disabled={Object.keys(record).includes('collectiontype') || record.type === "Added" ? true: false}
             className="py-0 text-[0.7rem] h-[1.7rem]"
             icon={<DownloadOutlined />}
             style={{ marginRight: 8 }}
@@ -1209,7 +1209,7 @@ export default function Home({ datas }) {
         
         // className={`${ (record.collectiontype === "customer" || record.collectiontype === "delivery") ? 'hidden' : 'inline-block'}`}
           trigger={() => (
-            <Button disabled={Object.keys(record).includes('collectiontype') ? true:false} className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
+            <Button disabled={Object.keys(record).includes('collectiontype') || record.type === "Added" ? true:false} className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
           )}
           onBeforeGetContent={async () => {
             return new Promise((resolve) => {
