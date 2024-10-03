@@ -173,6 +173,7 @@ export default function Home({ datas }) {
               size={19}
               onClick={() => temTbEdit(record)}
             />
+
             <Popconfirm
               className="cursor-pointer text-red-500 hover:text-red-400"
               // className={`${quotationft.editingkey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
@@ -455,11 +456,20 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
+              const mobileNumber =
+              result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
+              const gstNumber =
+              result.status === 200 ? result.customer.gstin : item.gstin
+              const address = result.status === 200 ? result.customer.location : item.location
+              
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
-              customername: customerName
+              customername: customerName,
+              mobilenumber: mobileNumber,
+              gstin:gstNumber,
+              location: address,
             }
           })
       )
@@ -474,11 +484,19 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
+              const mobileNumber =
+              result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
+              const gstNumber =
+              result.status === 200 ? result.customer.gstin : item.gstin
+              const address = result.status === 200 ? result.customer.location : item.location
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
-              customername: customerName
+              customername: customerName,
+              mobilenumber: mobileNumber,
+              gstin:gstNumber,
+              location: address,
             }
           })
       )
@@ -508,10 +526,18 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
+              const mobileNumber =
+              result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
+              const gstNumber =
+              result.status === 200 ? result.customer.gstin : item.gstin
+              const address = result.status === 200 ? result.customer.location : item.location
             return {
               ...item,
               key: item.id,
-              customername: customerName
+              customername: customerName,
+              mobilenumber: mobileNumber,
+              gstin:gstNumber,
+              location: address,
             }
           })
       )
@@ -609,7 +635,7 @@ export default function Home({ datas }) {
         );
         
         let spendAmount = spendData.reduce((total, data) => {
-          console.log(data);
+          // console.log(data);
           const amount = Number(data.amount) || 0
           if (data.type === 'Payment') {
             return total + amount
@@ -831,6 +857,9 @@ export default function Home({ datas }) {
     customerdetails: {}
   })
 
+  const [gstin,setGstin] = useState(false);
+  const [loadingGstin, setLoadingGstin] = useState(false);
+  const [loadingWithoutGstin, setLoadingWithoutGstin] = useState(false);
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     const result = await getCustomerById(record.customerid)
@@ -863,8 +892,11 @@ export default function Home({ datas }) {
           gstin: gstin,
           location: location
         }
-      }))
+      }));
+      setLoadingGstin(false);
+      setLoadingWithoutGstin(false);
     }
+
   }
 
   const handlePrint = async (record) => {
@@ -1061,7 +1093,20 @@ export default function Home({ datas }) {
     {
       title: 'Name',
       dataIndex: 'customername',
-      key: 'customername'
+      key: 'customername',
+      render: (text,record)=>{
+        
+        if(activeCard === 'totalSpend'){
+          return record.collectiontype === "supplier" ? <>{text} <Tag color='gold'>Supplier</Tag></> : record.collectiontype === "employee" ? <> {text} <Tag color='purple'>Employee</Tag></> : text
+        }
+        else if(activeCard === 'totalPaid' ||  activeTabKey2 === 'total'){
+          return record.collectiontype === "customer" ? <>{text} <Tag color='gold'>Customer</Tag></> : record.collectiontype === "delivery" ? <> {text} <Tag color='purple'>Delivery</Tag></> : text
+        }
+        else{
+          return text
+        }
+       
+      }
     },
     {
       title: 'Gross Amount',
@@ -1086,7 +1131,7 @@ export default function Home({ datas }) {
         if (text === 'Paid') {
           return (
             <>
-            <Tag color="blue">{record.type}</Tag>
+              <Tag color="blue">{record.type}</Tag>
               <Tag color="green">{text}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
@@ -1095,9 +1140,7 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              <Tag color="yellow">
-                {text} - {partialamount}
-              </Tag>
+              <Tag color="yellow">{text} - {partialamount}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
@@ -1123,42 +1166,67 @@ export default function Home({ datas }) {
       title: 'Action',
       dataIndex: 'action',
       width: 150,
-      render: (_, record) => (
-        <span>
-          <Button
-            className="py-0 text-[0.7rem] h-[1.7rem]"
-            icon={<UnorderedListOutlined />}
-            style={{ marginRight: 8 }}
-            onClick={() => showModal(record)}
-          />
-          <Popconfirm title="Sure to download pdf?" onConfirm={() => handleDownloadPdf(record)}>
-            <Button
-              className="py-0 text-[0.7rem] h-[1.7rem]"
-              icon={<DownloadOutlined />}
-              style={{ marginRight: 8 }}
-            />
-          </Popconfirm>
+      render: (_, record) =>{
+        console.log(record);
+        
+       return <span>
+        <Button
+        disabled={Object.keys(record).includes('collectiontype') ? true:false}
+          className="py-0 text-[0.7rem] h-[1.7rem]" 
+          icon={<UnorderedListOutlined />}
+          style={{ marginRight: 8 }}
+          onClick={() => showModal(record)}
+        />
 
-          <ReactToPrint
-            trigger={() => (
-              <Button className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
-            )}
-            onBeforeGetContent={async () => {
-              return new Promise((resolve) => {
-                promiseResolveRef.current = resolve
-                handlePrint(record).then(() => {
-                  setIsPrinting(true)
-                })
-              })
-            }}
-            content={() => componentRef.current}
-            onAfterPrint={() => {
-              promiseResolveRef.current = null
-              setIsPrinting(false)
-            }}
+        <Popconfirm 
+        placement="leftTop" 
+        className="py-0 text-[0.7rem] h-[1.7rem]" 
+        
+        // className={`py-0 text-[0.7rem] h-[1.7rem] ${Object.keys(record).includes('collectiontype') ? 'hidden':'inline-block'}`} 
+        title={<div>
+              <span>Sure to download pdf?</span>
+              <section className='flex gap-x-2 mt-2'>
+                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' onClick={() => { setLoadingGstin(true); setGstin(true); handleDownloadPdf(record);}} >GST</Button>
+                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' onClick={() => { setLoadingWithoutGstin(true); setGstin(false); handleDownloadPdf(record);}}>Without GST</Button>
+                {/* <Button size='small' className='text-[0.7rem]' >Cancel</Button> */}
+              </section>
+            </div>}
+          // onConfirm={() => handleDownloadPdf(record)}
+          onConfirm={null} // Set onConfirm to null
+              showCancel={false} // Hides the cancel button
+              okButtonProps={{ style: { display: 'none' } }} // Hides the ok button
+          >
+          <Button
+          disabled={Object.keys(record).includes('collectiontype') ? true:false}
+            className="py-0 text-[0.7rem] h-[1.7rem]"
+            icon={<DownloadOutlined />}
+            style={{ marginRight: 8 }}
           />
-        </span>
-      )
+
+        </Popconfirm>
+
+        <ReactToPrint
+        
+        // className={`${ (record.collectiontype === "customer" || record.collectiontype === "delivery") ? 'hidden' : 'inline-block'}`}
+          trigger={() => (
+            <Button disabled={Object.keys(record).includes('collectiontype') ? true:false} className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
+          )}
+          onBeforeGetContent={async () => {
+            return new Promise((resolve) => {
+              promiseResolveRef.current = resolve
+              handlePrint(record).then(() => {
+                setIsPrinting(true)
+              })
+            })
+          }}
+          content={() => componentRef.current}
+          onAfterPrint={() => {
+            promiseResolveRef.current = null
+            setIsPrinting(false)
+          }}
+        />
+      </span>
+      }
     }
   ]
 
@@ -1900,8 +1968,10 @@ export default function Home({ datas }) {
                 <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
                   <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
                 </div>
+                
                 <div
-                  className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}
+                
+                  // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
                 >
                   <span className="font-bold">Customer Name :</span>{' '}
                   <span>
@@ -1918,7 +1988,8 @@ export default function Home({ datas }) {
                   <span>{invoiceDatas.customerdetails.mobilenumber}</span>
                 </div>
 
-                <div
+<div className={`${gstin === true ? 'block' : 'hidden'}`}>
+<div
                   className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
                 >
                   <span className="font-bold">Customer GSTIN :</span>{' '}
@@ -1938,6 +2009,8 @@ export default function Home({ datas }) {
                       : 'N/A'}
                   </span>
                 </div>
+</div>
+
               </li>
 
               <li className="text-end flex flex-col items-end">

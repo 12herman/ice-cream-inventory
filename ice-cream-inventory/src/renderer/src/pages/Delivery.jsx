@@ -99,17 +99,24 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         datas.delivery
           .filter((data) => !data.isdeleted && isWithinRange(data.date))
           .map(async (item, index) => {
-            const result = await getCustomerById(item.customerid)
+
+            const result = await getCustomerById(item.customerid);
+            console.log(result);
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
             const mobileNumber =
               result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
+              const gstNumber =
+              result.status === 200 ? result.customer.gstin : item.gstin
+              const address = result.status === 200 ? result.customer.location : item.location
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
               customername: customerName,
-              mobilenumber: mobileNumber
+              mobilenumber: mobileNumber,
+              gstin:gstNumber,
+              location: address,
             }
           })
       )
@@ -264,22 +271,37 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           <span className="flex gap-x-3 justify-center items-center">
             <FaClipboardList
               onClick={() =>
+                {
                 editingKey !== '' ? console.log('Not Clickable') : onOpenDeliveryBill(record)
+                }
               }
               size={17}
               className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer text-green-500'}`}
             />
             <Popconfirm
+            placement="leftTop"
+            // visible={visible}
               className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
-              title="Sure to download pdf?"
-              onConfirm={() => handleDownloadPdf(record)}
+              title={<div>
+                <span>Sure to download pdf?</span>
+                <section className='flex gap-x-2 mt-2'>
+                  <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' onClick={() => { setLoadingGstin(true); setGstin(true); handleDownloadPdf(record);}} >GST</Button>
+                  <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' onClick={() => { setLoadingWithoutGstin(true); setGstin(false); handleDownloadPdf(record);}}>Without GST</Button>
+                  {/* <Button size='small' className='text-[0.7rem]' >Cancel</Button> */}
+                </section>
+              </div>}
+              
               disabled={editingKey !== ''}
-            >
+              onConfirm={null} // Set onConfirm to null
+              showCancel={false} // Hides the cancel button
+              okButtonProps={{ style: { display: 'none' } }} // Hides the ok button
+                      >
               <TbFileDownload
                 size={19}
                 className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 cursor-pointer hover:text-blue-400'}`}
               />
             </Popconfirm>
+
 
             <Popconfirm
               placement="left"
@@ -1843,6 +1865,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     isGenerate: false,
     customerdetails: {}
   })
+
+  const [gstin,setGstin] = useState(false);
+  const [loadingGstin, setLoadingGstin] = useState(false);
+  const [loadingWithoutGstin, setLoadingWithoutGstin] = useState(false);
+
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
@@ -1868,8 +1895,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         data: prItems,
         isGenerate: true,
         customerdetails: record
-      }))
-    }
+      }));}
+      // console.log(record);
+      setLoadingGstin(false);
+      setLoadingWithoutGstin(false);
   }
 
   useEffect(() => {
@@ -1895,10 +1924,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         pdf.save(
           `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
         )
-        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
+        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
+        await setGstin(false);
       }
     }
     generatePDF()
+    
   }, [invoiceDatas.isGenerate, printRef])
 
   const [isCloseWarning, setIsCloseWarning] = useState(false)
@@ -1973,6 +2004,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       collectiontype: 'delivery',
       deliveryid: billId,
       date: formateDate,
+      type:'Payment',
       createddate: TimestampJs(),
       description: description === undefined || description === null ? '' : description
     }
@@ -2038,10 +2070,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       // Wait for the reset of fields and modal closure
       await quicksalepayForm.resetFields()
       //  await setQuickSalePay((pre) => ({ ...pre, modal: false, loading: false }));
-
+      await message.open({ type: 'success', content: `Payment pay successfully` })
       setPopupModal((pre) => ({ ...pre, quicksaleform: false }))
       setLoadingSpin((pre) => ({ ...pre, quicksaleform: false }))
-      await message.open({ type: 'success', content: `Payment pay successfully` })
+      
     }
   }
 
@@ -2250,6 +2282,35 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                     : null}
                 </span>
               </div>
+
+              <div>
+              <span className="font-bold">Mobile Number : </span>{' '}
+              <span>{invoiceDatas.customerdetails.mobilenumber}</span>
+              </div>
+
+              <section className={`${gstin === true ? 'block' : 'hidden'}`}>
+              <div
+                  className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Customer GSTIN :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.gstin
+                      ? invoiceDatas.customerdetails.gstin
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div
+                  className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Customer Address :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.location
+                      ? invoiceDatas.customerdetails.location
+                      : 'N/A'}
+                  </span>
+                </div>
+              </section>
+
             </li>
 
             <li className="text-end flex flex-col items-end">
@@ -2260,6 +2321,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               <span>9487369569</span>
             </li>
           </ul>
+
 
           {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
           <table className="min-w-full border-collapse">
@@ -2934,6 +2996,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               className="py-0 text-[0.7rem] h-[1.7rem]"
               onClick={openQuickSaleModalMt}
               type="primary"
+              disabled={loadingSpin.quicksaleform || loadingSpin.payhistory || isDeliverySpiner}
               // disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
               {' '}

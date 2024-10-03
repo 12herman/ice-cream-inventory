@@ -169,7 +169,7 @@ export const getAllPayDetailsFromAllDelivery = async () => {
         ...deliveryDoc.data()
       })
     })
-    console.log(alldeliveryDetails)
+    // console.log(alldeliveryDetails)
 
     return { deliverys: alldeliveryDetails, status: 200 }
   } catch (e) {
