@@ -368,9 +368,13 @@ export default function BalanceSheet({ datas }) {
               openCount++;
             } else if (entry.description === 'Close' && openCount > 0) {
               totalPairs++;
+              console.log(`Pair formed: totalPairs = ${totalPairs}`);
               openCount--;
             }
           });
+          if(opencloseEntries.length > 3 && opencloseEntries[opencloseEntries.length-1].description === 'Close'){
+            totalPairs=totalPairs-1;
+          }
           setCurrentEntryIndex(totalPairs)
           setTotalBookIndex(totalPairs)
 
@@ -798,9 +802,8 @@ export default function BalanceSheet({ datas }) {
             onChange={onSearchChange}
             enterButton
           />
-          <div>
+            <div className="flex gap-x-2">
             <Button
-              className="mx-1"
               type="primary"
               disabled={!prevBookExists}
               onClick={handlePrevClick}
@@ -809,7 +812,6 @@ export default function BalanceSheet({ datas }) {
               Prev
             </Button>
             <Button
-              className="mx-1"
               type="primary"
               disabled={!nextBookExists}
               onClick={handleNextClick}
@@ -817,7 +819,7 @@ export default function BalanceSheet({ datas }) {
               Next
               <FaForward />
             </Button>
-          </div>
+            </div>
         </li>
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
