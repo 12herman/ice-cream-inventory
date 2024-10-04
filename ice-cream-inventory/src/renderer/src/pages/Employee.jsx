@@ -13,7 +13,8 @@ import {
   Radio,
   DatePicker,
   Spin,
-  Tag
+  Tag,
+  Tooltip
 } from 'antd'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
@@ -39,6 +40,7 @@ import { formatToRupee } from '../js-files/formate-to-rupee'
 import { debounce } from 'lodash'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
+import { truncateString } from '../js-files/letter-length-sorting'
 
 export default function Employee({ datas, employeeUpdateMt }) {
   // states
@@ -138,7 +140,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
       key: 'location',
       editable: true,
       sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: (text,record)=>{
+        return text.length > 18 ? <Tooltip title={text}>{truncateString(text,18)}</Tooltip> : text
+      }
     },
     {
       title: 'Mobile',

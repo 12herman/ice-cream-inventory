@@ -50,7 +50,7 @@ import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
-
+import html2pdf from 'html2pdf.js';
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -899,41 +899,92 @@ export default function Home({ datas }) {
 
   }
 
+  // const handlePrint = async (record) => {
+  //   const { items, status } = await fetchItemsForDelivery(record.id)
+  //   const result = await getCustomerById(record.customerid)
+  //   const gstin = result.customer?.gstin || ''
+  //   const location = result.customer?.location || ''
+  //   if (status === 200) {
+  //     let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
+  //     let prItems = await prData.map((pr, i) => {
+  //       let matchingData = items.find((item, i) => item.id === pr.id)
+  //       return {
+  //         sno: i + 1,
+  //         ...pr,
+  //         pieceamount: pr.price,
+  //         quantity: pr.quantity + ' ' + pr.unit,
+  //         margin: matchingData.margin,
+  //         price:
+  //         matchingData.numberofpacks * pr.price -
+  //         matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+  //         numberofpacks: matchingData.numberofpacks,
+  //         producttotalamount: matchingData.numberofpacks * pr.price,
+  //         returntype: matchingData.returntype
+  //       }
+  //     });
+  //     console.log(record);
+  //     await setInvoiceDatas((pre) => ({
+  //       ...pre,
+  //       data: prItems,
+  //       isGenerate: false,
+  //       customerdetails: {
+  //         ...record,
+  //         gstin: gstin,
+  //         location: location
+  //       }
+  //     }))
+  //   }
+  // }
+
   const handlePrint = async (record) => {
-    const { items, status } = await fetchItemsForDelivery(record.id)
-    const result = await getCustomerById(record.customerid)
-    const gstin = result.customer?.gstin || ''
-    const location = result.customer?.location || ''
-    if (status === 200) {
-      let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-      let prItems = await prData.map((pr, i) => {
-        let matchingData = items.find((item, i) => item.id === pr.id)
-        return {
-          sno: i + 1,
-          ...pr,
-          pieceamount: pr.price,
-          quantity: pr.quantity + ' ' + pr.unit,
-          margin: matchingData.margin,
-          price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-          numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
+    try {
+        const { items, status } = await fetchItemsForDelivery(record.id);
+        if (status !== 200) {
+            throw new Error(`Failed to fetch items: ${status}`);
         }
-      })
-      await setInvoiceDatas((pre) => ({
-        ...pre,
-        data: prItems,
-        isGenerate: false,
-        customerdetails: {
-          ...record,
-          gstin: gstin,
-          location: location
-        }
-      }))
+        const result = await getCustomerById(record.customerid);
+        const gstin = result.customer?.gstin || '';
+        const location = result.customer?.location || '';
+
+        let prData = datas.product.filter((item) =>
+            items.find((item2) => item.id === item2.id)
+        );
+
+        let prItems = prData.map((pr, i) => {
+            let matchingData = items.find((item) => item.id === pr.id);
+            return {
+                sno: i + 1,
+                ...pr,
+                pieceamount: pr.price,
+                quantity: `${matchingData.quantity} ${pr.unit}`,
+                margin: matchingData.margin,
+                price:
+                    matchingData.numberofpacks * pr.price -
+                    matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+                numberofpacks: matchingData.numberofpacks,
+                producttotalamount: matchingData.numberofpacks * pr.price,
+                returntype: matchingData.returntype,
+            };
+        });
+
+        console.log(record);
+
+        await setInvoiceDatas((pre) => ({
+            ...pre,
+            data: prItems,
+            isGenerate: false,
+            customerdetails: {
+                ...record,
+                gstin,
+                location,
+            },
+        }));
+    } catch (error) {
+        console.error("Error in handlePrint:", error);
+        throw error; // Ensure to propagate the error
     }
-  }
+};
+
 
   const handleQuotationPrint = async () => {
     // data
@@ -1047,34 +1098,66 @@ export default function Home({ datas }) {
     }
   }, [isPrinting])
 
+  // useEffect(() => {
+  //   const generatePDF = async () => {
+  //     if (invoiceDatas.isGenerate) {
+  //       const element = await printRef.current
+  //       const canvas = await html2canvas(element)
+  //       const data = await canvas.toDataURL('image/png')
+  //       const pdf = await new jsPDF()
+  //       const imgWidth = 210
+  //       const pageHeight = 297
+  //       const imgHeight = (canvas.height * imgWidth) / canvas.width
+  //       let heightLeft = imgHeight
+  //       let position = 0
+  //       pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+  //       heightLeft -= pageHeight
+  //       while (heightLeft > 0) {
+  //         position = heightLeft - imgHeight
+  //         pdf.addPage()
+  //         pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+  //         heightLeft -= pageHeight
+  //       }
+  //       pdf.save(
+  //         `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
+  //       )
+  //       await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
+  //     }
+
+  //   }
+  //   generatePDF()
+
+  // }, [invoiceDatas.isGenerate, printRef])
+
+
+
+  // Inside your useEffect
   useEffect(() => {
     const generatePDF = async () => {
       if (invoiceDatas.isGenerate) {
-        const element = await printRef.current
-        const canvas = await html2canvas(element)
-        const data = await canvas.toDataURL('image/png')
-        const pdf = await new jsPDF()
-        const imgWidth = 210
-        const pageHeight = 297
-        const imgHeight = (canvas.height * imgWidth) / canvas.width
-        let heightLeft = imgHeight
-        let position = 0
-        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight
-          pdf.addPage()
-          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
-          heightLeft -= pageHeight
-        }
-        pdf.save(
-          `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
-        )
-        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
+        const element = printRef.current; // Get the element to print
+  
+        // Options for html2pdf
+        const options = {
+          margin: 0.5, // Adjust margins
+          filename: `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 }, // Increase scale for better resolution
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+  
+        // Generate PDF
+        html2pdf().from(element).set(options).save();
+  
+        // Reset the isGenerate state
+        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
       }
-    }
-    generatePDF()
-  }, [invoiceDatas.isGenerate, printRef])
+    };
+  
+    generatePDF();
+  }, [invoiceDatas.isGenerate, printRef]);
+  
+  
 
   const columns = [
     {
@@ -1203,9 +1286,7 @@ export default function Home({ datas }) {
 
         </Popconfirm>
 
-        <ReactToPrint
-        
-        // className={`${ (record.collectiontype === "customer" || record.collectiontype === "delivery") ? 'hidden' : 'inline-block'}`}
+        {/* <ReactToPrint
           trigger={() => (
             <Button disabled={Object.keys(record).includes('collectiontype') || record.type === "Added" ? true:false} className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
           )}
@@ -1222,7 +1303,111 @@ export default function Home({ datas }) {
             promiseResolveRef.current = null
             setIsPrinting(false)
           }}
-        />
+        /> */}
+        
+        <Popconfirm
+  // title="Are you sure you want to print this?"
+  title={<div>
+              <span>Are you sure you want to print this?</span>
+              <section className='flex gap-x-2 mt-2'>
+                {/* gst */}
+                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' 
+                onClick={async () => { 
+                 await setIsPrinting(true);
+                  setLoadingGstin(true); 
+                  setGstin(true); 
+                  
+                  await handlePrint(record).then(() => {
+      promiseResolveRef.current && promiseResolveRef.current();
+      document.getElementById(`print-trigger-${record.id}`).click();
+      setLoadingGstin(false); 
+    }); 
+                     
+                  }}>GST</Button>
+                
+                {/* without gst */}
+                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' 
+                onClick={async() => { 
+                 await setIsPrinting(true);
+                  setLoadingWithoutGstin(true); 
+                  setGstin(false); 
+                 await handlePrint(record).then(() => {
+      promiseResolveRef.current && promiseResolveRef.current();
+      document.getElementById(`print-trigger-${record.id}`).click();
+      setLoadingWithoutGstin(false); 
+    });
+                  }}>Without GST</Button>
+              </section>
+            </div>}
+            onConfirm={null}
+            showCancel={false} 
+            okButtonProps={{ style: { display: 'none' } }}
+
+  okText="Without GST"
+  cancelText="GST"
+  onCancel={()=>{
+    setGstin(true);
+    setIsPrinting(true);
+      promiseResolveRef.current && promiseResolveRef.current();
+      document.getElementById(`print-trigger-${record.id}`).click();
+      console.log(record)
+  }}
+>
+  <Button
+    disabled={
+      Object.keys(record).includes('collectiontype') || record.type === "Added"
+        ? true
+        : false
+    }
+    className="py-0 text-[0.7rem] h-[1.7rem]"
+    icon={<PrinterOutlined />}
+  />
+</Popconfirm>
+
+<ReactToPrint
+    trigger={() => (
+        <button style={{ display: 'none' }} id={`print-trigger-${record.id}`}></button>
+    )}
+    onBeforeGetContent={async () => {
+        return new Promise((resolve) => {
+            promiseResolveRef.current = resolve;
+            handlePrint(record)
+                .then(() => {
+                    setIsPrinting(true);
+                    resolve(); // Resolve once handlePrint completes successfully
+                })
+                .catch((error) => {
+                    console.error("Print preparation error:", error);
+                    resolve(); // Ensure to resolve even on error
+                });
+        });
+    }}
+    content={() => componentRef.current}
+    onAfterPrint={() => {
+        promiseResolveRef.current = null;
+        setIsPrinting(false);
+    }}
+/>
+{/* <ReactToPrint
+  trigger={() => (
+    <button id={`print-trigger-${record.id}`} style={{ display: 'none' }}></button>
+  )}
+  onBeforeGetContent={async () => {
+    return new Promise((resolve) => {
+      promiseResolveRef.current = resolve;
+      handlePrint(record).then(() => {
+        setIsPrinting(true);
+      });
+    });
+  }}
+  content={() => componentRef.current}
+  onAfterPrint={() => {
+    promiseResolveRef.current = null;
+    setIsPrinting(false);
+  }}
+/> */}
+
+    
       </span>
       }
     }
@@ -1940,23 +2125,23 @@ export default function Home({ datas }) {
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <div ref={componentRef}>
-          <section className="w-[90%] mx-auto mt-1">
-            <ul className="flex justify-center items-center gap-x-5">
+          <section className="w-[90%] mx-auto mt-4">
+            <ul className="flex justify-center items-center gap-x-2">
               <li>
                 {' '}
-                <img className="w-[6rem]" src={companyLogo} alt="comapanylogo" />{' '}
+                <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
               </li>
               <li className="text-center">
                 {' '}
-                <h1 className="text-xl font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
-                <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p>{' '}
+                <h1 className="text-[0.7rem] font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
+                <p className='text-[0.5rem]'>PILAVILAI, AZHAGANPARAI P.O.</p> <p className='text-[0.5rem]'>K.K.DIST</p>{' '}
               </li>
             </ul>
 
-            <ul className="mt-1 flex justify-between">
+            <ul className="mt-1 flex justify-between text-[0.5rem]">
               <li>
                 <div>
-                  <span className="font-bold">Date :</span>{' '}
+                  <span className=" font-bold">Date :</span>{' '}
                   <span>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.date
@@ -2020,33 +2205,33 @@ export default function Home({ datas }) {
               </li>
             </ul>
 
-            <table className="min-w-full border-collapse">
+            <table className="min-w-full border-collapse text-[0.5rem] mt-4">
               <thead>
                 <tr>
-                  <th className="p-4 text-left border-b">S.No</th>
-                  <th className="p-4 border-b text-left">Product</th>
-                  <th className="p-4 border-b text-left">Flavour</th>
-                  <th className="p-4 border-b text-left">Size</th>
-                  <th className="p-4 border-b text-left">Rate</th>
-                  <th className="p-4 border-b text-left">Qty</th>
-                  <th className="p-4 border-b text-left">MRP</th>
-                  <th className="p-4 border-b text-left">Margin</th>
-                  <th className="p-4 border-b text-left">Amount</th>
+                  <th className="p-[0.2rem] text-left border-b">S.No</th>
+                  <th className="p-[0.2rem] border-b text-left">Product</th>
+                  <th className="p-[0.2rem] border-b text-left">Flavour</th>
+                  <th className="p-[0.2rem] border-b text-left">Size</th>
+                  <th className="p-[0.2rem] border-b text-left">Rate</th>
+                  <th className="p-[0.2rem] border-b text-left">Qty</th>
+                  <th className="p-[0.2rem] border-b text-left">MRP</th>
+                  <th className="p-[0.2rem] border-b text-left">Margin</th>
+                  <th className="p-[0.2rem] border-b text-left">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {invoiceDatas.data.length > 0
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
-                        <td className="p-4 border-b">{i + 1}</td>
-                        <td className="p-4 border-b">{item.productname}</td>
-                        <td className="p-4 border-b">{item.flavour}</td>
-                        <td className="p-4 border-b">{item.quantity}</td>
-                        <td className="p-4 border-b">{item.pieceamount}</td>
-                        <td className="p-4 border-b">{item.numberofpacks}</td>
-                        <td className="p-4 border-b">{item.producttotalamount}</td>
-                        <td className="p-4 border-b">{toDigit(item.margin)}%</td>
-                        <td className="p-4 border-b">
+                        <td className="p-[0.2rem] border-b">{i + 1}</td>
+                        <td className="p-[0.2rem] border-b">{item.productname}</td>
+                        <td className="p-[0.2rem] border-b">{item.flavour}</td>
+                        <td className="p-[0.2rem] border-b">{item.quantity}</td>
+                        <td className="p-[0.2rem] border-b">{item.pieceamount}</td>
+                        <td className="p-[0.2rem] border-b">{item.numberofpacks}</td>
+                        <td className="p-[0.2rem] border-b">{item.producttotalamount}</td>
+                        <td className="p-[0.2rem] border-b">{toDigit(item.margin)}%</td>
+                        <td className="p-[0.2rem] border-b">
                           {customRound(
                             item.numberofpacks * item.pieceamount -
                               (item.numberofpacks * item.pieceamount * item.margin) / 100
@@ -2057,7 +2242,7 @@ export default function Home({ datas }) {
                   : 'No Data'}
               </tbody>
             </table>
-            <p className="text-end mt-2">
+            <p className="text-end mt-2 text-[0.5rem]">
               Total Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2065,7 +2250,7 @@ export default function Home({ datas }) {
                   : null}
               </span>{' '}
             </p>
-            <p className="text-end">
+            <p className="text-end text-[0.5rem]">
               Bill Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2074,7 +2259,7 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-              className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+              className={`text-[0.5rem] ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
             >
               Paid Amount:{' '}
               <span className=" font-bold">
@@ -2086,7 +2271,7 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-              className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+              className={`text-[0.5rem] ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
             >
               Balance:{' '}
               <span className=" font-bold">
@@ -2098,7 +2283,7 @@ export default function Home({ datas }) {
                   : null}
               </span>
             </p>
-            <p className="text-end mt-28 p-2">Authorised Signature</p>
+            <p className="text-end mt-10 p-2 text-[0.5rem]">Authorised Signature</p>
           </section>
         </div>
       </div>

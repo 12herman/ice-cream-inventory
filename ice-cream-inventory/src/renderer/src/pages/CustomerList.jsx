@@ -13,7 +13,8 @@ import {
   Radio,
   DatePicker,
   Tag,
-  Spin
+  Spin,
+  Tooltip
 } from 'antd'
 import { debounce } from 'lodash'
 import { SolutionOutlined } from '@ant-design/icons'
@@ -38,6 +39,7 @@ import { formatToRupee } from '../js-files/formate-to-rupee'
 const { Search, TextArea } = Input
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
+import { truncateString } from '../js-files/letter-length-sorting'
 
 export default function CustomerList({ datas, customerUpdateMt }) {
   // states
@@ -386,22 +388,31 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       title: 'Number',
       dataIndex: 'vehicleorfreezerno',
       key: 'vehicleorfreezerno',
-      editable: true
+      editable: true,
+      render: (text,record)=>{
+        return text.length > 12 ? <Tooltip title={text}>{truncateString(text,12)}</Tooltip> : text
+      }
     },
     {
       title: 'GSTIN ',
       dataIndex: 'gstin',
       key: 'gstin',
       width: 140,
-      editable: true
+      editable: true,
+      render: (text,record)=>{
+        return text.length > 10 ? <Tooltip title={text}>{truncateString(text,10)}</Tooltip> : text
+      }
     },
     {
-      title: 'Address',
+      title: 'Location',
       dataIndex: 'location',
       key: 'location',
       editable: true,
       sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: (text,record)=>{
+        return text.length > 10 ? <Tooltip title={text}>{truncateString(text,10)}</Tooltip> : text
+      }
     },
     {
       title: 'Action',

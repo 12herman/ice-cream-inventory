@@ -18,7 +18,8 @@ import {
   List,
   Space,
   Popover,
-  Empty
+  Empty,
+  Tooltip
 } from 'antd'
 import { MdProductionQuantityLimits } from "react-icons/md";
 import { IoCloseCircle } from "react-icons/io5";
@@ -46,6 +47,7 @@ import { getMissingIds } from '../js-files/missing-id';
 import { latestFirstSort } from '../js-files/sort-time-date-sec';
 import { formatName } from '../js-files/letter-or-name';
 import { getRawmaterial } from '../firebase/data-tables/rawmaterial';
+import { truncateString } from '../js-files/letter-length-sorting';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -430,7 +432,10 @@ const [supplierName,setSupplierName] = useState('');
       key: 'location',
       editable: true,
       sorter: (a, b) => a.location.localeCompare(b.location),
-      showSorterTooltip: { target: 'sorter-icon' }
+      showSorterTooltip: { target: 'sorter-icon' },
+      render: (text,record)=>{
+        return text.length > 18 ? <Tooltip title={text}>{truncateString(text,18)}</Tooltip> : text
+      }
     },
     {
       title: 'Mobile',
