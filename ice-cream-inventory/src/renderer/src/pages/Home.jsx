@@ -860,6 +860,9 @@ export default function Home({ datas }) {
   const [gstin,setGstin] = useState(false);
   const [loadingGstin, setLoadingGstin] = useState(false);
   const [loadingWithoutGstin, setLoadingWithoutGstin] = useState(false);
+  const [hasPdf,setHasPdf] = useState(false)
+
+
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     const result = await getCustomerById(record.customerid)
@@ -1123,39 +1126,62 @@ export default function Home({ datas }) {
   //       )
   //       await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
   //     }
-
   //   }
   //   generatePDF()
-
   // }, [invoiceDatas.isGenerate, printRef])
 
 
 
-  // Inside your useEffect
   useEffect(() => {
     const generatePDF = async () => {
       if (invoiceDatas.isGenerate) {
-        const element = printRef.current; // Get the element to print
+        const element = printRef.current;  // The element to print
   
-        // Options for html2pdf
-        const options = {
-          margin: 0.5, // Adjust margins
-          filename: `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 }, // Increase scale for better resolution
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
+        // Set the scale for html2canvas (this helps with controlling size)
+        const canvas = await html2canvas(element, {
+          scale: 2,  // You can adjust the scale to improve resolution
+          useCORS: true,  // This is useful for handling cross-origin content
+        });
   
-        // Generate PDF
-        html2pdf().from(element).set(options).save();
+        // Get the canvas as a data URL
+        const data = canvas.toDataURL('image/png');
   
-        // Reset the isGenerate state
+        // Initialize jsPDF
+        const pdf = new jsPDF('p', 'mm', 'a4');  // 'p' for portrait, 'mm' for millimeters, and 'a4' size
+  
+        // Calculate the dimensions of the image
+        const imgWidth = 210;  // A4 width in mm
+        const pageHeight = 297;  // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Keep aspect ratio
+  
+        let heightLeft = imgHeight;
+        let position = 0;
+  
+        // Add the image to the PDF
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+  
+        // Handle multi-page PDFs
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+  
+        // Save the generated PDF
+        pdf.save(
+          `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`
+        );
+  
+        // Reset the state after generating the PDF
         await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
       }
     };
   
     generatePDF();
   }, [invoiceDatas.isGenerate, printRef]);
+  
   
   
 
@@ -1267,8 +1293,8 @@ export default function Home({ datas }) {
         title={<div>
               <span>Sure to download pdf?</span>
               <section className='flex gap-x-2 mt-2'>
-                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' onClick={() => { setLoadingGstin(true); setGstin(true); handleDownloadPdf(record);}} >GST</Button>
-                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' onClick={() => { setLoadingWithoutGstin(true); setGstin(false); handleDownloadPdf(record);}}>Without GST</Button>
+                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' onClick={async() => { await setHasPdf(true); await setLoadingGstin(true); setGstin(true); handleDownloadPdf(record);}} >GST</Button>
+                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' onClick={async() => { await setHasPdf(true); setLoadingWithoutGstin(true); setGstin(false); handleDownloadPdf(record);}}>Without GST</Button>
                 {/* <Button size='small' className='text-[0.7rem]' >Cancel</Button> */}
               </section>
             </div>}
@@ -1313,6 +1339,7 @@ export default function Home({ datas }) {
                 {/* gst */}
                 <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' 
                 onClick={async () => { 
+                  await setHasPdf(false);
                  await setIsPrinting(true);
                   setLoadingGstin(true); 
                   setGstin(true); 
@@ -1328,6 +1355,7 @@ export default function Home({ datas }) {
                 {/* without gst */}
                 <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' 
                 onClick={async() => { 
+                  await setHasPdf(false);
                  await setIsPrinting(true);
                   setLoadingWithoutGstin(true); 
                   setGstin(false); 
@@ -2121,7 +2149,7 @@ export default function Home({ datas }) {
       <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok} />
       <div
         ref={printRef}
-        className="absolute top-[-200rem]"
+        className="absolute top-[-200rem] w-full"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <div ref={componentRef}>
@@ -2133,12 +2161,12 @@ export default function Home({ datas }) {
               </li>
               <li className="text-center">
                 {' '}
-                <h1 className="text-[0.7rem] font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
-                <p className='text-[0.5rem]'>PILAVILAI, AZHAGANPARAI P.O.</p> <p className='text-[0.5rem]'>K.K.DIST</p>{' '}
+                <h1 className={`${hasPdf === true ? 'text-[1.5rem]' :'text-[0.7rem]'} font-bold`}>NEW SARANYA ICE COMPANY</h1>{' '}
+                <p className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>PILAVILAI, AZHAGANPARAI P.O.</p> <p className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>K.K.DIST</p>{' '}
               </li>
             </ul>
 
-            <ul className="mt-1 flex justify-between text-[0.5rem]">
+            <ul className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} mt-1 flex justify-between`} >
               <li>
                 <div>
                   <span className=" font-bold">Date :</span>{' '}
@@ -2205,33 +2233,33 @@ export default function Home({ datas }) {
               </li>
             </ul>
 
-            <table className="min-w-full border-collapse text-[0.5rem] mt-4">
+            <table className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} min-w-full border-collapse mt-4`} >
               <thead>
                 <tr>
-                  <th className="p-[0.2rem] text-left border-b">S.No</th>
-                  <th className="p-[0.2rem] border-b text-left">Product</th>
-                  <th className="p-[0.2rem] border-b text-left">Flavour</th>
-                  <th className="p-[0.2rem] border-b text-left">Size</th>
-                  <th className="p-[0.2rem] border-b text-left">Rate</th>
-                  <th className="p-[0.2rem] border-b text-left">Qty</th>
-                  <th className="p-[0.2rem] border-b text-left">MRP</th>
-                  <th className="p-[0.2rem] border-b text-left">Margin</th>
-                  <th className="p-[0.2rem] border-b text-left">Amount</th>
+                <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >S.No</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Product</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Flavour</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Size</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Rate</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Qty</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >MRP</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Margin</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {invoiceDatas.data.length > 0
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
-                        <td className="p-[0.2rem] border-b">{i + 1}</td>
-                        <td className="p-[0.2rem] border-b">{item.productname}</td>
-                        <td className="p-[0.2rem] border-b">{item.flavour}</td>
-                        <td className="p-[0.2rem] border-b">{item.quantity}</td>
-                        <td className="p-[0.2rem] border-b">{item.pieceamount}</td>
-                        <td className="p-[0.2rem] border-b">{item.numberofpacks}</td>
-                        <td className="p-[0.2rem] border-b">{item.producttotalamount}</td>
-                        <td className="p-[0.2rem] border-b">{toDigit(item.margin)}%</td>
-                        <td className="p-[0.2rem] border-b">
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{i + 1}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.productname}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.flavour}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.quantity}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.pieceamount}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.numberofpacks}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.producttotalamount}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{toDigit(item.margin)}%</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>
                           {customRound(
                             item.numberofpacks * item.pieceamount -
                               (item.numberofpacks * item.pieceamount * item.margin) / 100
@@ -2242,7 +2270,7 @@ export default function Home({ datas }) {
                   : 'No Data'}
               </tbody>
             </table>
-            <p className="text-end mt-2 text-[0.5rem]">
+            <p className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>
               Total Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2250,7 +2278,7 @@ export default function Home({ datas }) {
                   : null}
               </span>{' '}
             </p>
-            <p className="text-end text-[0.5rem]">
+            <p className={`text-end ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>
               Bill Amount:{' '}
               <span className=" font-bold">
                 {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2259,7 +2287,7 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-              className={`text-[0.5rem] ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+              className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
             >
               Paid Amount:{' '}
               <span className=" font-bold">
@@ -2271,7 +2299,7 @@ export default function Home({ datas }) {
               </span>
             </p>
             <p
-              className={`text-[0.5rem] ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+              className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
             >
               Balance:{' '}
               <span className=" font-bold">
@@ -2283,7 +2311,7 @@ export default function Home({ datas }) {
                   : null}
               </span>
             </p>
-            <p className="text-end mt-10 p-2 text-[0.5rem]">Authorised Signature</p>
+            <p className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>Authorised Signature</p>
           </section>
         </div>
       </div>
