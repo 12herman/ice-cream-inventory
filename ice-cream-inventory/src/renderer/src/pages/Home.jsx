@@ -117,7 +117,6 @@ export default function Home({ datas }) {
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-
     {
       title: <span className="text-[0.7rem]">Quantity</span>,
       dataIndex: 'quantity',
@@ -686,6 +685,19 @@ export default function Home({ datas }) {
           numberofpacks: item.quantity || 0
         }}))
       }
+    } else {
+      const { items, status } = await fetchItemsForDelivery(record.id)
+      if (status === 200) {
+        itemsWithProductNames = items.map((item) => {
+          const product = datas.product.find((product) => product.id === item.id)
+          return {
+            ...item,
+            productname: product ? product.productname : '',
+            flavour: product ? product.flavour : '',
+            quantity: product ? product.quantity : ''
+          }
+        })
+      }
     }
     setSelectedRecord({ ...record, items: itemsWithProductNames })
     setIsModalVisible(true)
@@ -959,7 +971,7 @@ export default function Home({ datas }) {
                 sno: i + 1,
                 ...pr,
                 pieceamount: pr.price,
-                quantity: `${matchingData.quantity} ${pr.unit}`,
+                quantity: `${pr.quantity} ${pr.unit}`,
                 margin: matchingData.margin,
                 price:
                     matchingData.numberofpacks * pr.price -

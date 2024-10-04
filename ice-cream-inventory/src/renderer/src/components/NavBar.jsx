@@ -441,7 +441,7 @@ export default function NavBar({
         date:dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
         description:'',
         paymentmode:qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
-        collectiontype:'delivery'
+        // collectiontype:'delivery'
       }
 
       try {
