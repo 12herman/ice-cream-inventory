@@ -2236,30 +2236,30 @@ export default function Home({ datas }) {
             <table className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} min-w-full border-collapse mt-4`} >
               <thead>
                 <tr>
-                <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >S.No</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Product</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Flavour</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Size</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Rate</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Qty</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >MRP</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Margin</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left`} >Amount</th>
+                <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >S.No</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Product</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Flavour</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Size</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Rate</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Qty</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >MRP</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Margin</th>
+                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {invoiceDatas.data.length > 0
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{i + 1}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.productname}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.flavour}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.quantity}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.pieceamount}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.numberofpacks}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{item.producttotalamount}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>{toDigit(item.margin)}%</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'}`}>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{i + 1}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.productname}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.flavour}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.quantity}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.pieceamount}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.numberofpacks}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.producttotalamount}</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{toDigit(item.margin)}%</td>
+                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>
                           {customRound(
                             item.numberofpacks * item.pieceamount -
                               (item.numberofpacks * item.pieceamount * item.margin) / 100

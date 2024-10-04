@@ -2244,23 +2244,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
       <div
         ref={printRef}
-        className="absolute top-[-200rem]"
+        className="absolute top-[-200rem] w-full"
         style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <section className="w-[90%] mx-auto mt-1">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
               {' '}
-              <img className="w-[6rem]" src={companyLogo} alt="comapanylogo" />{' '}
+              <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
             </li>
             <li className="text-center">
               {' '}
-              <h1 className="text-xl font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
-              <p>PILAVILAI, AZHAGANPARAI P.O.</p> <p>K.K.DIST</p>{' '}
+              <h1 className="text-[1.7rem] font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
+              <p className='text-[0.9rem]'>PILAVILAI, AZHAGANPARAI P.O.</p> <p className='text-[0.8rem]'>K.K.DIST</p>{' '}
             </li>
           </ul>
 
-          <ul className="mt-1 flex justify-between">
+          <ul className="mt-1 flex justify-between text-[0.9rem]">
             <li>
               <div>
                 <span className="font-bold">Date:</span>{' '}
@@ -2324,33 +2324,33 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
 
           {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
-          <table className="min-w-full border-collapse">
+          <table className="min-w-full border-collapse text-[0.9rem] mt-4">
             <thead>
               <tr>
-                <th className="p-4 text-left border-b">S.No</th>
-                <th className="p-4 border-b text-center">Product</th>
-                <th className="p-4 border-b text-center">Flavour</th>
-                <th className="p-4 border-b text-center">Size</th>
-                <th className="p-4 border-b text-center">Rate</th>
-                <th className="p-4 border-b text-center">Qty</th>
-                <th className="p-4 border-b text-center">MRP</th>
-                <th className="p-4 border-b text-center">Margin</th>
-                <th className="p-4 border-b text-center">Amount</th>
+                <th className="text-[0.8rem] text-left border-b pb-2">S.No</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Product</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Flavour</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Size</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Rate</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Qty</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">MRP</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Margin</th>
+                <th className="text-[0.8rem] border-b text-left pb-2">Amount</th>
               </tr>
             </thead>
             <tbody>
               {invoiceDatas.data.length > 0
                 ? invoiceDatas.data.map((item, i) => (
                     <tr key={i}>
-                      <td className="p-4 border-b">{i + 1}</td>
-                      <td className="p-4 border-b">{item.productname}</td>
-                      <td className="p-4 border-b">{item.flavour}</td>
-                      <td className="p-4 border-b">{item.quantity}</td>
-                      <td className="p-4 border-b">{item.pieceamount}</td>
-                      <td className="p-4 border-b">{item.numberofpacks}</td>
-                      <td className="p-4 border-b">{item.producttotalamount}</td>
-                      <td className="p-4 border-b">{toDigit(item.margin)}%</td>
-                      <td className="p-4 border-b">
+                      <td className=" border-b text-[0.8rem] pb-2">{i + 1}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.productname}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.flavour}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.quantity}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.pieceamount}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.numberofpacks}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.producttotalamount}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{toDigit(item.margin)}%</td>
+                      <td className=" border-b text-[0.8rem] pb-2">
                         {customRound(
                           item.numberofpacks * item.pieceamount -
                             (item.numberofpacks * item.pieceamount * item.margin) / 100
@@ -2361,7 +2361,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : 'No Data'}
             </tbody>
           </table>
-          <p className="text-end mt-2">
+          <p className="text-end mt-2 text-[0.9rem]">
             Total Amount:{' '}
             <span className=" font-bold">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2369,7 +2369,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : null}
             </span>{' '}
           </p>
-          <p className="text-end">
+          <p className="text-end text-[0.9rem]">
           Bill Amount:{' '}
             <span className=" font-bold">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2381,7 +2381,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === "Paid" ? 'block text-end' : 'hidden'}`}
           >
             Paid Amount:{' '}
-            <span className=" font-bold">
+            <span className=" font-bold text-[0.9rem]">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
                 ? invoiceDatas.customerdetails.paymentstatus === "Paid"
                 ? formatToRupee(invoiceDatas.customerdetails.billamount)
@@ -2393,13 +2393,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
           >
             Balance:{' '}
-            <span className=" font-bold">
+            <span className=" font-bold text-[0.9rem]">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
                 ? formatToRupee(invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
                 : null}
             </span>
           </p>
-          <p className="text-end mt-28 p-2">Authorised Signature</p>
+          <p className="text-end mt-28 p-2 text-[0.9rem]">Authorised Signature</p>
         </section>
       </div>
 
