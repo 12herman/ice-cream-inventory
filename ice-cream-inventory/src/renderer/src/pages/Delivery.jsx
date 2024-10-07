@@ -210,16 +210,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       dataIndex: 'type',
       key: 'type',
       editable: true,
-      width: 90,
+      width: 130,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text) =>
+      render: (text,record) =>
         text === 'return' ? (
           <Tag color="red">Return</Tag>
         ) : text === 'quick' ? (
           <Tag color="blue">Quick Sale</Tag>
         ) : text === 'booking' ? (
-          <Tag color="cyan">Booking</Tag>
+          <span>
+          {record.bookingstatus === 'Delivered' ? (
+          <Tag color="green">Booking Delivered</Tag>
+        ) : record.bookingstatus === 'Cancelled' ? (
+          <Tag color="red">Booking Cancelled</Tag>
+        ) : (<Tag color="cyan">Booking</Tag>)
+        }
+          </span>
         ) : (
           <Tag color="green">Order</Tag>
         )
