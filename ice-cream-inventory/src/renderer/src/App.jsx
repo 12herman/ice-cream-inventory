@@ -250,7 +250,7 @@ const App = () => {
       notification.destroy();
     };
     datas.delivery.forEach((record) => {
-      if (record.type === 'booking') {
+      if (record.type === 'booking' && !record.isdeleted && !record.bookingstatus) {
         if (record.date === today || record.date === tomorrow || record.date === dayAfterTomorrow) {
           notification.info({
             message: 'Alert',
