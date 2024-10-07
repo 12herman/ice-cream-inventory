@@ -52,6 +52,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const [usedmaterialform] = Form.useForm()
   const [usedMaterialModal, setUsedMaterialModal] = useState(false)
   const [isMaterialTbLoading, setIsMaterialTbLoading] = useState(true)
+  const [totalFormAmount, setTotalFormAmount] = useState(0)
 
   const [isLoadMaterialUsedModal, setIsLoadMaterialUsedModal] = useState(false)
   // side effect
@@ -93,7 +94,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       // );
 
       const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)));
-      console.log(filteredMaterials);
       
       const sortLatest = await latestFirstSort(filteredMaterials)
 
@@ -308,6 +308,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       const removeTemProduct = async (data) => {
         const newTempProduct = await addMaterialMethod.temperorarydata.filter((item) => item.id !== data.id)
         setAddMaterialMethod(pre=>({...pre,temperorarydata:newTempProduct}))
+
+        const newTotal = newTempProduct.reduce((total, item) => total + Number(item.price), 0);
+        setTotalFormAmount(newTotal);
       };
 
       const tempSave = async (data) => {
@@ -320,6 +323,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         }
       
         try {
+
+          const updatedData = addMaterialMethod.temperorarydata.map((item) => item.id === data.id ? { ...item, quantity: Number(row.quantity), price: Number(row.price) } : item )
           // Update the specific item in the temporary data array
           setAddMaterialMethod(pre => ({
             ...pre,
@@ -328,6 +333,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
             ),
             editingKeys: []
           }));
+
+          const newTotal = updatedData.reduce((total, item) => total + Number(item.price), 0);
+          setTotalFormAmount(newTotal);
+
         } catch (e) {
           console.log(e);
         }
@@ -353,8 +362,11 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   else{
     let compainAddData = {...material,quantity:values.quantity,price:values.price}
     setAddMaterialMethod(pre=>({...pre,temperorarydata:[...pre.temperorarydata,compainAddData],supplierdata:supplierDatas}))
+  
+    const newTotal = [...addMaterialMethod.temperorarydata, compainAddData]
+      .reduce((total, item) => total + Number(item.price), 0);
+    setTotalFormAmount(newTotal); 
   }
-    
     
     /*
     setIsLoadingModal(true)
@@ -417,8 +429,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         // let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
         let supplierName = record.supplier !== undefined ? record.supplier.suppliername : undefined
         // let quantityWithUnit = record.material !== undefined ? record.quantity+ record.material.unit : undefined;
-        console.log(record); 
-        
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(supplierName).toLowerCase().includes(value.toLowerCase()) ||
@@ -904,8 +914,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       const supplierDbRef =await collection(db,'rawmaterial');
       const createSupplierRef = await addDoc(supplierDbRef,{...materialDetailData});
       const materialDbRef = await collection(createSupplierRef,'materialdetails');
-       console.log(materialDetailData);
-
       let {materials,status} = await getAllMaterialDetailsFromAllSuppliers();
 
       if(status){
@@ -1211,10 +1219,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     loading:false,
     modal:false
   });
-
-  console.log(materialbill);
   
-
   const materialbillbtn = async (record) => {
 
     setMaterialBillState(pre=>({...pre,modal:true,loading:true}));
@@ -1604,11 +1609,12 @@ const materialBillColumn = [
             </span>
           </div>
 
+              <span className={`absolute top-[-2.7rem] right-10 ${addMaterialMethod.temperorarydata.length > 0 ? 'block' : 'hidden'}`}>
+                <Tag color='blue'>Total Amount : <span className="text-sm">{totalFormAmount}</span></Tag>
+              </span>
+
         </Spin>
       </Modal>
-
-
-
 
       {/* material used model */}
       <Modal
