@@ -898,9 +898,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // add new material to data base
   const addNewTemMaterial = async () => {
-  
     setIsLoadMaterialUsedModal(true);
-
     try {
       let materialDetailData = mtOption.tempproduct.map(data=>({
         date:data.date,
@@ -911,19 +909,20 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       }))[0];
   
       // material type data
-      const supplierDbRef =await collection(db,'rawmaterial');
+      const supplierDbRef = collection(db,'rawmaterial');
       const createSupplierRef = await addDoc(supplierDbRef,{...materialDetailData});
-      const materialDbRef = await collection(createSupplierRef,'materialdetails');
+      const materialDbRef = collection(createSupplierRef,'materialdetails');
       let {materials,status} = await getAllMaterialDetailsFromAllSuppliers();
 
       if(status){
-        let materialItems = materials.map(material => {
+        let materialItems = materials.map((material,index) => {
           // Find the matching product in mtOption.tempproduct
           let matchingProduct = mtOption.tempproduct.find(data => 
             material.materialname === data.materialname && material.unit === data.quantity.split(' ')[1]
           );
           // If a match is found, return the desired properties, otherwise return an empty object
           return matchingProduct ? {
+            sno: index + 1,
             supplierid: material.supplierId,
             materialid: material.materialId, // Add other properties if needed
             quantity: Number(matchingProduct.quantity.split(' ')[0]),
@@ -932,9 +931,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         }).filter(item => Object.keys(item).length > 0);  // Filter out empty objects
 
       // materil item loop
-       await materialItems.forEach(async item=> {
+       await Promise.all(materialItems.map(async item=> {
         await addDoc(materialDbRef,item)
-       });
+       }));
 
       mtOption.tempproduct.map( data=> ({...data,type:materialType,quantity:Number(data.quantity.split(' ')[0])})).forEach(async material =>{
        
@@ -1058,16 +1057,8 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const AddNewMaterial = async ()=>{
     
     let supplierObject = {...addMaterialMethod.supplierdata, partialamount:addmaterialpaymentform.getFieldsValue().partialamount === undefined ? 0 : addmaterialpaymentform.getFieldsValue().partialamount, paymentmode:addmaterialpaymentform.getFieldsValue().paymentstatus === 'Unpaid' ? '' : addmaterialpaymentform.getFieldsValue().paymentmode, paymentstatus:addmaterialpaymentform.getFieldsValue().paymentstatus, type:"Added", isdeleted:false, createddate:TimestampJs()};
-    let materialArray= addMaterialMethod.temperorarydata.map(data=>({id:data.id,isdeleted:false,price:data.price,quantity:data.quantity,createddate:TimestampJs()}));
-    let totalprice = materialArray.map(data=> data.price).reduce((a,b)=> a +b,0);
-
-    let materialArrayOld = addMaterialMethod.temperorarydata.map(data=>(
-                          { 
-                            ...supplierObject,
-                            materialid:data.id,
-                            price:data.price,
-                            quantity:data.quantity,
-                          }));
+    let materialArray= addMaterialMethod.temperorarydata.map((data, index) => ({sno:index + 1,id:data.id,isdeleted:false,price:data.price,quantity:data.quantity,createddate:TimestampJs()}));
+    let totalprice = materialArray.map(data=> data.price).reduce((a,b)=> a + b,0);
 
     if(radioBtn.value === 'Partial' && addmaterialpaymentform.getFieldsValue().partialamount <=0 ){
       return message.open({type:'warning',content:'Check the partial amount value'})
@@ -1076,29 +1067,27 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     try{
      await setIsLoadingModal(true);
     // DB Ref
-    const supplierDbRef =await collection(db,'rawmaterial');
+    const supplierDbRef = collection(db,'rawmaterial');
     // New Supplier
     const createSupplierRef = await addDoc(supplierDbRef,{...supplierObject,billamount:totalprice});
     // DB Ref
-    const materialDbRef = await collection(createSupplierRef,'materialdetails');
+    const materialDbRef = collection(createSupplierRef,'materialdetails');
 
      // New Material Add
-     await addMaterialMethod.temperorarydata.forEach(async newmaterial => {
-      let existingMaterial = await datas.storage.find((storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === newmaterial.materialname?.trim().toLowerCase() &&  storageItem.unit?.trim().toLowerCase() === newmaterial.unit?.trim().toLowerCase());
-      let material = {materialid:newmaterial.id,isdeleted:false,price:newmaterial.price,quantity:newmaterial.quantity,createddate:TimestampJs()}
+     const materialPromises = materialArray.map(async newmaterial => {
+      const existingMaterial = await datas.storage.find((storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === newmaterial.materialname?.trim().toLowerCase() &&  storageItem.unit?.trim().toLowerCase() === newmaterial.unit?.trim().toLowerCase());
+      const material = {sno:newmaterial.sno,materialid:newmaterial.id,isdeleted:false,price:newmaterial.price,quantity:newmaterial.quantity,createddate:TimestampJs()}
       await addDoc(materialDbRef,material)
       if (existingMaterial){ 
         await updateStorage(existingMaterial.id,{ quantity: existingMaterial.quantity + newmaterial.quantity});
       }
      });
 
-      // Update storage and raw material
-      
+     await Promise.all(materialPromises);
       await rawmaterialUpdateMt();
-      
       await setIsModalOpen(false);
-
       await storageUpdateMt();
+
       setRadioBtn({ status: true, value: '' })
       form.resetFields()
       setSelectedSupplierName(null)
@@ -1233,13 +1222,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
           let { material, status } = await getOneMaterialDetailsById( record.type === 'Return' || record.type === 'Used' ? data.supplierid :record.supplierid, data.materialid); 
           if(status){
-            return {...material,price:data.price,quantity:data.quantity,date:record.date};
+            return {...material,sno:data.sno,price:data.price,quantity:data.quantity,date:record.date};
           }
           else{
             return [];
           }
         })
       );
+
+      materialdatas.sort((a, b) => a.sno - b.sno);
 
       setmaterialbill(
         {materialdeails:materialdatas,
@@ -1260,9 +1251,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 const materialBillColumn = [
     {
       title: 'S.No',
+      dataIndex: 'sno',
       key: 'sno',
       width: 50,
-      render: (_, __, index) => index + 1,
+      // render: (_, __, index) => index + 1,
     },
     // {
     //   title: 'Date',

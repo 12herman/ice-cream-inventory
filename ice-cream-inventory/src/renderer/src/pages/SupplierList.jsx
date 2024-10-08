@@ -637,9 +637,9 @@ const [supplierName,setSupplierName] = useState('');
               category: 'Material List',
               createddate: TimestampJs()
             })
-            await storageUpdateMt()
           }
         }
+        await storageUpdateMt()
       };
       
       // delete the items

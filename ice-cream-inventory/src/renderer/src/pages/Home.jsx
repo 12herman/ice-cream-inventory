@@ -699,6 +699,7 @@ export default function Home({ datas }) {
         })
       }
     }
+    itemsWithProductNames.sort((a, b) => a.sno - b.sno);
     setSelectedRecord({ ...record, items: itemsWithProductNames })
     setIsModalVisible(true)
   }
@@ -885,7 +886,7 @@ export default function Home({ datas }) {
       let prItems = await prData.map((pr, i) => {
         let matchingData = items.find((item, i) => item.id === pr.id)
         return {
-          sno: i + 1,
+          sno: matchingData.sno,
           ...pr,
           pieceamount: pr.price,
           quantity: pr.quantity + ' ' + pr.unit,
@@ -898,6 +899,7 @@ export default function Home({ datas }) {
           returntype: matchingData.returntype
         }
       })
+      prItems.sort((a, b) => a.sno - b.sno);
       await setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
@@ -968,7 +970,7 @@ export default function Home({ datas }) {
         let prItems = prData.map((pr, i) => {
             let matchingData = items.find((item) => item.id === pr.id);
             return {
-                sno: i + 1,
+                sno: matchingData.sno,
                 ...pr,
                 pieceamount: pr.price,
                 quantity: `${pr.quantity} ${pr.unit}`,
@@ -981,9 +983,7 @@ export default function Home({ datas }) {
                 returntype: matchingData.returntype,
             };
         });
-
-        console.log(record);
-
+        prItems.sort((a, b) => a.sno - b.sno);
         await setInvoiceDatas((pre) => ({
             ...pre,
             data: prItems,
@@ -1873,6 +1873,7 @@ export default function Home({ datas }) {
               <Descriptions.Item label="Date">{selectedRecord.date}</Descriptions.Item>
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
               <Descriptions.Item label="Net Amount">{selectedRecord.billamount}</Descriptions.Item>
+              {selectedRecord.mobilenumber && (<Descriptions.Item label="Mobile">{selectedRecord.mobilenumber}</Descriptions.Item>)}
             </Descriptions>
             <div className="mt-2">
               <Table
