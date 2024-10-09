@@ -129,25 +129,25 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       key: 'productname',
       editable: false
     },
-    {
-      title: 'Flavor',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false,
-      width: 120
-    },
+    // {
+    //   title: 'Flavor',
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false,
+    //   width: 120
+    // },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: true,
-      width: 100
+      width: 130
     },
     {
       title: 'Action',
@@ -354,19 +354,19 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       key: 'productname',
       editable: false
     },
-    {
-      title: 'Flavor',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false
-      //width: 120
-    },
+    // {
+    //   title: 'Flavor',
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false
+    //   //width: 120
+    // },
     {
       title: 'Packs',
       dataIndex: 'numberofpacks',
@@ -526,29 +526,31 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   //product initial value
   useEffect(() => {
     const productOp = datas.product
-      .filter(
-        (item, i, s) =>
-          item.isdeleted === false &&
-          s.findIndex((item2) => item2.productname === item.productname) === i
-      )
-      .map((data) => ({ label: data.productname, value: data.productname }))
-    setOption((pre) => ({ ...pre, product: productOp }))
-  }, [])
+      .filter((item, i, s) =>
+       item.isdeleted === false &&
+       s.findIndex((item2) => item2.productname === item.productname))
+       .map((data) => ({ label: data.productname, value: data.productname }));
+      
+       console.log(productOp);
+
+      setOption((pre) => ({ ...pre, product: productOp }))
+  }, []);
 
   //product onchange value
   const productOnchange = async (value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
-    const flavourOp = await Array.from(
-      new Set(
-        datas.product
-          .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }))
-    await setOption((pre) => ({
+    // const flavourOp = await Array.from(
+    //   new Set(
+    //     datas.product
+    //       .filter((item) => item.isdeleted === false && item.productname === value)
+    //       .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
+   
+          await setOption((pre) => ({
       ...pre,
       flavourstatus: false,
-      flavour: flavourOp,
+      // flavour: flavourOp,
       productvalue: value,
       quantitystatus: true
     }))
@@ -630,9 +632,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
         
-        let quantityNumber = Number(quantity.split(' ')[0])
+        // let quantityNumber = Number(quantity.split(' ')[0])
         
-        const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname && productItem.flavour === newProduction.flavour &&  productItem.quantity === quantityNumber )
+        const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname 
+        // && productItem.flavour === newProduction.flavour &&  productItem.quantity === quantityNumber 
+      )
         
         await createProduction({
           date: newProduction.date,
@@ -842,7 +846,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                     options={option.product}
                   />
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                   className="mb-1"
                   name="flavour"
                   label="Flavour"
@@ -880,7 +884,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                     }
                     options={option.quantity}
                   />
-                </Form.Item>
+                </Form.Item> */}
 
                 <Form.Item
                   className="mb-3"

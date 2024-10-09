@@ -1981,7 +1981,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   >
                     Product
                   </th>
-                  <th
+                  {/* <th
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Flavour
@@ -1990,7 +1990,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Size
-                  </th>
+                  </th> */}
                   <th
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
@@ -2023,6 +2023,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
                         <td
+                        width={20}
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {i + 1}
@@ -2032,7 +2033,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                         >
                           {item.productname}
                         </td>
-                        <td
+                        {/* <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.flavour}
@@ -2041,7 +2042,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.quantity}
-                        </td>
+                        </td> */}
                         <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
