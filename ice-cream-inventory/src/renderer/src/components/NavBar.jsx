@@ -92,18 +92,18 @@ export default function NavBar({
       key: 'productname',
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Flavor</span>,
-      dataIndex: 'flavour',
-      key: 'flavour',
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-    {
-      title: <span className="text-[0.7rem]">Quantity</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
+    // {
+    //   title: <span className="text-[0.7rem]">Flavor</span>,
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
+    // {
+    //   title: <span className="text-[0.7rem]">Quantity</span>,
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
@@ -196,24 +196,20 @@ export default function NavBar({
   }, [isQuickSale.dataloading])
 
   const productOnchange = async (value) => {
-    const flavourData = await Array.from(
-      new Set(
-        datas.product
+    const flavourData = await Array.from( new Set( datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour)
-      )
-    ).map((flavour) => ({ label: flavour, value: flavour }))
+          .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
     setIsQuickSale((pre) => ({
       ...pre,
       flaveroption: flavourData,
       flavervalue: value,
       flavourinputstatus: false,
       quantityinputstatus: true
-    }))
-    quickSaleForm.resetFields(['quantity'])
-    quickSaleForm.resetFields(['flavour'])
-    quickSaleForm.resetFields(['numberofpacks'])
-  }
+    }));
+    quickSaleForm.resetFields(['quantity']);
+    quickSaleForm.resetFields(['flavour']);
+    quickSaleForm.resetFields(['numberofpacks']);
+  };
 
   const flavourOnchange = async (value) => {
     const quantityData = await Array.from(
@@ -233,13 +229,11 @@ export default function NavBar({
 
   const QuickSaleTemAdd = async (values, i) => {
     // console.log(Number(values.quantity.split(' ')[0]))
-    let existingDataCheck = isQuickSale.temdata.filter(
-      (item) =>
-        item.productname === values.productname &&
-        item.flavour === values.flavour &&
-        item.quantity === values.quantity
+    let existingDataCheck = isQuickSale.temdata.filter( (item) =>
+        item.productname === values.productname 
+        // && item.flavour === values.flavour &&
+        // item.quantity === values.quantity
     )
-
     if (existingDataCheck.length > 0) {
       return message.open({
         type: 'warning',
@@ -253,18 +247,20 @@ export default function NavBar({
       ...values,
       date: formattedDate,
       sno: isQuickSale.count,
-      quantity: Number(values.quantity.split(' ')[0]),
-      unit: values.quantity.split(' ')[1]
+      // quantity: Number(values.quantity.split(' ')[0]),
+      // unit: values.quantity.split(' ')[1],
+      quantity: '',
+      unit: ''
     }
 
     const temdata = datas.product.filter(
         (pr) =>
           pr.productname === inputDatas.productname &&
-          pr.isdeleted === false &&
-          pr.flavour === inputDatas.flavour &&
-          pr.quantity === inputDatas.quantity &&
-          pr.unit === inputDatas.unit)
-           .map((data) => ({
+          pr.isdeleted === false 
+          // && pr.flavour === inputDatas.flavour &&
+          // pr.quantity === inputDatas.quantity &&
+          // pr.unit === inputDatas.unit
+        ).map((data) => ({
         ...data,
         numberofpacks: inputDatas.numberofpacks,
         quantity: values.quantity,
@@ -273,7 +269,7 @@ export default function NavBar({
         margin: 0,
         productprice: data.price,
         price: values.numberofpacks * data.price,
-        key: isQuickSale.count}))
+        key: isQuickSale.count}));
 
     // setIsQuickSale((pre) => ({ ...pre, temdata: [...pre.temdata, ...temdata] }))
     
@@ -1208,11 +1204,10 @@ export default function NavBar({
         }
         width={1200}
         title={
-          <div className="flex  justify-center py-3">
-            {' '}
+          <div className="flex  justify-center py-3"> 
             <h1 style={{ fontWeight: 'bold' }}>
-              {isQuickSale.type === 'booking' ? 'BOOKING' : 'QUICK SALE'}{' '}
-            </h1>{' '}
+              {isQuickSale.type === 'booking' ? 'BOOKING' : 'QUICK SALE'}
+            </h1>
           </div>
         }
         open={isQuickSale.model}
@@ -1297,7 +1292,7 @@ export default function NavBar({
                   />
                 </Form.Item>
 
-                <Form.Item
+                {/* <Form.Item
                   className="mb-1"
                   name="flavour"
                   label="Flavour"
@@ -1324,7 +1319,7 @@ export default function NavBar({
                     placeholder="Select the Quantity"
                     options={isQuickSale.quntityoption}
                   />
-                </Form.Item>
+                </Form.Item> */}
 
                 <Form.Item
                   className="mb-3"

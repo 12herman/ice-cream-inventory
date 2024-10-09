@@ -507,21 +507,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Flavor</span>,
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-
-    {
-      title: <span className="text-[0.7rem]">Quantity</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
+    // {
+    //   title: <span className="text-[0.7rem]">Flavor</span>,
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
+    // {
+    //   title: <span className="text-[0.7rem]">Quantity</span>,
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
@@ -609,21 +608,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Flavor</span>,
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-    {
-      title: <span className="text-[0.7rem]">Quantity</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-
+    // {
+    //   title: <span className="text-[0.7rem]">Flavor</span>,
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
+    // {
+    //   title: <span className="text-[0.7rem]">Quantity</span>,
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
@@ -1019,14 +1017,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   const createTemDeliveryMt = debounce(async (values) => {
     setCount(count + 1)
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
-    let [quantityvalue, units] = values.quantity.split(' ')
+    // let [quantityvalue, units] = values.quantity.split(' ')
     const findPrice = await datas.product.find(
       (item) =>
         item.isdeleted === false &&
-        item.productname === values.productname &&
-        item.flavour === values.flavour &&
-        item.quantity === Number(quantityvalue) &&
-        item.unit === units
+        item.productname === values.productname 
+        // && item.flavour === values.flavour &&
+        // item.quantity === Number(quantityvalue) &&
+        // item.unit === units
     ).price
 
     const newProduct = {
@@ -1123,10 +1121,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       datas.product
         .filter(
           (pr) =>
-            temp.productname === pr.productname &&
-            temp.flavour === pr.flavour &&
-            pr.quantity == temp.quantity.split(' ')[0] &&
-            pr.unit === temp.quantity.split(' ')[1]
+            temp.productname === pr.productname 
+            // && temp.flavour === pr.flavour &&
+            // pr.quantity == temp.quantity.split(' ')[0] &&
+            // pr.unit === temp.quantity.split(' ')[1]
         )
         .map((pr) => ({
           numberofpacks: temp.numberofpacks,
@@ -1134,23 +1132,19 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           returntype: temp.returntype,
           margin: temp.margin === '' ? 0 : temp.margin,
           sno: tempIndex + 1
-        }))
-    )
+        })));
 
     // Partial amount (value)
     let { partialamount,paymentmode } = form4.getFieldsValue()
     let { customername } = form2.getFieldsValue()
     // Create delivery new
-    const newDelivery =
-      returnDelivery.state === true
-        ? {
+    const newDelivery = returnDelivery.state === true ? {
             customerid: customername,
             date: dayjs(form2.getFieldValue().date).format('DD/MM/YYYY'),
             total: totalamount,
             billamount: option.tempproduct.map((data) => data.price).reduce((a, b) => a + b, 0),
             paymentstatus: 'Return',
-            partialamount:
-              partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
             createddate: TimestampJs()
@@ -1161,8 +1155,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             total: totalamount,
             billamount: marginValue.amount,
             paymentstatus: marginValue.paymentstaus,
-            partialamount:
-              partialamount === undefined || partialamount === null ? 0 : partialamount,
+            partialamount: partialamount === undefined || partialamount === null ? 0 : partialamount,
             paymentmode: marginValue.paymentstaus === 'Unpaid' ? '' : paymentmode,
             isdeleted: false,
             type: returnDelivery.state === true ? 'return' : 'order',
@@ -1183,10 +1176,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         const { product, status } = await getProductById(item.id)
 
         if (status === 200) {
-          const existingProduct = datas.storage.find(
-            (storageItem) =>
-              storageItem.productid === product.id && storageItem.category === 'Product List'
-          )
+          const existingProduct = datas.storage.find( (storageItem) => storageItem.productid === product.id && storageItem.category === 'Product List');
 
           if (returnDelivery.state === true && item.returntype === 'normal') {
             await updateStorage(existingProduct.id, {
@@ -1471,17 +1461,17 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       key: 'productname',
       dataIndex: 'productname'
     },
-    {
-      title: 'Flavour',
-      key: 'flavour',
-      dataIndex: 'flavour'
-    },
-    {
-      title: 'Size',
-      key: 'quantity',
-      dataIndex: 'quantity',
-      width: 100
-    },
+    // {
+    //   title: 'Flavour',
+    //   key: 'flavour',
+    //   dataIndex: 'flavour'
+    // },
+    // {
+    //   title: 'Size',
+    //   key: 'quantity',
+    //   dataIndex: 'quantity',
+    //   width: 100
+    // },
     {
       title: 'Rate',
       key: 'pieceamount',
@@ -1960,7 +1950,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       createddate: TimestampJs(),
       customername: lastOrderData.customerdetails.customerid,
       date: form2.getFieldValue().date ? form2.getFieldValue().date.format('DD/MM/YYYY') : '',
-      flavour: data.flavour,
+      // flavour: data.flavour,
       key: i + 1,
       margin: data.margin,
       mrp: data.numberofpacks * data.price,
@@ -1969,7 +1959,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         data.numberofpacks * data.price - (data.numberofpacks * data.price * data.margin) / 100,
       productname: data.productname,
       productprice: data.price,
-      quantity: data.quantity + ' ' + data.unit,
+      // quantity: data.quantity + ' ' + data.unit,
       returntype: data.returntype
     }))
 
@@ -2703,7 +2693,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                     onChange={(value, i) => productOnchange(value, i)}
                   />
                 </Form.Item>
-                <Form.Item
+
+                {/* <Form.Item
                   className="mb-1"
                   name="flavour"
                   label="Flavour"
@@ -2741,7 +2732,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                     }
                     options={option.quantity}
                   />
-                </Form.Item>
+                </Form.Item> */}
 
                 <Form.Item
                   className={`mb-1 w-full text-[0.7rem] ${returnDelivery.state === true ? 'block' : 'hidden'}`}

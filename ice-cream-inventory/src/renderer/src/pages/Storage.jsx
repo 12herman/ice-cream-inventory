@@ -197,27 +197,27 @@ export default function Storage({ datas, storageUpdateMt }) {
       // defaultSortOrder: 'ascend',
       editable:false
     },
-    {
-      title: 'Flavor',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      sorter: (a, b) => a.flavour.localeCompare(b.flavour),
-      showSorterTooltip: { target: 'sorter-icon' },
-      editable:false
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable:false,
-      render: (text, record) => {
-        return (
-          <div>
-            <span>{text}</span> <span>{record.unit}</span>
-          </div>
-        );
-      }
-    },
+    // {
+    //   title: 'Flavor',
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   sorter: (a, b) => a.flavour.localeCompare(b.flavour),
+    //   showSorterTooltip: { target: 'sorter-icon' },
+    //   editable:false
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable:false,
+    //   render: (text, record) => {
+    //     return (
+    //       <div>
+    //         <span>{text}</span> <span>{record.unit}</span>
+    //       </div>
+    //     );
+    //   }
+    // },
     {
       title: 'Box',
       dataIndex: 'quantity',

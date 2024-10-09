@@ -2029,6 +2029,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
                         <td
+                        width={20}
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {i + 1}

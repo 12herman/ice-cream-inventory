@@ -70,49 +70,60 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   // create new project
   const createNewProduct = async (values) => {
   
-    setIsProductLoading(true)
+    
     try {
       const productExists = datas.product.find(
         (storageItem) =>
-          storageItem.productname === values.productname &&
-          storageItem.flavour === values.flavour &&
-          storageItem.quantity === values.quantity
-      )
-      const productRef = await createproduct({
-        ...values,
-        productname: formatName(values.productname),
-        flavour: formatName(values.flavour),
-        createddate: TimestampJs(),
-        updateddate: '',
-        isdeleted: false
-      });
-      const productId = productRef.res.id
-      console.log(productId, productRef)
-      
-      if (!productExists) {
-        await createStorage({
-          // productname: formatName(values.productname),
-          // flavour: formatName(values.flavour),
-          // quantity: values.quantity,
-          // unit: values.unit,
-          //productperpack: values.productperpack,
-          productid: productId,
-          alertcount: 0,
-          numberofpacks: 0,
-          category: 'Product List',
-          createddate: TimestampJs()
-        })
-        storageUpdateMt()
-      }
-      form.resetFields()
-      productUpdateMt()
+          storageItem.productname === values.productname  || storageItem.productname === formatName(values.productname)
+          // && storageItem.flavour === values.flavour &&
+          // storageItem.quantity === values.quantity
+);
+
+
+
+  if(productExists !== undefined){
+    return message.open({content:'This name was already exsits',type:'info'})
+  }
+  else{
+    setIsProductLoading(true)
+    const productRef = await createproduct({
+      ...values,
+      productname: formatName(values.productname),
+      // flavour: formatName(values.flavour),
+      flavour: '',
+      unit:'',
+      quantity:'',
+      createddate: TimestampJs(),
+      updateddate: '',
+      isdeleted: false
+    });
+    const productId = productRef.res.id
+    console.log(productId, productRef)
+    
+    if (!productExists) {
+      await createStorage({
+        // productname: formatName(values.productname),
+        // flavour: formatName(values.flavour),
+        // quantity: values.quantity,
+        // unit: values.unit,
+        //productperpack: values.productperpack,
+        productid: productId,
+        alertcount: 0,
+        numberofpacks: 0,
+        category: 'Product List',
+        createddate: TimestampJs()
+      })
+      storageUpdateMt()
+    }
+    form.resetFields()
+   await productUpdateMt()
+    await setIsProductLoading(false)
+     await setIsModalOpen(false)
+     await setProductOnchangeValue('')
+  }
     } catch (e) {
       console.log(e)
-    } finally {
-      setIsProductLoading(false)
-      setIsModalOpen(false)
-      setProductOnchangeValue('')
-    }
+    } 
   }
 
   const columns = [
@@ -123,8 +134,6 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
-        console.log(record);
-        
         return (
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
@@ -144,30 +153,30 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       showSorterTooltip: { target: 'sorter-icon' },
       defaultSortOrder: 'ascend'
     },
-    {
-      title: 'Flavour',
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: true,
-      sorter: (a, b) => a.flavour.localeCompare(b.flavour),
-      showSorterTooltip: { target: 'sorter-icon' }
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: true,
-      width: 130,
-      render: (_, record) => {
-        return record.quantity + ' ' + record.unit
-      }
-    },
+    // {
+    //   title: 'Flavour',
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: true,
+    //   sorter: (a, b) => a.flavour.localeCompare(b.flavour),
+    //   showSorterTooltip: { target: 'sorter-icon' }
+    // },
+    // {
+    //   title: 'Quantity',
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: true,
+    //   width: 130,
+    //   render: (_, record) => {
+    //     return record.quantity + ' ' + record.unit
+    //   }
+    // },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
       editable: true,
-      width: 100,
+      width: 150,
       sorter: (a, b) => (Number(a.price) || 0) - (Number(b.price) || 0),
       showSorterTooltip: { target: 'sorter-icon' },
       render: (_, record) => {
@@ -183,7 +192,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     },
     {
       title: 'Pack Price',
-      width: 100,
+      width: 150,
       key: 'packprice',
       render: (_, record) => (
         <span>{formatToRupee(record.price * record.productperpack, true)}</span>
@@ -338,28 +347,31 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     try {
       const row = await form.validateFields()
       const newData = [...data]
-      const index = newData.findIndex((item) => key.id === item.key)
+      const index = newData.findIndex((item) => key.id === item.key);
+      // const checkName = data.some(data => data.productname === key.productname);
+      // console.log(checkName);
       if (
         index != null &&
-        row.flavour === key.flavour &&
+        // row.flavour === key.flavour &&
         row.productname === key.productname &&
-        row.quantity === key.quantity &&
+        // row.quantity === key.quantity &&
         row.productperpack === key.productperpack &&
-        row.price === key.price &&
-        row.unit === key.unit
+        row.price === key.price 
+        // && row.unit === key.unit
       ) {
         message.open({ type: 'info', content: 'No changes made' })
-        setEditingKeys([])
-      } else {
-        setEditingKeys([])
-        await updateproduct(key.id, { ...row, updateddate: TimestampJs() })
-        productUpdateMt()
-        message.open({ type: 'success', content: 'Updated Successfully' })
+        setEditingKeys([]);
+      } 
+      else {
+        setEditingKeys([]);
+        await updateproduct(key.id, { ...row, updateddate: TimestampJs() });
+        productUpdateMt();
+        message.open({ type: 'success', content: 'Updated Successfully' });
       }
     } catch (errInfo) {
-      console.log('Validate Failed:', errInfo)
+      console.log('Validate Failed:', errInfo);
     }
-  }
+  };
 
   // selection
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
@@ -424,7 +436,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       window.removeEventListener('resize', updateTableHeight)
       document.removeEventListener('fullscreenchange', updateTableHeight)
     }
-  }, [])
+  }, []);
 
   // delete
   const deleteProduct = async (data) => {
@@ -437,7 +449,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     })
     productUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
-  }
+  };
 
   // export
   const exportExcel = async () => {
@@ -455,7 +467,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     jsonToExcel(excelDatas, `Product-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     // setEditingKey('')
-  }
+  };
 
   const pdfRef = useRef()
   const [pdf, setPdf] = useState({
@@ -717,7 +729,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 placeholder="Enter the Product Name"
               />
             </Form.Item>
-
+ {/*
             <Form.Item
               className="mb-2"
               name="flavour"
@@ -766,6 +778,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                 />
               </Form.Item>
             </span>
+            */}
 
             <Form.Item
               className="mb-2"
@@ -780,7 +793,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             </Form.Item>
             
             <Form.Item
-              className="mb-2"
+              className="mb-5"
               name="productperpack"
               label="Product Per Pack"
               rules={[
