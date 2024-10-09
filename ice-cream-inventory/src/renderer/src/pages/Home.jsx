@@ -73,14 +73,14 @@ export default function Home({ datas }) {
   const [temform] = Form.useForm()
   const [quotationModalOpen, setQuotationModalOpen] = useState(false)
   const [deliveryData, setDeliveryData] = useState([])
-  const [quotationData, setQuotationData] = useState({
-    date: dayjs(),
-    type: 'withGST',
-    productname: '',
-    flavour: '',
-    quantity: '',
-    numberofpacks: 1
-  })
+  // const [quotationData, setQuotationData] = useState({
+  //   date: dayjs(),
+  //   type: 'withGST',
+  //   productname: '',
+  //   flavour: '',
+  //   quantity: '',
+  //   numberofpacks: 1
+  // })
 
   const [quotationft, setQuotationFt] = useState({
     date: null,
@@ -110,20 +110,20 @@ export default function Home({ datas }) {
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{text}</span>
     },
-    {
-      title: <span className="text-[0.7rem]">Flavor</span>,
-      dataIndex: 'flavour',
-      key: 'flavour',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
-    {
-      title: <span className="text-[0.7rem]">Quantity</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      editable: false,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
-    },
+    // {
+    //   title: <span className="text-[0.7rem]">Flavor</span>,
+    //   dataIndex: 'flavour',
+    //   key: 'flavour',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
+    // {
+    //   title: <span className="text-[0.7rem]">Quantity</span>,
+    //   dataIndex: 'quantity',
+    //   key: 'quantity',
+    //   editable: false,
+    //   render: (text) => <span className="text-[0.7rem]">{text}</span>
+    // },
     {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
@@ -666,8 +666,8 @@ export default function Home({ datas }) {
           return {
             ...item,
             productname: product ? product.productname : '',
-            flavour: product ? product.flavour : '',
-            quantity: product ? product.quantity : ''
+            // flavour: product ? product.flavour : '',
+            // quantity: product ? product.quantity : ''
           }
         })
       }
@@ -682,8 +682,8 @@ export default function Home({ datas }) {
             )
             return {
               productname: material.materialname || '',
-              flavour: '',
-              quantity: material.unit || '',
+              // flavour: '',
+              // quantity: material.unit || '',
               numberofpacks: item.quantity || 0
             }
           })
@@ -697,8 +697,8 @@ export default function Home({ datas }) {
           return {
             ...item,
             productname: product ? product.productname : '',
-            flavour: product ? product.flavour : '',
-            quantity: product ? product.quantity : ''
+            // flavour: product ? product.flavour : '',
+            // quantity: product ? product.quantity : ''
           }
         })
       }
@@ -1031,8 +1031,8 @@ export default function Home({ datas }) {
     let items = quotationft.tempproduct.map((data, i) => ({
       sno: i + 1,
       productname: data.productname,
-      flavour: data.flavour,
-      quantity: data.quantity,
+      // flavour: data.flavour,
+      // quantity: data.quantity,
       pieceamount: data.productprice,
       numberofpacks: data.numberofpacks,
       producttotalamount: data.mrp,
@@ -1083,8 +1083,8 @@ export default function Home({ datas }) {
     let items = quotationft.tempproduct.map((data, i) => ({
       sno: i + 1,
       productname: data.productname,
-      flavour: data.flavour,
-      quantity: data.quantity,
+      // flavour: data.flavour,
+      // quantity: data.quantity,
       pieceamount: data.productprice,
       numberofpacks: data.numberofpacks,
       producttotalamount: data.mrp,
@@ -1723,10 +1723,16 @@ export default function Home({ datas }) {
 
   const itemColumns = [
     {
+      title: 'S.No',
+      dataIndex: 'sno',
+      key: 'sno',
+      width: 50
+    },
+    {
       title: 'Item Name',
       dataIndex: 'productname',
       key: 'productname',
-      render: (text, record) => `${record.productname} - ${record.flavour} - ${record.quantity}`
+      // render: (text, record) => `${record.productname} - ${record.unit}`
     },
     {
       title: 'Packs',
@@ -1981,7 +1987,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   >
                     Product
                   </th>
-                  <th
+                  {/* <th
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Flavour
@@ -1990,7 +1996,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Size
-                  </th>
+                  </th> */}
                   <th
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
@@ -2032,7 +2038,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                         >
                           {item.productname}
                         </td>
-                        <td
+                        {/* <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.flavour}
@@ -2041,7 +2047,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.quantity}
-                        </td>
+                        </td> */}
                         <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
@@ -2405,7 +2411,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   >
                     Product
                   </th>
-                  <th
+                  {/* <th
                     className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
                   >
                     Flavour
@@ -2414,7 +2420,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
                   >
                     Size
-                  </th>
+                  </th> */}
                   <th
                     className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
                   >
@@ -2456,7 +2462,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                         >
                           {item.productname}
                         </td>
-                        <td
+                        {/* <td
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
                         >
                           {item.flavour}
@@ -2465,7 +2471,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
                         >
                           {item.quantity}
-                        </td>
+                        </td> */}
                         <td
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
                         >
@@ -2971,7 +2977,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     options={option.product}
                   />
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                   className="mb-1"
                   name="flavour"
                   label="Flavour"
@@ -3009,7 +3015,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     }
                     options={option.quantity}
                   />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item
                   className="mb-3"
                   name="numberofpacks"
