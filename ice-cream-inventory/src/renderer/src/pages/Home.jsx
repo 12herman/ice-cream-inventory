@@ -808,7 +808,7 @@ export default function Home({ datas }) {
             )
           })
           .map((product) => {
-            const dateTimeString = `${product.date} ${product.time}`
+            const dateTimeString = `${product.deliverydate} ${product.time}`
             //const productDateTime = dayjs(dateTimeString, 'DD/MM/YYYY HH:mm')
             return {
               ...product,

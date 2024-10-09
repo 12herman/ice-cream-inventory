@@ -2838,9 +2838,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               <span
                 className={`${deliveryBill.prdata.type === 'booking' ? ' inline-block text-gray-600' : 'hidden'}`}
               >
-                {deliveryBill.prdata.time}
+                {deliveryBill.prdata.deliverydate} {deliveryBill.prdata.time}
               </span>
-              <span>{deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}</span>
+              <span className={`${deliveryBill.prdata.type !== 'booking' ? ' inline-block' : 'hidden'}`}>
+                {deliveryBill.data.date === undefined ? 0 : deliveryBill.data.date}</span>
               <Tag
                 className="m-0"
                 color={`${deliveryBill.data.paymentstatus === 'Paid' ? 'green' : deliveryBill.data.paymentstatus === 'Unpaid' ? 'red' : deliveryBill.data.paymentstatus === 'Partial' ? 'yellow' : 'blue'}`}

@@ -429,7 +429,8 @@ export default function NavBar({
         isdeleted: false,
         paymentmode: qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         createddate: TimestampJs(),
-        date: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
+        date: dayjs().format('DD/MM/YYYY'),
+        deliverydate: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
       }
       
       const paydetailsHistory = {
