@@ -1862,8 +1862,13 @@ export default function Home({ datas }) {
     }
   }
 
-const pdfBillStyle = {fontSize:'1rem'}
+  // Without GST
+const pdfBillStyle = {heading:'26px',subheading:'24px',para:'20px'};
+const printBillStyle = {heading:'18px',subheading:'14px',para:'11px' };
 
+// GST
+const GstBillStylePdf = {heading:'24px',subheading:'20px',para:'16px'};
+const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
   return (
     <div>
 
@@ -1872,37 +1877,37 @@ const pdfBillStyle = {fontSize:'1rem'}
         ref={printRef}
         className="absolute top-[-200rem] w-full"
         // className='w-full h-screen'
-        style={{ padding: '20px', backgroundColor: '#ffff', border:'1px solid #000' }}>
+        style={{ padding: '20px', backgroundColor: '#ffff' }}>
         <div ref={componentRef}>
           <section className="w-[90%] mx-auto mt-4">
             <ul className="flex justify-center items-center gap-x-2">
               <li>
                 <img 
                 // className="w-[3rem]" 
-                width={ '68px'}
+                width={'68px'}
                 src={companyLogo} alt="comapanylogo" />
               </li>
               <li className="text-center">
-                <h1 style={{fontWeight:'bold',fontSize:'18px'}} 
+                <h1 style={{fontWeight:'bold',fontSize:`${hasPdf === true ? pdfBillStyle.heading : printBillStyle.heading}`}} 
                 // className={`${hasPdf === true ? 'text-[1.5rem]' : 'text-[0.7rem]'} font-bold`}
                 >
                   NEW SARANYA ICE COMPANY
                 </h1>
                 <p 
-                style={{fontSize:'14px'}}
+                style={{fontSize:`${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`}}
                 // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
                 >
                   PILAVILAI, AZHAGANPARAI P.O.
                 </p>
                 <p 
-                style={{fontSize:'14px'}}
+                style={{fontSize:`${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`}}
                 // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
                 >K.K.DIST</p>
               </li>
             </ul>
 
             <ul 
-            style={{fontSize:'11px',display:'flex',justifyContent:'space-between',alignItems:'center', margin:'40px 0 0 0'}}
+            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,display:'flex',justifyContent:'space-between',alignItems:'center', margin:'40px 0 0 0'}}
             // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`} 
             >
               <li>
@@ -1972,7 +1977,7 @@ const pdfBillStyle = {fontSize:'1rem'}
 
             <table
             className='withoutgsttable'
-            style={{fontSize:'11px',width:'100%',borderCollapse:'collapse',margin:'20px 0px 0px 0px',textAlign:'left'}}
+            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'20px 0px 0px 0px',textAlign:'left',padding:'3px'}}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-4`}
             >
               <thead>
@@ -1983,6 +1988,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     S.No
                   </th>
                   <th
+                   style={{width:'350px'}}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Product
@@ -1998,6 +2004,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                     Size
                   </th> */}
                   <th
+                  // style={{width:'100px'}}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Rate
@@ -2008,16 +2015,19 @@ const pdfBillStyle = {fontSize:'1rem'}
                     Qty
                   </th>
                   <th
+                  // style={{width:'100px'}}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     MRP
                   </th>
                   <th
+                  style={{width:'50px'}}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Margin
                   </th>
                   <th
+                  // style={{width:'100px'}}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Amount
@@ -2083,7 +2093,7 @@ const pdfBillStyle = {fontSize:'1rem'}
               </tbody>
             </table>
             
-            <div style={{fontSize:'11px',textAlign:'end', margin:'10px 0 0 0'}}>
+            <div style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,textAlign:'end', margin:'10px 0 0 0'}}>
             <p 
             // className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
             >
@@ -2141,6 +2151,9 @@ const pdfBillStyle = {fontSize:'1rem'}
       </div>
       {/* old pdf and print end */}
 
+
+
+
       {/* new start */}
       <div
         ref={GstBillRef}
@@ -2149,7 +2162,7 @@ const pdfBillStyle = {fontSize:'1rem'}
         style={{ padding: '20px', backgroundColor: '#ffff' }}>
         <div ref={GstComponentRef} className="w-full h-screen flex justify-center items-center">
 
-          <span style={{}} className={`${hasPdf === true ? 'text-[1.3rem] ' : 'text-[1rem]'} absolute top-5 left-1/2 -translate-x-1/2  font-medium`}>
+          <span className={`absolute top-5 left-1/2 -translate-x-1/2  font-medium`}>
             TAX INVOICE
           </span>
 
@@ -2159,20 +2172,20 @@ const pdfBillStyle = {fontSize:'1rem'}
                 {' '}
                 <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
               </li> */}
-              <li className="text-center">
-                {' '}
-                <h1 className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
+              <li className="text-center mt-2">
+                <h1 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`}} className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
                   NEW SARANYA ICE COMPANY
                 </h1>{' '}
-                <p className={`${hasPdf === true ? 'text-[1.6rem]' : 'text-[0.7rem]'}`}>
+                <p style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}}>
                   PILAVILAI, AZHAGANPARAI P.O.
                 </p>{' '}
-                <p className={`${hasPdf === true ? 'text-[1.6rem]' : 'text-[0.7rem]'}`}>K.K.DIST</p>{' '}
+                <p style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}}>K.K.DIST</p>{' '}
               </li>
             </ul>
 
             <ul
-              className={`px-2 ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`}
+            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              className={`px-2 mt-1 flex justify-between `}
             >
               {/* phone number */}
               <li className="text-start flex flex-col ">
@@ -2249,7 +2262,8 @@ const pdfBillStyle = {fontSize:'1rem'}
               <thead>
                 <tr>
                   <th
-                    className={`pl-2 py-2 ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}>
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={`pl-2 py-2 font-bold`}>
                     <span className=" text-left block ">
                       Gst No
                       &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
@@ -2261,13 +2275,16 @@ const pdfBillStyle = {fontSize:'1rem'}
                     </span>
                   </th>
 
-                  <th className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}>
+                  <th
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                   className={` font-bold`}>
                     <span className="block">E-Way Bill NO.</span>
                     33AAIFN6367K1ZV
                   </th>
 
                   <th
-                    className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` font-bold`}
                   >
                     <span className="text-left block pl-2">
                       No &#160;&#160;&#160;&#160;&#160;&#160;&#160;: { invoiceDatas.customerdetails.id}
@@ -2287,7 +2304,7 @@ const pdfBillStyle = {fontSize:'1rem'}
 
             {/* grid -2 */}
             <ul className='px-2 py-2'>
-              <li className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}>
                 <span className="text-left block ">
                   Ack NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV
                 </span>
@@ -2303,13 +2320,14 @@ const pdfBillStyle = {fontSize:'1rem'}
             </ul>
 
             {/* grid-3 */}
-            <ul className="border-t grid grid-cols-2 ">
+            <ul  className="border-t grid grid-cols-2 ">
               {/* billed address */}
-              <li className={`border-r ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+              <li  className={`border-r `}>
                 <div className='px-2 py-2'>
-                <span className="text-left block font-bold">Billed To </span>
+                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className="text-left block font-bold">Billed To </span>
                 <address
-                  className={`not-italic  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+                style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                  className={`not-italic  `}
                 >
                   <span className={`font-bold pl-2`}>New Saranya Ice Company</span> <br />
                   <span className={`font-medium block pl-4`}>
@@ -2321,7 +2339,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   </span>
                 </address>
 
-                <span className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium mt-3 block`}>
+                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` font-medium mt-3 block`}>
                   PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
                   Batch Code &#160;&#160;:
                   <br />
@@ -2331,11 +2349,12 @@ const pdfBillStyle = {fontSize:'1rem'}
                 </div>
               </li>
               {/* shipped address */}
-              <li className={`${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}>
                 <div className='px-2 py-2 flex flex-col justify-between'>
                 <span className="text-left block font-bold">Shipped To </span>
                 <address
-                  className={`not-italic  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+                style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                  className={`not-italic  `}
                 >
                   <span className={`font-bold pl-2`}>{Object.keys(invoiceDatas.customerdetails).length !== 0
                     ? invoiceDatas.customerdetails.customername
@@ -2352,7 +2371,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   </span>
                 </address>
 
-                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}  className={` font-medium  block`}>
                   PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
                   Batch Code &#160;&#160;:
                   <br />
@@ -2364,10 +2383,10 @@ const pdfBillStyle = {fontSize:'1rem'}
 
               {/* order detail */}
               <li
-                className={`py-2 border-t border-r ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} `}
+                className={`py-2 border-t border-r `}
               >
                 <div className='px-2'>
-                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={`font-medium  block`}>
                   Order NO &#160;&#160;&#160;&#160;&#160;: <br />
                   P.O NO
                   &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
@@ -2377,10 +2396,10 @@ const pdfBillStyle = {fontSize:'1rem'}
                 </span>
                 </div>
               </li>
-              <li  className={`py-2 w-full border-t  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+              <li  className={`py-2 w-full border-t `}
               >
                 <div className='px-2'>
-                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` font-medium  block`}>
                   Transport &#160;&#160;&#160;&#160;&#160;&#160;: <br />
                   <span>
                     LR.No
@@ -2398,17 +2417,20 @@ const pdfBillStyle = {fontSize:'1rem'}
            
            <section >
            <table
-              className={` gstitemtable ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-1`}
+           style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              className={` gstitemtable  min-w-full border-collapse mt-1`}
             >
               <thead>
                 <tr>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1 w-[2rem]`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1 w-[2rem]`}
                   >
                     S.No
                   </th>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     Product
                   </th>
@@ -2423,27 +2445,32 @@ const pdfBillStyle = {fontSize:'1rem'}
                     Size
                   </th> */}
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     Rate
                   </th>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     Qty
                   </th>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     MRP
                   </th>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     Margin
                   </th>
                   <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    className={` border-b text-left pb-1`}
                   >
                     Amount
                   </th>
@@ -2454,12 +2481,12 @@ const pdfBillStyle = {fontSize:'1rem'}
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {i + 1}
                         </td>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {item.productname}
                         </td>
@@ -2474,27 +2501,27 @@ const pdfBillStyle = {fontSize:'1rem'}
                           {item.quantity}
                         </td> */}
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {item.pieceamount}
                         </td>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {item.numberofpacks}
                         </td>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {item.producttotalamount}
                         </td>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {toDigit(item.margin)}%
                         </td>
                         <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
                           {customRound(
                             item.numberofpacks * item.pieceamount -
@@ -2505,9 +2532,9 @@ const pdfBillStyle = {fontSize:'1rem'}
                     ))
                   : 'No Data'}
 
-                <tr
-                  className={`${invoiceDatas.data.length < 8 && gstBillPdf === false ? 'h-[25vh]' : invoiceDatas.data.length < 8 && gstBillPdf === true ? 'h-[55vh]' : 'hidden'}`}
-                ></tr>
+                {/* <tr
+                  className={`${invoiceDatas.data.length < 5 && gstBillPdf === false ? 'h-[25vh]' : invoiceDatas.data.length < 8 && gstBillPdf === true ? 'h-[55vh]' : 'hidden'}`}
+                ></tr> */}
 
                 <tr>
                   <td></td>
@@ -2515,8 +2542,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td></td>
-                  <td></td>
+                  {/* <td></td> */}
                   <td></td>
                   <td>
                     <span className=" font-bold">
@@ -2525,13 +2551,16 @@ const pdfBillStyle = {fontSize:'1rem'}
                         : null}
                     </span>
                   </td>
+                  <td></td>
+                 
                 </tr>
               </tbody>
             </table>
            </section>
 
             <ul
-              className={`px-2 py-2 border-r border-l ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} grid grid-cols-2 font-bold`}
+            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              className={`px-2 py-2 border-r border-l grid grid-cols-2 font-bold`}
             >
               <li>
                 Amount in Work <br />
@@ -2558,7 +2587,8 @@ const pdfBillStyle = {fontSize:'1rem'}
             </ul>
 
             <table
-              className={`gsttaxtable w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              className={`gsttaxtable w-full `}
             >
               <thead>
                 <tr>
@@ -2580,7 +2610,8 @@ const pdfBillStyle = {fontSize:'1rem'}
               </thead>
 
               <tbody
-                className={`gsttaxtable w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+              style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                className={`gsttaxtable w-full `}
               >
                 <tr>
                   <td>19053453</td>
@@ -2604,10 +2635,11 @@ const pdfBillStyle = {fontSize:'1rem'}
 
             {/* company bank detials */}
             <ul
-              className={` border-b w-full border-x grid grid-cols-2 ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              className={` border-b w-full border-x grid grid-cols-2  `}
             >
               <li className='px-2 py-2'>
-                <h2 className={` w-full ${hasPdf === true ? 'text-[1rem]' : 'text-[0.6rem]'} `}>
+                <h2 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` w-full `}>
                   Company's Bank Details
                 </h2>
                 Bank Name
@@ -2623,7 +2655,8 @@ const pdfBillStyle = {fontSize:'1rem'}
               </li>
 
               <li
-                className={`px-2 py-2 row-span-2  border-l w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+              style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                className={`px-2 py-2 row-span-2  border-l w-full `}
               >
                 Prepared by For
                 <span className="block font-bold text-right pt-5"> Graphic Color Pack</span>
@@ -2631,7 +2664,7 @@ const pdfBillStyle = {fontSize:'1rem'}
                 <span className="block text-right pt-10"> Authorised Signature </span>
               </li>
 
-              <li className={`px-2 py-2 border-t w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}>
+              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={`px-2 py-2 border-t w-full `}>
                 1.CERTIFIED that the particulars given above are true and correct2. The amount
                 indicated above represents the price actually charged and there is no flow of
                 additionalconsideration directly or indirectly from the buyer3. Interest @ 24% per
