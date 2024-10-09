@@ -251,12 +251,12 @@ const App = () => {
     };
     datas.delivery.forEach((record) => {
       if (record.type === 'booking' && !record.isdeleted && !record.bookingstatus) {
-        if (record.date === today || record.date === tomorrow || record.date === dayAfterTomorrow) {
+        if (record.deliverydate === today || record.deliverydate === tomorrow || record.deliverydate === dayAfterTomorrow) {
           notification.info({
             message: 'Alert',
             icon: <FaBoxesPacking style={{ color: '#f26723' }} />,
             duration: 0,
-            description: `${record.customername} have a booking on ${record.date}!`,
+            description: `${record.customername} have a booking on ${record.deliverydate} ${record.time}!`,
             btn: (
               <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
                 Close All
