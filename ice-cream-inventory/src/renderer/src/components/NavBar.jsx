@@ -426,7 +426,8 @@ export default function NavBar({
         paymentmode: qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         createddate: TimestampJs(),
         date: dayjs().format('DD/MM/YYYY'),
-        deliverydate: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
+        deliverydate: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
+        location: qickSaleForm3Value.location || ''
       }
       
       const paydetailsHistory = {
@@ -1034,39 +1035,12 @@ export default function NavBar({
         centered={true}
         maskClosable={isQuickSale.temdata.length > 0 ? false : true}
         footer={
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mt-5"> 
             <Form
-              disabled={!isSpinners && isQuickSale.temdata.length > 0 ? false : true}
-              onFinish={marginMt}
-              className="flex gap-x-2"
-              form={quickSaleForm2}
-            >
-              <Form.Item
-                className="mb-0"
-                name="marginvalue"
-                rules={[{ required: true, message: false }]}
-              >
-                <InputNumber
-                  type="number"
-                  min={0}
-                  max={100}
-                  className="w-full"
-                  prefix={<span>Margin(%)</span>}
-                />
-              </Form.Item>
-              <Form.Item className="mb-0">
-                <Button type="primary" htmlType="submit">
-                  Enter
-                </Button>
-              </Form.Item>
-            </Form>
-
-            <Form
-            
               form={quickSaleForm3}
               layout="vertical"
               initialValues={{ paymentstatus: 'Paid', paymentmode: 'Cash' }}
-              className="flex gap-x-2 justify-center items-center"
+              className="flex gap-x-5 justify-center items-center"
             >
               <Form.Item name="paymentstatus" className="mb-0">
                 <Radio.Group
@@ -1177,6 +1151,32 @@ export default function NavBar({
                   }
                 />
               </Form.Item>
+              
+              <Form.Item
+                className="mb-0"
+                name="location"
+                rules={[
+                  {
+                    required:
+                      isQuickSale.type === 'booking' ||
+                      (isQuickSale.type === 'quick' && isQuickSale !== 'Paid')
+                        ? true
+                        : false,
+                    message: false
+                  }
+                ]}
+              >
+                <Input
+                  className="w-[10rem]"
+                  placeholder="Address"
+                  disabled={
+                    isQuickSale.type === 'booking' ||
+                    (isQuickSale.type === 'quick' && isQuickSale.paymentstatus !== 'Paid')
+                      ? false
+                      : true
+                  }
+                />
+              </Form.Item>
 
               <Form.Item
                 className="mb-0 absolute top-[2rem] left-40"
@@ -1193,6 +1193,7 @@ export default function NavBar({
                 />
               </Form.Item>
             </Form>
+
             <Button
               onClick={quicksaleMt}
               disabled={!isSpinners && isQuickSale.temdata.length > 0 ? false : true}
@@ -1237,6 +1238,7 @@ export default function NavBar({
         <Spin spinning={isSpinners}>
           <div className="relative">
             <div className="grid grid-cols-4 gap-x-2">
+              <div>
               <Form
                 className="col-span-1"
                 form={quickSaleForm}
@@ -1278,7 +1280,7 @@ export default function NavBar({
                   </Radio.Group>
                 </Form.Item>
                 <Form.Item
-                  className="mb-1"
+                  className="mb-1 mt-4"
                   name="productname"
                   label="Product Name"
                   rules={[{ required: true, message: false }]}
@@ -1341,6 +1343,34 @@ export default function NavBar({
                   </Button>
                 </Form.Item>
               </Form>
+
+              <Form
+              disabled={!isSpinners && isQuickSale.temdata.length > 0 ? false : true}
+              onFinish={marginMt}
+              className="flex gap-x-3 mt-5"
+              form={quickSaleForm2}
+            >
+              <Form.Item
+                className="mb-0"
+                name="marginvalue"
+                rules={[{ required: true, message: false }]}
+              >
+                <InputNumber
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="w-52"
+                  prefix={<span>Margin(%)</span>}
+                />
+              </Form.Item>
+              <Form.Item className="mb-0">
+                <Button type="primary" htmlType="submit">
+                  Enter
+                </Button>
+              </Form.Item>
+            </Form>
+            </div>
+
               <Form form={form} component={false}>
                 <Table
                   virtual
