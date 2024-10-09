@@ -50,7 +50,7 @@ import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
-import html2pdf from 'html2pdf.js';
+import './css/Home.css'
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -455,20 +455,19 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
-              const mobileNumber =
+            const mobileNumber =
               result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
-              const gstNumber =
-              result.status === 200 ? result.customer.gstin : item.gstin
-              const address = result.status === 200 ? result.customer.location : item.location
-              
+            const gstNumber = result.status === 200 ? result.customer.gstin : item.gstin
+            const address = result.status === 200 ? result.customer.location : item.location
+
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
               customername: customerName,
               mobilenumber: mobileNumber,
-              gstin:gstNumber,
-              location: address,
+              gstin: gstNumber,
+              location: address
             }
           })
       )
@@ -483,19 +482,18 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
-              const mobileNumber =
+            const mobileNumber =
               result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
-              const gstNumber =
-              result.status === 200 ? result.customer.gstin : item.gstin
-              const address = result.status === 200 ? result.customer.location : item.location
+            const gstNumber = result.status === 200 ? result.customer.gstin : item.gstin
+            const address = result.status === 200 ? result.customer.location : item.location
             return {
               ...item,
               sno: index + 1,
               key: item.id || index,
               customername: customerName,
               mobilenumber: mobileNumber,
-              gstin:gstNumber,
-              location: address,
+              gstin: gstNumber,
+              location: address
             }
           })
       )
@@ -525,18 +523,17 @@ export default function Home({ datas }) {
             const result = await getCustomerById(item.customerid)
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
-              const mobileNumber =
+            const mobileNumber =
               result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
-              const gstNumber =
-              result.status === 200 ? result.customer.gstin : item.gstin
-              const address = result.status === 200 ? result.customer.location : item.location
+            const gstNumber = result.status === 200 ? result.customer.gstin : item.gstin
+            const address = result.status === 200 ? result.customer.location : item.location
             return {
               ...item,
               key: item.id,
               customername: customerName,
               mobilenumber: mobileNumber,
-              gstin:gstNumber,
-              location: address,
+              gstin: gstNumber,
+              location: address
             }
           })
       )
@@ -549,7 +546,7 @@ export default function Home({ datas }) {
         datas.rawmaterials
           .filter((rawmaterial) => !rawmaterial.isdeleted && isWithinRange(rawmaterial.date))
           .map(async (item) => {
-            let supplierName;
+            let supplierName
             if (item.type === 'Added') {
               const result = await getSupplierById(item.supplierid)
               supplierName = result.status === 200 ? result.supplier.suppliername : ''
@@ -559,7 +556,7 @@ export default function Home({ datas }) {
               key: item.id,
               customername: supplierName,
               total: item.billamount,
-              billamount: item.billamount,
+              billamount: item.billamount
             }
           })
       )
@@ -567,30 +564,33 @@ export default function Home({ datas }) {
 
       let { deliverys, status } = await getAllPayDetailsFromAllDelivery()
       if (status) {
-        
-        let filterData = await Promise.all(deliverys.filter(
-          (data) =>
-            isWithinRange(data.date) &&
-            (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
-        ).map(async (data) => {
-          let name = ''
-          if (data.customerid) {
-            const result = await getCustomerById(data.customerid)
-            if (result.status) {
-              name = result.customer.customername
-            }
-          }
-          if (data.deliveryid) {
-            const result = await getDeliveryById(data.deliveryid)
-            if (result.status) {
-              name = result.delivery.customername
-            }
-          }
-          return {
-            ...data,
-            name: name
-          }
-        }));
+        let filterData = await Promise.all(
+          deliverys
+            .filter(
+              (data) =>
+                isWithinRange(data.date) &&
+                (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
+            )
+            .map(async (data) => {
+              let name = ''
+              if (data.customerid) {
+                const result = await getCustomerById(data.customerid)
+                if (result.status) {
+                  name = result.customer.customername
+                }
+              }
+              if (data.deliveryid) {
+                const result = await getDeliveryById(data.deliveryid)
+                if (result.status) {
+                  name = result.delivery.customername
+                }
+              }
+              return {
+                ...data,
+                name: name
+              }
+            })
+        )
 
         let totalAmount = filterData.reduce((total, data) => {
           const amount = Number(data.amount) || 0
@@ -601,7 +601,7 @@ export default function Home({ datas }) {
         }, 0)
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
-        
+
         let spendData = await Promise.all(
           deliverys
             .filter(
@@ -610,29 +610,29 @@ export default function Home({ datas }) {
                 (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
             )
             .map(async (data) => {
-              let name = '';
-        
+              let name = ''
+
               if (data.supplierid) {
-                const result = await getSupplierById(data.supplierid);
+                const result = await getSupplierById(data.supplierid)
                 if (result.status) {
-                  name = result.supplier.suppliername;
+                  name = result.supplier.suppliername
                 }
               }
-        
+
               if (data.employeeid) {
-                const result = await getEmployeeById(data.employeeid);
+                const result = await getEmployeeById(data.employeeid)
                 if (result.status) {
-                  name = result.employee.employeename;
+                  name = result.employee.employeename
                 }
               }
-        
+
               return {
                 ...data,
-                name: name,
-              };
+                name: name
+              }
             })
-        );
-        
+        )
+
         let spendAmount = spendData.reduce((total, data) => {
           // console.log(data);
           const amount = Number(data.amount) || 0
@@ -644,8 +644,7 @@ export default function Home({ datas }) {
           return total
         }, 0)
         setTotalSpendAmount(spendAmount)
-        
-        
+
         setFilteredSpendingPayments(spendData)
       }
     }
@@ -676,14 +675,19 @@ export default function Home({ datas }) {
       const { materialitem, status } = await fetchMaterials(record.id)
       if (status === 200) {
         itemsWithProductNames = await Promise.all(
-           materialitem.map(async (item) => {
-          let { material, status } = await getOneMaterialDetailsById(record.supplierid,item.materialid)
-          return{
-          productname: material.materialname || '',
-          flavour: '',
-          quantity: material.unit || '',
-          numberofpacks: item.quantity || 0
-        }}))
+          materialitem.map(async (item) => {
+            let { material, status } = await getOneMaterialDetailsById(
+              record.supplierid,
+              item.materialid
+            )
+            return {
+              productname: material.materialname || '',
+              flavour: '',
+              quantity: material.unit || '',
+              numberofpacks: item.quantity || 0
+            }
+          })
+        )
       }
     } else {
       const { items, status } = await fetchItemsForDelivery(record.id)
@@ -783,14 +787,18 @@ export default function Home({ datas }) {
       case 'totalSales':
         newSelectedTableData = filteredDelivery.filter((product) => product.type !== 'return')
         break
-      case 'totalSpend':{
-        const rawMaterialsData = filteredRawmaterials.filter((material) => material.type === 'Added' && (material.paymentstatus === 'Paid' || material.paymentstatus === 'Partial'))
+      case 'totalSpend': {
+        const rawMaterialsData = filteredRawmaterials.filter(
+          (material) =>
+            material.type === 'Added' &&
+            (material.paymentstatus === 'Paid' || material.paymentstatus === 'Partial')
+        )
         const otherSpend = filteredSpendingPayments.map((pay) => ({
           ...pay,
-        customername:pay.name,
-        billamount:pay.amount
-      }));
-        newSelectedTableData = [...rawMaterialsData, ...otherSpend];
+          customername: pay.name,
+          billamount: pay.amount
+        }))
+        newSelectedTableData = [...rawMaterialsData, ...otherSpend]
         break
       }
       case 'totalQuickSale':
@@ -824,10 +832,10 @@ export default function Home({ datas }) {
         )
         const filterPayment = filteredPayments.map((pay) => ({
           ...pay,
-          customername:pay.name,
-          billamount:pay.amount
-        }));
-        newSelectedTableData = [...deliveryData,...filterPayment]
+          customername: pay.name,
+          billamount: pay.amount
+        }))
+        newSelectedTableData = [...deliveryData, ...filterPayment]
         break
       }
       case 'totalUnpaid':
@@ -842,19 +850,21 @@ export default function Home({ datas }) {
     setSelectedTableData(filterLatestData)
   }
 
-  const handlePaymentTypeClick = async (paymentMode) =>{
+  const handlePaymentTypeClick = async (paymentMode) => {
     const filtered = filteredDelivery.filter(
       (product) =>
         product.type !== 'return' &&
         (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial') &&
         product.paymentmode === paymentMode
     )
-    const filterPayment = filteredPayments.filter((pay) => pay.paymentmode === paymentMode).map((pay) => ({
-      ...pay,
-      customername:pay.name,
-      billamount:pay.amount
-    }));
-    let combinedData = [...filtered,...filterPayment]
+    const filterPayment = filteredPayments
+      .filter((pay) => pay.paymentmode === paymentMode)
+      .map((pay) => ({
+        ...pay,
+        customername: pay.name,
+        billamount: pay.amount
+      }))
+    let combinedData = [...filtered, ...filterPayment]
     let filterLatestData = await latestFirstSort(combinedData)
     setSelectedTableData(filterLatestData)
   }
@@ -870,11 +880,10 @@ export default function Home({ datas }) {
     customerdetails: {}
   })
 
-  const [gstin,setGstin] = useState(false);
-  const [loadingGstin, setLoadingGstin] = useState(false);
-  const [loadingWithoutGstin, setLoadingWithoutGstin] = useState(false);
-  const [hasPdf,setHasPdf] = useState(false)
-
+  const [gstin, setGstin] = useState(false)
+  const [loadingGstin, setLoadingGstin] = useState(false)
+  const [loadingWithoutGstin, setLoadingWithoutGstin] = useState(false)
+  const [hasPdf, setHasPdf] = useState(false)
 
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
@@ -909,11 +918,10 @@ export default function Home({ datas }) {
           gstin: gstin,
           location: location
         }
-      }));
-      setLoadingGstin(false);
-      setLoadingWithoutGstin(false);
+      }))
+      setLoadingGstin(false)
+      setLoadingWithoutGstin(false)
     }
-
   }
 
   // const handlePrint = async (record) => {
@@ -955,17 +963,15 @@ export default function Home({ datas }) {
 
   const handlePrint = async (record) => {
     try {
-        const { items, status } = await fetchItemsForDelivery(record.id);
-        if (status !== 200) {
-            throw new Error(`Failed to fetch items: ${status}`);
-        }
-        const result = await getCustomerById(record.customerid);
-        const gstin = result.customer?.gstin || '';
-        const location = result.customer?.location || '';
+      const { items, status } = await fetchItemsForDelivery(record.id)
+      if (status !== 200) {
+        throw new Error(`Failed to fetch items: ${status}`)
+      }
+      const result = await getCustomerById(record.customerid)
+      const gstin = result.customer?.gstin || ''
+      const location = result.customer?.location || ''
 
-        let prData = datas.product.filter((item) =>
-            items.find((item2) => item.id === item2.id)
-        );
+      let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
 
         let prItems = prData.map((pr, i) => {
             let matchingData = items.find((item) => item.id === pr.id);
@@ -995,11 +1001,11 @@ export default function Home({ datas }) {
             },
         }));
     } catch (error) {
-        console.error("Error in handlePrint:", error);
-        throw error; // Ensure to propagate the error
+      console.error('Error in handlePrint:', error)
+      throw error // Ensure to propagate the error
     }
-};
-
+  }
+  console.log(invoiceDatas)
 
   const handleQuotationPrint = async () => {
     // data
@@ -1113,58 +1119,84 @@ export default function Home({ datas }) {
     }
   }, [isPrinting])
 
+  const [gstBill, setGstBill] = useState(false)
+  const [gstBillPdf, setGstBillPdf] = useState(false)
+  const GstBillRef = useRef()
+  const GstComponentRef = useRef()
+
   // useEffect(() => {
   //   const generatePDF = async () => {
   //     if (invoiceDatas.isGenerate) {
-  //       const element = await printRef.current
-  //       const canvas = await html2canvas(element)
-  //       const data = await canvas.toDataURL('image/png')
-  //       const pdf = await new jsPDF()
-  //       const imgWidth = 210
-  //       const pageHeight = 297
-  //       const imgHeight = (canvas.height * imgWidth) / canvas.width
+  //       const element = gstBill === true ? GstBillRef.current : printRef.current // The element to print
+
+  //       // Set the scale for html2canvas (this helps with controlling size)
+  //       const canvas = await html2canvas(element, {
+  //         scale: 2, // You can adjust the scale to improve resolution
+  //         useCORS: true // This is useful for handling cross-origin content
+  //       })
+
+  //       // Get the canvas as a data URL
+  //       const data = canvas.toDataURL('image/png')
+
+  //       // Initialize jsPDF
+  //       const pdf = new jsPDF('p', 'mm', 'a4') // 'p' for portrait, 'mm' for millimeters, and 'a4' size
+
+  //       // Calculate the dimensions of the image
+  //       const imgWidth = 210 // A4 width in mm
+  //       const pageHeight = 297 // A4 height in mm
+  //       const imgHeight = (canvas.height * imgWidth) / canvas.width // Keep aspect ratio
+
   //       let heightLeft = imgHeight
   //       let position = 0
+
+  //       // Add the image to the PDF
   //       pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
   //       heightLeft -= pageHeight
+
+  //       // Handle multi-page PDFs
   //       while (heightLeft > 0) {
   //         position = heightLeft - imgHeight
   //         pdf.addPage()
   //         pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
   //         heightLeft -= pageHeight
   //       }
+
+  //       // Save the generated PDF
   //       pdf.save(
-  //         `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
+  //         `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`
   //       )
+
+  //       // Reset the state after generating the PDF
   //       await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }))
   //     }
   //   }
+
   //   generatePDF()
   // }, [invoiceDatas.isGenerate, printRef])
-
-
 
   useEffect(() => {
     const generatePDF = async () => {
       if (invoiceDatas.isGenerate) {
-        const element = printRef.current;  // The element to print
+        const element = gstBill === true ? GstBillRef.current : printRef.current; // The element to print
   
-        // Set the scale for html2canvas (this helps with controlling size)
+        // Set the scale for html2canvas
         const canvas = await html2canvas(element, {
-          scale: 2,  // You can adjust the scale to improve resolution
-          useCORS: true,  // This is useful for handling cross-origin content
+          scale: 2, // Adjust scale for better resolution
+          useCORS: true, // Handle cross-origin content
+          logging: true, // Optional: Log messages to the console for debugging
+          width: element.scrollWidth, // Set width to capture all content
+          height: element.scrollHeight // Set height to capture all content
         });
   
         // Get the canvas as a data URL
         const data = canvas.toDataURL('image/png');
   
         // Initialize jsPDF
-        const pdf = new jsPDF('p', 'mm', 'a4');  // 'p' for portrait, 'mm' for millimeters, and 'a4' size
+        const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, and 'a4' size
   
-        // Calculate the dimensions of the image
-        const imgWidth = 210;  // A4 width in mm
-        const pageHeight = 297;  // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Keep aspect ratio
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
   
         let heightLeft = imgHeight;
         let position = 0;
@@ -1182,18 +1214,15 @@ export default function Home({ datas }) {
         }
   
         // Save the generated PDF
-        pdf.save(
-          `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`
-        );
+        pdf.save(`${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`);
   
         // Reset the state after generating the PDF
-        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
+        await setInvoiceDatas((prev) => ({ ...prev, isGenerate: false }));
       }
     };
   
     generatePDF();
   }, [invoiceDatas.isGenerate, printRef]);
-  
   
   
 
@@ -1215,39 +1244,56 @@ export default function Home({ datas }) {
       title: 'Name',
       dataIndex: 'customername',
       key: 'customername',
-      render: (text,record)=>{
-        
-        if(activeCard === 'totalSpend'){
-          return record.collectiontype === "supplier" ? <>{text} <Tag color='gold'>Supplier</Tag></> : record.collectiontype === "employee" ? <> {text} <Tag color='purple'>Employee</Tag></> : text
-        }
-        else if(activeCard === 'totalPaid' ||  activeTabKey2 === 'total'){
-          return record.collectiontype === "customer" ? <>{text} <Tag color='gold'>Customer</Tag></> : record.collectiontype === "delivery" ? <> {text} <Tag color='purple'>Delivery</Tag></> : text
-        }
-        else{
+      render: (text, record) => {
+        if (activeCard === 'totalSpend') {
+          return record.collectiontype === 'supplier' ? (
+            <>
+              {text} <Tag color="gold">Supplier</Tag>
+            </>
+          ) : record.collectiontype === 'employee' ? (
+            <>
+              {' '}
+              {text} <Tag color="purple">Employee</Tag>
+            </>
+          ) : (
+            text
+          )
+        } else if (activeCard === 'totalPaid' || activeTabKey2 === 'total') {
+          return record.collectiontype === 'customer' ? (
+            <>
+              {text} <Tag color="gold">Customer</Tag>
+            </>
+          ) : record.collectiontype === 'delivery' ? (
+            <>
+              {' '}
+              {text} <Tag color="purple">Delivery</Tag>
+            </>
+          ) : (
+            text
+          )
+        } else {
           return text
         }
-       
       }
     },
     {
       title: 'Gross Amount',
       dataIndex: 'total',
       key: 'total',
-      width:140,
+      width: 140
     },
     {
       title: 'Amount',
       dataIndex: 'billamount',
       key: 'billamount',
       render: (text) => <span>{formatToRupee(text, true)}</span>,
-      width:120,
+      width: 120
     },
     {
       title: 'Status',
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (text, record) => {
-        
         const { partialamount } = record
         if (text === 'Paid') {
           return (
@@ -1261,7 +1307,9 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              <Tag color="yellow">{text} - {partialamount}</Tag>
+              <Tag color="yellow">
+                {text} - {partialamount}
+              </Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
           )
@@ -1276,8 +1324,12 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              <Tag  className={`${text === undefined ? 'hidden': ''}`} color="red">{text}</Tag>
-              <Tag className={record.paymentmode ? '' :'hidden'} color='cyan'>{record.paymentmode}</Tag>
+              <Tag className={`${text === undefined ? 'hidden' : ''}`} color="red">
+                {text}
+              </Tag>
+              <Tag className={record.paymentmode ? '' : 'hidden'} color="cyan">
+                {record.paymentmode}
+              </Tag>
             </>
           )
         }
@@ -1287,44 +1339,85 @@ export default function Home({ datas }) {
       title: 'Action',
       dataIndex: 'action',
       width: 150,
-      render: (_, record) =>{        
-       return <span>
-        <Button
-        disabled={Object.keys(record).includes('collectiontype') ? true:false}
-          className="py-0 text-[0.7rem] h-[1.7rem]" 
-          icon={<UnorderedListOutlined />}
-          style={{ marginRight: 8 }}
-          onClick={() => showModal(record)}
-        />
+      render: (_, record) => {
+        return (
+          <span>
+            <Button
+              disabled={Object.keys(record).includes('collectiontype') ? true : false}
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              icon={<UnorderedListOutlined />}
+              style={{ marginRight: 8 }}
+              onClick={() => showModal(record)}
+            />
 
-        <Popconfirm 
-        placement="leftTop" 
-        className="py-0 text-[0.7rem] h-[1.7rem]" 
-        
-        // className={`py-0 text-[0.7rem] h-[1.7rem] ${Object.keys(record).includes('collectiontype') ? 'hidden':'inline-block'}`} 
-        title={<div>
-              <span>Sure to download pdf?</span>
-              <section className='flex gap-x-2 mt-2'>
-                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' onClick={async() => { await setHasPdf(true); await setLoadingGstin(true); setGstin(true); handleDownloadPdf(record);}} >GST</Button>
-                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' onClick={async() => { await setHasPdf(true); setLoadingWithoutGstin(true); setGstin(false); handleDownloadPdf(record);}}>Without GST</Button>
-                {/* <Button size='small' className='text-[0.7rem]' >Cancel</Button> */}
-              </section>
-            </div>}
-          // onConfirm={() => handleDownloadPdf(record)}
-          onConfirm={null} // Set onConfirm to null
+            <Popconfirm
+              placement="leftTop"
+              className="py-0 text-[0.7rem] h-[1.7rem]"
+              // className={`py-0 text-[0.7rem] h-[1.7rem] ${Object.keys(record).includes('collectiontype') ? 'hidden':'inline-block'}`}
+              title={
+                <div>
+                  <span>Sure to download pdf?</span>
+                  <section className="flex gap-x-2 mt-2">
+                    <Button
+                      loading={loadingGstin}
+                      disabled={
+                        record.gstin === undefined || record.gstin === '' || record.gstin === null
+                          ? true
+                          : false
+                      }
+                      size="small"
+                      className="text-[0.7rem]"
+                      type="primary"
+                      onClick={async () => {
+                        
+                        await setGstBillPdf(true)
+                        await setGstBill(true)
+                        await setHasPdf(true)
+                        await setLoadingGstin(true)
+                        setGstin(true)
+                        handleDownloadPdf(record)
+                      }}
+                    >
+                      GST
+                    </Button>
+                    <Button
+                      loading={loadingWithoutGstin}
+                      size="small"
+                      className="text-[0.7rem]"
+                      type="dashed"
+                      onClick={async () => {
+                        await setGstBillPdf(true)
+                        await setGstBill(false)
+                        await setHasPdf(true)
+                        setLoadingWithoutGstin(true)
+                        setGstin(false)
+                        handleDownloadPdf(record)
+                      }}
+                    >
+                      Without GST
+                    </Button>
+                    {/* <Button size='small' className='text-[0.7rem]' >Cancel</Button> */}
+                  </section>
+                </div>
+              }
+              // onConfirm={() => handleDownloadPdf(record)}
+              onConfirm={null} // Set onConfirm to null
               showCancel={false} // Hides the cancel button
               okButtonProps={{ style: { display: 'none' } }} // Hides the ok button
-          >
-          <Button
-          disabled={Object.keys(record).includes('collectiontype') || record.type === "Added" ? true: false}
-            className="py-0 text-[0.7rem] h-[1.7rem]"
-            icon={<DownloadOutlined />}
-            style={{ marginRight: 8 }}
-          />
+            >
+              <Button
+                disabled={
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                    ? true
+                    : false
+                }
+                className="py-0 text-[0.7rem] h-[1.7rem]"
+                icon={<DownloadOutlined />}
+                style={{ marginRight: 8 }}
+              />
+            </Popconfirm>
 
-        </Popconfirm>
-
-        {/* <ReactToPrint
+            {/* <ReactToPrint
           trigger={() => (
             <Button disabled={Object.keys(record).includes('collectiontype') || record.type === "Added" ? true:false} className="py-0 text-[0.7rem] h-[1.7rem]" icon={<PrinterOutlined />} />
           )}
@@ -1342,93 +1435,115 @@ export default function Home({ datas }) {
             setIsPrinting(false)
           }}
         /> */}
-        
-        <Popconfirm
-  // title="Are you sure you want to print this?"
-  title={<div>
-              <span>Are you sure you want to print this?</span>
-              <section className='flex gap-x-2 mt-2'>
-                {/* gst */}
-                <Button loading={loadingGstin} disabled={record.gstin === undefined || record.gstin === '' || record.gstin === null ? true : false} size='small' className='text-[0.7rem]' type='primary' 
-                onClick={async () => { 
-                  await setHasPdf(false);
-                 await setIsPrinting(true);
-                  setLoadingGstin(true); 
-                  setGstin(true); 
-                  
-                  await handlePrint(record).then(() => {
-      promiseResolveRef.current && promiseResolveRef.current();
-      document.getElementById(`print-trigger-${record.id}`).click();
-      setLoadingGstin(false); 
-    }); 
-                     
-                  }}>GST</Button>
-                
-                {/* without gst */}
-                <Button loading={loadingWithoutGstin} size='small' className='text-[0.7rem]' type='dashed' 
-                onClick={async() => { 
-                  await setHasPdf(false);
-                 await setIsPrinting(true);
-                  setLoadingWithoutGstin(true); 
-                  setGstin(false); 
-                 await handlePrint(record).then(() => {
-      promiseResolveRef.current && promiseResolveRef.current();
-      document.getElementById(`print-trigger-${record.id}`).click();
-      setLoadingWithoutGstin(false); 
-    });
-                  }}>Without GST</Button>
-              </section>
-            </div>}
-            onConfirm={null}
-            showCancel={false} 
-            okButtonProps={{ style: { display: 'none' } }}
 
-  okText="Without GST"
-  cancelText="GST"
-  onCancel={()=>{
-    setGstin(true);
-    setIsPrinting(true);
-      promiseResolveRef.current && promiseResolveRef.current();
-      document.getElementById(`print-trigger-${record.id}`).click();
-      console.log(record)
-  }}
->
-  <Button
-    disabled={
-      Object.keys(record).includes('collectiontype') || record.type === "Added"
-        ? true
-        : false
-    }
-    className="py-0 text-[0.7rem] h-[1.7rem]"
-    icon={<PrinterOutlined />}
-  />
-</Popconfirm>
+            <Popconfirm
+              // title="Are you sure you want to print this?"
+              title={
+                <div>
+                  <span>Are you sure you want to print this?</span>
+                  <section className="flex gap-x-2 mt-2">
+                    {/* gst */}
+                    <Button
+                      loading={loadingGstin}
+                      disabled={
+                        record.gstin === undefined || record.gstin === '' || record.gstin === null
+                          ? true
+                          : false
+                      }
+                      size="small"
+                      className="text-[0.7rem]"
+                      type="primary"
+                      onClick={async () => {
+                        await setGstBillPdf(false)
+                        await setGstBill(true)
+                        await setHasPdf(false)
+                        await setIsPrinting(true)
+                        setLoadingGstin(true)
+                        setGstin(true)
+                        await handlePrint(record).then(() => {
+                          promiseResolveRef.current && promiseResolveRef.current()
+                          document.getElementById(`print-trigger-${record.id}`).click()
+                          setLoadingGstin(false)
+                        })
+                      }}
+                    >
+                      GST
+                    </Button>
 
-<ReactToPrint
-    trigger={() => (
-        <button style={{ display: 'none' }} id={`print-trigger-${record.id}`}></button>
-    )}
-    onBeforeGetContent={async () => {
-        return new Promise((resolve) => {
-            promiseResolveRef.current = resolve;
-            handlePrint(record)
-                .then(() => {
-                    setIsPrinting(true);
-                    resolve(); // Resolve once handlePrint completes successfully
+                    {/* without gst */}
+                    <Button
+                      loading={loadingWithoutGstin}
+                      size="small"
+                      className="text-[0.7rem]"
+                      type="dashed"
+                      onClick={async () => {
+                        await setGstBillPdf(false)
+                        await setGstBill(false)
+                        await setHasPdf(false)
+                        await setIsPrinting(true)
+                        setLoadingWithoutGstin(true)
+                        setGstin(false)
+                        await handlePrint(record).then(() => {
+                          promiseResolveRef.current && promiseResolveRef.current()
+                          document.getElementById(`print-trigger-${record.id}`).click()
+                          setLoadingWithoutGstin(false)
+                        })
+                      }}
+                    >
+                      Without GST
+                    </Button>
+                  </section>
+                </div>
+              }
+              onConfirm={null}
+              showCancel={false}
+              okButtonProps={{ style: { display: 'none' } }}
+              okText="Without GST"
+              cancelText="GST"
+              onCancel={() => {
+                setGstin(true)
+                setIsPrinting(true)
+                promiseResolveRef.current && promiseResolveRef.current()
+                document.getElementById(`print-trigger-${record.id}`).click()
+                console.log(record)
+              }}
+            >
+              <Button
+                disabled={
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                    ? true
+                    : false
+                }
+                className="py-0 text-[0.7rem] h-[1.7rem]"
+                icon={<PrinterOutlined />}
+              />
+            </Popconfirm>
+
+            <ReactToPrint
+              trigger={() => (
+                <button style={{ display: 'none' }} id={`print-trigger-${record.id}`}></button>
+              )}
+              onBeforeGetContent={async () => {
+                return new Promise((resolve) => {
+                  promiseResolveRef.current = resolve
+                  handlePrint(record)
+                    .then(() => {
+                      setIsPrinting(true)
+                      resolve() // Resolve once handlePrint completes successfully
+                    })
+                    .catch((error) => {
+                      console.error('Print preparation error:', error)
+                      resolve() // Ensure to resolve even on error
+                    })
                 })
-                .catch((error) => {
-                    console.error("Print preparation error:", error);
-                    resolve(); // Ensure to resolve even on error
-                });
-        });
-    }}
-    content={() => componentRef.current}
-    onAfterPrint={() => {
-        promiseResolveRef.current = null;
-        setIsPrinting(false);
-    }}
-/>
-{/* <ReactToPrint
+              }}
+              content={() => (gstBill === true ? GstComponentRef.current : componentRef.current)}
+              onAfterPrint={() => {
+                promiseResolveRef.current = null
+                setIsPrinting(false)
+              }}
+            />
+            {/* <ReactToPrint
   trigger={() => (
     <button id={`print-trigger-${record.id}`} style={{ display: 'none' }}></button>
   )}
@@ -1446,9 +1561,8 @@ export default function Home({ datas }) {
     setIsPrinting(false);
   }}
 /> */}
-
-    
-      </span>
+          </span>
+        )
       }
     }
   ]
@@ -1563,7 +1677,7 @@ export default function Home({ datas }) {
         item.flavour === values.flavour &&
         item.quantity === Number(quantityvalue) &&
         item.unit === units
-    ).price
+    ).price;
 
     const newProduct = {
       ...values,
@@ -1574,15 +1688,13 @@ export default function Home({ datas }) {
       productprice: findPrice,
       margin: 0,
       price: findPrice * values.numberofpacks
-    }
+    };
 
-    const checkExsit = quotationft.tempproduct.some(
-      (item) =>
+    const checkExsit = quotationft.tempproduct.some( (item) =>
         item.productname === newProduct.productname &&
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
-        item.date === newProduct.date
-    )
+        item.date === newProduct.date)
 
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
@@ -1621,7 +1733,7 @@ export default function Home({ datas }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks'
     }
-  ]
+  ];
 
   // Table Hight Auto Adjustment (***Do not tounch this code*** ) //
   const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
@@ -1744,8 +1856,834 @@ export default function Home({ datas }) {
     }
   }
 
+const pdfBillStyle = {fontSize:'1rem'}
+
   return (
     <div>
+
+ {/* old pdf and print start */}
+ <div
+        ref={printRef}
+        className="absolute top-[-200rem] w-full"
+        // className='w-full h-screen'
+        style={{ padding: '20px', backgroundColor: '#ffff', border:'1px solid #000' }}>
+        <div ref={componentRef}>
+          <section className="w-[90%] mx-auto mt-4">
+            <ul className="flex justify-center items-center gap-x-2">
+              <li>
+                <img 
+                // className="w-[3rem]" 
+                width={ '68px'}
+                src={companyLogo} alt="comapanylogo" />
+              </li>
+              <li className="text-center">
+                <h1 style={{fontWeight:'bold',fontSize:'18px'}} 
+                // className={`${hasPdf === true ? 'text-[1.5rem]' : 'text-[0.7rem]'} font-bold`}
+                >
+                  NEW SARANYA ICE COMPANY
+                </h1>
+                <p 
+                style={{fontSize:'14px'}}
+                // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                >
+                  PILAVILAI, AZHAGANPARAI P.O.
+                </p>
+                <p 
+                style={{fontSize:'14px'}}
+                // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                >K.K.DIST</p>
+              </li>
+            </ul>
+
+            <ul 
+            style={{fontSize:'11px',display:'flex',justifyContent:'space-between',alignItems:'center', margin:'40px 0 0 0'}}
+            // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`} 
+            >
+              <li>
+                <div>
+                  <span className=" font-bold">Date :</span>
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.date
+                      : null}
+                  </span>{' '}
+                </div>
+                <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
+                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
+                </div>
+
+                <div
+
+                // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
+                >
+                  <span className="font-bold">Customer Name :</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.customername
+                      : null}
+                  </span>
+                </div>
+
+                <div
+                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined ? 'hidden' : 'block'}`}
+                >
+                  <span className="font-bold">Mobile Number : </span>{' '}
+                  <span>{invoiceDatas.customerdetails.mobilenumber}</span>
+                </div>
+
+                <div className={`${gstin === true ? 'block' : 'hidden'}`}>
+                  <div
+                    className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
+                  >
+                    <span className="font-bold">Customer GSTIN :</span>{' '}
+                    <span>
+                      {invoiceDatas.customerdetails.gstin
+                        ? invoiceDatas.customerdetails.gstin
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div
+                    className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
+                  >
+                    <span className="font-bold">Customer Address :</span>{' '}
+                    <span>
+                      {invoiceDatas.customerdetails.location
+                        ? invoiceDatas.customerdetails.location
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </li>
+
+              <li className="text-end flex flex-col items-end">
+                <span>
+                  {' '}
+                  <span className="font-bold">Cell :</span> 7373674757
+                </span>
+                <span>9487369569</span>
+              </li>
+            </ul>
+
+            <table
+            className='withoutgsttable'
+            style={{fontSize:'11px',width:'100%',borderCollapse:'collapse',margin:'20px 0px 0px 0px',textAlign:'left'}}
+              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-4`}
+            >
+              <thead>
+                <tr>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    S.No
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Product
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Flavour
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Size
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Rate
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Qty
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    MRP
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Margin
+                  </th>
+                  <th
+                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  >
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceDatas.data.length > 0
+                  ? invoiceDatas.data.map((item, i) => (
+                      <tr key={i}>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {i + 1}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.productname}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.flavour}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.quantity}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.pieceamount}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.numberofpacks}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {item.producttotalamount}
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {toDigit(item.margin)}%
+                        </td>
+                        <td
+                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        >
+                          {customRound(
+                            item.numberofpacks * item.pieceamount -
+                              (item.numberofpacks * item.pieceamount * item.margin) / 100
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  : 'No Data'}
+              </tbody>
+            </table>
+            
+            <div style={{fontSize:'11px',textAlign:'end', margin:'10px 0 0 0'}}>
+            <p 
+            // className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Total Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.total)
+                  : null}
+              </span>{' '}
+            </p>
+            <p 
+            // className={`text-end ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Bill Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                  : null}
+              </span>
+            </p>
+            <p
+              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+            >
+              Paid Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
+                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
+                  : null}
+              </span>
+            </p>
+            <p
+              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            >
+              Balance:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(
+                      invoiceDatas.customerdetails.billamount -
+                        invoiceDatas.customerdetails.partialamount
+                    )
+                  : null}
+              </span>
+            </p>
+            <p
+            style={{padding:'50px 0 0 0'}}
+              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Authorised Signature
+            </p>
+            </div>
+          </section>
+        </div>
+      </div>
+      {/* old pdf and print end */}
+
+      {/* new start */}
+      <div
+        ref={GstBillRef}
+        className="absolute top-[-200rem] w-full"
+        // className=" absolute top-34 left-0 w-full z-[9999]"
+        style={{ padding: '20px', backgroundColor: '#ffff' }}>
+        <div ref={GstComponentRef} className="w-full h-screen flex justify-center items-center">
+
+          <span style={{}} className={`${hasPdf === true ? 'text-[1.3rem] ' : 'text-[1rem]'} absolute top-5 left-1/2 -translate-x-1/2  font-medium`}>
+            TAX INVOICE
+          </span>
+
+          <section className="w-[90%] border h-[90vh] ">
+            <ul className="flex justify-center items-center gap-x-2">
+              {/* <li>
+                {' '}
+                <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
+              </li> */}
+              <li className="text-center">
+                {' '}
+                <h1 className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
+                  NEW SARANYA ICE COMPANY
+                </h1>{' '}
+                <p className={`${hasPdf === true ? 'text-[1.6rem]' : 'text-[0.7rem]'}`}>
+                  PILAVILAI, AZHAGANPARAI P.O.
+                </p>{' '}
+                <p className={`${hasPdf === true ? 'text-[1.6rem]' : 'text-[0.7rem]'}`}>K.K.DIST</p>{' '}
+              </li>
+            </ul>
+
+            <ul
+              className={`px-2 ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`}
+            >
+              {/* phone number */}
+              <li className="text-start flex flex-col ">
+                <span>
+                  <span className="font-medium">Phone NO &#160;&#160;&#160;&#160; :</span>{' '}
+                  7373674757, 9487369569
+                </span>
+                <span className="font-medium">
+                  Cin NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; :
+                </span>
+              </li>
+
+              <li>
+                <span className="font-bold">Email ID &#160; :</span>{' '}
+                <span className="font-normal">saranya@gmail.com</span>
+                {/* <div>
+                  <span className=" font-bold">Date :</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.date
+                      : null}
+                  </span>{' '}
+                </div>
+
+                <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
+                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
+                </div>
+
+                <div
+
+                // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
+                >
+                  <span className="font-bold">Customer Name :</span>{' '}
+                  <span>
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? invoiceDatas.customerdetails.customername
+                      : null}
+                  </span>
+                </div>
+
+                <div
+                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined ? 'hidden' : 'block'}`}
+                >
+                  <span className="font-bold">Mobile Number : </span>{' '}
+                  <span>{invoiceDatas.customerdetails.mobilenumber}</span>
+                </div>
+
+                <div className={`${gstin === true ? 'block' : 'hidden'}`}>
+                  <div
+                    className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
+                  >
+                    <span className="font-bold">Customer GSTIN :</span>{' '}
+                    <span>
+                      {invoiceDatas.customerdetails.gstin
+                        ? invoiceDatas.customerdetails.gstin
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div
+                    className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
+                  >
+                    <span className="font-bold">Customer Address :</span>{' '}
+                    <span>
+                      {invoiceDatas.customerdetails.location
+                        ? invoiceDatas.customerdetails.location
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div> */}
+              </li>
+            </ul>
+
+            <table className="gsttable w-full mt-2">
+              <thead>
+                <tr>
+                  <th
+                    className={`pl-2 py-2 ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}>
+                    <span className=" text-left block ">
+                      Gst No
+                      &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                      33AAIFN6367K1ZV
+                    </span>
+                    <span className=" text-left block ">
+                      PAN No &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      <span className="font-medium">33AAIFN6367K1ZV</span>
+                    </span>
+                  </th>
+
+                  <th className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}>
+                    <span className="block">E-Way Bill NO.</span>
+                    33AAIFN6367K1ZV
+                  </th>
+
+                  <th
+                    className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} font-bold`}
+                  >
+                    <span className="text-left block pl-2">
+                      No &#160;&#160;&#160;&#160;&#160;&#160;&#160;: { invoiceDatas.customerdetails.id}
+                    </span>
+                    <span className="text-left block pl-2">
+                      Date &#160;&#160;&#160;: 
+                      <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.date
+                          : null}
+                      </span>
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+            </table>
+
+            {/* grid -2 */}
+            <ul className='px-2 py-2'>
+              <li className={` ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+                <span className="text-left block ">
+                  Ack NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV
+                </span>
+                <span className="text-left flex justify-between ">
+                  IRN
+                  &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.date
+                    : null}{' '}
+                  <span>Ack Date: </span>{' '}
+                </span>
+              </li>
+            </ul>
+
+            {/* grid-3 */}
+            <ul className="border-t grid grid-cols-2 ">
+              {/* billed address */}
+              <li className={`border-r ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+                <div className='px-2 py-2'>
+                <span className="text-left block font-bold">Billed To </span>
+                <address
+                  className={`not-italic  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+                >
+                  <span className={`font-bold pl-2`}>New Saranya Ice Company</span> <br />
+                  <span className={`font-medium block pl-4`}>
+                    2-61/3 Pillavillai Azhaganparal Post <br />
+                    Nagarcoil <br />
+                    Kanyamukari Dist
+                    <br />
+                    Pincode: 628217.
+                  </span>
+                </address>
+
+                <span className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium mt-3 block`}>
+                  PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                  Batch Code &#160;&#160;:
+                  <br />
+                  GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                  <br />
+                </span>
+                </div>
+              </li>
+              {/* shipped address */}
+              <li className={`${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}>
+                <div className='px-2 py-2 flex flex-col justify-between'>
+                <span className="text-left block font-bold">Shipped To </span>
+                <address
+                  className={`not-italic  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+                >
+                  <span className={`font-bold pl-2`}>{Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.customername
+                    : null}</span> <br />
+                  <span className={`font-medium block pl-4`}>
+                    {/* 2-61/3 Pillavillai Azhaganparal Post <br />
+                    Nagarcoil <br />
+                    Kanyamukari Dist
+                    <br />
+                    Pincode: 628217. */}
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.location
+                    : null}{' '}
+                  </span>
+                </address>
+
+                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                  PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                  Batch Code &#160;&#160;:
+                  <br />
+                  GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                  <br />
+                </span>
+                </div>
+              </li>
+
+              {/* order detail */}
+              <li
+                className={`py-2 border-t border-r ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} `}
+              >
+                <div className='px-2'>
+                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                  Order NO &#160;&#160;&#160;&#160;&#160;: <br />
+                  P.O NO
+                  &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                  <br />
+                  Distination &#160;&#160;: <span className="font-bold">Nagarcovil</span>
+                  <br />
+                </span>
+                </div>
+              </li>
+              <li  className={`py-2 w-full border-t  ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'}`}
+              >
+                <div className='px-2'>
+                <span  className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} font-medium  block`}>
+                  Transport &#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                  <span>
+                    LR.No
+                    &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                    <span className="">Dr :</span>
+                  </span>
+                  <br />
+                  Vehecile No &#160;&#160;: <span className="font-bold">TN 92 3564</span>
+                  <br />
+                  Doc.Thiru &#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                </span>
+                </div>
+              </li>
+            </ul>
+           
+           <section >
+           <table
+              className={` gstitemtable ${hasPdf === true ? 'text-[1rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-1`}
+            >
+              <thead>
+                <tr>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1 w-[2rem]`}
+                  >
+                    S.No
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Product
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Flavour
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Size
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Rate
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Qty
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    MRP
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Margin
+                  </th>
+                  <th
+                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
+                  >
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceDatas.data.length > 0
+                  ? invoiceDatas.data.map((item, i) => (
+                      <tr key={i}>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {i + 1}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.productname}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.flavour}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.quantity}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.pieceamount}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.numberofpacks}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {item.producttotalamount}
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {toDigit(item.margin)}%
+                        </td>
+                        <td
+                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
+                        >
+                          {customRound(
+                            item.numberofpacks * item.pieceamount -
+                              (item.numberofpacks * item.pieceamount * item.margin) / 100
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  : 'No Data'}
+
+                <tr
+                  className={`${invoiceDatas.data.length < 8 && gstBillPdf === false ? 'h-[25vh]' : invoiceDatas.data.length < 8 && gstBillPdf === true ? 'h-[55vh]' : 'hidden'}`}
+                ></tr>
+
+                <tr>
+                  <td></td>
+                  <td>Total</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td>
+                    <span className=" font-bold">
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                        : null}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+           </section>
+
+            <ul
+              className={`px-2 py-2 border-r border-l ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} grid grid-cols-2 font-bold`}
+            >
+              <li>
+                Amount in Work <br />
+                INR <br />
+                No of Bundles :
+              </li>
+              <li>
+                <div className="flex w-full justify-between">
+                  Assessible Value <span>39903</span>
+                </div>
+                <div className="flex w-full justify-between">
+                  CGST Collected & Paid <span>39903</span>
+                </div>
+                <div className="flex w-full justify-between">
+                  SGST Collected & Paid <span>39903</span>
+                </div>
+                <div className="flex w-full justify-between">
+                  ROUND OFF <span>39903</span>
+                </div>
+                <div className="flex w-full justify-between ">
+                  <span className="font-medium">Net Amount</span> <span>39903</span>
+                </div>
+              </li>
+            </ul>
+
+            <table
+              className={`gsttaxtable w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+            >
+              <thead>
+                <tr>
+                  <th>HSN/SAC</th>
+                  <th>Taxable Value</th>
+                  <th colSpan="2">Central Tax</th>
+                  <th colSpan="2">State Tax</th>
+                  <th>Total Tax</th>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th></th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                  <th>Tax Amount</th>
+                </tr>
+              </thead>
+
+              <tbody
+                className={`gsttaxtable w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+              >
+                <tr>
+                  <td>19053453</td>
+                  <td>26000</td>
+                  <td>9%</td>
+                  <td>26000</td>
+                  <td>9%</td>
+                  <td>4687</td>
+                </tr>
+                <tr className="font-bold">
+                  <td></td>
+                  <td>Total</td>
+                  <td></td>
+                  <td>73443</td>
+                  <td></td>
+                  <td>2345</td>
+                  <td>4687</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* company bank detials */}
+            <ul
+              className={` border-b w-full border-x grid grid-cols-2 ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+            >
+              <li className='px-2 py-2'>
+                <h2 className={` w-full ${hasPdf === true ? 'text-[1rem]' : 'text-[0.6rem]'} `}>
+                  Company's Bank Details
+                </h2>
+                Bank Name
+                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-bold">State Bank of India CC A/c</span> <br />
+                A/c No
+                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-bold">0000039765825810</span>
+                <br />
+                Branch & IFS Code &#160;:{' '}
+                <span className="font-bold">Srialsi SME Branch & SBIN003316</span>
+                <br />
+              </li>
+
+              <li
+                className={`px-2 py-2 row-span-2  border-l w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}
+              >
+                Prepared by For
+                <span className="block font-bold text-right pt-5"> Graphic Color Pack</span>
+                Checked by
+                <span className="block text-right pt-10"> Authorised Signature </span>
+              </li>
+
+              <li className={`px-2 py-2 border-t w-full ${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} `}>
+                1.CERTIFIED that the particulars given above are true and correct2. The amount
+                indicated above represents the price actually charged and there is no flow of
+                additionalconsideration directly or indirectly from the buyer3. Interest @ 24% per
+                annum whill be charged on bills if not paid within 15 days, 4. Subject to sivakasi
+                Jurisdiction only.
+              </li>
+            </ul>
+
+            {/* <p className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}>
+              Total Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.total)
+                  : null}
+              </span>{' '}
+            </p>
+            <p className={`text-end ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}>
+              Bill Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                  : null}
+              </span>
+            </p>
+            <p
+              className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+            >
+              Paid Amount:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
+                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
+                  : null}
+              </span>
+            </p>
+            <p
+              className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            >
+              Balance:{' '}
+              <span className=" font-bold">
+                {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(
+                      invoiceDatas.customerdetails.billamount -
+                        invoiceDatas.customerdetails.partialamount
+                    )
+                  : null}
+              </span>
+            </p>
+            <p
+              className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Authorised Signature
+            </p> */}
+          </section>
+        </div>
+      </div>
+      {/* new end */}
+
       <ul>
         <li className="flex gap-x-3 items-center justify-end">
           <RangePicker
@@ -2160,174 +3098,8 @@ export default function Home({ datas }) {
         </div>
       </Modal>
       <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok} />
-      <div
-        ref={printRef}
-        className="absolute top-[-200rem] w-full"
-        style={{ padding: '20px', backgroundColor: '#ffff' }}
-      >
-        <div ref={componentRef}>
-          <section className="w-[90%] mx-auto mt-4">
-            <ul className="flex justify-center items-center gap-x-2">
-              <li>
-                {' '}
-                <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
-              </li>
-              <li className="text-center">
-                {' '}
-                <h1 className={`${hasPdf === true ? 'text-[1.5rem]' :'text-[0.7rem]'} font-bold`}>NEW SARANYA ICE COMPANY</h1>{' '}
-                <p className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>PILAVILAI, AZHAGANPARAI P.O.</p> <p className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>K.K.DIST</p>{' '}
-              </li>
-            </ul>
 
-            <ul className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} mt-1 flex justify-between`} >
-              <li>
-                <div>
-                  <span className=" font-bold">Date :</span>{' '}
-                  <span>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.date
-                      : null}
-                  </span>{' '}
-                </div>
-                <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
-                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
-                </div>
-                
-                <div
-                
-                  // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
-                >
-                  <span className="font-bold">Customer Name :</span>{' '}
-                  <span>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.customername
-                      : null}
-                  </span>
-                </div>
-
-                <div
-                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined ? 'hidden' : 'block'}`}
-                >
-                  <span className="font-bold">Mobile Number : </span>{' '}
-                  <span>{invoiceDatas.customerdetails.mobilenumber}</span>
-                </div>
-
-<div className={`${gstin === true ? 'block' : 'hidden'}`}>
-<div
-                  className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
-                >
-                  <span className="font-bold">Customer GSTIN :</span>{' '}
-                  <span>
-                    {invoiceDatas.customerdetails.gstin
-                      ? invoiceDatas.customerdetails.gstin
-                      : 'N/A'}
-                  </span>
-                </div>
-                <div
-                  className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
-                >
-                  <span className="font-bold">Customer Address :</span>{' '}
-                  <span>
-                    {invoiceDatas.customerdetails.location
-                      ? invoiceDatas.customerdetails.location
-                      : 'N/A'}
-                  </span>
-                </div>
-</div>
-
-              </li>
-
-              <li className="text-end flex flex-col items-end">
-                <span>
-                  {' '}
-                  <span className="font-bold">Cell :</span> 7373674757
-                </span>
-                <span>9487369569</span>
-              </li>
-            </ul>
-
-            <table className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} min-w-full border-collapse mt-4`} >
-              <thead>
-                <tr>
-                <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >S.No</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Product</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Flavour</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Size</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Rate</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Qty</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >MRP</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Margin</th>
-                  <th className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b text-left pb-2`} >Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceDatas.data.length > 0
-                  ? invoiceDatas.data.map((item, i) => (
-                      <tr key={i}>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{i + 1}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.productname}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.flavour}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.quantity}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.pieceamount}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.numberofpacks}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{item.producttotalamount}</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>{toDigit(item.margin)}%</td>
-                        <td className={`${hasPdf === true ? 'text-[0.7rem]' :'text-[0.5rem]'} border-b pb-2`}>
-                          {customRound(
-                            item.numberofpacks * item.pieceamount -
-                              (item.numberofpacks * item.pieceamount * item.margin) / 100
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  : 'No Data'}
-              </tbody>
-            </table>
-            <p className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>
-              Total Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.total)
-                  : null}
-              </span>{' '}
-            </p>
-            <p className={`text-end ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>
-              Bill Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                  : null}
-              </span>
-            </p>
-            <p
-              className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
-            >
-              Paid Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
-                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
-                  : null}
-              </span>
-            </p>
-            <p
-              className={`${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-            >
-              Balance:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(
-                      invoiceDatas.customerdetails.billamount -
-                        invoiceDatas.customerdetails.partialamount
-                    )
-                  : null}
-              </span>
-            </p>
-            <p className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' :'text-[0.5rem]'}`}>Authorised Signature</p>
-          </section>
-        </div>
-      </div>
+     
     </div>
   )
 }
