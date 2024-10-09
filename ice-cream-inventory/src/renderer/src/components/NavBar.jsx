@@ -386,11 +386,12 @@ export default function NavBar({
     } else {
       setIsSpinners(true)
       // setIsQuickSale(pre => ({...pre}))
-      const productItems = await isQuickSale.temdata.map((data) => ({
+      const productItems = await isQuickSale.temdata.map((data, index) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
         margin: data.margin,
-        productprice: data.productprice
+        productprice: data.productprice,
+        sno: index + 1,
       }));
       // console.log(productItems);
       
@@ -430,7 +431,6 @@ export default function NavBar({
         createddate: TimestampJs(),
         date: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY')
       }
-
       
       const paydetailsHistory = {
         amount:qickSaleForm3Value.partialamount === undefined ||
@@ -438,7 +438,7 @@ export default function NavBar({
           ? 0
           : qickSaleForm3Value.partialamount,
         createddate:TimestampJs(),
-        date:dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
+        date:dayjs().format('DD/MM/YYYY'),
         description:'',
         paymentmode:qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         // collectiontype:'delivery'

@@ -202,7 +202,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       title: 'Price',
       dataIndex: 'billamount',
       key: 'billamount',
-      width: 150,
+      width: 130,
       render: (text) => <span>{formatToRupee(text, true)}</span>
     },
     {
@@ -210,16 +210,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       dataIndex: 'type',
       key: 'type',
       editable: true,
-      width: 90,
+      width: 130,
       sorter: (a, b) => a.type.localeCompare(b.type),
       showSorterTooltip: { target: 'sorter-icon' },
-      render: (text) =>
+      render: (text,record) =>
         text === 'return' ? (
           <Tag color="red">Return</Tag>
         ) : text === 'quick' ? (
           <Tag color="blue">Quick Sale</Tag>
         ) : text === 'booking' ? (
-          <Tag color="cyan">Booking</Tag>
+          <span>
+          {record.bookingstatus === 'Delivered' ? (
+          <Tag color="green">Booking Delivered</Tag>
+        ) : record.bookingstatus === 'Cancelled' ? (
+          <Tag color="red">Booking Cancelled</Tag>
+        ) : (<Tag color="cyan">Booking</Tag>)
+        }
+          </span>
         ) : (
           <Tag color="green">Order</Tag>
         )
@@ -272,7 +279,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             <FaClipboardList
               onClick={() =>
                 {
-                editingKey !== '' ? console.log('Not Clickable') : onOpenDeliveryBill(record)
+                editingKey !== '' ? console.log('Not Clickable') : onOpenDeliveryBill(record),console.log(record)
                 }
               }
               size={17}
@@ -1112,7 +1119,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
     setEditingKey('')
     setIsDeliverySpiner(true)
-    let productItems = option.tempproduct.flatMap((temp) =>
+    let productItems = option.tempproduct.flatMap((temp, tempIndex) =>
       datas.product
         .filter(
           (pr) =>
@@ -1125,7 +1132,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           numberofpacks: temp.numberofpacks,
           id: pr.id,
           returntype: temp.returntype,
-          margin: temp.margin === '' ? 0 : temp.margin
+          margin: temp.margin === '' ? 0 : temp.margin,
+          sno: tempIndex + 1
         }))
     )
 
@@ -1456,7 +1464,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       key: 'sno',
       dataIndex: 'sno',
       width: 80,
-      render: (text, record, i) => <span>{i + 1}</span>
+      // render: (text, record, i) => <span>{i + 1}</span>
     },
     {
       title: 'Product',
@@ -1543,7 +1551,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               .filter((item2) => item.id === item2.id)
               .map((item2, i) => {
                 return {
-                  sno: i + 1,
+                  sno: item2.sno,
                   ...item,
                   returntype: item2.returntype,
                   pieceamount: item.price,
@@ -1877,7 +1885,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       let prItems = await prData.map((pr, i) => {
         let matchingData = items.find((item, i) => item.id === pr.id)
         return {
-          sno: i + 1,
+          sno: matchingData.sno,
           ...pr,
           pieceamount: pr.price,
           quantity: pr.quantity + ' ' + pr.unit,
@@ -1890,6 +1898,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           returntype: matchingData.returntype
         }
       })
+      prItems.sort((a, b) => a.sno - b.sno);
       await setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
@@ -2342,7 +2351,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               {invoiceDatas.data.length > 0
                 ? invoiceDatas.data.map((item, i) => (
                     <tr key={i}>
-                      <td className=" border-b text-[0.8rem] pb-2">{i + 1}</td>
+                      <td className=" border-b text-[0.8rem] pb-2">{item.sno}</td>
                       <td className=" border-b text-[0.8rem] pb-2">{item.productname}</td>
                       <td className=" border-b text-[0.8rem] pb-2">{item.flavour}</td>
                       <td className=" border-b text-[0.8rem] pb-2">{item.quantity}</td>
@@ -2943,7 +2952,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         <Table
           virtual
           columns={deliveryColumns}
-          dataSource={deliveryBill.data.items}
+          dataSource={deliveryBill.data?.items?.sort((a, b) => a.sno - b.sno) || []}
           loading={deliveryBill.loading}
           pagination={false}
           scroll={{ x: 200, y: historyHeight }}
