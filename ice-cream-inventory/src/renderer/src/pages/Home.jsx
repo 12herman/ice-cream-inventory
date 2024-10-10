@@ -51,6 +51,7 @@ import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import './css/Home.css'
+
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -129,34 +130,39 @@ export default function Home({ datas }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: quotationft.edpacks,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:100
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
       editable: quotationft.edmargin,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable: quotationft.edprice
+      editable: quotationft.edprice,
+      width:120
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -972,6 +978,8 @@ export default function Home({ datas }) {
       const location = result.customer?.location || ''
 
       let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
+      // let prData = datas.product.filter((item) => item.isdeleted === false)
+console.log(prData);
 
         let prItems = prData.map((pr, i) => {
             let matchingData = items.find((item) => item.id === pr.id);
@@ -1060,6 +1068,10 @@ export default function Home({ datas }) {
   }
 
   const handleQuotationDownload = async () => {
+    await setGstBillPdf(true)
+                       
+                        await setHasPdf(true)
+                        
     // data
     let { date } = quotationft.tempproduct[0]
     // customer details
@@ -1669,14 +1681,14 @@ export default function Home({ datas }) {
     setQuotationFt((pre) => ({ ...pre, count: pre.count + 1 }))
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
 
-    let [quantityvalue, units] = values.quantity.split(' ')
+    // let [quantityvalue, units] = values.quantity.split(' ')
     const findPrice = await datas.product.find(
       (item) =>
         item.isdeleted === false &&
-        item.productname === values.productname &&
-        item.flavour === values.flavour &&
-        item.quantity === Number(quantityvalue) &&
-        item.unit === units
+        item.productname === values.productname 
+        // && item.flavour === values.flavour &&
+        // item.quantity === Number(quantityvalue) &&
+        // item.unit === units
     ).price;
 
     const newProduct = {
@@ -1927,12 +1939,12 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
 
                 // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
                 >
-                  <span className="font-bold">Customer Name :</span>{' '}
-                  <span>
+                  <span className={`w-full font-bold ${invoiceDatas.customerdetails.customername === '' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}>Customer Name : <span className='font-medium'>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.customername
                       : null}
-                  </span>
+                  </span></span>
+                  
                 </div>
 
                 <div
@@ -2126,25 +2138,36 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   : null}
               </span>
             </p>
+            <div style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0 0 0'}}>
             <p
-              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-            >
-              Balance:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(
-                      invoiceDatas.customerdetails.billamount -
-                        invoiceDatas.customerdetails.partialamount
-                    )
-                  : null}
-              </span>
-            </p>
-            <p
-            style={{padding:'50px 0 0 0'}}
+            style={{
+              // padding:'0 0 0 20px',
+              // textAlign:'left'
+              }}
               // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
             >
               Authorised Signature
             </p>
+            <p
+              className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            >
+              Balance:{' '}
+              <span className=" font-bold">
+                {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
+                  ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
+                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0}
+              </span>
+            </p>
+            </div>
+            {/* <p
+            style={{
+              padding:'50px 0 0 0',
+              // textAlign:'left'
+              }}
+              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Authorised Signature
+            </p> */}
             </div>
           </section>
         </div>
@@ -2160,19 +2183,18 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
         className="absolute top-[-200rem] w-full"
         // className=" absolute top-34 left-0 w-full z-[9999]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}>
-        <div ref={GstComponentRef} className="w-full h-screen flex justify-center items-center">
-
-          <span className={`absolute top-5 left-1/2 -translate-x-1/2  font-medium`}>
+        <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}} className='w-full block text-center my-2 font-medium'>
             TAX INVOICE
           </span>
-
-          <section className="w-[90%] border h-[90vh] ">
+        <div ref={GstComponentRef} className="w-full flex justify-center items-center">
+          <section className="w-[90%] border  ">
+          
             <ul className="flex justify-center items-center gap-x-2">
               {/* <li>
                 {' '}
                 <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
               </li> */}
-              <li className="text-center mt-2">
+              <li className="text-center mt-1">
                 <h1 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`}} className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
                   NEW SARANYA ICE COMPANY
                 </h1>{' '}
@@ -2542,8 +2564,8 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   <td></td>
                   <td></td>
                   <td></td>
-                  {/* <td></td> */}
-                  <td></td>
+                  {/* <td></td> 
+                  <td></td>*/}
                   <td>
                     <span className=" font-bold">
                       {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2923,6 +2945,10 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                     </Button>
                   )}
                   onBeforeGetContent={async () => {
+                    await setGstBillPdf(false)
+                        
+                        await setHasPdf(false)
+                        
                     return new Promise((resolve) => {
                       promiseResolveRef.current = resolve
                       handleQuotationPrint().then(() => {

@@ -526,35 +526,40 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       dataIndex: 'productprice',
       key: 'productprice',
       editable: TableEdiable.pieceprice,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: TableEdiable.packs,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:100
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
       editable: TableEdiable.margin,
-      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
+      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>,
+      width:60
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       editable: TableEdiable.price,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:100
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -627,41 +632,47 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       dataIndex: 'productprice',
       key: 'productprice',
       editable: TableEdiable.pieceprice,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: TableEdiable.packs,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:70
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
       editable: TableEdiable.margin,
-      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>
+      render: (text) => <span className="text-[0.7rem]">{toDigit(text)}</span>,
+      width:75
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       editable: TableEdiable.price,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">Return Type</span>,
       dataIndex: 'returntype',
       key: 'returntype',
       editable: true,
+      width:90,
       render: (text) => {
         return text === 'damage' ? (
           <Tag color="red" className="text-[0.7rem]">
@@ -971,7 +982,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   const productOnchange = debounce((value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
-    form2.resetFields(['numberofpacks'])
+    // form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
     const flavourOp = Array.from(
@@ -2781,7 +2792,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                   components={{ body: { cell: EditableCellTem } }}
                   columns={tempMergedColumns}
                   dataSource={option.tempproduct}
-                  pagination={{ pageSize: 5 }}
+                  // pagination={{ pageSize: 5 }}
                   scroll={{ x: false, y: false }}
                 />
               </Form>
@@ -2863,6 +2874,21 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                   try {
                     await setDeliveryBill((pre) => ({ ...pre, loading: true }))
                     await updateDelivery(deliveryBill.data.id, { bookingstatus: 'Delivered' })
+
+    //                 if (isQuickSale.type === 'quick') {
+    //    await deliveryBill.prdata.map(async (data) => {
+    //      const existingProduct = datas.storage.find(
+    //        (storageItem) =>
+    //          storageItem.productid === data.id && storageItem.category === 'Product List'
+    //      )
+    //      // console.log(existingProduct.id,{numberofpacks: existingProduct.numberofpacks - data.numberofpacks,updateddate:TimestampJs()});
+    //      await updateStorage(existingProduct.id, {
+    //        numberofpacks: existingProduct.numberofpacks - data.numberofpacks,
+    //        updateddate: TimestampJs()
+    //      })
+    //    })
+    //    await storageUpdateMt()
+    //  }
                     // await setDeliveryBill(pre=>({...pre,loading:false}));
                     await deliveryUpdateMt()
                   } catch (e) {
