@@ -1005,7 +1005,6 @@ export default function Home({ datas }) {
       throw error // Ensure to propagate the error
     }
   }
-  console.log(invoiceDatas)
 
   const handleQuotationPrint = async () => {
     // data
@@ -1294,11 +1293,14 @@ export default function Home({ datas }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (text, record) => {
-        const { partialamount } = record
+        const { partialamount, bookingstatus } = record
         if (text === 'Paid') {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag color="green">{text}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
@@ -1307,6 +1309,9 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag color="yellow">
                 {text} - {partialamount}
               </Tag>
@@ -1324,6 +1329,9 @@ export default function Home({ datas }) {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag className={`${text === undefined ? 'hidden' : ''}`} color="red">
                 {text}
               </Tag>
@@ -2852,6 +2860,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
               <Descriptions.Item label="Net Amount">{selectedRecord.billamount}</Descriptions.Item>
               {selectedRecord.mobilenumber && (<Descriptions.Item label="Mobile">{selectedRecord.mobilenumber}</Descriptions.Item>)}
+              {selectedRecord.location && (<Descriptions.Item label="Location">{selectedRecord.location}</Descriptions.Item>)}
             </Descriptions>
             <div className="mt-2">
               <Table

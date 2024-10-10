@@ -2863,6 +2863,20 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                   try {
                     await setDeliveryBill((pre) => ({ ...pre, loading: true }))
                     await updateDelivery(deliveryBill.data.id, { bookingstatus: 'Delivered' })
+
+                    let { items, status } = await fetchItemsForDelivery(deliveryBill.data.id)
+                      items.map(async (data) => {
+                        const existingProduct = datas.storage.find(
+                          (storageItem) =>
+                            storageItem.productid === data.id && storageItem.category === 'Product List'
+                        )
+                        await updateStorage(existingProduct.id, {
+                          numberofpacks: existingProduct.numberofpacks - data.numberofpacks,
+                          updateddate: TimestampJs()
+                        })
+                      })
+                      await storageUpdateMt()
+
                     // await setDeliveryBill(pre=>({...pre,loading:false}));
                     await deliveryUpdateMt()
                   } catch (e) {
