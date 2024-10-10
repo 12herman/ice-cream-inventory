@@ -540,7 +540,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   const productOnchange = async (value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
-    form2.resetFields(['numberofpacks'])
+    // form2.resetFields(['numberofpacks'])
     // const flavourOp = await Array.from(
     //   new Set(
     //     datas.product

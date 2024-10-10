@@ -356,7 +356,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         row.productname === key.productname &&
         // row.quantity === key.quantity &&
         row.productperpack === key.productperpack &&
-        row.price === key.price 
+        row.price === key.price || (key.productname === formatName(row.productname))
         // && row.unit === key.unit
       ) {
         message.open({ type: 'info', content: 'No changes made' })
@@ -364,7 +364,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       } 
       else {
         setEditingKeys([]);
-        await updateproduct(key.id, { ...row, updateddate: TimestampJs() });
+        await updateproduct(key.id, { ...row,productname:formatName(row.productname), updateddate: TimestampJs() });
         productUpdateMt();
         message.open({ type: 'success', content: 'Updated Successfully' });
       }

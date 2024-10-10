@@ -109,37 +109,43 @@ export default function NavBar({
       dataIndex: 'productprice',
       key: 'productprice',
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
-      editable:qucikSaleTableEdiable.pieceprice
+      editable:qucikSaleTableEdiable.pieceprice,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
-      editable:qucikSaleTableEdiable.packs
+      editable:qucikSaleTableEdiable.packs,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:120
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
       editable:qucikSaleTableEdiable.margin,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable:qucikSaleTableEdiable.price
+      editable:qucikSaleTableEdiable.price,
+      width:120
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
+      width:90,
       dataIndex: 'operation',
       fixed: 'right',
       render: (_, record) => {
@@ -311,10 +317,10 @@ export default function NavBar({
   }
 
   const qickSaledateChange = (value) => {
-    quickSaleForm.resetFields(['productname'])
-    quickSaleForm.resetFields(['quantity'])
-    quickSaleForm.resetFields(['flavour'])
-    quickSaleForm.resetFields(['numberofpacks'])
+    // quickSaleForm.resetFields(['productname'])
+    // quickSaleForm.resetFields(['quantity'])
+    // quickSaleForm.resetFields(['flavour'])
+    // quickSaleForm.resetFields(['numberofpacks'])
 
     const isFutureDate = value && dayjs(value).isAfter(dayjs())
 
@@ -324,9 +330,9 @@ export default function NavBar({
 
     setIsQuickSale((pre) => ({
       ...pre,
-      temdata: [],
-      count: 0,
-      total: 0,
+      // temdata: [],
+      // count: 0,
+      // total: 0,
       date: value === null ? '' : value.format('DD/MM/YYYY'),
       type: isFutureDate ? 'booking' : 'quick'
     }))
@@ -1254,7 +1260,7 @@ export default function NavBar({
                 >
                   <DatePicker
                     className="w-[8.5rem]"
-                    // onChange={qickSaledateChange}
+                    onChange={qickSaledateChange}
                     format={'DD/MM/YYYY'}
                   />
                 </Form.Item>

@@ -51,6 +51,7 @@ import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import './css/Home.css'
+
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
 dayjs.extend(isSameOrAfter)
@@ -129,34 +130,39 @@ export default function Home({ datas }) {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       editable: quotationft.edpacks,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:90
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
       dataIndex: 'mrp',
       key: 'mrp',
       editable: false,
-      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>
+      render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
+      width:100
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
       dataIndex: 'margin',
       key: 'margin',
       editable: quotationft.edmargin,
-      render: (text) => <span className="text-[0.7rem]">{text}</span>
+      render: (text) => <span className="text-[0.7rem]">{text}</span>,
+      width:80
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
       dataIndex: 'price',
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      editable: quotationft.edprice
+      editable: quotationft.edprice,
+      width:120
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -892,22 +898,41 @@ export default function Home({ datas }) {
     const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-      let prItems = await prData.map((pr, i) => {
-        let matchingData = items.find((item, i) => item.id === pr.id)
-        return {
-          sno: matchingData.sno,
-          ...pr,
-          pieceamount: pr.price,
-          quantity: pr.quantity + ' ' + pr.unit,
-          margin: matchingData.margin,
-          price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-          numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
-        }
-      })
+      // let prItems = await prData.map((pr, i) => {
+      //   let matchingData = items.find((item, i) => item.id === pr.id)
+      //   return {
+      //     sno: matchingData.sno,
+      //     ...pr,
+      //     pieceamount: pr.price,
+      //     quantity: pr.quantity + ' ' + pr.unit,
+      //     margin: matchingData.margin,
+      //     price:
+      //       matchingData.numberofpacks * pr.price -
+      //       matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+      //     numberofpacks: matchingData.numberofpacks,
+      //     producttotalamount: matchingData.numberofpacks * pr.price,
+      //     returntype: matchingData.returntype
+      //   }
+      // })
+      let prItems = prData.flatMap((pr, i) => {
+        // Get all matching items with the same id
+        let matchingItems = items.filter((item) => item.id === pr.id);
+        
+        // If there are matching items, map over them to return multiple results
+        return matchingItems.map((matchingData) => ({
+            sno: matchingData.sno,
+            ...pr,
+            pieceamount: pr.price,
+            quantity: `${pr.quantity} ${pr.unit}`,
+            margin: matchingData.margin,
+            price:
+                matchingData.numberofpacks * pr.price -
+                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            numberofpacks: matchingData.numberofpacks,
+            producttotalamount: matchingData.numberofpacks * pr.price,
+            returntype: matchingData.returntype,
+        }));
+      });
       prItems.sort((a, b) => a.sno - b.sno);
       await setInvoiceDatas((pre) => ({
         ...pre,
@@ -972,23 +997,29 @@ export default function Home({ datas }) {
       const location = result.customer?.location || ''
 
       let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
+      // let prData = datas.product.filter((item) => item.isdeleted === false)
 
-        let prItems = prData.map((pr, i) => {
-            let matchingData = items.find((item) => item.id === pr.id);
-            return {
-                sno: matchingData.sno,
-                ...pr,
-                pieceamount: pr.price,
-                quantity: `${pr.quantity} ${pr.unit}`,
-                margin: matchingData.margin,
-                price:
-                    matchingData.numberofpacks * pr.price -
-                    matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-                numberofpacks: matchingData.numberofpacks,
-                producttotalamount: matchingData.numberofpacks * pr.price,
-                returntype: matchingData.returntype,
-            };
-        });
+
+let prItems = prData.flatMap((pr, i) => {
+  // Get all matching items with the same id
+  let matchingItems = items.filter((item) => item.id === pr.id);
+  
+  // If there are matching items, map over them to return multiple results
+  return matchingItems.map((matchingData) => ({
+      sno: matchingData.sno,
+      ...pr,
+      pieceamount: pr.price,
+      quantity: `${pr.quantity} ${pr.unit}`,
+      margin: matchingData.margin,
+      price:
+          matchingData.numberofpacks * pr.price -
+          matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+      numberofpacks: matchingData.numberofpacks,
+      producttotalamount: matchingData.numberofpacks * pr.price,
+      returntype: matchingData.returntype,
+  }));
+});
+
         prItems.sort((a, b) => a.sno - b.sno);
         await setInvoiceDatas((pre) => ({
             ...pre,
@@ -1059,6 +1090,10 @@ export default function Home({ datas }) {
   }
 
   const handleQuotationDownload = async () => {
+    await setGstBillPdf(true)
+                       
+                        await setHasPdf(true)
+                        
     // data
     let { date } = quotationft.tempproduct[0]
     // customer details
@@ -1677,14 +1712,14 @@ export default function Home({ datas }) {
     setQuotationFt((pre) => ({ ...pre, count: pre.count + 1 }))
     const formattedDate = values.date ? values.date.format('DD/MM/YYYY') : ''
 
-    let [quantityvalue, units] = values.quantity.split(' ')
+    // let [quantityvalue, units] = values.quantity.split(' ')
     const findPrice = await datas.product.find(
       (item) =>
         item.isdeleted === false &&
-        item.productname === values.productname &&
-        item.flavour === values.flavour &&
-        item.quantity === Number(quantityvalue) &&
-        item.unit === units
+        item.productname === values.productname 
+        // && item.flavour === values.flavour &&
+        // item.quantity === Number(quantityvalue) &&
+        // item.unit === units
     ).price;
 
     const newProduct = {
@@ -1935,12 +1970,12 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
 
                 // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
                 >
-                  <span className="font-bold">Customer Name :</span>{' '}
-                  <span>
+                  <span className={`w-full font-bold ${invoiceDatas.customerdetails.customername === '' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}>Customer Name : <span className='font-medium'>
                     {Object.keys(invoiceDatas.customerdetails).length !== 0
                       ? invoiceDatas.customerdetails.customername
                       : null}
-                  </span>
+                  </span></span>
+                  
                 </div>
 
                 <div
@@ -1983,9 +2018,11 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </li>
             </ul>
 
+            <h2 className={`${invoiceDatas.customerdetails.type === 'return' ? 'block': 'hidden'} font-bold w-full text-center mt-[10px]`} style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`}}>Return</h2>
+
             <table
             className='withoutgsttable'
-            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'20px 0px 0px 0px',textAlign:'left',padding:'3px'}}
+            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'10px 0px 0px 0px',textAlign:'left',padding:'3px'}}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-4`}
             >
               <thead>
@@ -2055,7 +2092,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                         <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
-                          {item.productname}
+                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
                         </td>
                         {/* <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
@@ -2123,6 +2160,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </span>
             </p>
             <p
+            className={`${invoiceDatas.customerdetails.type === 'return' ? 'hidden' : 'block'}`}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
             >
               Paid Amount:{' '}
@@ -2134,32 +2172,47 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   : null}
               </span>
             </p>
+            <div style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0 0 0'}}>
             <p
-              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+            style={{
+              // padding:'0 0 0 20px',
+              // textAlign:'left'
+              }}
+              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Authorised Signature
+            </p>
+            <p
+              className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
             >
               Balance:{' '}
               <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
                   ? formatToRupee(
                       invoiceDatas.customerdetails.billamount -
                         invoiceDatas.customerdetails.partialamount
                     )
                   : null}
+                {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
+                  ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
+                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0} */}
               </span>
             </p>
-            <p
-            style={{padding:'50px 0 0 0'}}
+            </div>
+            {/* <p
+            style={{
+              padding:'50px 0 0 0',
+              // textAlign:'left'
+              }}
               // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
             >
               Authorised Signature
-            </p>
+            </p> */}
             </div>
           </section>
         </div>
       </div>
       {/* old pdf and print end */}
-
-
 
 
       {/* new start */}
@@ -2168,19 +2221,18 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
         className="absolute top-[-200rem] w-full"
         // className=" absolute top-34 left-0 w-full z-[9999]"
         style={{ padding: '20px', backgroundColor: '#ffff' }}>
-        <div ref={GstComponentRef} className="w-full h-screen flex justify-center items-center">
-
-          <span className={`absolute top-5 left-1/2 -translate-x-1/2  font-medium`}>
+        <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}} className='w-full block text-center my-2 font-medium'>
             TAX INVOICE
           </span>
-
-          <section className="w-[90%] border h-[90vh] ">
+        <div ref={GstComponentRef} className="w-full flex justify-center items-center">
+          <section className="w-[90%] border  ">
+          
             <ul className="flex justify-center items-center gap-x-2">
               {/* <li>
                 {' '}
                 <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
               </li> */}
-              <li className="text-center mt-2">
+              <li className="text-center mt-1">
                 <h1 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`}} className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
                   NEW SARANYA ICE COMPANY
                 </h1>{' '}
@@ -2496,7 +2548,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                         <td
                           style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
-                          {item.productname}
+                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
                         </td>
                         {/* <td
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
@@ -2550,8 +2602,8 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   <td></td>
                   <td></td>
                   <td></td>
-                  {/* <td></td> */}
-                  <td></td>
+                  {/* <td></td> 
+                  <td></td>*/}
                   <td>
                     <span className=" font-bold">
                       {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2932,6 +2984,10 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                     </Button>
                   )}
                   onBeforeGetContent={async () => {
+                    await setGstBillPdf(false)
+                        
+                        await setHasPdf(false)
+                        
                     return new Promise((resolve) => {
                       promiseResolveRef.current = resolve
                       handleQuotationPrint().then(() => {
