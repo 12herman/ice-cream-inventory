@@ -747,7 +747,7 @@ export default function Home({ datas }) {
 
   const totalBooking = deliveryData.filter((product) => {
     return (
-      product.type === 'booking' && dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+      product.type === 'booking' && dayjs(product.deliverydate, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
     )
   }).length
 
@@ -818,7 +818,7 @@ export default function Home({ datas }) {
           .filter((product) => {
             return (
               product.type === 'booking' &&
-              dayjs(product.date, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+              dayjs(product.deliverydate, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
             )
           })
           .map((product) => {
