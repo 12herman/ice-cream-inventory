@@ -663,6 +663,7 @@ export default function Home({ datas }) {
   }
 
   const showModal = async (record) => {
+    
     let itemsWithProductNames = []
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
@@ -681,12 +682,14 @@ export default function Home({ datas }) {
       const { materialitem, status } = await fetchMaterials(record.id)
       if (status === 200) {
         itemsWithProductNames = await Promise.all(
-          materialitem.map(async (item) => {
+          materialitem.map(async (item,i) => {
             let { material, status } = await getOneMaterialDetailsById(
               record.supplierid,
               item.materialid
             )
+            
             return {
+              sno:materialitem[i].sno,//add on sno(10/10/24, 5.52 pm)
               productname: material.materialname || '',
               // flavour: '',
               // quantity: material.unit || '',
@@ -700,6 +703,7 @@ export default function Home({ datas }) {
       if (status === 200) {
         itemsWithProductNames = items.map((item) => {
           const product = datas.product.find((product) => product.id === item.id)
+          
           return {
             ...item,
             productname: product ? product.productname : '',
@@ -1769,7 +1773,11 @@ let prItems = prData.flatMap((pr, i) => {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width: 50
+      width: 50,
+      // render:(text,record,i)=>{
+      //     console.log(record);
+      //   return record.sno
+      // }
     },
     {
       title: 'Item Name',
