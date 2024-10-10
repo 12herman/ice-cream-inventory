@@ -58,6 +58,8 @@ import { customRound } from '../js-files/round-amount'
 import { TbFileSymlink } from 'react-icons/tb'
 import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort, oldestFirstSort } from '../js-files/sort-time-date-sec'
+import '../pages/css/Delivery.css'
+
 const { TextArea } = Input
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, customerUpdateMt }) {
   const [form] = Form.useForm()
@@ -101,7 +103,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           .map(async (item, index) => {
 
             const result = await getCustomerById(item.customerid);
-            console.log(result);
+            
             const customerName =
               result.status === 200 ? result.customer.customername : item.customername
             const mobileNumber =
@@ -1883,22 +1885,44 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     const { items, status } = await fetchItemsForDelivery(record.id)
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-      let prItems = await prData.map((pr, i) => {
-        let matchingData = items.find((item, i) => item.id === pr.id)
-        return {
-          sno: matchingData.sno,
-          ...pr,
-          pieceamount: pr.price,
-          quantity: pr.quantity + ' ' + pr.unit,
-          margin: matchingData.margin,
-          price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-          numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
-        }
-      })
+      
+      // let prItems = await prData.map((pr, i) => {
+      //   let matchingData = items.find((item, i) => item.id === pr.id)
+      //   return {
+      //     sno: matchingData.sno,
+      //     ...pr,
+      //     pieceamount: pr.price,
+      //     quantity: pr.quantity + ' ' + pr.unit,
+      //     margin: matchingData.margin,
+      //     price:
+      //       matchingData.numberofpacks * pr.price -
+      //       matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+      //     numberofpacks: matchingData.numberofpacks,
+      //     producttotalamount: matchingData.numberofpacks * pr.price,
+      //     returntype: matchingData.returntype
+      //   }
+      // });
+
+      let prItems = prData.flatMap((pr, i) => {
+        // Get all matching items with the same id
+        let matchingItems = items.filter((item) => item.id === pr.id);
+        
+        // If there are matching items, map over them to return multiple results
+        return matchingItems.map((matchingData) => ({
+            sno: matchingData.sno,
+            ...pr,
+            pieceamount: pr.price,
+            quantity: `${pr.quantity} ${pr.unit}`,
+            margin: matchingData.margin,
+            price:
+                matchingData.numberofpacks * pr.price -
+                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            numberofpacks: matchingData.numberofpacks,
+            producttotalamount: matchingData.numberofpacks * pr.price,
+            returntype: matchingData.returntype,
+        }));
+      });
+
       prItems.sort((a, b) => a.sno - b.sno);
       await setInvoiceDatas((pre) => ({
         ...pre,
@@ -2228,6 +2252,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     }
   }
 
+  const pdfBillStyle = {heading:'28px',subheading:'26px',para:'22px'};
 
   return (
     <div>
@@ -2255,22 +2280,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       <div
         ref={printRef}
         className="absolute top-[-200rem] w-full"
-        style={{ padding: '20px', backgroundColor: '#ffff' }}
+        // className="w-full"
+        // style={{ padding: '20px', backgroundColor: '#ffff' }}
       >
         <section className="w-[90%] mx-auto mt-1">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
-              {' '}
-              <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
+              <img className="w-[68px]" src={companyLogo} alt="comapanylogo" />{' '}
             </li>
             <li className="text-center">
-              {' '}
-              <h1 className="text-[1.7rem] font-bold">NEW SARANYA ICE COMPANY</h1>{' '}
-              <p className='text-[0.9rem]'>PILAVILAI, AZHAGANPARAI P.O.</p> <p className='text-[0.8rem]'>K.K.DIST</p>{' '}
+              <h1 style={{fontSize:`${pdfBillStyle.heading}`}} className='font-bold'>NEW SARANYA ICE COMPANY</h1>{' '}
+             <div style={{fontSize:`${pdfBillStyle.subheading}`}}>
+             <p >PILAVILAI, AZHAGANPARAI P.O.</p> <p >K.K.DIST</p>
+             </div>
             </li>
           </ul>
 
-          <ul className="mt-1 flex justify-between text-[0.9rem]">
+          <ul style={{fontSize:`${pdfBillStyle.para}`}} className="mt-1 flex justify-between">
             <li>
               <div>
                 <span className="font-bold">Date:</span>{' '}
@@ -2332,35 +2358,35 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             </li>
           </ul>
 
-
+          <h2 className={`${invoiceDatas.customerdetails.type === 'return' ? 'block': 'hidden'} font-bold w-full text-center mt-[10px]`} style={{fontSize:`${pdfBillStyle.para}`}}>Return</h2>
           {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
-          <table className="min-w-full border-collapse text-[0.9rem] mt-4">
+          <table style={{fontSize:`${pdfBillStyle.para}`}} className="billtable min-w-full border-collapse mt-4">
             <thead>
               <tr>
-                <th className="text-[0.8rem] text-left border-b pb-2">S.No</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Product</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Flavour</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Size</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Rate</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Qty</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">MRP</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Margin</th>
-                <th className="text-[0.8rem] border-b text-left pb-2">Amount</th>
+                <th className=" text-left border-b pb-2">S.No</th>
+                <th className=" border-b text-left pb-2">Product</th>
+                {/* <th className=" border-b text-left pb-2">Flavour</th> */}
+                {/* <th className=" border-b text-left pb-2">Size</th> */}
+                <th className=" border-b text-left pb-2">Rate</th>
+                <th className=" border-b text-left pb-2">Qty</th>
+                <th className=" border-b text-left pb-2">MRP</th>
+                <th className=" border-b text-left pb-2">Margin</th>
+                <th className=" border-b text-left pb-2">Amount</th>
               </tr>
             </thead>
             <tbody>
               {invoiceDatas.data.length > 0
                 ? invoiceDatas.data.map((item, i) => (
                     <tr key={i}>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.sno}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.productname}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.flavour}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.quantity}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.pieceamount}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.numberofpacks}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{item.producttotalamount}</td>
-                      <td className=" border-b text-[0.8rem] pb-2">{toDigit(item.margin)}%</td>
-                      <td className=" border-b text-[0.8rem] pb-2">
+                      <td className=" border-b  pb-2">{item.sno}</td>
+                      <td className=" border-b  pb-2">{item.productname} {invoiceDatas.customerdetails.type === 'return' && (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : '' }</td>
+                      {/* <td className=" border-b  pb-2">{item.flavour}</td> */}
+                      {/* <td className=" border-b  pb-2">{item.quantity}</td> */}
+                      <td className=" border-b  pb-2">{item.pieceamount}</td>
+                      <td className=" border-b  pb-2">{item.numberofpacks}</td>
+                      <td className=" border-b  pb-2">{item.producttotalamount}</td>
+                      <td className=" border-b  pb-2">{toDigit(item.margin)}%</td>
+                      <td className=" border-b  pb-2">
                         {customRound(
                           item.numberofpacks * item.pieceamount -
                             (item.numberofpacks * item.pieceamount * item.margin) / 100
@@ -2371,7 +2397,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : 'No Data'}
             </tbody>
           </table>
-          <p className="text-end mt-2 text-[0.9rem]">
+          
+          <div style={{fontSize:`${pdfBillStyle.para}`}}>
+          <p className="text-end mt-2 ">
             Total Amount:{' '}
             <span className=" font-bold">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2379,7 +2407,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : null}
             </span>{' '}
           </p>
-          <p className="text-end text-[0.9rem]">
+          <p className="text-end ">
           Bill Amount:{' '}
             <span className=" font-bold">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
@@ -2391,7 +2419,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             className={` ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === "Paid" ? 'block text-end' : 'hidden'}`}
           >
             Paid Amount:{' '}
-            <span className=" font-bold text-[0.9rem]">
+            <span className=" font-bold ">
               {Object.keys(invoiceDatas.customerdetails).length !== 0
                 ? invoiceDatas.customerdetails.paymentstatus === "Paid"
                 ? formatToRupee(invoiceDatas.customerdetails.billamount)
@@ -2399,17 +2427,23 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 : null}
             </span>
           </p>
-          <p
-            className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-          >
-            Balance:{' '}
-            <span className=" font-bold text-[0.9rem]">
-              {Object.keys(invoiceDatas.customerdetails).length !== 0
-                ? formatToRupee(invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
-                : null}
-            </span>
-          </p>
-          <p className="text-end mt-28 p-2 text-[0.9rem]">Authorised Signature</p>
+          </div>
+        
+         <div style={{fontSize:`${pdfBillStyle.para}`}} className='flex justify-between items-center'>
+         <p className="text-end ">Authorised Signature</p>
+
+<p
+  className={` ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+>
+  Balance:{' '}
+  <span className=" font-bold ">
+    {Object.keys(invoiceDatas.customerdetails).length !== 0
+      ? formatToRupee(invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
+      : null}
+  </span>
+</p>
+         </div>
+          {/* <p className="text-end mt-28 p-2 ">Authorised Signature</p> */}
         </section>
       </div>
 

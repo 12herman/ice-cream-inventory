@@ -1,0 +1,5 @@
+.billtable, .billtable th, .billtable td {
+    border: 1px solid #dedede !important; /* Ensure border stays even if Tailwind adds border-none */
+    border-collapse: collapse;
+    padding: 5px;
+}
