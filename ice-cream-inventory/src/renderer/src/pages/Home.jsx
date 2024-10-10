@@ -1328,11 +1328,14 @@ let prItems = prData.flatMap((pr, i) => {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (text, record) => {
-        const { partialamount } = record
+        const { partialamount, bookingstatus } = record
         if (text === 'Paid') {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag color="green">{text}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
@@ -1341,6 +1344,9 @@ let prItems = prData.flatMap((pr, i) => {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag color="yellow">
                 {text} - {partialamount}
               </Tag>
@@ -1358,6 +1364,9 @@ let prItems = prData.flatMap((pr, i) => {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag color="geekblue">
+                {bookingstatus}
+              </Tag>}
               <Tag className={`${text === undefined ? 'hidden' : ''}`} color="red">
                 {text}
               </Tag>
@@ -2903,6 +2912,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
               <Descriptions.Item label="Net Amount">{selectedRecord.billamount}</Descriptions.Item>
               {selectedRecord.mobilenumber && (<Descriptions.Item label="Mobile">{selectedRecord.mobilenumber}</Descriptions.Item>)}
+              {selectedRecord.location && (<Descriptions.Item label="Location">{selectedRecord.location}</Descriptions.Item>)}
             </Descriptions>
             <div className="mt-2">
               <Table
