@@ -898,22 +898,41 @@ export default function Home({ datas }) {
     const location = result.customer?.location || ''
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
-      let prItems = await prData.map((pr, i) => {
-        let matchingData = items.find((item, i) => item.id === pr.id)
-        return {
-          sno: matchingData.sno,
-          ...pr,
-          pieceamount: pr.price,
-          quantity: pr.quantity + ' ' + pr.unit,
-          margin: matchingData.margin,
-          price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-          numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
-          returntype: matchingData.returntype
-        }
-      })
+      // let prItems = await prData.map((pr, i) => {
+      //   let matchingData = items.find((item, i) => item.id === pr.id)
+      //   return {
+      //     sno: matchingData.sno,
+      //     ...pr,
+      //     pieceamount: pr.price,
+      //     quantity: pr.quantity + ' ' + pr.unit,
+      //     margin: matchingData.margin,
+      //     price:
+      //       matchingData.numberofpacks * pr.price -
+      //       matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+      //     numberofpacks: matchingData.numberofpacks,
+      //     producttotalamount: matchingData.numberofpacks * pr.price,
+      //     returntype: matchingData.returntype
+      //   }
+      // })
+      let prItems = prData.flatMap((pr, i) => {
+        // Get all matching items with the same id
+        let matchingItems = items.filter((item) => item.id === pr.id);
+        
+        // If there are matching items, map over them to return multiple results
+        return matchingItems.map((matchingData) => ({
+            sno: matchingData.sno,
+            ...pr,
+            pieceamount: pr.price,
+            quantity: `${pr.quantity} ${pr.unit}`,
+            margin: matchingData.margin,
+            price:
+                matchingData.numberofpacks * pr.price -
+                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            numberofpacks: matchingData.numberofpacks,
+            producttotalamount: matchingData.numberofpacks * pr.price,
+            returntype: matchingData.returntype,
+        }));
+      });
       prItems.sort((a, b) => a.sno - b.sno);
       await setInvoiceDatas((pre) => ({
         ...pre,
@@ -979,24 +998,28 @@ export default function Home({ datas }) {
 
       let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
       // let prData = datas.product.filter((item) => item.isdeleted === false)
-console.log(prData);
 
-        let prItems = prData.map((pr, i) => {
-            let matchingData = items.find((item) => item.id === pr.id);
-            return {
-                sno: matchingData.sno,
-                ...pr,
-                pieceamount: pr.price,
-                quantity: `${pr.quantity} ${pr.unit}`,
-                margin: matchingData.margin,
-                price:
-                    matchingData.numberofpacks * pr.price -
-                    matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-                numberofpacks: matchingData.numberofpacks,
-                producttotalamount: matchingData.numberofpacks * pr.price,
-                returntype: matchingData.returntype,
-            };
-        });
+
+let prItems = prData.flatMap((pr, i) => {
+  // Get all matching items with the same id
+  let matchingItems = items.filter((item) => item.id === pr.id);
+  
+  // If there are matching items, map over them to return multiple results
+  return matchingItems.map((matchingData) => ({
+      sno: matchingData.sno,
+      ...pr,
+      pieceamount: pr.price,
+      quantity: `${pr.quantity} ${pr.unit}`,
+      margin: matchingData.margin,
+      price:
+          matchingData.numberofpacks * pr.price -
+          matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+      numberofpacks: matchingData.numberofpacks,
+      producttotalamount: matchingData.numberofpacks * pr.price,
+      returntype: matchingData.returntype,
+  }));
+});
+
         prItems.sort((a, b) => a.sno - b.sno);
         await setInvoiceDatas((pre) => ({
             ...pre,
@@ -1013,7 +1036,6 @@ console.log(prData);
       throw error // Ensure to propagate the error
     }
   }
-  console.log(invoiceDatas)
 
   const handleQuotationPrint = async () => {
     // data
@@ -1987,9 +2009,11 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </li>
             </ul>
 
+            <h2 className={`${invoiceDatas.customerdetails.type === 'return' ? 'block': 'hidden'} font-bold w-full text-center mt-[10px]`} style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`}}>Return</h2>
+
             <table
             className='withoutgsttable'
-            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'20px 0px 0px 0px',textAlign:'left',padding:'3px'}}
+            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'10px 0px 0px 0px',textAlign:'left',padding:'3px'}}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-4`}
             >
               <thead>
@@ -2059,7 +2083,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                         <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
-                          {item.productname}
+                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
                         </td>
                         {/* <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
@@ -2127,6 +2151,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </span>
             </p>
             <p
+            className={`${invoiceDatas.customerdetails.type === 'return' ? 'hidden' : 'block'}`}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
             >
               Paid Amount:{' '}
@@ -2153,9 +2178,15 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
             >
               Balance:{' '}
               <span className=" font-bold">
-                {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
+              {Object.keys(invoiceDatas.customerdetails).length !== 0
+                  ? formatToRupee(
+                      invoiceDatas.customerdetails.billamount -
+                        invoiceDatas.customerdetails.partialamount
+                    )
+                  : null}
+                {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
                   ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
-                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0}
+                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0} */}
               </span>
             </p>
             </div>
@@ -2173,8 +2204,6 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
         </div>
       </div>
       {/* old pdf and print end */}
-
-
 
 
       {/* new start */}
@@ -2510,7 +2539,7 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                         <td
                           style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
                         >
-                          {item.productname}
+                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
                         </td>
                         {/* <td
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
