@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   Card,
   Button,
@@ -16,10 +16,13 @@ import {
 } from 'antd'
 import { getCustomerById, getCustomerPayDetailsById } from '../firebase/data-tables/customer'
 import { LuFileCog } from 'react-icons/lu'
+import { PiExport } from 'react-icons/pi'
 import { TimestampJs } from '../js-files/time-stamp'
 import { FaBackward, FaForward } from 'react-icons/fa'
+import { generatPDF } from '../js-files/pdf-generator'
 import { addDoc, collection, doc, getDocs, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
+import companyLogo from '../assets/img/companylogo.png'
 import dayjs from 'dayjs'
 const { Search } = Input
 
@@ -40,7 +43,7 @@ export default function BalanceSheet({ datas }) {
   const [isCloseDisabled, setIsCloseDisabled] = useState(false)
   const [isPayDisabled, setIsPayDisabled] = useState(false)
   const [isPaySelected, setIsPaySelected] = useState(false)
-
+  const printRef = useRef();
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [prevBookExists, setPrevBookExists] = useState(false)
   const [nextBookExists, setNextBookExists] = useState(false)
@@ -93,21 +96,21 @@ export default function BalanceSheet({ datas }) {
 
           const filteredPayDetails = openEntry
             ? [
-                openEntry,
-                ...payDetails.filter((payDetail) =>
-                  dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
-                    dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
-                  )
+              openEntry,
+              ...payDetails.filter((payDetail) =>
+                dayjs(payDetail.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
                 )
-              ]
+              )
+            ]
             : payDetails
 
           const filteredDeliveries = openEntry
             ? customerDeliveries.filter((delivery) =>
-                dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
-                  dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
-                )
+              dayjs(delivery.createddate, 'DD/MM/YYYY HH:mm:ss').isAfter(
+                dayjs(openEntry.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
+            )
             : customerDeliveries
 
           const billUnpaid = filteredDeliveries.reduce((acc, item) => {
@@ -360,23 +363,23 @@ export default function BalanceSheet({ datas }) {
             )
           )
 
-          let totalPairs = 0;
-          let openCount = 0;
+        let totalPairs = 0;
+        let openCount = 0;
 
-          opencloseEntries.forEach((entry) => {
-            if (entry.description === 'Open') {
-              openCount++;
-            } else if (entry.description === 'Close' && openCount > 0) {
-              totalPairs++;
-              console.log(`Pair formed: totalPairs = ${totalPairs}`);
-              openCount--;
-            }
-          });
-          if(opencloseEntries.length > 3 && opencloseEntries[opencloseEntries.length-1].description === 'Close'){
-            totalPairs=totalPairs-1;
+        opencloseEntries.forEach((entry) => {
+          if (entry.description === 'Open') {
+            openCount++;
+          } else if (entry.description === 'Close' && openCount > 0) {
+            totalPairs++;
+            console.log(`Pair formed: totalPairs = ${totalPairs}`);
+            openCount--;
           }
-          setCurrentEntryIndex(totalPairs)
-          setTotalBookIndex(totalPairs)
+        });
+        if (opencloseEntries.length > 3 && opencloseEntries[opencloseEntries.length - 1].description === 'Close') {
+          totalPairs = totalPairs - 1;
+        }
+        setCurrentEntryIndex(totalPairs)
+        setTotalBookIndex(totalPairs)
 
         if (opencloseEntries.length > 0) {
           if (opencloseEntries[opencloseEntries.length - 1].description === 'Open') {
@@ -396,9 +399,9 @@ export default function BalanceSheet({ datas }) {
               setNextBookExists(false)
             }
           }
-        }else {
-            setPrevBookExists(false)
-            setNextBookExists(false)
+        } else {
+          setPrevBookExists(false)
+          setNextBookExists(false)
         }
 
         const openEntry =
@@ -566,7 +569,7 @@ export default function BalanceSheet({ datas }) {
     if (payDetailsResponse.status === 200) {
       payDetails = payDetailsResponse.paydetails || [];
     }
-  
+
     const opencEntry =
       payDetails
         .filter((payDetail) => payDetail.description === 'Open')
@@ -575,7 +578,7 @@ export default function BalanceSheet({ datas }) {
             dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
           )
         )[index] || null;
-  
+
     const closeEntry =
       payDetails
         .filter((payDetail) => payDetail.description === 'Close')
@@ -584,7 +587,7 @@ export default function BalanceSheet({ datas }) {
             dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
           )
         )[index] || null;
-  
+
     await loadListEntries(opencEntry, closeEntry);
   };
 
@@ -705,6 +708,10 @@ export default function BalanceSheet({ datas }) {
     }
   }
 
+  const handleExportClick = async () => {
+    await generatPDF(printRef, `${customerName}-${TimestampJs()}`)
+  }
+
   const totalOrderAmount = deliveryList
     .filter((product) => product.type === 'order')
     .reduce((total, product) => total + product.total, 0)
@@ -802,7 +809,15 @@ export default function BalanceSheet({ datas }) {
             onChange={onSearchChange}
             enterButton
           />
-            <div className="flex gap-x-2">
+          <div className="flex gap-x-2">
+            <Button
+              type="primary"
+              disabled={!deliveryList.length}
+              onClick={handleExportClick}
+            >
+              <PiExport />
+              Export
+            </Button>
             <Button
               type="primary"
               disabled={!prevBookExists}
@@ -819,7 +834,7 @@ export default function BalanceSheet({ datas }) {
               Next
               <FaForward />
             </Button>
-            </div>
+          </div>
         </li>
         <li className="card-list mt-2 grid grid-cols-4 gap-x-2 gap-y-2">
           {cardsData.map((card) => {
@@ -1020,6 +1035,120 @@ export default function BalanceSheet({ datas }) {
           </Form.Item>
         </Form>
       </Modal>
+
+      <div
+        ref={printRef}
+        className="absolute w-full top-[-200rem]"
+      >
+        <section className="w-[80%] mx-auto mt-1">
+          <ul className="flex justify-center items-center gap-x-5">
+            <li>
+              <img className="w-[68px]" src={companyLogo} alt="comapanylogo" />{' '}
+            </li>
+            <li className="text-center">
+              <h1 style={{ fontSize: "1.25rem", fontWeight: "bold" }} className='font-bold'>NEW SARANYA ICE COMPANY</h1>{' '}
+              <div style={{ fontWeight: "bold" }}>
+                <p >PILAVILAI, AZHAGANPARAI P.O.</p> <p >K.K.DIST</p>
+              </div>
+            </li>
+          </ul>
+
+          <ul className="mt-1 flex justify-between">
+            <li>
+              <div>
+                <span className="font-bold">Date:</span>{' '}
+                <span>
+                  {TimestampJs().split(',')[0]}
+                </span>
+                {' '}
+              </div>
+              <div>
+                <span className="font-bold">GSTIN:</span> 33AAIFN6367K1ZV
+              </div>
+              <div>
+                <span className="font-bold">Name:</span>{' '}
+                <span>
+                  {customerName}
+                </span>
+              </div>
+            </li>
+
+            <li className="text-end flex flex-col items-end">
+              <span>
+                {' '}
+                <span className="font-bold">Cell:</span> 7373674757
+              </span>
+              <span>9487369569</span>
+            </li>
+          </ul>
+
+          <div className="grid grid-cols-2 gap-4 mt-4 w-[50%] mx-auto">
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Order Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalOrderAmount}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Return Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalReturnAmount}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">MRP Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalMRP}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Margin Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalMRP - totalBilled}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Billed Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalBilled}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Paid Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{billPaid}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Unpaid Amount</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{billUnpaid}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Old Balance</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{openingBalance}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">Total Payments</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{totalPayment}</p>
+            </div>
+
+            <div className="flex justify-between">
+              <p className="text-left font-bold">New Balance</p>
+              <p className="text-center font-bold">:</p>
+              <p className="text-right">{billUnpaid - totalPayment}</p>
+            </div>
+          </div>
+
+          <div className='text-end mt-24'>
+            <p>Authorised Signature</p>
+          </div>
+        </section>
+      </div>
     </div>
   )
 }
