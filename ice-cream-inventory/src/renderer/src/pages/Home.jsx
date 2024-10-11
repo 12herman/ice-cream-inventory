@@ -575,7 +575,7 @@ export default function Home({ datas }) {
             .filter(
               (data) =>
                 isWithinRange(data.date) &&
-                (data.collectiontype === 'delivery' || data.collectiontype === 'customer')
+                (data.collectiontype === 'delivery' || data.collectiontype === 'customer' )
             )
             .map(async (data) => {
               let name = ''
@@ -598,13 +598,22 @@ export default function Home({ datas }) {
             })
         )
 
-        let totalAmount = filterData.reduce((total, data) => {
+        let calculateFilterData = await Promise.all(
+          deliverys
+            .filter(
+              (data) =>
+                isWithinRange(data.date) &&
+                (data.collectiontype === 'delivery' || data.collectiontype === 'customer' || data.collectiontype === 'firstpartial')
+            ))
+
+        let totalAmount = calculateFilterData.reduce((total, data) => {
           const amount = Number(data.amount) || 0
-          if (data.type === 'Payment') {
+          if (data.type === 'Payment' ||  data.type ==='firstpartial') {
             return total + amount
           }
           return total
-        }, 0)
+        }, 0);
+        
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
 

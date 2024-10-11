@@ -1981,7 +1981,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // last order pull button
   const lastOrderBtn = async () => {
-    let itemsObject = lastOrderData.products.map((data, i) => ({
+    let itemsObject = lastOrderData.products.sort((a, b) => a.sno - b.sno).map((data, i) => ({
       createddate: TimestampJs(),
       customername: lastOrderData.customerdetails.customerid,
       date: form2.getFieldValue().date ? form2.getFieldValue().date.format('DD/MM/YYYY') : '',
@@ -1998,6 +1998,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       returntype: data.returntype
     }))
 
+    console.log(lastOrderData.products);
+    
     let mrpValue = await lastOrderData.products
       .map((data, i) => data.numberofpacks * data.price)
       .reduce((a, b) => a + b, 0)
