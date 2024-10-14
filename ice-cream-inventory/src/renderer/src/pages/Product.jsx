@@ -136,8 +136,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       onFilter: (value, record) => {
         return (
           String(record.productname).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
+          // String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
+          // String(record.flavour).toLowerCase().includes(value.toLowerCase()) ||
           String(record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
           String(record.price * record.productperpack).toLowerCase().includes(value.toLowerCase()) ||
           String(record.quantity + ' ' + record.unit).toLowerCase().includes(value.toLowerCase())
@@ -533,7 +533,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     <div className="relative">
       <div
         ref={pdfRef}
-        className="absolute -top-[40rem] w-[75%] mx-auto mt-0"
+        className="absolute top-[-200rem] w-[75%] mx-auto mt-0"
         style={{ backgroundColor: '#ffff' }}
       >
         <section className="w-[100%] mx-auto mt-0">
@@ -570,13 +570,13 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
           </ul>
 
           {/* <h1 className="font-bold  text-center text-lg">Invoice</h1> */}
-          <table className="min-w-full border-collapse">
+          <table className="min-w-full border-collapse mt-4">
             <thead>
               <tr>
                 <th className="p-1 text-left border-b">S.No</th>
                 <th className="p-1 border-b text-left">Product</th>
-                <th className="p-1 border-b text-left">Flavour</th>
-                <th className="p-1 border-b text-left">Size</th>
+                {/* <th className="p-1 border-b text-left">Flavour</th>
+                <th className="p-1 border-b text-left">Size</th> */}
                 <th className="p-1 border-b text-left">Price</th>
                 {/* <th className="p-1 border-b text-center">Qty</th>
                 <th className="p-1 border-b text-center">Pack Price</th> */}
@@ -588,8 +588,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
                     <tr key={i}>
                       <td className="p-1 border-b">{i + 1}</td>
                       <td className="p-1 border-b">{item.productname}</td>
-                      <td className="p-1 border-b">{item.flavour}</td>
-                      <td className="p-1 border-b">{item.quantity + item.unit}</td>
+                      {/* <td className="p-1 border-b">{item.flavour}</td>
+                      <td className="p-1 border-b">{item.quantity + item.unit}</td> */}
                       <td className="p-1 border-b">{item.price}</td>
                       {/* <td className="p-1 border-b">{item.productperpack}</td>
                       <td className="p-4 border-b">{item.productperpack * item.price}</td> */}
