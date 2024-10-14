@@ -1369,7 +1369,7 @@ setSupplierTbLoading(false)
                 {(fields, { add, remove }) => (
                   <>
                     {fields.map(({ key, name, ...restField }) => (
-                      <div key={key} className="flex items-center gap-x-2 relative">
+                      <span key={key} className="flex items-center gap-x-2 relative">
                         {/* Input field for Material Name */}
                         <Form.Item
                           className="w-[70%] mb-[0.4rem]"
@@ -1380,8 +1380,7 @@ setSupplierTbLoading(false)
                               required: true,
                               message: true
                             }
-                          ]}
-                        >
+                          ]}>
                           <Input placeholder="Material Name" />
                         </Form.Item>
 
@@ -1389,7 +1388,7 @@ setSupplierTbLoading(false)
                         <Form.Item
                           className="w-[23%] mb-[0.4rem]"
                           {...restField}
-                          name={[name, 'unit']}
+                          name={[name,'unit']}
                           rules={[
                             {
                               required: true,
@@ -1398,7 +1397,8 @@ setSupplierTbLoading(false)
                           ]}
                         >
                           <Select
-                            placeholder="Units"
+                            placeholder="Unit"
+                            optionFilterProp="label"
                             options={[
                               { label: 'GM', value: 'gm' },
                               { label: 'KG', value: 'kg' },
@@ -1414,7 +1414,7 @@ setSupplierTbLoading(false)
                           className="absolute top-[40%] right-1 -translate-y-1/2"
                           onClick={() => remove(name)}
                         />
-                      </div>
+                      </span>
                     ))}
                     <Form.Item>
                       <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>

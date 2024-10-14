@@ -82,7 +82,6 @@ export const updateEmployee = async (employeeId, updatedData) => {
   }
 };
 
-
 // Delete an employee
 export const deleteEmployee = async (employeeId) => {
   try {
@@ -94,5 +93,3 @@ export const deleteEmployee = async (employeeId) => {
     return { status: 500, message: err.message };
   }
 };
-
-
