@@ -457,8 +457,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     const excelDatas = exportDatas.map((pr, i) => ({
       sno: i + 1,
       product: pr.productname,
-      flavour: pr.flavour,
-      size: pr.quantity + ' ' + pr.unit,
+      // flavour: pr.flavour,
+      // size: pr.quantity + ' ' + pr.unit,
       rate: pr.price,
       qty: pr.productperpack,
       packprice: pr.productperpack * pr.price
