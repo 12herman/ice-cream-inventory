@@ -32,7 +32,7 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById ,getAllMaterialDetailsFromAllSuppliers } from '../firebase/data-tables/supplier'
+import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById ,getAllMaterialDetailsFromAllSuppliers, updatePaydetailsChildSupplier } from '../firebase/data-tables/supplier'
 import { createStorage, updateStorage, deleteStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
@@ -48,6 +48,7 @@ import { latestFirstSort } from '../js-files/sort-time-date-sec';
 import { formatName } from '../js-files/letter-or-name';
 import { getRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { truncateString } from '../js-files/letter-length-sorting';
+import { fetchPayDetailsForDelivery, updatePaydetailsChild } from '../firebase/data-tables/delivery';
 
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -227,7 +228,7 @@ if(duplicateNames.length > 0){
     setPayModalLoading(true)
     let { date, description, ...Datas } = value
     let formateDate = dayjs(date).format('DD/MM/YYYY')
-    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier',supplierid:supplierPayId, type: 'Payment' }
+    const payData = { ...Datas, date: formateDate, description: description || '', createddate:TimestampJs(), collectiontype:'supplier',supplierid:supplierPayId, type: 'Payment',isdeleted:false }
     try {
       const customerDocRef = doc(db, 'supplier', supplierPayId)
       const payDetailsRef = collection(customerDocRef, 'paydetails')
@@ -253,7 +254,7 @@ const [supplierName,setSupplierName] = useState('');
       let {paydetails} = await getSupplierPayDetailsById(record.id)
       if(status){
       let filterBillOrders = rawmaterial.filter(data=> record.id === data.supplierid && data.isdeleted === false).map(data => ({...data,suppliername: record.suppliername}));
-      let getPaydetials = paydetails;
+      let getPaydetials = paydetails.filter(paydata => paydata.isdeleted === false);
       
       let sortData = await latestFirstSort([...filterBillOrders,...getPaydetials]);
       setPayDetailsData(sortData);
@@ -1101,13 +1102,19 @@ setSupplierTbLoading(false)
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
     const { id, ...newData } = data
+    let {paydetails,status} = await getSupplierPayDetailsById(data.id);
+    if(paydetails.length > 0){
+      paydetails.map(async paydata => {
+        await updatePaydetailsChildSupplier(id,paydata.id,{isdeleted:true});
+       });
+    };
     await updateSupplier(id, {
       isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()
-    })
-    //supplierUpdateMt();
+    });
     message.open({ type: 'success', content: 'Deleted Successfully' })
+    supplierUpdateMt();
   }
 
   // export

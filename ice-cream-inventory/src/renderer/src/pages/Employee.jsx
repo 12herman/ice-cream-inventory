@@ -200,10 +200,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 setEmpListTb(true)
                 let { paydetails, status } = await fetchPayDetailsForEmployee(record.id)
                 if (status) {
-                  
                   let checkPayData = paydetails.filter((item) => item.isdeleted === false)
-                  let lastestSrot =await latestFirstSort(checkPayData);
-                  console.log(lastestSrot)
+                  let lastestSrot =await latestFirstSort(checkPayData.filter(paydata => paydata.isdeleted === false));
                   const totalPayment = checkPayData.reduce((total, item) => {
                     if (item.type === 'Payment') {
                       return total + (Number(item.amount) || 0);
@@ -453,15 +451,22 @@ export default function Employee({ datas, employeeUpdateMt }) {
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
-    const { id, ...newData } = data
+    const { id, ...newData } = data;
+    // console.log(id);
+    let {paydetails,status} = await fetchPayDetailsForEmployee(id);
+    if(paydetails.length >0){
+      paydetails.map( async paydata =>{
+          await updatePayDetailsForEmployee(id,paydata.id,{isdeleted:true});
+      });
+    };
     await updateEmployee(id, {
       isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()
-    })
-    employeeUpdateMt()
-    message.open({ type: 'success', content: 'Deleted Successfully' })
-  }
+    });
+    employeeUpdateMt();
+    message.open({ type: 'success', content: 'Deleted Successfully' });
+  };
 
   // export
   const exportExcel = async () => {
@@ -469,7 +474,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     jsonToExcel(exportDatas, `Employee-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
-  }
+  };
 
   // employee pay
   const [employeePayForm] = Form.useForm()
@@ -477,7 +482,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
     modal: false,
     name: {},
     data: dayjs().format('DD/MMM/YYYY'),
-  })
+  });
 
   const [isEmpLoading, setIsEmpLoading] = useState(false)
   const empPayMt = async (value) => {

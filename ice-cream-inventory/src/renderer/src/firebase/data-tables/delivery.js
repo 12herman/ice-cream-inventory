@@ -181,20 +181,17 @@ export const getAllPayDetailsFromAllDelivery = async () => {
 // export const getDeliveryUsingDates = async (startDate, endDate) => {
 //   try {
 //     const collectionRef = collection(db, 'delivery');
-    
 //     // Query Firestore documents where the 'date' field falls within the specified range
 //     const deliveryQuery = query(
 //       collectionRef,
 //       where('date', '>=', startDate),  // Start date filter
 //       where('date', '<=', endDate)     // End date filter
 //     );
-
 //     const querySnapshot = await getDocs(deliveryQuery);
 //     const delivery = querySnapshot.docs.map((doc) => ({
 //       id: doc.id,
 //       ...doc.data()
 //     }));
-
 //     return { delivery, status: 200 };
 //   } catch (err) {
 //     console.error('Error fetching documents: ', err);

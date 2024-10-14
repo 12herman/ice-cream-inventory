@@ -30,7 +30,8 @@ import jsonToExcel from '../js-files/json-to-excel'
 import {
   createCustomer,
   updateCustomer,
-  getCustomerPayDetailsById
+  getCustomerPayDetailsById,
+  updatePaydetailsCustomer
 } from '../firebase/data-tables/customer'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -106,16 +107,17 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         payamount: ''
       })
     }
-  }
+  };
 
   const showPayModal = (record) => {
     setCustomerName(record.customername)
     payForm.resetFields()
     setCustomerPayId(record.id)
     setIsPayModelOpen(true)
-  }
+  };
 
   const [isCustomerPayLoading, setIsCustomerPayLoading] = useState(false)
+  
   const customerPay = async (value) => {
     setIsCustomerPayLoading(true)
     let { date, description, ...Datas } = value
@@ -127,7 +129,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       customerid:customerPayId,
       description: description || '',
       type: 'Payment',
-      createddate: TimestampJs()
+      createddate: TimestampJs(),
+      isdeleted:false,
     }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)
@@ -149,14 +152,14 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   }
 
   const [customerName,setCustomerName] = useState('');
+  
   const showPayDetailsModal = async (record) => {
-    
     setCustomerName(record.customername)
     try {
       const payDetailsResponse = await getCustomerPayDetailsById(record.id)
       let payDetails = []
       if (payDetailsResponse.status === 200) {
-        payDetails = payDetailsResponse.paydetails
+        payDetails = payDetailsResponse.paydetails.filter(data => data.isdeleted === false)
       }
       const deliveryDocRef = await datas.delivery.filter(
         (item) => item.isdeleted === false && item.customerid === record.id
@@ -691,14 +694,23 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
-    const { id, ...newData } = data
+    const { id, ...newData } = data;
+
+    let {paydetails,status} = await getCustomerPayDetailsById(data.id);
+
+    if(paydetails.length > 0){
+      paydetails.map( async paydata =>{
+         await updatePaydetailsCustomer(id,paydata.id,{isdeleted:true});
+      });
+    };
+    
     await updateCustomer(id, {
       isdeleted: true,
       // deletedby: 'admin',
       deleteddate: TimestampJs()
-    })
+    });
     customerUpdateMt();
-    message.open({ type: 'success', content: 'Deleted Successfully' })
+    message.open({ type: 'success', content: 'Deleted Successfully' });
   }
 
   // export

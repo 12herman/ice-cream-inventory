@@ -304,7 +304,8 @@ export default function BalanceSheet({ datas }) {
       description: description,
       createddate: TimestampJs(),
       customerid: customerPayId,
-      collectiontype: description === 'Pay' ? 'customer' : ''
+      collectiontype: description === 'Pay' ? 'customer' : '',
+      isdeleted:false
     }
     try {
       const customerDocRef = doc(db, 'customer', customerPayId)

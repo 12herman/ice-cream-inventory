@@ -447,7 +447,8 @@ export default function NavBar({
         paymentmode:qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         // collectiontype:'delivery',
         collectiontype:'firstpartial',
-        type:'firstpartial'
+        type:'firstpartial',
+        isdeleted:false
       }
 
       try {

@@ -47,6 +47,18 @@ export const getSupplierPayDetailsById = async (supplierId) => {
   }
 };
 
+// update paydetils
+export const updatePaydetailsChildSupplier = async (supplierId, payDetailId, updatedData) => {
+  try {
+    const payDetailDocRef = doc(db, 'supplier', supplierId, 'paydetails', payDetailId)
+    await updateDoc(payDetailDocRef, updatedData)
+    return { status: 200, message: 'Pay details updated successfully' }
+  } catch (err) {
+    console.error('Error updating pay details: ', err)
+    return { status: 500, message: err.message }
+  }
+}
+
   // get items for delivery
   export const getMaterialDetailsById = async (supplierId) => {
     try {

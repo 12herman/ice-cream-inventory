@@ -487,7 +487,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   // delete
   const deleteProduct = async (data) => {
-    const { id, ...newData } = data
+    const { id, ...newData } = data;
+
+    let {paymenthistory,status} = await fetchPayDetailsForDelivery(data.id);
+    
+    if(paymenthistory.length > 0){
+      paymenthistory.map(async paydata => {
+        await updatePaydetailsChild(id,paydata.id,{isdeleted:true});
+       });
+    };
+
     await updateDelivery(id, { isdeleted: true, deleteddate: TimestampJs() })
     deliveryUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
@@ -2042,7 +2051,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       date: formateDate,
       type:'Payment',
       createddate: TimestampJs(),
-      description: description === undefined || description === null ? '' : description
+      description: description === undefined || description === null ? '' : description,
+      isdeleted:false
     }
 
     let balanceAmount = deliveryBill.data.billamount - deliveryBill.data.partialamount
@@ -2144,13 +2154,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     //modal
     await setPopupModal((pre) => ({ ...pre, payhistory: true }))
     // get data
-    const { paymenthistory } = await fetchPayDetailsForDelivery(deliveryBill.prdata.id)
+    const { paymenthistory } = await fetchPayDetailsForDelivery(deliveryBill.prdata.id);
+    let filterdata =await paymenthistory.filter(data => data.isdeleted === false)
+console.log(filterdata);
 
-    const sortedHistory = await oldestFirstSort(paymenthistory)
+    const sortedHistory = await oldestFirstSort(filterdata)
 
     let paydetails =
       sortedHistory.length > 0
-        ? paymenthistory.map((data, i) => ({
+        ? filterdata.map((data, i) => ({
             key: data.id,
             label: data.date,
             children: (
@@ -2185,9 +2197,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           {
             dot: <MdOutlineDoneOutline className="timeline-clock-icon text-green-500 pb-0" />,
             label: 'Paid',
-            children: (
-              <span className="pb-0 mb-0">{`${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}</span>
-            )
+            children: ( <span className="pb-0 mb-0">{`${deliveryBill.data.billamount === undefined ? 0 : formatToRupee(deliveryBill.data.billamount)}`}</span>)
           }
         ]
       }))
@@ -3050,7 +3060,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         </div>
 
         <div
-
           className={`${deliveryBill.prdata.paymentstatus === 'Paid' || deliveryBill.prdata.type === 'order' || deliveryBill.prdata.type === 'return' ? 'hidden' : 'block'}`}
         >
           <div className="w-full flex items-center justify-end">
@@ -3061,7 +3070,6 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               disabled={loadingSpin.quicksaleform || loadingSpin.payhistory || isDeliverySpiner}
               // disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
             >
-              {' '}
               Pay
               <MdOutlinePayments />
             </Button>
@@ -3123,7 +3131,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
                 <Popconfirm
                   title="Are you sure?"
-                  //  description={<>because the 'PAYMENT HISTORY' can't be edited?</>}
+                  //description={<>because the 'PAYMENT HISTORY' can't be edited?</>}
                   onConfirm={() => quicksalepayForm.submit()}
                 >
                   <Button disabled={payModalState.btndisable} type="primary">
@@ -3138,8 +3146,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                 onFinish={payModalState.type === 'create' ? quickSalePayMt : updateQuickSalePayMt}
                 form={quicksalepayForm}
                 initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
-                layout="vertical"
-              >
+                layout="vertical">
                 <Form.Item
                   className=" absolute top-[-3rem]"
                   name="date"

@@ -34,13 +34,24 @@ export const getCustomerPayDetailsById = async (customerId) => {
   }
 };
 
+// update paydetils
+export const updatePaydetailsCustomer = async (customerId, payDetailId, updatedData) => {
+  try {
+    const payDetailDocRef = doc(db, 'customer', customerId, 'paydetails', payDetailId)
+    await updateDoc(payDetailDocRef, updatedData)
+    return { status: 200, message: 'Pay details updated successfully' }
+  } catch (err) {
+    console.error('Error updating pay details: ', err)
+    return { status: 500, message: err.message }
+  }
+}
+
 // Get customer by ID
 export const getCustomerById = async (customerId) => {
   if (!customerId) {
     console.error("Error: customerId is undefined or null");
     return { status: 400, message: 'Invalid customer ID' };
   }
-
   try {
     const docRef = doc(db, "customer", customerId);
     const docSnapshot = await getDoc(docRef);
