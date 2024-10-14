@@ -527,13 +527,11 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   useEffect(() => {
     const productOp = datas.product
       .filter((item, i, s) =>
-       item.isdeleted === false &&
-       s.findIndex((item2) => item2.productname === item.productname))
+       item.isdeleted === false)
+      //  && s.findIndex((item2) => item2.productname === item.productname))
        .map((data) => ({ label: data.productname, value: data.productname }));
       
-       console.log(productOp);
-
-      setOption((pre) => ({ ...pre, product: productOp }))
+      setOption((pre) => ({ ...pre, product: productOp  }))
   }, []);
 
   //product onchange value
