@@ -128,7 +128,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       date: formateDate,
       customerid:customerPayId,
       description: description || '',
-      type: 'Payment',
       createddate: TimestampJs(),
       isdeleted:false,
     }
@@ -987,9 +986,26 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           <Form
             onFinish={customerPay}
             form={payForm}
-            initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash', type: 'Payment' }}
             layout="vertical"
           >
+            <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                  >
+                    <Radio.Button value="Advance" style={{ width: '33%' }}>
+                      ADVANCE
+                    </Radio.Button>
+                    <Radio.Button value="Payment" style={{ width: '34%' }}>
+                      PAYMENT
+                    </Radio.Button>
+                    <Radio.Button value="Spend" style={{ width: '33%' }}>
+                      SPEND
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
             <Form.Item
               className="mb-1"
               name="amount"

@@ -125,7 +125,7 @@ export default function BalanceSheet({ datas }) {
           }, 0)
 
           const totalPayment = filteredPayDetails.reduce((acc, item) => {
-            return item.type !== 'Balance' ? acc + Number(item.amount) : acc
+            return item.type === 'Payment' ? acc + Number(item.amount) : acc
           }, 0)
 
           const balance = openEntry.amount + billUnpaid - totalPayment
@@ -756,7 +756,15 @@ export default function BalanceSheet({ datas }) {
   }, 0)
 
   const totalPayment = payDetailsList.reduce((acc, item) => {
-    return item.type !== 'Balance' ? acc + Number(item.amount) : acc
+    return item.type === 'Payment' ? acc + Number(item.amount) : acc
+  }, 0)
+
+  const totalCustomerSpend = payDetailsList.reduce((acc, item) => {
+    return item.type === 'Spend' ? acc + Number(item.amount) : acc
+  }, 0)
+
+  const totalCustomerAdvance = payDetailsList.reduce((acc, item) => {
+    return item.type === 'Advance' ? acc + Number(item.amount) : acc
   }, 0)
 
   const openingBalance = payDetailsList.reduce((acc, item) => {
@@ -934,7 +942,11 @@ export default function BalanceSheet({ datas }) {
             <List
               className="mt-2"
               size="small"
-              header={<div style={{ fontWeight: '600' }}>Payment Details {customerName}</div>}
+              header={<div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                <div>Payment Details {customerName}</div>
+                <div>Total Spend: {totalCustomerSpend}</div>
+                <div>Total Advance: {totalCustomerAdvance}</div>
+                  </div>}
               footer={
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}
@@ -950,7 +962,10 @@ export default function BalanceSheet({ datas }) {
                 <List.Item>
                   <div>{item.date}</div>
                   <div>
-                    {item.type === 'Balance' ? `Balance: ${item.amount}` : `Amount: ${item.amount}`}
+                    {item.type === 'Balance' ? `Balance: ${item.amount}` :
+                     item.type === 'Spend' ? `Spend: ${item.amount}` :
+                     item.type === 'Advance' ? `Advance: ${item.amount}` : 
+                     `Amount: ${item.amount}`}
                   </div>
                   <div>{item.description}</div>
                 </List.Item>

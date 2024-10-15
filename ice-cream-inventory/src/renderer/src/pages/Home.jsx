@@ -574,6 +574,7 @@ export default function Home({ datas }) {
           deliverys
             .filter(
               (data) =>
+                !data.isdeleted &&
                 isWithinRange(data.date) &&
                 (data.collectiontype === 'delivery' || data.collectiontype === 'customer' || data.collectiontype === 'firstpartial')
             )
@@ -850,7 +851,7 @@ export default function Home({ datas }) {
             product.type !== 'return' &&
             (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
-        const filterPayment = filteredPayments.filter(data => data.collectiontype !== 'firstpartial').map((pay) => ({
+        const filterPayment = filteredPayments.filter(data => data.type === 'Payment' ).map((pay) => ({
           ...pay,
           customername: pay.name,
           billamount: pay.amount
@@ -878,7 +879,7 @@ export default function Home({ datas }) {
         product.paymentmode === paymentMode
     )
     const filterPayment = filteredPayments
-      .filter((pay) => pay.paymentmode === paymentMode && pay.collectiontype !== 'firstpartial')
+      .filter((pay) => pay.paymentmode === paymentMode && pay.collectiontype !== 'firstpartial' && pay.type === 'Payment')
       .map((pay) => ({
         ...pay,
         customername: pay.name,
@@ -1877,7 +1878,7 @@ let prItems = prData.flatMap((pr, i) => {
   const calculateCombinedAmount = (paymentMode) => {
     
     const paymentAmount = filteredPayments
-      .filter((payment) => payment.paymentmode === paymentMode)
+      .filter((payment) => payment.paymentmode === paymentMode && payment.type === 'Payment')
       .reduce((total, payment) => total + (Number(payment.amount) || 0), 0)
     const deliveryAmount = filteredDelivery.reduce((total, product) => {
       if (
