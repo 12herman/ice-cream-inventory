@@ -1259,7 +1259,14 @@ setSupplierTbLoading(false)
                 setEditSupplierModal(false)
                 setIsModalOpen(true)
                 form.resetFields()
-                form.setFieldsValue({ gender: 'Male' })
+                form.setFieldsValue({ gender: 'Male' });
+                form.setFieldsValue({
+  material: [
+    {
+      unit: undefined, 
+    },
+  ],
+});
               }}
             >
               New Supplier <IoMdAdd />
@@ -1398,7 +1405,8 @@ setSupplierTbLoading(false)
                         >
                           <Select
                             placeholder="Unit"
-                            optionFilterProp="label"
+                            allowClear 
+                            // optionFilterProp="label"
                             options={[
                               { label: 'GM', value: 'gm' },
                               { label: 'KG', value: 'kg' },
@@ -1608,6 +1616,7 @@ setSupplierTbLoading(false)
                         >
                           <Select
                             placeholder="Units"
+                            onChange={(value)=> console.log(value)}
                             options={[
                               { label: 'GM', value: 'gm' },
                               { label: 'KG', value: 'kg' },

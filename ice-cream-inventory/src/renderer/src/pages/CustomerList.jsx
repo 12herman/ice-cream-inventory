@@ -308,9 +308,11 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (_, record) => {
+        
+        
         return record.paymentstatus === undefined ? (
           <>
-            <Tag color="cyan">{record.paymentmode}</Tag>
+            {record.type === 'Balance' ? <Tag color='orange'>Book</Tag> : <Tag color="cyan">{record.paymentmode}</Tag>} 
             <span>-</span>
           </>
         ) : record.paymentstatus === 'Paid' ? (
@@ -328,7 +330,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             </Tag>
             {record.paymentmode && <Tag color="cyan">{record.paymentmode}</Tag>}
           </span>
-        ) : (
+        ) :  (
           <></>
         )
       },
@@ -792,6 +794,10 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
+          {/* <Button
+              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+            >
+              Freezer Box <PiExport /></Button> */}
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
               onClick={exportExcel}
