@@ -22,6 +22,7 @@ import { RiHistoryLine } from 'react-icons/ri'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { MdOutlinePayments } from 'react-icons/md'
 import { PiExport } from 'react-icons/pi'
+import { TbReportAnalytics } from "react-icons/tb";
 import { IoMdAdd, IoMdRemove } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
@@ -1293,12 +1294,90 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     setOption((pre) => ({ ...pre, editingKeys: [] }))
   }
 
-  // export
+  // export Excel
   const exportExcel = async () => {
     const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Production-List-${TimestampJs()}`)
+    const specificData = exportDatas.map((item, index) => ({
+      No: index + 1,
+      Date: item.date,
+      Name: item.customername,
+      Mobile: item.mobilenumber,
+      GSTIN: item.gstin,
+      Location: item.location,
+      Type: item.type,
+      Total: item.total,
+      Billed: item.billamount,
+      Partial: item.partialamount,
+      Status: item.paymentstatus,
+      Mode: item.paymentmode
+    }));
+    jsonToExcel(specificData, `Delivery-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKey('')
+  }
+
+   // export PDF
+   const exportPDF = async () => {
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    let allInvoiceData = [];
+    console.log(allInvoiceData)
+    for(let record of exportDatas){
+    const { items, status } = await fetchItemsForDelivery(record.id)
+    if (status === 200) {
+      let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
+      let prItems = prData.flatMap((pr) => {
+        let matchingItems = items.filter((item) => item.id === pr.id);
+        return matchingItems.map((matchingData) => ({
+            sno: matchingData.sno,
+            ...pr,
+            pieceamount: pr.price,
+            quantity: `${pr.quantity} ${pr.unit}`,
+            margin: matchingData.margin,
+            price:
+                matchingData.numberofpacks * pr.price -
+                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            numberofpacks: matchingData.numberofpacks,
+            producttotalamount: matchingData.numberofpacks * pr.price,
+            returntype: matchingData.returntype,
+        }));
+      });
+      prItems.sort((a, b) => a.sno - b.sno);
+      allInvoiceData.push({
+        data: prItems,
+        customerdetails: record,
+      });
+    }
+    }
+    const pdf = new jsPDF();
+    const imgWidth = 210
+    const pageHeight = 297
+    for(let invoice of allInvoiceData){
+      await new Promise((resolve) => {
+        setInvoiceDatas({
+          data: invoice.data,
+          customerdetails: invoice.customerdetails,
+        });
+        setTimeout(resolve, 300);
+      })
+        const element = await printRef.current;
+        const canvas = await html2canvas(element);
+        const data = await canvas.toDataURL('image/png');
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight);
+        let heightLeft = imgHeight - pageHeight;
+        while (heightLeft > 0) {
+            pdf.addPage();
+            pdf.addImage(data, 'PNG', 0, heightLeft - imgHeight, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        if (invoice !== allInvoiceData[allInvoiceData.length - 1]) {
+            pdf.addPage();
+        }
+      }
+      const lastInvoice = allInvoiceData[allInvoiceData.length - 1];
+      pdf.save(`Report-${lastInvoice.customerdetails.date}.pdf`);
+      setSelectedRowKeys([])
+      setEditingKey('')
   }
 
   // material used
@@ -2475,6 +2554,9 @@ console.log(filterdata);
               className="w-[16rem]"
               onChange={(dates) => setDateRange(dates)}
             />
+            <Button onClick={exportPDF} disabled={selectedRowKeys.length === 0}>
+              Report <TbReportAnalytics />
+            </Button>
             <Button onClick={exportExcel} disabled={selectedRowKeys.length === 0}>
               Export <PiExport />
             </Button>

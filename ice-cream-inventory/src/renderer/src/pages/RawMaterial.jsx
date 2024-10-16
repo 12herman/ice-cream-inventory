@@ -22,6 +22,7 @@ import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { IoMdRemove } from 'react-icons/io'
 import { AiOutlineDelete } from 'react-icons/ai'
+import jsonToExcel from '../js-files/json-to-excel'
 import { createRawmaterial, fetchMaterials, updateRawmaterial } from '../firebase/data-tables/rawmaterial'
 import { TimestampJs } from '../js-files/time-stamp'
 import { updateStorage } from '../firebase/data-tables/storage'
@@ -58,14 +59,12 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   // side effect
   useEffect(() => {
     const fetchData = async () => {
-
+      setIsMaterialTbLoading(true);
       let rawTableDtas = await Promise.all(datas.rawmaterials.map(async data => 
                   ({...data,
                    ...(data.supplierid ? await getSupplierById(data.supplierid) :  '-'),
                    ...(data.supplierid && data.materialid ? await getOneMaterialDetailsById(data.supplierid,data.materialid): '-') 
                   })));
-
-      setIsMaterialTbLoading(true);
 
       // const filteredMaterials = await Promise.all(
       //   datas.rawmaterials
@@ -93,7 +92,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       //     })
       // );
 
-      const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)));
+      const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)).map((item,index) => ({ ...item, key:item.id || index,}) ));
       
       const sortLatest = await latestFirstSort(filteredMaterials)
 
@@ -102,7 +101,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
     fetchData();
   }, [datas.rawmaterials, dateRange]);
-
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -552,8 +550,9 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
         ) : (
           <div className='flex gap-x-4 w-full'>
             
+
           <FaClipboardList
-              onClick={()=> materialbillbtn(record) }
+              onClick={editingKey === '' ? () => materialbillbtn(record) : null}
               size={17}
               className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer text-green-500'}`}
             />
@@ -1410,6 +1409,26 @@ const addNewTemMaterial = async () => {
     }
   };
   
+  const exportExcel = async () => {
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    const specificData = exportDatas.map((item, index) => ({
+      No: index + 1,
+      Date: item.date,
+      Name: item.supplier?.suppliername || '',
+      Mobile: item.supplier?.mobilenumber || '',
+      Location: item.supplier?.location || '',
+      Gender: item.supplier?.gender || '',
+      Type: item.type,
+      Billed: item.billamount,
+      Partial: item.partialamount,
+      Status: item.paymentstatus,
+      Mode: item.paymentmode
+    }));
+    jsonToExcel(specificData, `RawMaterials-List-${TimestampJs()}`)
+    setSelectedRowKeys([])
+    setEditingKey('')
+  }
+
 const materialBillColumn = [
     {
       title: 'S.No',
@@ -1465,7 +1484,7 @@ const materialBillColumn = [
           />
           <span className="flex gap-x-3 justify-center items-center">
             <RangePicker className="w-[16rem]" onChange={(dates) => setDateRange(dates)} />
-            <Button disabled={editingKey === ''}>
+            <Button onClick={exportExcel} disabled={editingKey === ''}>
               Export <PiExport />
             </Button>
             <Button
