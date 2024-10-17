@@ -21,6 +21,7 @@ import { getDelivery } from './firebase/data-tables/delivery'
 import { getEmployee } from './firebase/data-tables/employee'
 import { getProduction } from './firebase/data-tables/production'
 import { getStorage } from './firebase/data-tables/storage'
+import { getSpending } from './firebase/data-tables/spending'
 import dayjs from 'dayjs'
 import { getBalanceSheet } from './firebase/data-tables/balancesheet'
 
@@ -74,7 +75,9 @@ const App = () => {
     storage: [],
     storageupdatestaus: false,
     balancesheet: [],
-    balancesheetstatus: false
+    balancesheetstatus: false,
+    spending: [],
+    spendingupdatestatus: false,
   })
 
   const productUpdateMt = () =>
@@ -95,7 +98,8 @@ const App = () => {
     setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
   const storageUpdateMt = () =>
     setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
-
+  const spendingUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, spendingupdatestatus: !pre.spendingupdatestatus }))
 
   // get table datas 'project list'
   useEffect(() => {
@@ -198,6 +202,18 @@ const App = () => {
     fetchData()
   }, [datas.balancesheetstatus])
 
+  // get table datas 'Spending'
+  useEffect(() => {
+    const fetchData = async () => {
+      const { spending, status } = await getSpending()
+      if (status) {
+        setDatas((pre) => ({ ...pre, spending: spending }))
+      }
+      console.log(spending)
+    }
+    fetchData()
+  }, [datas.spendingupdatestatus])
+
   // Notification logic
   useEffect(() => {
     const storageAlert = async () => {
@@ -276,6 +292,7 @@ const App = () => {
         navPages={navPages}
         setNavPages={setNavPages}
         storageUpdateMt={storageUpdateMt}
+        spendingUpdateMt={spendingUpdateMt}
       />
       <Pages
         datas={datas}
