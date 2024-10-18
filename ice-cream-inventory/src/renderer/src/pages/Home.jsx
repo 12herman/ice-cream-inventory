@@ -1414,7 +1414,7 @@ export default function Home({ datas }) {
         return (
           <span>
             <Button
-              disabled={Object.keys(record).includes('collectiontype') ? true : false}
+              disabled={Object.keys(record).includes('collectiontype') || record.spendingtype === 'General' ? true : false}
               className="py-0 text-[0.7rem] h-[1.7rem]"
               icon={<UnorderedListOutlined />}
               style={{ marginRight: 8 }}
@@ -1477,7 +1477,7 @@ export default function Home({ datas }) {
             >
               <Button
                 disabled={
-                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added' || record.spendingtype === 'General'
                     ? true
                     : false
                 }
@@ -1580,7 +1580,7 @@ export default function Home({ datas }) {
             >
               <Button
                 disabled={
-                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added' || record.spendingtype === 'General'
                     ? true
                     : false
                 }
