@@ -14,13 +14,16 @@ import {
   DatePicker,
   Tag,
   Spin,
-  Tooltip
+  Tooltip,
+  Badge,
+  Popover,
+  Empty
 } from 'antd'
 import { debounce } from 'lodash'
 import { SolutionOutlined } from '@ant-design/icons'
 import { PiExport } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
-import { MdOutlineModeEditOutline } from 'react-icons/md'
+import { MdOutlineModeEditOutline, MdProductionQuantityLimits } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
@@ -31,7 +34,8 @@ import {
   createCustomer,
   updateCustomer,
   getCustomerPayDetailsById,
-  updatePaydetailsCustomer
+  updatePaydetailsCustomer,
+  getCustomerById
 } from '../firebase/data-tables/customer'
 import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -41,10 +45,16 @@ const { Search, TextArea } = Input
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import { truncateString } from '../js-files/letter-length-sorting'
+import { BsBox2 } from "react-icons/bs";
+import { createFreezerbox, updateFreezerbox } from '../firebase/data-tables/freezerbox'
+import { IoCloseCircle } from 'react-icons/io5'
+import { BsBoxSeam } from "react-icons/bs";
+import { areArraysEqual, compareArrays } from '../js-files/compare-two-array-of-object'
 
-export default function CustomerList({ datas, customerUpdateMt }) {
+export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdateMt }) {
   // states
   const [form] = Form.useForm()
+  const [freezerform] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKeys, setEditingKeys] = useState([])
   const [data, setData] = useState([])
@@ -59,6 +69,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [totalPurchaseAmount, setTotalPurchaseAmount] = useState(0)
   const [totalPaymentAmount, setTotalPaymentAmount] = useState(0)
   const [totalBalanceAmount, setTotalBalanceAmount] = useState(0)
+  const [transportOnchange,setTransportOnchange] = useState('Self')
 
   // side effect
   useEffect(() => {
@@ -66,7 +77,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     const filteredData = datas.customers
       .filter((data) => data.isdeleted === false)
       .map((item, index) => ({ ...item, sno: index + 1, key: item.id || index }))
-    setData(filteredData)
+    
+
+    let compainData = filteredData.map(customer => {
+      let getvalue = datas.freezerbox.filter(fz => customer.id === fz.customerid && fz.isdeleted === false).map(data=>({boxnumber: data.boxnumber,id:data.id}));
+      return {...customer,freezerbox:getvalue}
+    });
+    setData(compainData);
     setCustomerTbLoading(false)
   }, [datas])
 
@@ -84,17 +101,37 @@ export default function CustomerList({ datas, customerUpdateMt }) {
   const [isNewCustomerLoading, setIsNewCustomerLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
+
+    let {boxnumbers,...newvalue} = values;
+    boxnumbers = boxnumbers === undefined ? [] : boxnumbers
     setIsNewCustomerLoading(true)
     try {
-      await createCustomer({
-        ...values,
+     let result =  await createCustomer({
+        ...newvalue,
         gstin: values.gstin || '',
         vehicleorfreezerno: values.vehicleorfreezerno || '',
         createddate: TimestampJs(),
         updateddate: '',
         isdeleted: false
-      })
-      customerUpdateMt()
+      });
+
+      let customerid = result.status ===200 ? result.res.id : undefined;
+
+      
+      if(boxnumbers.length > 0 && boxnumbers){
+      boxnumbers.forEach(async box => {
+        await updateFreezerbox(box,{
+        customerid:customerid,
+        updateddate:TimestampJs(),
+        });
+        await freezerboxUpdateMt()
+      })}else{
+        console.log('No');
+        
+      };
+
+      await customerUpdateMt();
+
       message.open({ type: 'success', content: 'Customer Added Successfully' })
     } catch (error) {
       message.open({ type: 'error', content: 'Failed to add customer' })
@@ -107,6 +144,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         payamount: ''
       })
     }
+    
   };
 
   const showPayModal = (record) => {
@@ -390,15 +428,6 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       width: 136
     },
     {
-      title: 'Number',
-      dataIndex: 'vehicleorfreezerno',
-      key: 'vehicleorfreezerno',
-      editable: true,
-      render: (text,record)=>{
-        return text.length > 12 ? <Tooltip title={text}>{truncateString(text,12)}</Tooltip> : text
-      }
-    },
-    {
       title: 'GSTIN ',
       dataIndex: 'gstin',
       key: 'gstin',
@@ -417,6 +446,66 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text,record)=>{
         return text.length > 10 ? <Tooltip title={text}>{truncateString(text,10)}</Tooltip> : text
+      }
+    },
+    // {
+    //   title: 'Vehicle',
+    //   dataIndex: 'vehicleorfreezerno',
+    //   key: 'vehicleorfreezerno',
+    //   editable: true,
+    //   sorter: (a, b) => a.location.localeCompare(b.location),
+    //   showSorterTooltip: { target: 'sorter-icon' },
+    //   render: (text,record)=>{
+    //     return text.length > 10 ? <Tooltip title={text}>{truncateString(text,10)}</Tooltip> : text
+    //   }
+    // },
+    {
+      title: 'Number',
+      // title: 'Freezer Box',
+      dataIndex: 'vehicleorfreezerno',
+      key: 'vehicleorfreezerno',
+      width:120,
+      // editable: true,
+      render: (text,record)=>{
+        
+        let freezerboxCount = record.freezerbox.length;
+        // return text.length > 12 ? <Tooltip title={text}>{truncateString(text,12)}</Tooltip> : text
+        return ( <>
+
+        {
+          record.transport === 'Company' ? <Tooltip title={record.vehicleorfreezerno}>{truncateString(record.vehicleorfreezerno,10)}</Tooltip> 
+          : record.transport === 'Freezer Box' ?
+          <Badge size='small' count={freezerboxCount}>
+          <Button onClick={() => setFreezerBox(pre=>({...pre,popupid:record.id}))} className="h-[1.7rem]">
+          <BsBoxSeam/>
+          </Button>
+          <Popover
+            content={<div>
+            {
+              freezerboxCount === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> : record.freezerbox.map((data,i)=>{
+              return <span>{i+1}.{data.boxnumber}<br/> </span>
+            })
+           }
+              <IoCloseCircle onClick={()=> setFreezerBox(pre=>({...pre,popupid:null}))} color='red' size={20} className='absolute right-2 top-2 cursor-pointer'/>
+            </div>}
+            title="Freezer Box"
+            trigger="click"
+            open={freezerBox.popupid === record.id} // Open only for the clicked row
+            onOpenChange={(visible) => {
+              if (visible){
+                setFreezerBox(pre=>({...pre,popupid:record.id}))
+              }else{
+                setFreezerBox(pre=>({...pre,popupid:null}))
+              }
+            }}
+          >
+          </Popover>
+      </Badge>
+      : '-'
+        }
+        
+        </> )
+        
       }
     },
     {
@@ -459,7 +548,24 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             </Button>
             <Typography.Link
               disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
-              onClick={() => edit(record)}
+              // onClick={() => edit(record)}
+              onClick={()=>{
+                setUpdateCustomerDetails({isclick:true,data:record});
+                setIsModalOpen(true);
+                form.setFieldsValue({
+                  customername:record.customername,
+                  transport:record.transport,
+                  vehicleorfreezerno:record.vehicleorfreezerno,
+                  boxnumbers:record.freezerbox.map(data=>({label:data.boxnumber,value:data.id})),
+                  mobilenumber:record.mobilenumber,
+                  gstin:record.gstin,
+                  location:record.location
+                  });
+                  setTransportOnchange(record.transport)
+                console.log(
+                  record.freezerbox,
+                )
+              }}
             >
               <MdOutlineModeEditOutline size={20} />
             </Typography.Link>
@@ -693,6 +799,25 @@ export default function CustomerList({ datas, customerUpdateMt }) {
     }
   }, [])
 
+  const [freezerBoxHeight, setFreezerBoxHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 300 // Adjust this value based on your layout needs
+      setFreezerBoxHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
+
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
@@ -711,7 +836,16 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       // deletedby: 'admin',
       deleteddate: TimestampJs()
     });
-    customerUpdateMt();
+
+    // remove freezerbox customerid:''
+      if(newData.freezerbox.length > 0){
+        let boxIds = await datas.freezerbox.filter(fz => newData.freezerbox.some(box => box.boxnumber === fz.boxnumber)).map(box=> ({id:box.id}));
+        boxIds.forEach(async box=>{
+          await updateFreezerbox(box.id,{customerid:'',updateddate:TimestampJs()});
+          await freezerboxUpdateMt();
+        });
+      }
+    await customerUpdateMt();
     message.open({ type: 'success', content: 'Deleted Successfully' });
   }
 
@@ -761,7 +895,255 @@ export default function CustomerList({ datas, customerUpdateMt }) {
         payamount: e
       })
     }
-  }, 200)
+  }, 200);
+
+
+  const [freezerBox,setFreezerBox] = useState({
+    modal:false,
+    frommodal:false,
+    onchangevalue:'',
+    editclick:false,
+    freezername:'',
+    editid:'',
+    spinner:false,
+    tabledata:[],
+    customername:'',
+    update:false,
+    popupid:null
+  });
+
+
+  // create freezer box
+  const CreateNewFreezerBox = async()=>{
+  let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
+  if(checkExsistingBox){
+  return message.open({type:'warning',content:'The box name is already exsist'});
+  }
+  else{
+  let newFreezerData = { ...freezerform.getFieldsValue(),
+                          isdeleted:false,
+                          customerid:'',
+                          createddate:TimestampJs(),
+                          };
+    await createFreezerbox(newFreezerData);
+    message.open({type:'success',content:'create freezerbox successfully'});
+    await freezerboxUpdateMt();
+    setFreezerBox(pre =>({...pre,frommodal:false}));  
+  }};
+
+
+  useEffect(()=>{
+  async function updateData(){
+   await setFreezerBox(pre=>({...pre,spinner:true}));
+    let freezerBoxData = await datas.freezerbox.filter(box => box.isdeleted === false).map( async fz =>{
+      let {customer,status} = await getCustomerById(fz.customerid === '' || fz.customerid === undefined ? undefined : fz.customerid);
+      if(status){
+       return {...fz,customername:customer === undefined ? '-': customer.customername}
+      }});
+    let processTabledata = await Promise.all(freezerBoxData);
+   await setFreezerBox(pre=>({...pre,spinner:false,tabledata:processTabledata}));
+  }
+  updateData();
+  },[datas,freezerBox.modal,freezerBox.update]);
+
+
+  const freezerboxcolumns = [
+    {
+      title: 'S.No',
+      key: 'sno',
+      render:(text,recorde,i)=>{
+        return i + 1
+      },
+      width: 80,
+    },
+    {
+      title: 'Freezer Box',
+      dataIndex: 'boxnumber',
+      key: 'boxnumber',
+      // width: 139
+    },
+    {
+      title: 'Customer',
+      dataIndex: 'customerid',
+      key: 'customerid',
+      render:  (text,record)=>{
+        return record.customername
+      }
+    },
+    {
+      title: 'Action',
+      render: (text,record)=>{
+        return <div className='flex gap-x-2'>
+           <Typography.Link
+              // disabled={freezerBox.editclick}
+              onClick={ async()=> {
+                freezerform.resetFields();
+                // let customerFilter = datas.customers.find(cs => cs.id === record.customerid)
+                // let customerFilter = datas.customers.find(cs => cs.id === record.customerid);
+                let {customer,status} = await getCustomerById(record.customerid);
+                freezerform.setFieldsValue({boxnumber:record.boxnumber,customerid:customer === undefined ? undefined : customer.customername});
+                setFreezerBox(pre =>({...pre,frommodal:true,editclick:true,editid:record.id,customername:customer === undefined ? undefined : customer.customername}));  
+              }}
+            >
+              <MdOutlineModeEditOutline size={20} />
+            </Typography.Link>
+
+            <Popconfirm
+              placement='left'
+              // disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+              // className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+              title="Sure to delete?"
+              onConfirm={async () => {
+                await setFreezerBox(pre =>({...pre,spinner:true}));
+                await updateFreezerbox(record.id,{isdeleted:true,updateddate:TimestampJs()});
+                await message.open({type:'success',content:'Deleted successfully'});
+                await setFreezerBox(pre =>({...pre,spinner:false,update:!freezerBox.modal}));
+                await freezerboxUpdateMt();
+                }}>
+              <AiOutlineDelete
+                className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+                size={19}/>
+            </Popconfirm>
+        </div>
+      },
+      width:120
+    }
+  ];
+
+  // const UpdateFreezerBox = async()=>{
+  //   let {boxnumber,customerid} = freezerform.getFieldValue();
+  //   let updateData = (customerid === freezerBox.customername) ? {boxnumber:boxnumber} :{boxnumber:boxnumber,customerid:customerid === undefined ? '' : customerid};
+  //   console.log(updateData);
+  //   let check = datas.freezerbox.some(name => name.boxnumber.trim() === boxnumber.trim() && customerid === freezerBox.customername);
+    
+  //   if(check){
+  //     return message.open({type:'info',content:'No changes found'})
+  //   }
+  //   else{
+  //   await setFreezerBox(pre =>({...pre,spinner:true}));   
+  //   await updateFreezerbox(freezerBox.editid,updateData);
+  //   await message.open({type:'success',content:'updated successfully'});
+  //   await setFreezerBox(pre =>({...pre,frommodal:false,editclick:false,editid:'',customername:'',spinner:false,update:!freezerBox.modal})); 
+  //   await freezerboxUpdateMt();
+  //   }
+  // //   let checkBoxAndName = datas.freezerbox.some(name => name.boxnumber === boxnumber.trim() && name.customerid === customerid);
+  // //   if(checkBoxAndName){
+  // //   return message.open({type:'info',content:'No changes found'})
+  // //  }
+  // //  else{
+  // //   console.log(customerid);
+  // //   // await updateFreezerbox(freezerBox.editid,updateData);
+  // //   // message.open({type:'success',content:'updated successfully'});
+  // //   // setFreezerBox(pre =>({...pre,frommodal:false,editclick:false,editid:''})); 
+  // //   // await freezerboxUpdateMt();
+  // //  }
+  // };
+
+  const UpdateFreezerBox = async () => {
+    try {
+      let { boxnumber, customerid } = freezerform.getFieldValue();
+      let updateData =
+        customerid === freezerBox.customername
+          ? { boxnumber: boxnumber }
+          : { boxnumber: boxnumber, customerid: customerid === undefined ? '' : customerid };
+  
+      console.log(updateData);
+  
+      let check = datas.freezerbox.some(
+        (name) => name.boxnumber.trim() === boxnumber.trim() && customerid === freezerBox.customername
+      );
+  
+      if (check) {
+        return message.open({ type: 'info', content: 'No changes found' });
+      } else {
+        await setFreezerBox((pre) => ({ ...pre, spinner: true }));
+        await updateFreezerbox(freezerBox.editid, updateData);
+        await message.open({ type: 'success', content: 'Updated successfully' });
+        await setFreezerBox((pre) => ({
+          ...pre,
+          frommodal: false,
+          editclick: false,
+          editid: '',
+          customername: '',
+          spinner: false,
+          update: !freezerBox.modal,
+        }));
+  
+        // Add try-catch to handle any errors in freezerboxUpdateMt
+        await freezerboxUpdateMt();
+      }
+    } catch (error) {
+      console.error('Error updating freezer box:', error);
+      message.open({ type: 'error', content: 'Failed to update freezer box' });
+    }
+  };
+  
+
+  const [updateCustomerDetails,setUpdateCustomerDetails] = useState({isclick:false,data:{}});
+  const updateCustomerData = async ()=>{
+    
+    let {boxnumbers,customername,gstin,location,mobilenumber,transport,vehicleorfreezerno} = form.getFieldsValue();
+    boxnumbers = boxnumbers === undefined ? [] : boxnumbers
+    let selectBoxConvertor = boxnumbers.some(data => data.value === undefined) ? boxnumbers :  boxnumbers.map(data => data.value);
+    let oldboxes = updateCustomerDetails.data.freezerbox.map(data => data.id);
+
+    //remove data
+    let removedBoxes = oldboxes.filter(item => !selectBoxConvertor.includes(item));
+
+    //new data
+    let newBoxes = selectBoxConvertor.filter(item => !oldboxes.includes(item));
+
+   
+    
+    
+    if(updateCustomerDetails.data.customername === customername &&
+      compareArrays(selectBoxConvertor,oldboxes) &&
+      // await areArraysEqual(updateCustomerDetails.data.freezerbox,convertbox) &&
+      updateCustomerDetails.data.gstin === gstin &&
+      updateCustomerDetails.data.location === location &&
+      updateCustomerDetails.data.mobilenumber === mobilenumber &&
+      updateCustomerDetails.data.transport === transport && 
+      updateCustomerDetails.data.vehicleorfreezerno === vehicleorfreezerno
+    ){
+      return message.open({type:'info',content:'No changes made'})
+    }
+    else{
+      setIsNewCustomerLoading(true)
+      let updateData = {
+        customername:customername,
+        gstin:gstin,
+        location:location,
+        mobilenumber:mobilenumber,
+        transport:transport,
+        vehicleorfreezerno:vehicleorfreezerno === undefined ? '' : vehicleorfreezerno,
+        updateddate:TimestampJs()
+      }
+
+      //add new box
+      if(newBoxes.length > 0){
+        newBoxes.forEach(async id =>{
+         await updateFreezerbox(id,{customerid:updateCustomerDetails.data.id,updateddate:TimestampJs()});
+         await freezerboxUpdateMt();
+        });
+      };
+
+      //remove box
+      if(removedBoxes.length > 0){
+        removedBoxes.forEach(async id =>{
+          await updateFreezerbox(id,{customerid:'',updateddate:TimestampJs()});
+          await freezerboxUpdateMt();
+        });
+      };
+      
+      // update customer details
+      await updateCustomer(updateCustomerDetails.data.id,updateData);
+      await customerUpdateMt();
+      setUpdateCustomerDetails(false);
+      setIsNewCustomerLoading(false);
+      setIsModalOpen(false)
+      message.open({type:'success',content:'Update Successfully'})
+    }
+  };
 
   return (
     <div>
@@ -794,10 +1176,9 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             enterButton
           />
           <span className="flex gap-x-3 justify-center items-center">
-          {/* <Button
-              disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
-            >
-              Freezer Box <PiExport /></Button> */}
+          <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
+          onClick={()=> setFreezerBox(pre=>({...pre,modal:true}))}>
+              Freezer Box <BsBox2 size={13}/></Button>
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
               onClick={exportExcel}
@@ -810,7 +1191,8 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               onClick={() => {
                 setIsModalOpen(true)
                 form.resetFields()
-                form.setFieldsValue({ transport: 'Self' })
+                form.setFieldsValue({ transport: 'Self' });
+                setTransportOnchange('Self')
               }}
             >
               New Customer <IoMdAdd />
@@ -848,7 +1230,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             : false
         }
         centered={true}
-        title={<span className="flex justify-center">NEW CUSTOMER</span>}
+        title={<span className="flex justify-center">{updateCustomerDetails.isclick ? 'UPDATE' : 'NEW' }  CUSTOMER</span>}
         open={isModalOpen}
         onOk={() => form.submit()}
         okButtonProps={{ disabled: isNewCustomerLoading }}
@@ -867,12 +1249,13 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           } else {
             setIsCloseWarning(true)
           }
+          setUpdateCustomerDetails({isclick:false,data:[]});
         }}
       >
         <Spin spinning={isNewCustomerLoading}>
           <Form
             initialValues={{ transport: 'Self' }}
-            onFinish={createNewProject}
+            onFinish={updateCustomerDetails.isclick === true ? updateCustomerData : createNewProject}
             form={form}
             layout="vertical"
             onValuesChange={(changedValues) => {
@@ -899,7 +1282,18 @@ export default function CustomerList({ datas, customerUpdateMt }) {
               label="Transport Type"
               rules={[{ required: true, message: false }]}
             >
-              <Radio.Group>
+              <Radio.Group onChange={debounce((e)=>{
+                if(e.target.value === 'Company'){
+                  form.resetFields(['boxnumbers'])
+                }
+                else if(e.target.value === 'Freezer Box'){
+                  form.resetFields(['vehicleorfreezerno'])
+                }
+                else if(e.target.value === 'Self' || e.target.value === 'Mini Box'){
+                  form.resetFields(['boxnumbers','vehicleorfreezerno'])
+                }
+                setTransportOnchange(e.target.value);
+                },300)}>
                 <Radio value={'Self'}>Self</Radio>
                 <Radio value={'Company'}>Company</Radio>
                 <Radio value={'Freezer Box'}>Freezer Box</Radio>
@@ -910,13 +1304,31 @@ export default function CustomerList({ datas, customerUpdateMt }) {
             <Form.Item
               className="mb-2"
               name="vehicleorfreezerno"
-              label="Vehicle No / Freezer No"
-              rules={[{ required: false, message: 'Vehicle or Freezer No is required' }]}
+              label="Vehicle Number "
+              rules={[{ required: transportOnchange === 'Company' ? true :false, message: false }]}
             >
               <Input
                 className="w-full"
-                disabled={isVehicleNoDisabled}
-                placeholder="Enter the Vehicle / Box Number"
+                // disabled={isVehicleNoDisabled}
+                disabled={transportOnchange === 'Company' ? false :true }
+                placeholder="Enter the Vehicle Number"
+              />
+            </Form.Item>
+
+            <Form.Item
+              className="mb-2"
+              name="boxnumbers"
+              label="Freezer Number"
+              rules={[{ required: transportOnchange === 'Freezer Box' ? true : false, message: false }]}
+            >
+              <Select
+              mode="multiple"
+              allowClear
+              className="w-full"
+              // disabled={isVehicleNoDisabled}
+              disabled={transportOnchange === 'Freezer Box' ? false : true}
+              placeholder="Select the Box Number"
+              options={datas.freezerbox.filter(f => f.isdeleted === false && (f.customerid === '' || f.customerid === undefined)).map(box=>({label:box.boxnumber,value:box.id}))}
               />
             </Form.Item>
 
@@ -985,7 +1397,7 @@ export default function CustomerList({ datas, customerUpdateMt }) {
       >
         <Spin spinning={isCustomerPayLoading}>
           <Form
-            onFinish={customerPay}
+            onFinish={ customerPay}
             form={payForm}
             initialValues={{ date: dayjs(), paymentmode: 'Cash' }}
             layout="vertical"
@@ -1058,6 +1470,77 @@ export default function CustomerList({ datas, customerUpdateMt }) {
           <div>Payment: {totalPaymentAmount.toFixed(2)}</div>
           <div>Balance: {totalBalanceAmount.toFixed(2)}</div>
         </div>
+      </Modal>
+
+      <Modal 
+      centered={true}
+      title={<span className='text-center block'>{freezerBox.editclick === true ? "UPDATE" : "NEW"} FREEZERBOX</span>} open={freezerBox.frommodal} 
+      onCancel={()=>setFreezerBox(pre =>({...pre,frommodal:false,editclick:false}))}
+      onOk={()=> freezerform.submit()}
+      okButtonProps={{disabled:freezerBox.spinner}}>
+       <Spin spinning={freezerBox.spinner}>
+      <Form
+            // initialValues={{ transport: 'Self' }}
+            onFinish={freezerBox.editclick === true ? UpdateFreezerBox : CreateNewFreezerBox}
+            // onFinish={updateCustomerDetails === true ? updateCustomer : CreateNewFreezerBox}
+            form={freezerform}
+            layout="vertical"
+          >
+            <Form.Item
+              className="mb-2"
+              name="boxnumber"
+              label="Box Number"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                // disabled={freezerBox.editclick}
+                // onChange={(e) => setFreezerBox(pre =>({...pre,onchangevalue:e}))}
+                placeholder="box number"
+              />
+            </Form.Item>
+
+            {
+              freezerBox.editclick === true ? <Form.Item
+              name='customerid'>
+              <Select
+            allowClear 
+            showSearch
+          // size={size}
+          placeholder="Please select"
+          // onChange={handleChange}
+          style={{
+            width: '100%',
+          }}
+          options={datas.customers.filter(cs => cs.isdeleted === false).map(item => ({label:item.customername,value:item.id}))}
+        />
+              </Form.Item> : ''
+            }
+            </Form>
+            </Spin>
+      </Modal>
+
+      <Modal
+       title={<div className='relative block text-center'>
+        <span>FREEZER BOX</span>
+        <Button className='absolute right-7 -top-1' onClick={()=>{setFreezerBox(pre =>({...pre,frommodal:true})); freezerform.resetFields()}} type='primary'>Add</Button>
+       </div>}
+       footer={<></>}
+       centered={true}
+       width={800} 
+       open={freezerBox.modal} 
+       onCancel={()=>setFreezerBox(pre =>({...pre,modal:false}))}
+              >
+              <Spin spinning={freezerBox.spinner}>
+            
+            <Table 
+            virtual  
+            pagination={false} 
+            dataSource={freezerBox.tabledata} 
+            className='mt-4' 
+            columns={freezerboxcolumns}
+            scroll={{y: freezerBoxHeight }}
+            />
+            </Spin>
       </Modal>
     </div>
   )

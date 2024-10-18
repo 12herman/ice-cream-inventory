@@ -10,7 +10,7 @@ import CustomerList from '../pages/CustomerList'
 import Employee from '../pages/Employee'
 import BalanceSheet from '../pages/BalanceSheet'
 
-export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt,usedmaterialUpdateMt,storageUpdateMt}) {
+export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,customerUpdateMt,rawmaterialUpdateMt,deliveryUpdateMt,employeeUpdateMt,productionUpdateMt,usedmaterialUpdateMt,storageUpdateMt,freezerboxUpdateMt}) {
     const PageLists = [
         <Home datas={datas}/>,
         <RawMaterial datas={datas} rawmaterialUpdateMt={rawmaterialUpdateMt} storageUpdateMt={storageUpdateMt}/>,
@@ -19,7 +19,7 @@ export default function Pages({navPages,datas,productUpdateMt,supplierUpdateMt,c
         <Storage datas={datas} storageUpdateMt={storageUpdateMt}/>,
         <Product datas={datas} productUpdateMt={productUpdateMt} storageUpdateMt={storageUpdateMt}/>,
         <SupplierList datas={datas} supplierUpdateMt={supplierUpdateMt} storageUpdateMt={storageUpdateMt}/>,
-        <CustomerList datas={datas} customerUpdateMt={customerUpdateMt}/>,
+        <CustomerList datas={datas} customerUpdateMt={customerUpdateMt} freezerboxUpdateMt={freezerboxUpdateMt}/>,
         <Employee datas={datas} employeeUpdateMt={employeeUpdateMt}/>,
         <BalanceSheet datas={datas} />
     ];

@@ -23,6 +23,7 @@ import { getProduction } from './firebase/data-tables/production'
 import { getStorage } from './firebase/data-tables/storage'
 import dayjs from 'dayjs'
 import { getBalanceSheet } from './firebase/data-tables/balancesheet'
+import { getFreezerbox } from './firebase/data-tables/freezerbox'
 
 const App = () => {
   const [navPages, setNavPages] = useState({
@@ -74,7 +75,9 @@ const App = () => {
     storage: [],
     storageupdatestaus: false,
     balancesheet: [],
-    balancesheetstatus: false
+    balancesheetstatus: false,
+    freezerbox:[],
+    freezerboxstatus:false
   })
 
   const productUpdateMt = () =>
@@ -95,7 +98,7 @@ const App = () => {
     setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
   const storageUpdateMt = () =>
     setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
-
+  const freezerboxUpdateMt = ()=> setDatas((pre) => ({ ...pre, freezerboxstatus: !pre.freezerboxstatus }))
 
   // get table datas 'project list'
   useEffect(() => {
@@ -198,6 +201,18 @@ const App = () => {
     fetchData()
   }, [datas.balancesheetstatus])
 
+  // get freezerbox data 
+  useEffect(()=>{
+    const fetchData = async () => {
+      const { freezerbox, status } = await getFreezerbox()
+      if (status) {
+        setDatas((pre) => ({ ...pre, freezerbox: freezerbox }))
+        console.log(freezerbox);
+      };
+    }
+    fetchData()
+  },[datas.freezerboxstatus])
+
   // Notification logic
   useEffect(() => {
     const storageAlert = async () => {
@@ -289,6 +304,7 @@ const App = () => {
         usedmaterialUpdateMt={usedmaterialUpdateMt}
         storageUpdateMt={storageUpdateMt}
         navPages={navPages}
+        freezerboxUpdateMt={freezerboxUpdateMt}
       />
     </main>
   )
