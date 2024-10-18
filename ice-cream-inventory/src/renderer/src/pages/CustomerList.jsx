@@ -817,6 +817,8 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     }
   }, [])
 
+
+
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
@@ -1143,6 +1145,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       message.open({type:'success',content:'Update Successfully'})
     }
   };
+
 
   return (
     <div>
@@ -1527,7 +1530,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
           style={{
             width: '100%',
           }}
-          options={datas.customers.filter(cs => cs.isdeleted === false).map(item => ({label:item.customername,value:item.id}))}
+          options={datas.customers.filter(cs => cs.isdeleted === false && cs.transport === "Freezer Box").map(item => ({label:item.customername,value:item.id}))}
         />
               </Form.Item> : ''
             }
@@ -1547,14 +1550,13 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
        onCancel={()=>setFreezerBox(pre =>({...pre,modal:false}))}
               >
               <Spin spinning={freezerBox.spinner}>
-            
             <Table 
             virtual  
             pagination={false} 
             dataSource={freezerBox.tabledata} 
             className='mt-4' 
             columns={freezerboxcolumns}
-            scroll={{y: freezerBoxHeight }}
+            // scroll={{y: 500 }}
             />
             </Spin>
       </Modal>

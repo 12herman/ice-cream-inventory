@@ -101,7 +101,10 @@ const App = () => {
     setDatas((pre) => ({ ...pre, usedmaterialupdatestaus: !pre.usedmaterialupdatestaus }))
   const storageUpdateMt = () =>
     setDatas((pre) => ({ ...pre, storageupdatestaus: !pre.storageupdatestaus }))
-
+  const spendingUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, spendingupdatestatus: !pre.spendingupdatestatus }))
+  const freezerboxUpdateMt = () =>
+    setDatas((pre) => ({ ...pre, freezerboxstatus: !pre.freezerboxstatus }))
 
   // get table datas 'project list'
   useEffect(() => {
@@ -203,6 +206,29 @@ const App = () => {
     }
     fetchData()
   }, [datas.balancesheetstatus])
+
+  // get table datas 'freezerbox'
+  useEffect(() => {
+    const fetchData = async () => {
+      const { freezerbox, status } = await getFreezerbox()
+      if (status) {
+        setDatas((pre) => ({ ...pre, freezerbox: freezerbox }))
+      }
+    }
+    fetchData()
+  }, [datas.freezerboxstatus]);
+
+  // get table datas 'Spending'
+  useEffect(() => {
+    const fetchData = async () => {
+      const { spending, status } = await getSpending()
+      if (status) {
+        setDatas((pre) => ({ ...pre, spending: spending }))
+      }
+      console.log(spending)
+    }
+    fetchData()
+  }, [datas.spendingupdatestatus])
 
   // Notification logic
   useEffect(() => {
