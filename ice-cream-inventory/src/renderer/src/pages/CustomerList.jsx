@@ -46,10 +46,11 @@ import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import { truncateString } from '../js-files/letter-length-sorting'
 import { BsBox2 } from "react-icons/bs";
-import { createFreezerbox, updateFreezerbox } from '../firebase/data-tables/freezerbox'
+import { createFreezerbox, getFreezerboxById, updateFreezerbox } from '../firebase/data-tables/freezerbox'
 import { IoCloseCircle } from 'react-icons/io5'
 import { BsBoxSeam } from "react-icons/bs";
 import { areArraysEqual, compareArrays } from '../js-files/compare-two-array-of-object'
+import './css/Customer.css';
 
 export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdateMt }) {
   // states
@@ -193,7 +194,8 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
   const showPayDetailsModal = async (record) => {
     setCustomerName(record.customername)
     try {
-      const payDetailsResponse = await getCustomerPayDetailsById(record.id)
+      const payDetailsResponse = await getCustomerPayDetailsById(record.id);
+
       let payDetails = []
       if (payDetailsResponse.status === 200) {
         payDetails = payDetailsResponse.paydetails.filter(data => data.isdeleted === false)
@@ -204,8 +206,20 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
       const combinedData = payDetails.concat(deliveryDocRef)
       let sortedData = await latestFirstSort(combinedData)
-      setPayDetailsData(sortedData)
       
+      // setPayDetailsData(sortedData)
+
+      const addFreezerboxNumber = await Promise.all(
+        sortedData.map(async data => {
+          const { freezerbox, status } = await getFreezerboxById(data.boxid);
+          return { ...data, boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber };
+        })
+      );
+
+      setPayDetailsData(addFreezerboxNumber)
+      
+      
+
       const totalPurchase = combinedData.reduce((total, item) => {
         if (item.type === 'order') {
           return total + (Number(item.billamount) || 0)
@@ -254,7 +268,6 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         return total
       }, 0)
       setTotalBalanceAmount(totalBalance)
-      
     } catch (e) {
       console.log(e)
     }
@@ -327,18 +340,19 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (_, record) => {
+      render:  (_, record) => {
+        
         return record.type === undefined ? (
           <Tag color="green">Pay</Tag>
         ) : record.type === 'order' ? (
-          <Tag color="green">Order</Tag>
+          <span className='flex'><Tag color="green">Order</Tag> <Tag className={`${record.boxnumber === '' ? 'hidden': 'inline-block'}`}>{record.boxnumber}</Tag> </span>
         ) : record.type === 'return' ? (
           <Tag color="red">Return</Tag>
         ) : (
           <></>
         )
       },
-      width: 90
+      width: 150
     },
     {
       title: 'Payment Status',
@@ -916,11 +930,15 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
   // create freezer box
   const CreateNewFreezerBox = async()=>{
+    
+    
+
   let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
   if(checkExsistingBox){
   return message.open({type:'warning',content:'The box name is already exsist'});
   }
   else{
+    setFreezerBox(pre=>({...pre,spinner:true}))
   let newFreezerData = { ...freezerform.getFieldsValue(),
                           isdeleted:false,
                           customerid:'',
@@ -929,8 +947,11 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     await createFreezerbox(newFreezerData);
     message.open({type:'success',content:'create freezerbox successfully'});
     await freezerboxUpdateMt();
-    setFreezerBox(pre =>({...pre,frommodal:false}));  
-  }};
+    setFreezerBox(pre =>({...pre,frommodal:false})); 
+    setFreezerBox(pre=>({...pre,spinner:false})) 
+  }
+  
+};
 
 
   useEffect(()=>{
@@ -1550,13 +1571,15 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
        onCancel={()=>setFreezerBox(pre =>({...pre,modal:false}))}
               >
               <Spin spinning={freezerBox.spinner}>
+              {/* <span>Hi</span> */}
             <Table 
-            virtual  
+            // truncateString
             pagination={false} 
             dataSource={freezerBox.tabledata} 
-            className='mt-4' 
+            className='mt-4 freezerbox-table' 
             columns={freezerboxcolumns}
-            // scroll={{y: 500 }}
+            scroll={{x:200,y: 400 }}
+            // virtual 
             />
             </Spin>
       </Modal>
