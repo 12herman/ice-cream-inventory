@@ -49,6 +49,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
+import { getFreezerboxById } from '../firebase/data-tables/freezerbox'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import './css/Home.css'
 
@@ -929,6 +930,8 @@ export default function Home({ datas }) {
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
     const result = await getCustomerById(record.customerid)
+    const { freezerbox } = await getFreezerboxById(record.boxid);
+    let boxnumber = freezerbox === undefined ? '' : freezerbox.boxnumber;
     const gstin = result.customer?.gstin || ''
     const location = result.customer?.location || ''
     if (status === 200) {
@@ -976,7 +979,8 @@ export default function Home({ datas }) {
         customerdetails: {
           ...record,
           gstin: gstin,
-          location: location
+          location: location,
+          boxnumber: boxnumber
         }
       }))
       setLoadingGstin(false)
@@ -1027,6 +1031,8 @@ export default function Home({ datas }) {
       if (status !== 200) {
         throw new Error(`Failed to fetch items: ${status}`)
       }
+      const { freezerbox } = await getFreezerboxById(record.boxid);
+      let boxnumber = freezerbox === undefined ? '' : freezerbox.boxnumber;
       const result = await getCustomerById(record.customerid)
       const gstin = result.customer?.gstin || ''
       const location = result.customer?.location || ''
@@ -1062,7 +1068,8 @@ export default function Home({ datas }) {
         customerdetails: {
           ...record,
           gstin,
-          location
+          location,
+          boxnumber
         }
       }))
     } catch (error) {
@@ -2029,6 +2036,15 @@ export default function Home({ datas }) {
                         ? invoiceDatas.customerdetails.customername
                         : null}
                     </span>
+                  </span>
+                </div>
+
+                <div
+                  className={` ${invoiceDatas.customerdetails.boxnumber ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Box Number :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.boxnumber || 'N/A'}
                   </span>
                 </div>
 

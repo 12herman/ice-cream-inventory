@@ -470,7 +470,7 @@ export default function Storage({ datas, storageUpdateMt }) {
               pagination={false}
               scroll={{ x: 900, y: tableHeight }}
               rowKey="id"
-              locale={{ emptyText: <span>No data available</span> }}
+              // locale={{ emptyText: <span>No data available</span> }}
             />
           </Form>
         </li>

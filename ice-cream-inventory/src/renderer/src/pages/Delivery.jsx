@@ -1338,6 +1338,8 @@ console.log(filterBoxs);
     console.log(allInvoiceData)
     for(let record of exportDatas){
     const { items, status } = await fetchItemsForDelivery(record.id)
+    const { freezerbox } = await getFreezerboxById(record.boxid);
+    let boxnumber = freezerbox === undefined ? '' : freezerbox.boxnumber;
     if (status === 200) {
       let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
       let prItems = prData.flatMap((pr) => {
@@ -1359,7 +1361,10 @@ console.log(filterBoxs);
       prItems.sort((a, b) => a.sno - b.sno);
       allInvoiceData.push({
         data: prItems,
-        customerdetails: record,
+        customerdetails: {
+          ...record,
+          boxnumber: boxnumber
+        },
       });
     }
     }
@@ -1993,6 +1998,8 @@ console.log(filterBoxs);
 
   const handleDownloadPdf = async (record) => {
     const { items, status } = await fetchItemsForDelivery(record.id)
+    const { freezerbox } = await getFreezerboxById(record.boxid);
+    let boxnumber = freezerbox === undefined ? '' : freezerbox.boxnumber;
     if (status === 200) {
       let prData = datas.product.filter((item, i) => items.find((item2) => item.id === item2.id))
       
@@ -2038,7 +2045,10 @@ console.log(filterBoxs);
         ...pre,
         data: prItems,
         isGenerate: true,
-        customerdetails: record
+        customerdetails: {
+          ...record,
+          boxnumber: boxnumber
+        },
       }));}
       // console.log(record);
       setLoadingGstin(false);
@@ -2431,6 +2441,15 @@ console.log(filterdata);
                     : null}
                 </span>
               </div>
+
+              <div
+                  className={` ${invoiceDatas.customerdetails.boxnumber ? 'block' : 'hidden'}`}
+                >
+                  <span className="font-bold">Box Number :</span>{' '}
+                  <span>
+                    {invoiceDatas.customerdetails.boxnumber || 'N/A'}
+                  </span>
+                </div>
 
               <div>
               <span className="font-bold">Mobile Number : </span>{' '}
