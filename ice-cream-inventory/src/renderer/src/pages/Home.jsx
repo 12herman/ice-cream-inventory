@@ -61,6 +61,7 @@ export default function Home({ datas }) {
   const [dateRange, setDateRange] = useState([today, today])
   const [filteredDelivery, setFilteredDelivery] = useState([])
   const [filteredRawmaterials, setFilteredRawmaterials] = useState([])
+  const [filteredSpending, setFilteredSpending] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [selectedTableData, setSelectedTableData] = useState([])
@@ -131,14 +132,14 @@ export default function Home({ datas }) {
       key: 'numberofpacks',
       editable: quotationft.edpacks,
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
-      width:80
+      width: 80
     },
     {
       title: <span className="text-[0.7rem]">Piece Price</span>,
       dataIndex: 'productprice',
       key: 'productprice',
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
-      width:90
+      width: 90
     },
     {
       title: <span className="text-[0.7rem]">MRP</span>,
@@ -146,7 +147,7 @@ export default function Home({ datas }) {
       key: 'mrp',
       editable: false,
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
-      width:100
+      width: 100
     },
     {
       title: <span className="text-[0.7rem]">Margin</span>,
@@ -154,7 +155,7 @@ export default function Home({ datas }) {
       key: 'margin',
       editable: quotationft.edmargin,
       render: (text) => <span className="text-[0.7rem]">{text}</span>,
-      width:80
+      width: 80
     },
     {
       title: <span className="text-[0.7rem]">Price</span>,
@@ -162,7 +163,7 @@ export default function Home({ datas }) {
       key: 'price',
       render: (text) => <span className="text-[0.7rem]">{formatToRupee(text, true)}</span>,
       editable: quotationft.edprice,
-      width:120
+      width: 120
     },
     {
       title: <span className="text-[0.7rem]">Action</span>,
@@ -574,8 +575,11 @@ export default function Home({ datas }) {
           deliverys
             .filter(
               (data) =>
+                !data.isdeleted &&
                 isWithinRange(data.date) &&
-                (data.collectiontype === 'delivery' || data.collectiontype === 'customer' || data.collectiontype === 'firstpartial')
+                (data.collectiontype === 'delivery' ||
+                  data.collectiontype === 'customer' ||
+                  data.collectiontype === 'firstpartial')
             )
             .map(async (data) => {
               let name = ''
@@ -608,11 +612,11 @@ export default function Home({ datas }) {
 
         let totalAmount = filterData.reduce((total, data) => {
           const amount = Number(data.amount) || 0
-          if (data.type === 'Payment' ||  data.type ==='firstpartial') {
+          if (data.type === 'Payment' || data.type === 'firstpartial') {
             return total + amount
           }
           return total
-        }, 0);
+        }, 0)
 
         setTotalPayAmount(totalAmount)
         setFilteredPayments(filterData)
@@ -662,17 +666,30 @@ export default function Home({ datas }) {
 
         setFilteredSpendingPayments(spendData)
       }
+
+      const newFilteredSpending = await Promise.all(
+        datas.spending
+          .filter((spend) => !spend.isdeleted && isWithinRange(spend.date))
+          .map(async (item) => ({
+            ...item,
+            key: item.id,
+            customername: item.name,
+            // total: item.amount,
+            billamount: item.amount,
+            type: item.description
+          }))
+      )
+      setFilteredSpending(newFilteredSpending)
     }
 
     fetchFilteredData()
-  }, [dateRange, datas.delivery, datas.rawmaterials])
+  }, [dateRange, datas.delivery, datas.rawmaterials, datas.spending])
 
   const handleDateChange = (dates) => {
     setDateRange(dates)
   }
 
   const showModal = async (record) => {
-    
     let itemsWithProductNames = []
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
@@ -681,7 +698,7 @@ export default function Home({ datas }) {
           const product = datas.product.find((product) => product.id === item.id)
           return {
             ...item,
-            productname: product ? product.productname : '',
+            productname: product ? product.productname : ''
             // flavour: product ? product.flavour : '',
             // quantity: product ? product.quantity : ''
           }
@@ -691,14 +708,14 @@ export default function Home({ datas }) {
       const { materialitem, status } = await fetchMaterials(record.id)
       if (status === 200) {
         itemsWithProductNames = await Promise.all(
-          materialitem.map(async (item,i) => {
+          materialitem.map(async (item, i) => {
             let { material, status } = await getOneMaterialDetailsById(
               record.supplierid,
               item.materialid
             )
-            
+
             return {
-              sno:materialitem[i].sno,//add on sno(10/10/24, 5.52 pm)
+              sno: materialitem[i].sno, //add on sno(10/10/24, 5.52 pm)
               productname: material.materialname || '',
               // flavour: '',
               // quantity: material.unit || '',
@@ -712,17 +729,17 @@ export default function Home({ datas }) {
       if (status === 200) {
         itemsWithProductNames = items.map((item) => {
           const product = datas.product.find((product) => product.id === item.id)
-          
+
           return {
             ...item,
-            productname: product ? product.productname : '',
+            productname: product ? product.productname : ''
             // flavour: product ? product.flavour : '',
             // quantity: product ? product.quantity : ''
           }
         })
       }
     }
-    itemsWithProductNames.sort((a, b) => a.sno - b.sno);
+    itemsWithProductNames.sort((a, b) => a.sno - b.sno)
     setSelectedRecord({ ...record, items: itemsWithProductNames })
     setIsModalVisible(true)
   }
@@ -752,22 +769,24 @@ export default function Home({ datas }) {
     .filter((product) => product.type === 'return')
     .reduce((total, product) => total + product.billamount, 0)
 
-  const totalProfit = totalSales - totalSpend - totalReturn
+  const totalGeneralSpending = filteredSpending.reduce(
+      (total, product) => total + product.amount,
+      0
+  )
 
-  const totalQuickSale = filteredDelivery
-    .filter((product) => product.type === 'quick')
-    .reduce((total, product) => total + product.billamount, 0)
+  const totalProfit = totalSales - totalSpend - totalReturn - totalGeneralSpending
 
   const totalBooking = deliveryData.filter((product) => {
     return (
-      product.type === 'booking' && dayjs(product.deliverydate, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
+      product.type === 'booking' &&
+      dayjs(product.deliverydate, 'DD/MM/YYYY').isSameOrAfter(dayjs(), 'day')
     )
   }).length
 
   const totalPaid = filteredDelivery.reduce((total, product) => {
     if (product.paymentstatus === 'Paid' && product.type !== 'return') {
       return total + (Number(product.billamount) || 0)
-    } 
+    }
     // else if (product.paymentstatus === 'Partial' && product.type === 'order') {
     //   return total + (Number(product.partialamount) || 0)
     // }
@@ -788,15 +807,10 @@ export default function Home({ datas }) {
     { key: 'totalSales', title: 'Total Sales', value: totalSales, prefix: <FaRupeeSign /> },
     { key: 'totalSpend', title: 'Total Expenses', value: totalSpend, prefix: <FaRupeeSign /> },
     { key: 'totalReturn', title: 'Total Return', value: totalReturn, prefix: <FaRupeeSign /> },
-    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
+    { key: 'totalGeneralSpending', title: 'General Spending', value: totalGeneralSpending, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
-    {
-      key: 'totalQuickSale',
-      title: 'Total Quick Sale',
-      value: totalQuickSale,
-      prefix: <FaRupeeSign />
-    },
+    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
   ]
 
@@ -821,8 +835,8 @@ export default function Home({ datas }) {
         newSelectedTableData = [...rawMaterialsData, ...otherSpend]
         break
       }
-      case 'totalQuickSale':
-        newSelectedTableData = filteredDelivery.filter((product) => product.type === 'quick')
+      case 'totalGeneralSpending':
+        newSelectedTableData = filteredSpending
         break
       case 'totalReturn':
         newSelectedTableData = filteredDelivery.filter((product) => product.type === 'return')
@@ -850,11 +864,13 @@ export default function Home({ datas }) {
             product.type !== 'return' &&
             (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
-        const filterPayment = filteredPayments.filter(data => data.collectiontype !== 'firstpartial').map((pay) => ({
-          ...pay,
-          customername: pay.name,
-          billamount: pay.amount
-        }))
+        const filterPayment = filteredPayments
+          .filter((data) => data.type === 'Payment')
+          .map((pay) => ({
+            ...pay,
+            customername: pay.name,
+            billamount: pay.amount
+          }))
         newSelectedTableData = [...deliveryData, ...filterPayment]
         break
       }
@@ -878,7 +894,12 @@ export default function Home({ datas }) {
         product.paymentmode === paymentMode
     )
     const filterPayment = filteredPayments
-      .filter((pay) => pay.paymentmode === paymentMode && pay.collectiontype !== 'firstpartial')
+      .filter(
+        (pay) =>
+          pay.paymentmode === paymentMode &&
+          pay.collectiontype !== 'firstpartial' &&
+          pay.type === 'Payment'
+      )
       .map((pay) => ({
         ...pay,
         customername: pay.name,
@@ -930,24 +951,24 @@ export default function Home({ datas }) {
       // })
       let prItems = prData.flatMap((pr, i) => {
         // Get all matching items with the same id
-        let matchingItems = items.filter((item) => item.id === pr.id);
-        
+        let matchingItems = items.filter((item) => item.id === pr.id)
+
         // If there are matching items, map over them to return multiple results
         return matchingItems.map((matchingData) => ({
-            sno: matchingData.sno,
-            ...pr,
-            pieceamount: pr.price,
-            quantity: `${pr.quantity} ${pr.unit}`,
-            margin: matchingData.margin,
-            price:
-                matchingData.numberofpacks * pr.price -
-                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-            numberofpacks: matchingData.numberofpacks,
-            producttotalamount: matchingData.numberofpacks * pr.price,
-            returntype: matchingData.returntype,
-        }));
-      });
-      prItems.sort((a, b) => a.sno - b.sno);
+          sno: matchingData.sno,
+          ...pr,
+          pieceamount: pr.price,
+          quantity: `${pr.quantity} ${pr.unit}`,
+          margin: matchingData.margin,
+          price:
+            matchingData.numberofpacks * pr.price -
+            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+          numberofpacks: matchingData.numberofpacks,
+          producttotalamount: matchingData.numberofpacks * pr.price,
+          returntype: matchingData.returntype
+        }))
+      })
+      prItems.sort((a, b) => a.sno - b.sno)
       await setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
@@ -1013,38 +1034,37 @@ export default function Home({ datas }) {
       let prData = datas.product.filter((item) => items.find((item2) => item.id === item2.id))
       // let prData = datas.product.filter((item) => item.isdeleted === false)
 
+      let prItems = prData.flatMap((pr, i) => {
+        // Get all matching items with the same id
+        let matchingItems = items.filter((item) => item.id === pr.id)
 
-let prItems = prData.flatMap((pr, i) => {
-  // Get all matching items with the same id
-  let matchingItems = items.filter((item) => item.id === pr.id);
-  
-  // If there are matching items, map over them to return multiple results
-  return matchingItems.map((matchingData) => ({
-      sno: matchingData.sno,
-      ...pr,
-      pieceamount: pr.price,
-      quantity: `${pr.quantity} ${pr.unit}`,
-      margin: matchingData.margin,
-      price:
-          matchingData.numberofpacks * pr.price -
-          matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
-      numberofpacks: matchingData.numberofpacks,
-      producttotalamount: matchingData.numberofpacks * pr.price,
-      returntype: matchingData.returntype,
-  }));
-});
+        // If there are matching items, map over them to return multiple results
+        return matchingItems.map((matchingData) => ({
+          sno: matchingData.sno,
+          ...pr,
+          pieceamount: pr.price,
+          quantity: `${pr.quantity} ${pr.unit}`,
+          margin: matchingData.margin,
+          price:
+            matchingData.numberofpacks * pr.price -
+            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+          numberofpacks: matchingData.numberofpacks,
+          producttotalamount: matchingData.numberofpacks * pr.price,
+          returntype: matchingData.returntype
+        }))
+      })
 
-        prItems.sort((a, b) => a.sno - b.sno);
-        await setInvoiceDatas((pre) => ({
-            ...pre,
-            data: prItems,
-            isGenerate: false,
-            customerdetails: {
-                ...record,
-                gstin,
-                location,
-            },
-        }));
+      prItems.sort((a, b) => a.sno - b.sno)
+      await setInvoiceDatas((pre) => ({
+        ...pre,
+        data: prItems,
+        isGenerate: false,
+        customerdetails: {
+          ...record,
+          gstin,
+          location
+        }
+      }))
     } catch (error) {
       console.error('Error in handlePrint:', error)
       throw error // Ensure to propagate the error
@@ -1105,9 +1125,9 @@ let prItems = prData.flatMap((pr, i) => {
 
   const handleQuotationDownload = async () => {
     await setGstBillPdf(true)
-                       
-                        await setHasPdf(true)
-                        
+
+    await setHasPdf(true)
+
     // data
     let { date } = quotationft.tempproduct[0]
     // customer details
@@ -1225,8 +1245,8 @@ let prItems = prData.flatMap((pr, i) => {
   useEffect(() => {
     const generatePDF = async () => {
       if (invoiceDatas.isGenerate) {
-        const element = gstBill === true ? GstBillRef.current : printRef.current; // The element to print
-  
+        const element = gstBill === true ? GstBillRef.current : printRef.current // The element to print
+
         // Set the scale for html2canvas
         const canvas = await html2canvas(element, {
           scale: 2, // Adjust scale for better resolution
@@ -1234,45 +1254,45 @@ let prItems = prData.flatMap((pr, i) => {
           logging: true, // Optional: Log messages to the console for debugging
           width: element.scrollWidth, // Set width to capture all content
           height: element.scrollHeight // Set height to capture all content
-        });
-  
+        })
+
         // Get the canvas as a data URL
-        const data = canvas.toDataURL('image/png');
-  
+        const data = canvas.toDataURL('image/png')
+
         // Initialize jsPDF
-        const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, and 'a4' size
-  
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 297; // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
-  
-        let heightLeft = imgHeight;
-        let position = 0;
-  
+        const pdf = new jsPDF('p', 'mm', 'a4') // 'p' for portrait, 'mm' for millimeters, and 'a4' size
+
+        const imgWidth = 210 // A4 width in mm
+        const pageHeight = 297 // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width // Maintain aspect ratio
+
+        let heightLeft = imgHeight
+        let position = 0
+
         // Add the image to the PDF
-        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-  
+        pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+
         // Handle multi-page PDFs
         while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
+          position = heightLeft - imgHeight
+          pdf.addPage()
+          pdf.addImage(data, 'PNG', 0, position, imgWidth, imgHeight)
+          heightLeft -= pageHeight
         }
-  
+
         // Save the generated PDF
-        pdf.save(`${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`);
-  
+        pdf.save(
+          `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`
+        )
+
         // Reset the state after generating the PDF
-        await setInvoiceDatas((prev) => ({ ...prev, isGenerate: false }));
+        await setInvoiceDatas((prev) => ({ ...prev, isGenerate: false }))
       }
-    };
-  
-    generatePDF();
-  }, [invoiceDatas.isGenerate, printRef]);
-  
-  
+    }
+
+    generatePDF()
+  }, [invoiceDatas.isGenerate, printRef])
 
   const columns = [
     {
@@ -1347,9 +1367,7 @@ let prItems = prData.flatMap((pr, i) => {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">
-                {bookingstatus}
-              </Tag>}
+              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
               <Tag color="green">{text}</Tag>
               <Tag color="cyan">{record.paymentmode}</Tag>
             </>
@@ -1358,9 +1376,7 @@ let prItems = prData.flatMap((pr, i) => {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">
-                {bookingstatus}
-              </Tag>}
+              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
               <Tag color="yellow">
                 {text} - {partialamount}
               </Tag>
@@ -1378,9 +1394,7 @@ let prItems = prData.flatMap((pr, i) => {
           return (
             <>
               <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">
-                {bookingstatus}
-              </Tag>}
+              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
               <Tag className={`${text === undefined ? 'hidden' : ''}`} color="red">
                 {text}
               </Tag>
@@ -1400,7 +1414,7 @@ let prItems = prData.flatMap((pr, i) => {
         return (
           <span>
             <Button
-              disabled={Object.keys(record).includes('collectiontype') ? true : false}
+              disabled={Object.keys(record).includes('collectiontype') || record.spendingtype === 'General' ? true : false}
               className="py-0 text-[0.7rem] h-[1.7rem]"
               icon={<UnorderedListOutlined />}
               style={{ marginRight: 8 }}
@@ -1426,7 +1440,6 @@ let prItems = prData.flatMap((pr, i) => {
                       className="text-[0.7rem]"
                       type="primary"
                       onClick={async () => {
-                        
                         await setGstBillPdf(true)
                         await setGstBill(true)
                         await setHasPdf(true)
@@ -1464,7 +1477,7 @@ let prItems = prData.flatMap((pr, i) => {
             >
               <Button
                 disabled={
-                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added' || record.spendingtype === 'General'
                     ? true
                     : false
                 }
@@ -1567,7 +1580,7 @@ let prItems = prData.flatMap((pr, i) => {
             >
               <Button
                 disabled={
-                  Object.keys(record).includes('collectiontype') || record.type === 'Added'
+                  Object.keys(record).includes('collectiontype') || record.type === 'Added' || record.spendingtype === 'General'
                     ? true
                     : false
                 }
@@ -1728,13 +1741,11 @@ let prItems = prData.flatMap((pr, i) => {
 
     // let [quantityvalue, units] = values.quantity.split(' ')
     const findPrice = await datas.product.find(
-      (item) =>
-        item.isdeleted === false &&
-        item.productname === values.productname 
-        // && item.flavour === values.flavour &&
-        // item.quantity === Number(quantityvalue) &&
-        // item.unit === units
-    ).price;
+      (item) => item.isdeleted === false && item.productname === values.productname
+      // && item.flavour === values.flavour &&
+      // item.quantity === Number(quantityvalue) &&
+      // item.unit === units
+    ).price
 
     const newProduct = {
       ...values,
@@ -1745,13 +1756,15 @@ let prItems = prData.flatMap((pr, i) => {
       productprice: findPrice,
       margin: 0,
       price: findPrice * values.numberofpacks
-    };
+    }
 
-    const checkExsit = quotationft.tempproduct.some( (item) =>
+    const checkExsit = quotationft.tempproduct.some(
+      (item) =>
         item.productname === newProduct.productname &&
         item.flavour === newProduct.flavour &&
         item.quantity === newProduct.quantity &&
-        item.date === newProduct.date)
+        item.date === newProduct.date
+    )
 
     if (checkExsit) {
       message.open({ type: 'warning', content: 'Product is already added' })
@@ -1783,7 +1796,7 @@ let prItems = prData.flatMap((pr, i) => {
       title: 'S.No',
       dataIndex: 'sno',
       key: 'sno',
-      width: 50,
+      width: 50
       // render:(text,record,i)=>{
       //     console.log(record);
       //   return record.sno
@@ -1792,7 +1805,7 @@ let prItems = prData.flatMap((pr, i) => {
     {
       title: 'Item Name',
       dataIndex: 'productname',
-      key: 'productname',
+      key: 'productname'
       // render: (text, record) => `${record.productname} - ${record.unit}`
     },
     {
@@ -1800,7 +1813,7 @@ let prItems = prData.flatMap((pr, i) => {
       dataIndex: 'numberofpacks',
       key: 'numberofpacks'
     }
-  ];
+  ]
 
   // Table Hight Auto Adjustment (***Do not tounch this code*** ) //
   const [tableHeight, setTableHeight] = useState(window.innerHeight - 200) // Initial height adjustment
@@ -1875,9 +1888,8 @@ let prItems = prData.flatMap((pr, i) => {
   ]
 
   const calculateCombinedAmount = (paymentMode) => {
-    
     const paymentAmount = filteredPayments
-      .filter((payment) => payment.paymentmode === paymentMode)
+      .filter((payment) => payment.paymentmode === paymentMode && payment.type === 'Payment')
       .reduce((total, payment) => total + (Number(payment.amount) || 0), 0)
     const deliveryAmount = filteredDelivery.reduce((total, product) => {
       if (
@@ -1886,7 +1898,7 @@ let prItems = prData.flatMap((pr, i) => {
         product.paymentmode === paymentMode
       ) {
         return total + (Number(product.billamount) || 0)
-      } 
+      }
       // else if (
       //   product.paymentstatus === 'Partial' &&
       //   product.type === 'order' &&
@@ -1926,52 +1938,70 @@ let prItems = prData.flatMap((pr, i) => {
   }
 
   // Without GST
-const pdfBillStyle = {heading:'26px',subheading:'24px',para:'20px'};
-const printBillStyle = {heading:'18px',subheading:'14px',para:'11px' };
+  const pdfBillStyle = { heading: '26px', subheading: '24px', para: '20px' }
+  const printBillStyle = { heading: '18px', subheading: '14px', para: '11px' }
 
-// GST
-const GstBillStylePdf = {heading:'24px',subheading:'20px',para:'16px'};
-const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
+  // GST
+  const GstBillStylePdf = { heading: '24px', subheading: '20px', para: '16px' }
+  const GstBillStylePrint = { heading: '20px', subheading: '16px', para: '11px' }
   return (
     <div>
-
- {/* old pdf and print start */}
- <div
+      {/* old pdf and print start */}
+      <div
         ref={printRef}
         className="absolute top-[-200rem] w-full"
         // className='w-full h-screen'
-        style={{ padding: '20px', backgroundColor: '#ffff' }}>
+        style={{ padding: '20px', backgroundColor: '#ffff' }}
+      >
         <div ref={componentRef}>
           <section className="w-[90%] mx-auto mt-4">
             <ul className="flex justify-center items-center gap-x-2">
               <li>
-                <img 
-                // className="w-[3rem]" 
-                width={'68px'}
-                src={companyLogo} alt="comapanylogo" />
+                <img
+                  // className="w-[3rem]"
+                  width={'68px'}
+                  src={companyLogo}
+                  alt="comapanylogo"
+                />
               </li>
               <li className="text-center">
-                <h1 style={{fontWeight:'bold',fontSize:`${hasPdf === true ? pdfBillStyle.heading : printBillStyle.heading}`}} 
-                // className={`${hasPdf === true ? 'text-[1.5rem]' : 'text-[0.7rem]'} font-bold`}
+                <h1
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: `${hasPdf === true ? pdfBillStyle.heading : printBillStyle.heading}`
+                  }}
+                  // className={`${hasPdf === true ? 'text-[1.5rem]' : 'text-[0.7rem]'} font-bold`}
                 >
                   NEW SARANYA ICE COMPANY
                 </h1>
-                <p 
-                style={{fontSize:`${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`}}
-                // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                <p
+                  style={{
+                    fontSize: `${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`
+                  }}
+                  // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
                 >
                   PILAVILAI, AZHAGANPARAI P.O.
                 </p>
-                <p 
-                style={{fontSize:`${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`}}
-                // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-                >K.K.DIST</p>
+                <p
+                  style={{
+                    fontSize: `${hasPdf === true ? pdfBillStyle.subheading : printBillStyle.subheading}`
+                  }}
+                  // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                >
+                  K.K.DIST
+                </p>
               </li>
             </ul>
 
-            <ul 
-            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,display:'flex',justifyContent:'space-between',alignItems:'center', margin:'40px 0 0 0'}}
-            // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`} 
+            <ul
+              style={{
+                fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                margin: '40px 0 0 0'
+              }}
+              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} mt-1 flex justify-between`}
             >
               <li>
                 <div>
@@ -1990,12 +2020,16 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
 
                 // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
                 >
-                  <span className={`w-full font-bold ${invoiceDatas.customerdetails.customername === '' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}>Customer Name : <span className='font-medium'>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.customername
-                      : null}
-                  </span></span>
-                  
+                  <span
+                    className={`w-full font-bold ${invoiceDatas.customerdetails.customername === '' || invoiceDatas.customerdetails.customername === undefined ? 'hidden' : 'block'}`}
+                  >
+                    Customer Name :{' '}
+                    <span className="font-medium">
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.customername
+                        : null}
+                    </span>
+                  </span>
                 </div>
 
                 <div
@@ -2038,22 +2072,34 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </li>
             </ul>
 
-            <h2 className={`${invoiceDatas.customerdetails.type === 'return' ? 'block': 'hidden'} font-bold w-full text-center mt-[10px]`} style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`}}>Return</h2>
+            <h2
+              className={`${invoiceDatas.customerdetails.type === 'return' ? 'block' : 'hidden'} font-bold w-full text-center mt-[10px]`}
+              style={{ fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}` }}
+            >
+              Return
+            </h2>
 
             <table
-            className='withoutgsttable'
-            style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,width:'100%',borderCollapse:'collapse',margin:'10px 0px 0px 0px',textAlign:'left',padding:'3px'}}
+              className="withoutgsttable"
+              style={{
+                fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
+                width: '100%',
+                borderCollapse: 'collapse',
+                margin: '10px 0px 0px 0px',
+                textAlign: 'left',
+                padding: '3px'
+              }}
               // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} min-w-full border-collapse mt-4`}
             >
               <thead>
                 <tr>
                   <th
-                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     S.No
                   </th>
                   <th
-                   style={{width:'350px'}}
+                    style={{ width: '350px' }}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Product
@@ -2070,30 +2116,30 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   </th> */}
                   <th
                   // style={{width:'100px'}}
-                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Rate
                   </th>
                   <th
-                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Qty
                   </th>
                   <th
                   // style={{width:'100px'}}
-                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     MRP
                   </th>
                   <th
-                  style={{width:'50px'}}
+                    style={{ width: '50px' }}
                     // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Margin
                   </th>
                   <th
                   // style={{width:'100px'}}
-                    // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
+                  // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b text-left pb-2`}
                   >
                     Amount
                   </th>
@@ -2104,15 +2150,19 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   ? invoiceDatas.data.map((item, i) => (
                       <tr key={i}>
                         <td
-                        width={20}
+                          width={20}
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {i + 1}
                         </td>
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
-                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
+                          {item.productname}{' '}
+                          {invoiceDatas.customerdetails.type === 'return' &&
+                          (item.returntype !== undefined || item.returntype !== null)
+                            ? `(${item.returntype})`
+                            : ''}
                         </td>
                         {/* <td
                           // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
@@ -2125,27 +2175,27 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                           {item.quantity}
                         </td> */}
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.pieceamount}
                         </td>
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.numberofpacks}
                         </td>
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {item.producttotalamount}
                         </td>
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {toDigit(item.margin)}%
                         </td>
                         <td
-                          // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
+                        // className={`${hasPdf === true ? 'text-[0.7rem]' : 'text-[0.5rem]'} border-b pb-2`}
                         >
                           {customRound(
                             item.numberofpacks * item.pieceamount -
@@ -2157,69 +2207,85 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   : 'No Data'}
               </tbody>
             </table>
-            
-            <div style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,textAlign:'end', margin:'10px 0 0 0'}}>
-            <p 
-            // className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-            >
-              Total Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.total)
-                  : null}
-              </span>{' '}
-            </p>
-            <p 
-            // className={`text-end ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-            >
-              Bill Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                  : null}
-              </span>
-            </p>
-            <p
-            className={`${invoiceDatas.customerdetails.type === 'return' ? 'hidden' : 'block'}`}
-              // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
-            >
-              Paid Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
-                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
-                  : null}
-              </span>
-            </p>
-            <div style={{fontSize:`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0 0 0'}}>
-            <p
-            style={{
-              // padding:'0 0 0 20px',
-              // textAlign:'left'
+
+            <div
+              style={{
+                fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
+                textAlign: 'end',
+                margin: '10px 0 0 0'
               }}
-              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
             >
-              Authorised Signature
-            </p>
-            <p
-              className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-            >
-              Balance:{' '}
-              <span className=" font-bold">
-              {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(
-                      invoiceDatas.customerdetails.billamount -
-                        invoiceDatas.customerdetails.partialamount
-                    )
-                  : null}
-                {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
+              <p
+              // className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+              >
+                Total Amount:{' '}
+                <span className=" font-bold">
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? formatToRupee(invoiceDatas.customerdetails.total)
+                    : null}
+                </span>{' '}
+              </p>
+              <p
+              // className={`text-end ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+              >
+                Bill Amount:{' '}
+                <span className=" font-bold">
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                    : null}
+                </span>
+              </p>
+              <p
+                className={`${invoiceDatas.customerdetails.type === 'return' ? 'hidden' : 'block'}`}
+                // className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
+              >
+                Paid Amount:{' '}
+                <span className=" font-bold">
+                  {Object.keys(invoiceDatas.customerdetails).length !== 0
+                    ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
+                      ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                      : formatToRupee(invoiceDatas.customerdetails.partialamount)
+                    : null}
+                </span>
+              </p>
+              <div
+                style={{
+                  fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '1px 0 0 0'
+                }}
+              >
+                <p
+                  style={
+                    {
+                      // padding:'0 0 0 20px',
+                      // textAlign:'left'
+                    }
+                  }
+                  // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                >
+                  Authorised Signature
+                </p>
+                <p
+                  className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
+                >
+                  Balance:{' '}
+                  <span className=" font-bold">
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? formatToRupee(
+                          invoiceDatas.customerdetails.billamount -
+                            invoiceDatas.customerdetails.partialamount
+                        )
+                      : null}
+                    {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
                   ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
                    : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0} */}
-              </span>
-            </p>
-            </div>
-            {/* <p
+                  </span>
+                </p>
+              </div>
+              {/* <p
             style={{
               padding:'50px 0 0 0',
               // textAlign:'left'
@@ -2234,37 +2300,58 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
       </div>
       {/* old pdf and print end */}
 
-
       {/* new start */}
       <div
         ref={GstBillRef}
         className="absolute top-[-200rem] w-full"
         // className=" absolute top-34 left-0 w-full z-[9999]"
-        style={{ padding: '20px', backgroundColor: '#ffff' }}>
-        <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}} className='w-full block text-center my-2 font-medium'>
-            TAX INVOICE
-          </span>
+        style={{ padding: '20px', backgroundColor: '#ffff' }}
+      >
+        <span
+          style={{
+            fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
+          }}
+          className="w-full block text-center my-2 font-medium"
+        >
+          TAX INVOICE
+        </span>
         <div ref={GstComponentRef} className="w-full flex justify-center items-center">
           <section className="w-[90%] border  ">
-          
             <ul className="flex justify-center items-center gap-x-2">
               {/* <li>
                 {' '}
                 <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
               </li> */}
               <li className="text-center mt-1">
-                <h1 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`}} className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}>
+                <h1
+                  style={{
+                    fontSize: `${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`
+                  }}
+                  className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}
+                >
                   NEW SARANYA ICE COMPANY
                 </h1>{' '}
-                <p style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}}>
+                <p
+                  style={{
+                    fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
+                  }}
+                >
                   PILAVILAI, AZHAGANPARAI P.O.
                 </p>{' '}
-                <p style={{fontSize:`${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`}}>K.K.DIST</p>{' '}
+                <p
+                  style={{
+                    fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
+                  }}
+                >
+                  K.K.DIST
+                </p>{' '}
               </li>
             </ul>
 
             <ul
-            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              style={{
+                fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+              }}
               className={`px-2 mt-1 flex justify-between `}
             >
               {/* phone number */}
@@ -2342,8 +2429,11 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               <thead>
                 <tr>
                   <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={`pl-2 py-2 font-bold`}>
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={`pl-2 py-2 font-bold`}
+                  >
                     <span className=" text-left block ">
                       Gst No
                       &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
@@ -2356,21 +2446,27 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   </th>
 
                   <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                   className={` font-bold`}>
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={` font-bold`}
+                  >
                     <span className="block">E-Way Bill NO.</span>
                     33AAIFN6367K1ZV
                   </th>
 
                   <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
                     className={` font-bold`}
                   >
                     <span className="text-left block pl-2">
-                      No &#160;&#160;&#160;&#160;&#160;&#160;&#160;: { invoiceDatas.customerdetails.id}
+                      No &#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      {invoiceDatas.customerdetails.id}
                     </span>
                     <span className="text-left block pl-2">
-                      Date &#160;&#160;&#160;: 
+                      Date &#160;&#160;&#160;:
                       <span>
                         {Object.keys(invoiceDatas.customerdetails).length !== 0
                           ? invoiceDatas.customerdetails.date
@@ -2383,8 +2479,12 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
             </table>
 
             {/* grid -2 */}
-            <ul className='px-2 py-2'>
-              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}>
+            <ul className="px-2 py-2">
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+              >
                 <span className="text-left block ">
                   Ack NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV
                 </span>
@@ -2400,121 +2500,161 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
             </ul>
 
             {/* grid-3 */}
-            <ul  className="border-t grid grid-cols-2 ">
+            <ul className="border-t grid grid-cols-2 ">
               {/* billed address */}
-              <li  className={`border-r `}>
-                <div className='px-2 py-2'>
-                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className="text-left block font-bold">Billed To </span>
-                <address
-                style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                  className={`not-italic  `}
-                >
-                  <span className={`font-bold pl-2`}>New Saranya Ice Company</span> <br />
-                  <span className={`font-medium block pl-4`}>
-                    2-61/3 Pillavillai Azhaganparal Post <br />
-                    Nagarcoil <br />
-                    Kanyamukari Dist
-                    <br />
-                    Pincode: 628217.
+              <li className={`border-r `}>
+                <div className="px-2 py-2">
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className="text-left block font-bold"
+                  >
+                    Billed To{' '}
                   </span>
-                </address>
+                  <address
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={`not-italic  `}
+                  >
+                    <span className={`font-bold pl-2`}>New Saranya Ice Company</span> <br />
+                    <span className={`font-medium block pl-4`}>
+                      2-61/3 Pillavillai Azhaganparal Post <br />
+                      Nagarcoil <br />
+                      Kanyamukari Dist
+                      <br />
+                      Pincode: 628217.
+                    </span>
+                  </address>
 
-                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` font-medium mt-3 block`}>
-                  PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                  Batch Code &#160;&#160;:
-                  <br />
-                  GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
-                  <br />
-                </span>
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={` font-medium mt-3 block`}
+                  >
+                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                    Batch Code &#160;&#160;:
+                    <br />
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                    <br />
+                  </span>
                 </div>
               </li>
               {/* shipped address */}
-              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}>
-                <div className='px-2 py-2 flex flex-col justify-between'>
-                <span className="text-left block font-bold">Shipped To </span>
-                <address
-                style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                  className={`not-italic  `}
-                >
-                  <span className={`font-bold pl-2`}>{Object.keys(invoiceDatas.customerdetails).length !== 0
-                    ? invoiceDatas.customerdetails.customername
-                    : null}</span> <br />
-                  <span className={`font-medium block pl-4`}>
-                    {/* 2-61/3 Pillavillai Azhaganparal Post <br />
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+              >
+                <div className="px-2 py-2 flex flex-col justify-between">
+                  <span className="text-left block font-bold">Shipped To </span>
+                  <address
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={`not-italic  `}
+                  >
+                    <span className={`font-bold pl-2`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.customername
+                        : null}
+                    </span>{' '}
+                    <br />
+                    <span className={`font-medium block pl-4`}>
+                      {/* 2-61/3 Pillavillai Azhaganparal Post <br />
                     Nagarcoil <br />
                     Kanyamukari Dist
                     <br />
                     Pincode: 628217. */}
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                    ? invoiceDatas.customerdetails.location
-                    : null}{' '}
-                  </span>
-                </address>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.location
+                        : null}{' '}
+                    </span>
+                  </address>
 
-                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}  className={` font-medium  block`}>
-                  PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                  Batch Code &#160;&#160;:
-                  <br />
-                  GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
-                  <br />
-                </span>
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={` font-medium  block`}
+                  >
+                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                    Batch Code &#160;&#160;:
+                    <br />
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                    <br />
+                  </span>
                 </div>
               </li>
 
               {/* order detail */}
-              <li
-                className={`py-2 border-t border-r `}
-              >
-                <div className='px-2'>
-                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={`font-medium  block`}>
-                  Order NO &#160;&#160;&#160;&#160;&#160;: <br />
-                  P.O NO
-                  &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
-                  <br />
-                  Distination &#160;&#160;: <span className="font-bold">Nagarcovil</span>
-                  <br />
-                </span>
+              <li className={`py-2 border-t border-r `}>
+                <div className="px-2">
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={`font-medium  block`}
+                  >
+                    Order NO &#160;&#160;&#160;&#160;&#160;: <br />
+                    P.O NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                    <br />
+                    Distination &#160;&#160;: <span className="font-bold">Nagarcovil</span>
+                    <br />
+                  </span>
                 </div>
               </li>
-              <li  className={`py-2 w-full border-t `}
-              >
-                <div className='px-2'>
-                <span style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` font-medium  block`}>
-                  Transport &#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                  <span>
-                    LR.No
-                    &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
-                    <span className="">Dr :</span>
+              <li className={`py-2 w-full border-t `}>
+                <div className="px-2">
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={` font-medium  block`}
+                  >
+                    Transport &#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                    <span>
+                      LR.No
+                      &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      <span className="">Dr :</span>
+                    </span>
+                    <br />
+                    Vehecile No &#160;&#160;: <span className="font-bold">TN 92 3564</span>
+                    <br />
+                    Doc.Thiru &#160;&#160;&#160;&#160;&#160;&#160;: <br />
                   </span>
-                  <br />
-                  Vehecile No &#160;&#160;: <span className="font-bold">TN 92 3564</span>
-                  <br />
-                  Doc.Thiru &#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                </span>
                 </div>
               </li>
             </ul>
-           
-           <section >
-           <table
-           style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-              className={` gstitemtable  min-w-full border-collapse mt-1`}
-            >
-              <thead>
-                <tr>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1 w-[2rem]`}
-                  >
-                    S.No
-                  </th>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    Product
-                  </th>
-                  {/* <th
+
+            <section>
+              <table
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+                className={` gstitemtable  min-w-full border-collapse mt-1`}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1 w-[2rem]`}
+                    >
+                      S.No
+                    </th>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      Product
+                    </th>
+                    {/* <th
                     className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
                   >
                     Flavour
@@ -2524,53 +2664,73 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   >
                     Size
                   </th> */}
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    Rate
-                  </th>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    Qty
-                  </th>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    MRP
-                  </th>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    Margin
-                  </th>
-                  <th
-                  style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
-                    className={` border-b text-left pb-1`}
-                  >
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceDatas.data.length > 0
-                  ? invoiceDatas.data.map((item, i) => (
-                      <tr key={i}>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {i + 1}
-                        </td>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {item.productname} {invoiceDatas.customerdetails.type === 'return'&& (item.returntype !== undefined || item.returntype !== null) ? `(${item.returntype})` : ''}
-                        </td>
-                        {/* <td
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      Rate
+                    </th>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      Qty
+                    </th>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      MRP
+                    </th>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      Margin
+                    </th>
+                    <th
+                      style={{
+                        fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                      }}
+                      className={` border-b text-left pb-1`}
+                    >
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceDatas.data.length > 0
+                    ? invoiceDatas.data.map((item, i) => (
+                        <tr key={i}>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {i + 1}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {item.productname}{' '}
+                            {invoiceDatas.customerdetails.type === 'return' &&
+                            (item.returntype !== undefined || item.returntype !== null)
+                              ? `(${item.returntype})`
+                              : ''}
+                          </td>
+                          {/* <td
                           className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
                         >
                           {item.flavour}
@@ -2580,66 +2740,82 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                         >
                           {item.quantity}
                         </td> */}
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {item.pieceamount}
-                        </td>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {item.numberofpacks}
-                        </td>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {item.producttotalamount}
-                        </td>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {toDigit(item.margin)}%
-                        </td>
-                        <td
-                          style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` border-b pb-1`}
-                        >
-                          {customRound(
-                            item.numberofpacks * item.pieceamount -
-                              (item.numberofpacks * item.pieceamount * item.margin) / 100
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  : 'No Data'}
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {item.pieceamount}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {item.numberofpacks}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {item.producttotalamount}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {toDigit(item.margin)}%
+                          </td>
+                          <td
+                            style={{
+                              fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                            }}
+                            className={` border-b pb-1`}
+                          >
+                            {customRound(
+                              item.numberofpacks * item.pieceamount -
+                                (item.numberofpacks * item.pieceamount * item.margin) / 100
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    : 'No Data'}
 
-                {/* <tr
+                  {/* <tr
                   className={`${invoiceDatas.data.length < 5 && gstBillPdf === false ? 'h-[25vh]' : invoiceDatas.data.length < 8 && gstBillPdf === true ? 'h-[55vh]' : 'hidden'}`}
                 ></tr> */}
 
-                <tr>
-                  <td></td>
-                  <td>Total</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  {/* <td></td> 
+                  <tr>
+                    <td></td>
+                    <td>Total</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {/* <td></td> 
                   <td></td>*/}
-                  <td>
-                    <span className=" font-bold">
-                      {Object.keys(invoiceDatas.customerdetails).length !== 0
-                        ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                        : null}
-                    </span>
-                  </td>
-                  <td></td>
-                 
-                </tr>
-              </tbody>
-            </table>
-           </section>
+                    <td>
+                      <span className=" font-bold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
 
             <ul
-            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              style={{
+                fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+              }}
               className={`px-2 py-2 border-r border-l grid grid-cols-2 font-bold`}
             >
               <li>
@@ -2667,7 +2843,9 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
             </ul>
 
             <table
-            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              style={{
+                fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+              }}
               className={`gsttaxtable w-full `}
             >
               <thead>
@@ -2690,7 +2868,9 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </thead>
 
               <tbody
-              style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
                 className={`gsttaxtable w-full `}
               >
                 <tr>
@@ -2715,11 +2895,18 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
 
             {/* company bank detials */}
             <ul
-            style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+              style={{
+                fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+              }}
               className={` border-b w-full border-x grid grid-cols-2  `}
             >
-              <li className='px-2 py-2'>
-                <h2 style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={` w-full `}>
+              <li className="px-2 py-2">
+                <h2
+                  style={{
+                    fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                  }}
+                  className={` w-full `}
+                >
                   Company's Bank Details
                 </h2>
                 Bank Name
@@ -2735,7 +2922,9 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               </li>
 
               <li
-              style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}}
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
                 className={`px-2 py-2 row-span-2  border-l w-full `}
               >
                 Prepared by For
@@ -2744,7 +2933,12 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                 <span className="block text-right pt-10"> Authorised Signature </span>
               </li>
 
-              <li style={{fontSize:`${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`}} className={`px-2 py-2 border-t w-full `}>
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+                className={`px-2 py-2 border-t w-full `}
+              >
                 1.CERTIFIED that the particulars given above are true and correct2. The amount
                 indicated above represents the price actually charged and there is no flow of
                 additionalconsideration directly or indirectly from the buyer3. Interest @ 24% per
@@ -2931,8 +3125,12 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
               <Descriptions.Item label="Date">{selectedRecord.date}</Descriptions.Item>
               <Descriptions.Item label="Gross Amount">{selectedRecord.total}</Descriptions.Item>
               <Descriptions.Item label="Net Amount">{selectedRecord.billamount}</Descriptions.Item>
-              {selectedRecord.mobilenumber && (<Descriptions.Item label="Mobile">{selectedRecord.mobilenumber}</Descriptions.Item>)}
-              {selectedRecord.location && (<Descriptions.Item label="Location">{selectedRecord.location}</Descriptions.Item>)}
+              {selectedRecord.mobilenumber && (
+                <Descriptions.Item label="Mobile">{selectedRecord.mobilenumber}</Descriptions.Item>
+              )}
+              {selectedRecord.location && (
+                <Descriptions.Item label="Location">{selectedRecord.location}</Descriptions.Item>
+              )}
             </Descriptions>
             <div className="mt-2">
               <Table
@@ -3005,9 +3203,9 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
                   )}
                   onBeforeGetContent={async () => {
                     await setGstBillPdf(false)
-                        
-                        await setHasPdf(false)
-                        
+
+                    await setHasPdf(false)
+
                     return new Promise((resolve) => {
                       promiseResolveRef.current = resolve
                       handleQuotationPrint().then(() => {
@@ -3223,8 +3421,6 @@ const GstBillStylePrint = {heading:'20px',subheading:'16px',para:'11px'};
         </div>
       </Modal>
       <WarningModal state={warningModal} cancel={warningModalCancel} ok={warningModalok} />
-
-     
     </div>
   )
 }

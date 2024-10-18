@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import IceCreamLogo from '../assets/img/hiddenlogo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
+import { Row, Col } from 'antd';
 import {
   Modal,
   Button,
@@ -33,15 +34,18 @@ import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { debounce } from 'lodash'
+import { createSpending } from '../firebase/data-tables/spending'
 import { updateStorage } from '../firebase/data-tables/storage'
 import { customRound } from '../js-files/round-amount'
 import '../components/css/NavBar.css'
+
 export default function NavBar({
   navPages,
   setNavPages,
   datas,
   deliveryUpdateMt,
   storageUpdateMt,
+  spendingUpdateMt,
 }) {
   const [isQuickSale, setIsQuickSale] = useState({
     model: false,
@@ -530,6 +534,7 @@ export default function NavBar({
   const [isSpendingModalOpen, setIsSpendingModalOpen] = useState({
     model: false,
     parentid: '',
+    paytype: 'General',
     employeeoption: []
   })
   const [spendingForm] = Form.useForm()
@@ -544,25 +549,44 @@ export default function NavBar({
   // sepending method
   const handleSpendingFinish = async (values) => {
     const { empid, ...spendDatas } = values
-    const newSpendingData = {
+    const customerSpendingData = {
       ...spendDatas,
       createddate: TimestampJs(),
       isdeleted: false,
       collectiontype: "customer",
-      customerid: empid,
+      customerid: empid || null,
+      type: "Spend",
       description:
         spendDatas.description === '' ||
         spendDatas.description === undefined ||
         spendDatas.description === null
           ? ''
           : spendDatas.description,
-      date: dayjs(spendDatas.date).format('DD/MM/YYYY')
+      date: dayjs(spendDatas.date).format('DD/MM/YYYY'),
+    }
+    const generalSpendingData = {
+      ...spendDatas,
+      createddate: TimestampJs(),
+      isdeleted: false,
+      description:
+        spendDatas.description === '' ||
+        spendDatas.description === undefined ||
+        spendDatas.description === null
+          ? ''
+          : spendDatas.description,
+      date: dayjs(spendDatas.date).format('DD/MM/YYYY'),
     }
     try {
       setSpendSpin(true)
+      if (spendDatas.spendingtype === 'Customer') {
       const employeeDocRef = doc(db, 'customer', empid)
       const payDetialsRef = collection(employeeDocRef, 'paydetails')
-      await addDoc(payDetialsRef, newSpendingData)
+      await addDoc(payDetialsRef, customerSpendingData)
+      }else{
+        console.log(spendDatas.spendingtype,spendDatas.name)
+        await createSpending(generalSpendingData)
+        await spendingUpdateMt()
+      }
       setIsSpendingModalOpen((pre) => ({ ...pre, model: false }))
       spendingForm.resetFields()
       message.open({ type: 'success', content: 'Spending added successfully' })
@@ -571,10 +595,8 @@ export default function NavBar({
       await deliveryUpdateMt()
     } catch (error) {
       console.log(error)
+      setSpendSpin(false)
     }
-    // finally{
-
-    // }
   }
 
   const [firstValue, setFirstValue] = useState(null)
@@ -1444,7 +1466,7 @@ export default function NavBar({
             form={spendingForm}
             layout="vertical"
             onFinish={handleSpendingFinish}
-            initialValues={{ date: dayjs(), paymentmode: 'Cash', type: 'Spend' }}
+            initialValues={{ date: dayjs(), paymentmode: 'Cash', spendingtype: 'General' }}
           >
             <Form.Item
               className="absolute top-[-3rem]"
@@ -1455,10 +1477,30 @@ export default function NavBar({
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
 
-            <Form.Item name="type" className="mb-1 mt-3">
+            <Form.Item name="spendingtype" className="mb-1 mt-3">
                   <Radio.Group
                     buttonStyle="solid"
                     style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      spendingForm.setFieldsValue({ spendingtype: value });
+                      setIsSpendingModalOpen((pre) => ({ ...pre, paytype: value }))
+                    }}
+                  >
+                    <Radio.Button value="General" style={{ width: '50%' }}>
+                      GENERAL
+                    </Radio.Button>
+                    <Radio.Button value="Customer" style={{ width: '50%' }}>
+                      CUSTOMER
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
+            {/* <Form.Item name="type" className="mb-1 mt-3">
+                  <Radio.Group
+                    buttonStyle="solid"
+                    style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
+                    disabled={spendingForm.getFieldValue('spendingtype') === 'General'}
                   >
                     <Radio.Button value="Spend" style={{ width: '50%' }}>
                       SPEND
@@ -1467,8 +1509,23 @@ export default function NavBar({
                       ADVANCE
                     </Radio.Button>
                   </Radio.Group>
-                </Form.Item>
+                </Form.Item> */}
 
+                {spendingForm.getFieldValue('spendingtype') === 'General' && (
+                <Form.Item
+              name="name"
+              label="Person"
+              className="mb-1"
+              rules={[{ required: true, message: false }]}
+            >
+              <Input
+                className="w-full"
+                placeholder="Enter the Person name"
+              />
+            </Form.Item>
+                )}
+
+            {spendingForm.getFieldValue('spendingtype') === 'Customer' && (
             <Form.Item
               className="mb-1"
               name="empid"
@@ -1478,7 +1535,7 @@ export default function NavBar({
               <Select
                 onChange={(e) => personOnchange(e)}
                 showSearch
-                placeholder="Select the Person"
+                placeholder="Select the Customer"
                 options={isSpendingModalOpen.employeeoption}
                 filterSort={(optionA, optionB) =>
                   (optionA?.label ?? '')
@@ -1487,6 +1544,7 @@ export default function NavBar({
                 }
               />
             </Form.Item>
+            )}
 
             <Form.Item
               name="amount"

@@ -24,6 +24,7 @@ export default function Storage({ datas, storageUpdateMt }) {
   const [ediablefForm] = Form.useForm()
   const [data, setData] = useState([])
   const [selectedSegment, setSelectedSegment] = useState('Material List')
+  const [isSegmentDisabled, setIsSegmentDisabled] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState(null)
   const [editingKeys, setEditingKeys] = useState([])
@@ -32,6 +33,7 @@ export default function Storage({ datas, storageUpdateMt }) {
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true);
+      
       const rawData = datas.storage.filter((data) => data.category === selectedSegment);
       const checkCategory = rawData.some((data) => data.category === 'Product List');
       
@@ -45,7 +47,7 @@ export default function Storage({ datas, storageUpdateMt }) {
               const { id, ...filterpr } = product;
               return { ...data, ...filterpr };
             }
-            return data; // Return original data if status is false or undefined
+            return data;
           })
         );
         sortedData = idCompareData.sort((a, b) => {
@@ -61,11 +63,11 @@ export default function Storage({ datas, storageUpdateMt }) {
         });
       }
   
-      setData(sortedData); // Set the sorted data
+      setData(sortedData);
       setTableLoading(false);
     };
   
-    fetchData(); // Call the async function
+    fetchData(); 
   }, [datas, selectedSegment]);
   
   
@@ -95,9 +97,14 @@ export default function Storage({ datas, storageUpdateMt }) {
   }
 
   const onSegmentChange = (value) => {
+    setIsSegmentDisabled(true)
     setEditingKeys([])
     setSelectedSegment(value)
     setSearchText('')
+
+    setTimeout(() => {
+      setIsSegmentDisabled(false)
+    }, 1000)
   }
 
   const materialColumns = [
@@ -414,6 +421,7 @@ export default function Storage({ datas, storageUpdateMt }) {
           />
 
           <Segmented
+          disabled={isSegmentDisabled}
             options={[
               {
                 label: (
@@ -462,6 +470,7 @@ export default function Storage({ datas, storageUpdateMt }) {
               pagination={false}
               scroll={{ x: 900, y: tableHeight }}
               rowKey="id"
+              locale={{ emptyText: <span>No data available</span> }}
             />
           </Form>
         </li>

@@ -696,7 +696,13 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   // export
   const exportExcel = async () => {
     const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Production-List-${TimestampJs()}`)
+    const specificData = exportDatas.map((item, index) => ({
+      No: index + 1,
+      Date: item.date,
+      Name: item.productname,
+      Packs: item.numberofpacks,
+    }));
+    jsonToExcel(specificData, `Production-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKey('')
   }
