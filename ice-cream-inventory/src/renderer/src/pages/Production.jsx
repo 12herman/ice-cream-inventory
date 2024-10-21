@@ -852,15 +852,25 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       >
         <Spin spinning={isAddProductModal}>
           <div className="grid grid-cols-4 gap-x-3">
-            <span className="col-span-1 py-8">
+            <span className="col-span-1 ">
               <Form
                 onFinish={createTemProduction}
                 form={form2}
                 layout="vertical"
                 initialValues={{ date: dayjs() }}
               >
+               <Form.Item
+                  className=" absolute top-[-2.8rem]"
+                  name="date"
+                  label=""
+                  rules={[{ required: true, message: false }]}
+                >
+                  <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
+                </Form.Item>
+
+                <div >
                 <Form.Item
-                  className="mb-1"
+                  className="mt-5"
                   name="productname"
                   label="Product Name"
                   rules={[{ required: true, message: false }]}
@@ -919,7 +929,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 </Form.Item> */}
 
                 <Form.Item
-                  className="mb-3"
+                  className="mt-7"
                   name="numberofpacks"
                   label="Number of Packs"
                   rules={[{ required: true, message: false }]}
@@ -932,20 +942,16 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                   />
                 </Form.Item>
 
-                <Form.Item
-                  className=" absolute top-[-2.8rem]"
-                  name="date"
-                  label=""
-                  rules={[{ required: true, message: false }]}
-                >
-                  <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
-                </Form.Item>
+               
 
-                <div className="mb-3 w-full">
-                  <Button className="w-full" type="primary" htmlType="submit">
+                {/* <div 
+                // className="mb-3 w-full"
+                > */}
+                  <Button className="w-full mt-4" type="primary" htmlType="submit">
                     Add To List
                   </Button>
-                </div>
+                {/* </div> */}
+              </div>
               </Form>
             </span>
             <span className="col-span-3">

@@ -2241,12 +2241,12 @@ export default function Home({ datas }) {
                 fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
                 textAlign: 'end',
                 margin: '10px 0 0 0',
-                display: 'flex',
-                justifyContent:'space-between',
-                alignItems:'end'
+                // display: 'flex',
+                // justifyContent:'space-between',
+                // alignItems:'end'
               }}
             >
-
+             {/* <p className={`text-start p-2 ${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`}>Authorised Signature</p> */}
               <span
                 style={{
                   fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
@@ -2256,18 +2256,6 @@ export default function Home({ datas }) {
                   // padding: '1px 0 0 0'
                 }}
               >
-                <p
-                  style={
-                    {
-                      // padding:'0 0 0 20px',
-                      // textAlign:'left'
-                    }
-                  }
-                  // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-                >
-                  Authorised Signature
-                </p>
-                
                 <p className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}>
                   Balance:{' '}
                   <span className=" font-bold">
@@ -2283,6 +2271,7 @@ export default function Home({ datas }) {
                   </span>
                 </p>
               </span>
+             
               {/* <p
             style={{
               padding:'50px 0 0 0',
@@ -2328,7 +2317,12 @@ export default function Home({ datas }) {
                 </span>
               </p>
              </span>
+             <p
 
+className={`text-start mt-4 p-2 ${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`}
+>
+Authorised Signature
+</p>
             </div>
           </section>
         </div>
