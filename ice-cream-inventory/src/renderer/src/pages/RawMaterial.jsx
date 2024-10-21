@@ -37,6 +37,9 @@ import { addDoc, collection } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import { FaClipboardList } from 'react-icons/fa'
+import TableHeight from '../components/TableHeight'
+import './css/RawMaterial.css'
+
 
 export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateMt }) {
   //states
@@ -167,7 +170,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       render: (text,data,i) => {
        return <span className="text-[0.8rem]">{i+1}</span>
       },
-      width:80
+      width:60
     },
     {
       title: <span className="text-[0.8rem]">Product</span>,
@@ -182,7 +185,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       key: 'quantity',
       editable: true,
       render: (text,data) => <span className="text-[0.8rem]">{text +' '+ data.unit}</span>,
-      width:150
+      width:130
     },
     {
       title: <span className="text-[0.8rem]">Price</span>,
@@ -788,43 +791,137 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     addmaterialpaymentform.setFieldsValue({ partialamount: 0 })
   },300);
 
+
+  const [materialUsedForm] = Form.useForm()
+
   // material used
   const usedmaterialcolumns = [
     {
-      title: 'Material',
+      title: <span className='text-[0.7rem]'>S.No</span>,
+      editable: false,
+      render:(text,record,i) => <span className='text-[0.7rem]'>{i+1}</span>,
+      width:55
+    },
+    {
+      title: <span className='text-[0.7rem]'>Material</span>,
       dataIndex: 'materialname',
       key: 'materialname',
-      editable: true
+      editable: false,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>,
     },
     {
-      title: 'Quantity',
+      title: <span className='text-[0.7rem]'>Quantity</span>,
       dataIndex: 'quantity',
       key: 'quantity',
-      editable: true
+      editable: true,
+      render:(text) => <span className='text-[0.7rem]'>{text}</span>,
     },
     {
-      title: 'Action',
+      title: <span className='text-[0.7rem]'>Action</span>,
       dataIndex: 'operation',
       fixed: 'right',
       width: 110,
-      render: (_, record) => {
-        return (
-          <Popconfirm
-          
-            className={`${editingKey !== '' ? 'cursor-not-allowed' : 'cursor-pointer'} `}
+      render:  (_, record) => {
+        
+        let iseditable = materialUsed.editingKey.includes(record.key);
+
+        return !iseditable ? (
+         <div className='flex gap-x-2'>
+        <MdOutlineModeEditOutline
+              className={`text-blue-500 cursor-pointer`}
+              size={18}
+              onClick={() => {
+                materialUsedForm.setFieldsValue({...record,quantity:Number(record.quantity.split(' ')[0])});
+                setMaterialUsed(pre => ({...pre,editingKey:[record.key]}));
+              }}
+            />
+           <Popconfirm
+            className={`${iseditable === true  ? 'cursor-not-allowed' : 'cursor-pointer'} `}
             title="Sure to delete?"
             onConfirm={() => removeTemMaterial(record)}
-            disabled={editingKey !== ''}
+            disabled={iseditable === true ? true : false}
           >
             <AiOutlineDelete
-              className={`${editingKey !== '' ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
-              size={19}
+              className={`${iseditable === true ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 cursor-pointer hover:text-red-400'}`}
+              size={16}
             />
           </Popconfirm>
+         </div>
+        ) : (
+          <span className="flex gap-x-2">
+          <Typography.Link style={{ marginRight: 8 }} 
+          onClick={() =>{
+            let quantity = materialUsedForm.getFieldsValue().quantity;
+            let updateData = {...record,quantity:quantity+' '+ record.quantity.split(' ')[1]};
+            setMtOption(pre =>({...pre,tempproduct:pre.tempproduct.map(item => item.key === updateData.key ? updateData : item )}));
+            setMaterialUsed((pre) => ({ ...pre, editingKey: [] }))
+          }}
+          >
+            <LuSave size={17} />
+          </Typography.Link>
+
+          <Popconfirm
+            title="Sure to cancel?"
+            onConfirm={() => setMaterialUsed((pre) => ({ ...pre, editingKey: [] }))}
+          >
+            <TiCancel size={20} className="text-red-500 cursor-pointer hover:text-red-400" />
+          </Popconfirm>
+        </span>
         )
       }
     }
-  ]
+  ];
+
+  const [materialUsed,setMaterialUsed] = useState({
+    editingKey:[]
+  })
+
+  const materialUsedColumns = usedmaterialcolumns.map((col) => {
+    if (!col.editable) {
+      return col
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === 'quantity' ? 'number' : 'text',
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: materialUsed.editingKey.includes(record.key)
+      })
+    }
+  });
+
+  const materialUsedEditableCell = ({
+    editing,
+    dataIndex,
+    title,
+    inputType,
+    record,
+    index,
+    children,
+    ...restProps
+  }) => {
+    const inputNode = inputType === 'number' ? <InputNumber className="text-[0.8rem]" size='small' /> : <Input className="text-[0.8rem]" size='small' />;
+    return (
+      <td {...restProps}>
+        {editing ? (
+          <span className="flex gap-x-1">
+            <Form.Item
+              name={dataIndex}
+              style={{ margin: 0 }}
+              rules={[{ required: true, message: false}]} // Adjust message or handle error
+            >
+              {inputNode}
+            </Form.Item>
+          </span>
+        ) : (
+          children
+        )}
+      </td>
+    );
+  };
+
 
   const [mtOption, setMtOption] = useState({
     material: [],
@@ -1469,7 +1566,10 @@ const materialBillColumn = [
        return text === undefined ? '-' : text}
     },
     
-  ]
+  ];
+
+  const materialUsedTable = TableHeight(200,455);
+  const addMaterialTable = TableHeight(200,400);
   return (
     <div>
       <ul>
@@ -1609,7 +1709,7 @@ const materialBillColumn = [
           form={addmaterialpaymentform}
           initialValues={{ paymentstatus: 'Paid',paymentmode:'Cash' }}
           layout='horizontal'
-          className='flex gap-x-2 justify-end'
+          className='flex gap-x-2 justify-end '
           >
           <Form.Item
             // label='Payment Mode'
@@ -1662,7 +1762,7 @@ const materialBillColumn = [
                 type="number"
               />
             </Form.Item>
-              <Form.Item><Button disabled={addMaterialMethod.temperorarydata.length <= 0 || isLoadingModal ? true : false} className="w-full" type="primary" htmlType="submit">Add Material</Button></Form.Item>
+              <Form.Item className='mb-0'><Button disabled={addMaterialMethod.temperorarydata.length <= 0 || isLoadingModal ? true : false} className="w-full" type="primary" htmlType="submit">Add Material</Button></Form.Item>
          </Form>
         }
       >
@@ -1777,8 +1877,9 @@ const materialBillColumn = [
               columns={tempMergedColumns}
               dataSource={addMaterialMethod.temperorarydata}
               virtual
-              className="w-full"
-              scroll={{ x: false, y: false }}
+              pagination={false}
+              // className="w-fit"
+              scroll={{ x:false, y:addMaterialTable }}
               />
               </Form>
             </span>
@@ -1794,7 +1895,7 @@ const materialBillColumn = [
       {/* material used model */}
       <Modal
         maskClosable={mtOption.tempproduct.length > 0 ? false : true}
-        className="relative"
+        className="relative materialused-modal"
         title={
           <div className="flex  justify-center py-3">
             {' '}
@@ -1811,8 +1912,8 @@ const materialBillColumn = [
             type="primary"
             disabled={mtOption.tempproduct.length > 0 && !isLoadMaterialUsedModal ? false : true}
             onClick={addNewTemMaterial}
-            className=" w-fit"
-          >
+            className="w-fit mt-0"
+            >
             Add
           </Button>
         }
@@ -1835,7 +1936,9 @@ const materialBillColumn = [
                   <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
                 </Form.Item>
 
-                <Form.Item name="type" className="mb-1 mt-3">
+                <Form.Item name="type" 
+                // className="mb-1 mt-3"
+                >
                   <Radio.Group
                     buttonStyle="solid"
                     style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
@@ -1851,7 +1954,7 @@ const materialBillColumn = [
                 </Form.Item>
 
                 <Form.Item
-                  className="mb-2"
+                  // className="mb-2"
                   name="materialname"
                   label="Material Name"
                   rules={[{ required: true, message: false }]}
@@ -1872,7 +1975,7 @@ const materialBillColumn = [
 
                 <span className="flex gap-x-2 ">
                   <Form.Item
-                    className="mb-1 w-full"
+                    className=" w-full"
                     name="quantity"
                     label="Quantity"
                     rules={[{ required: true, message: false }]}
@@ -1887,21 +1990,31 @@ const materialBillColumn = [
                   </Form.Item>
                 </span>
 
-                <Form.Item className=" w-full mt-2">
-                  <Button className="w-full" type="primary" htmlType="submit">
+                <Form.Item 
+                // className=" w-full mt-2"
+                >
+                  <Button className="w-full mt-4" type="primary" htmlType="submit">
                     Add To List
                   </Button>
                 </Form.Item>
               </Form>
             </span>
             <span className="col-span-3">
+            <Form form={materialUsedForm}>
               <Table
                 virtual
-                columns={usedmaterialcolumns}
+                components={{
+                body: {
+                  cell: materialUsedEditableCell
+                }
+              }}
+                columns={materialUsedColumns}
                 dataSource={mtOption.tempproduct}
-                pagination={{ pageSize: 4 }}
-                scroll={{ x: false, y: false }}
+                // pagination={{ pageSize: 4 }}
+                pagination={false}
+                scroll={{ x: false, y: materialUsedTable }}
               />
+              </Form>
             </span>
           </div>
         </Spin>
@@ -1915,7 +2028,9 @@ const materialBillColumn = [
         <Spin spinning={materialBillState.loading}>
         <div className='relative'>
         <Table
-        className='mt-8'
+          virtual
+          scroll={{x:false,y:false}}
+          className='mt-8'
           dataSource={materialbill.materialdeails}
           columns={materialBillColumn}
           pagination={false}

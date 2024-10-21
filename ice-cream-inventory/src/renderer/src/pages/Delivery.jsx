@@ -61,6 +61,7 @@ import { toDigit } from '../js-files/tow-digit'
 import { latestFirstSort, oldestFirstSort } from '../js-files/sort-time-date-sec'
 import '../pages/css/Delivery.css'
 import { getFreezerbox, getFreezerboxById } from '../firebase/data-tables/freezerbox'
+import TableHeight from '../components/TableHeight'
 
 const { TextArea } = Input
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, customerUpdateMt }) {
@@ -516,6 +517,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   const columns2 = [
     {
+      title: <span className="text-[0.7rem]">S.No</span>,
+      render: (text,record,i) => <span className="text-[0.7rem]">{i+1}</span>,
+      width:50
+    },
+    {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
       key: 'productname',
@@ -621,6 +627,11 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   ]
 
   const columnsReturn = [
+    {
+      title: <span className="text-[0.7rem]">S.No</span>,
+      render: (text,record,i) => <span className="text-[0.7rem]">{i+1}</span>,
+      width:50
+    },
     {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
@@ -2377,6 +2388,8 @@ console.log(filterdata);
 
   const pdfBillStyle = {heading:'28px',subheading:'26px',para:'22px'};
 
+  const temTableHeight = TableHeight(200,430);
+  const returnTableHeight = TableHeight(200,430);
   return (
     <div>
       <Modal
@@ -2986,7 +2999,8 @@ console.log(filterdata);
                   columns={tempMergedColumns}
                   dataSource={option.tempproduct}
                   // pagination={{ pageSize: 5 }}
-                  scroll={{ x: false, y: false }}
+                  pagination={false}
+                  scroll={{ x: false, y: returnDelivery.state === true ? returnTableHeight : temTableHeight }}
                 />
               </Form>
             </span>

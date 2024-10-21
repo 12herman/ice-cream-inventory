@@ -52,6 +52,7 @@ import { toDigit } from '../js-files/tow-digit'
 import { getFreezerboxById } from '../firebase/data-tables/freezerbox'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import './css/Home.css'
+import TableHeight from '../components/TableHeight'
 
 // import { lastestFirstSort } from '../js-files/sort-time-date-sec'
 
@@ -106,6 +107,11 @@ export default function Home({ datas }) {
   })
 
   const quotationTempTable = [
+    {
+      title:<span className="text-[0.7rem]">S.No</span>,
+      width:55,
+      render:(text,record,i)=> <span className="text-[0.7rem]">{i+1}</span>
+    },
     {
       title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
@@ -1290,7 +1296,7 @@ export default function Home({ datas }) {
 
         // Save the generated PDF
         pdf.save(
-          `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}.pdf`
+          `${invoiceDatas.customerdetails.customername === undefined ? 'Quotation' : invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}-Time-${TimestampJs().split(' ')[1]}.pdf`
         )
 
         // Reset the state after generating the PDF
@@ -1300,6 +1306,7 @@ export default function Home({ datas }) {
 
     generatePDF()
   }, [invoiceDatas.isGenerate, printRef])
+
 
   const columns = [
     {
@@ -1707,7 +1714,7 @@ export default function Home({ datas }) {
   const productOnchange = async (value, i) => {
     form.resetFields(['flavour'])
     form.resetFields(['quantity'])
-    form.resetFields(['numberofpacks'])
+    // form.resetFields(['numberofpacks'])
     const flavourOp = await Array.from(
       new Set(
         datas.product
@@ -1945,12 +1952,17 @@ export default function Home({ datas }) {
   }
 
   // Without GST
-  const pdfBillStyle = { heading: '26px', subheading: '24px', para: '20px' }
-  const printBillStyle = { heading: '18px', subheading: '14px', para: '11px' }
+  const pdfBillStyle = { heading: '26px', subheading: '24px', para: '20px',logo:'94px' }
+  const printBillStyle = { heading: '18px', subheading: '14px', para: '11px', logo:'64px' }
 
   // GST
   const GstBillStylePdf = { heading: '24px', subheading: '20px', para: '16px' }
   const GstBillStylePrint = { heading: '20px', subheading: '16px', para: '11px' }
+
+
+  const quotationTableHeight = TableHeight(200,460)
+
+  
   return (
     <div>
       {/* old pdf and print start */}
@@ -1966,7 +1978,7 @@ export default function Home({ datas }) {
               <li>
                 <img
                   // className="w-[3rem]"
-                  width={'68px'}
+                  width={hasPdf === true ? pdfBillStyle.logo : printBillStyle.logo}
                   src={companyLogo}
                   alt="comapanylogo"
                 />
@@ -2228,10 +2240,61 @@ export default function Home({ datas }) {
               style={{
                 fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
                 textAlign: 'end',
-                margin: '10px 0 0 0'
+                margin: '10px 0 0 0',
+                display: 'flex',
+                justifyContent:'space-between',
+                alignItems:'end'
               }}
             >
-              <p
+
+              <span
+                style={{
+                  fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
+                  // display: 'flex',
+                  // justifyContent: 'space-between',
+                  // alignItems: 'center',
+                  // padding: '1px 0 0 0'
+                }}
+              >
+                <p
+                  style={
+                    {
+                      // padding:'0 0 0 20px',
+                      // textAlign:'left'
+                    }
+                  }
+                  // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+                >
+                  Authorised Signature
+                </p>
+                
+                <p className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}>
+                  Balance:{' '}
+                  <span className=" font-bold">
+                    {Object.keys(invoiceDatas.customerdetails).length !== 0
+                      ? formatToRupee(
+                          invoiceDatas.customerdetails.billamount -
+                            invoiceDatas.customerdetails.partialamount
+                        )
+                      : null}
+                    {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
+                  ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
+                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0} */}
+                  </span>
+                </p>
+              </span>
+              {/* <p
+            style={{
+              padding:'50px 0 0 0',
+              // textAlign:'left'
+              }}
+              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
+            >
+              Authorised Signature
+            </p> */}
+
+            <span>
+             <p
               // className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
               >
                 Total Amount:{' '}
@@ -2264,52 +2327,8 @@ export default function Home({ datas }) {
                     : null}
                 </span>
               </p>
-              <div
-                style={{
-                  fontSize: `${hasPdf === true ? pdfBillStyle.para : printBillStyle.para}`,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '1px 0 0 0'
-                }}
-              >
-                <p
-                  style={
-                    {
-                      // padding:'0 0 0 20px',
-                      // textAlign:'left'
-                    }
-                  }
-                  // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-                >
-                  Authorised Signature
-                </p>
-                <p
-                  className={`${hasPdf === true ? pdfBillStyle.para : printBillStyle.para} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-                >
-                  Balance:{' '}
-                  <span className=" font-bold">
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? formatToRupee(
-                          invoiceDatas.customerdetails.billamount -
-                            invoiceDatas.customerdetails.partialamount
-                        )
-                      : null}
-                    {/* {(Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount !== 0 )
-                  ? formatToRupee( invoiceDatas.customerdetails.billamount - invoiceDatas.customerdetails.partialamount)
-                   : (Object.keys(invoiceDatas.customerdetails).length !== 0) && (invoiceDatas.customerdetails.partialamount === 0 && invoiceDatas.customerdetails.paymentstatus === 'Unpaid') ? formatToRupee(invoiceDatas.customerdetails.billamount) :0} */}
-                  </span>
-                </p>
-              </div>
-              {/* <p
-            style={{
-              padding:'50px 0 0 0',
-              // textAlign:'left'
-              }}
-              // className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-            >
-              Authorised Signature
-            </p> */}
+             </span>
+
             </div>
           </section>
         </div>
@@ -3127,6 +3146,7 @@ export default function Home({ datas }) {
 
       <Modal
         title="Items"
+        centered={true}
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false)
@@ -3154,6 +3174,8 @@ export default function Home({ datas }) {
                 columns={itemColumns}
                 pagination={false}
                 rowKey="id"
+                // virtual
+                scroll={{y:450}}
               />
             </div>
           </div>
@@ -3162,6 +3184,7 @@ export default function Home({ datas }) {
 
       <Modal
         className="relative"
+        centered={true}
         width={1100}
         title={
           <span className="w-full flex justify-center items-center text-sm py-2">QUOTATION</span>
@@ -3257,6 +3280,7 @@ export default function Home({ datas }) {
       >
         <div className="relative">
           <div className="grid grid-cols-4 gap-x-2">
+           
             <span className="col-span-1">
               <Form
                 form={form}
@@ -3292,7 +3316,7 @@ export default function Home({ datas }) {
                   </Radio.Group>
                 </Form.Item>
                 <Form.Item
-                  className="mb-1"
+                  className="mt-5"
                   name="productname"
                   label="Product Name"
                   rules={[{ required: true, message: false }]}
@@ -3350,7 +3374,7 @@ export default function Home({ datas }) {
                   />
                 </Form.Item> */}
                 <Form.Item
-                  className="mb-3"
+                  // className="mb-3 mt-0"
                   name="numberofpacks"
                   label="Number of Packs"
                   rules={[{ required: true, message: false }]}
@@ -3366,7 +3390,7 @@ export default function Home({ datas }) {
                   <Form.Item className="mb-1" name="customername">
                     <Input
                       onChange={(e) =>
-                        setQuotationFt((pre) => ({ ...pre, customername: e.target.value }))
+                        debounce(setQuotationFt((pre) => ({ ...pre, customername: e.target.value })),300)
                       }
                       placeholder="Customer Name"
                     />
@@ -3415,8 +3439,9 @@ export default function Home({ datas }) {
                   columns={tempMergedColumns}
                   components={{ body: { cell: EditableCellTem } }}
                   dataSource={quotationft.tempproduct}
-                  pagination={{ pageSize: 4 }}
-                  scroll={{ x: false, y: false }}
+                  // pagination={{ pageSize: 4 }}
+                  pagination={false}
+                  scroll={{ x: false, y: quotationTableHeight }}
                 />
               </Form>
             </span>

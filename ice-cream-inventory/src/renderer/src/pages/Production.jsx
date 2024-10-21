@@ -29,7 +29,7 @@ import { getProductById } from '../firebase/data-tables/products'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
-
+import { debounce } from 'lodash'
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
@@ -349,10 +349,17 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
 
   const columns2 = [
     {
-      title: 'Product',
+      title: <span className="text-[0.7rem]">S.No</span>,
+      editable: false,
+      render:(text,record,i)=> <span className="text-[0.7rem]">{i+1}</span>,
+      width:65
+    },
+    {
+      title: <span className="text-[0.7rem]">Product</span>,
       dataIndex: 'productname',
       key: 'productname',
-      editable: false
+      editable: false,
+      render:(text)=> <span className="text-[0.7rem]">{text}</span>
     },
     // {
     //   title: 'Flavor',
@@ -368,11 +375,12 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     //   //width: 120
     // },
     {
-      title: 'Packs',
+      title: <span className="text-[0.7rem]">Packs</span>,
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
-      editable: true
-      //width: 80
+      editable: true,
+      render:(text)=> <span className="text-[0.7rem]">{text}</span>,
+      width: 120
     },
     {
       title: 'Action',
@@ -453,7 +461,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     children,
     ...restProps
   }) => {
-    const inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+    const inputNode = inputType === 'number' ? <InputNumber className='text-[0.8rem]' size='small'/> : <Input />
     return (
       <td {...restProps}>
         {editing ? (
@@ -535,7 +543,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   }, []);
 
   //product onchange value
-  const productOnchange = async (value, i) => {
+  const productOnchange = debounce(async (value, i) => {
     form2.resetFields(['flavour'])
     form2.resetFields(['quantity'])
     // form2.resetFields(['numberofpacks'])
@@ -552,7 +560,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       productvalue: value,
       quantitystatus: true
     }))
-  }
+  },300)
 
   //flavour onchange value
   const flavourOnchange = async (value, i) => {
@@ -739,7 +747,27 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     }))
     setCount(0)
     setEditingKey('')
-  }
+  };
+
+
+  const [freezerBoxHeight, setFreezerBoxHeight] = useState(window.innerHeight - 200) // Initial height adjustment
+  useEffect(() => {
+    // Function to calculate and update table height
+    const updateTableHeight = () => {
+      const newHeight = window.innerHeight - 500 // Adjust this value based on your layout needs
+      setFreezerBoxHeight(newHeight)
+    }
+    // Set initial height
+    updateTableHeight()
+    // Update height on resize and fullscreen change
+    window.addEventListener('resize', updateTableHeight)
+    document.addEventListener('fullscreenchange', updateTableHeight)
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('resize', updateTableHeight)
+      document.removeEventListener('fullscreenchange', updateTableHeight)
+    }
+  }, [])
 
   return (
     <div>
@@ -824,7 +852,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       >
         <Spin spinning={isAddProductModal}>
           <div className="grid grid-cols-4 gap-x-3">
-            <span className="col-span-1">
+            <span className="col-span-1 py-8">
               <Form
                 onFinish={createTemProduction}
                 form={form2}
@@ -932,8 +960,9 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 className="w-full"
                 columns={temmergedColumns}
                 dataSource={option.tempproduct}
-                pagination={{ pageSize: 4 }}
-                scroll={{ x: false, y: false }}
+                // pagination={{ pageSize: 4 }}
+                pagination={false} 
+                scroll={{  y: freezerBoxHeight }}
               />
               </Form>
             </span>

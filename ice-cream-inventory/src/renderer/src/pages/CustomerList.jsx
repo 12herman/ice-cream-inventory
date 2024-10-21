@@ -50,7 +50,8 @@ import { createFreezerbox, getFreezerboxById, updateFreezerbox } from '../fireba
 import { IoCloseCircle } from 'react-icons/io5'
 import { BsBoxSeam } from "react-icons/bs";
 import { areArraysEqual, compareArrays } from '../js-files/compare-two-array-of-object'
-import './css/Customer.css';
+import './css/CustomerList.css';
+import TableHeight from '../components/TableHeight'
 
 export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdateMt }) {
   // states
@@ -930,9 +931,6 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
   // create freezer box
   const CreateNewFreezerBox = async()=>{
-    
-    
-
   let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
   if(checkExsistingBox){
   return message.open({type:'warning',content:'The box name is already exsist'});
@@ -950,23 +948,56 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     setFreezerBox(pre =>({...pre,frommodal:false})); 
     setFreezerBox(pre=>({...pre,spinner:false})) 
   }
-  
 };
 
 
-  useEffect(()=>{
-  async function updateData(){
-   await setFreezerBox(pre=>({...pre,spinner:true}));
-    let freezerBoxData = await datas.freezerbox.filter(box => box.isdeleted === false).map( async fz =>{
-      let {customer,status} = await getCustomerById(fz.customerid === '' || fz.customerid === undefined ? undefined : fz.customerid);
-      if(status){
-       return {...fz,customername:customer === undefined ? '-': customer.customername}
-      }});
-    let processTabledata = await Promise.all(freezerBoxData);
-   await setFreezerBox(pre=>({...pre,spinner:false,tabledata:processTabledata}));
-  }
-  updateData();
-  },[datas,freezerBox.modal,freezerBox.update]);
+  // useEffect(()=>{
+  // async function updateData(){
+  //  await setFreezerBox(pre=>({...pre,spinner:true}));
+  //   let freezerBoxData = await datas.freezerbox.filter(box => box.isdeleted === false).map( async fz =>{
+  //     let {customer,status} = await getCustomerById(fz.customerid === '' || fz.customerid === undefined ? undefined : fz.customerid);
+  //     if(status){
+  //      return {...fz,customername:customer === undefined ? '-': customer.customername}
+  //     }});
+  //   let processTabledata = await Promise.all(freezerBoxData);
+  //  await setFreezerBox(pre=>({...pre,tabledata:processTabledata}));
+  //  await setFreezerBox(pre=>({...pre,spinner:false}));
+  // }
+  // updateData();
+  // },[datas,freezerBox.modal,freezerBox.update]);
+  useEffect(() => {
+    async function updateData() {
+      // Start spinner
+      setFreezerBox(pre => ({ ...pre, spinner: true }));
+  
+      try {
+        // Get freezer box data
+        const freezerBoxData = datas.freezerbox.filter(box => !box.isdeleted);
+  
+        // Process each box and await customer data
+        const processTabledata = await Promise.all(
+          freezerBoxData.map(async fz => {
+            const { customer, status } = await getCustomerById(fz.customerid || undefined);
+            if (status) {
+              return { ...fz, customername: customer ? customer.customername : '-' };
+            }
+            return fz; // Handle cases where status is false
+          })
+        );
+  
+        // Update state with processed data
+        setFreezerBox(pre => ({ ...pre, tabledata: processTabledata }));
+      } catch (error) {
+        console.error('Error loading freezer box data:', error);
+      } finally {
+        // Stop spinner
+        setFreezerBox(pre => ({ ...pre, spinner: false }));
+      }
+    }
+  
+    updateData();
+  }, [datas, freezerBox.modal, freezerBox.update]);
+  
 
 
   const freezerboxcolumns = [
@@ -1167,6 +1198,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     }
   };
 
+  const freezerBoxTable = TableHeight(200,400);
 
   return (
     <div>
@@ -1200,7 +1232,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
           />
           <span className="flex gap-x-3 justify-center items-center">
           <Button disabled={editingKeys.length !== 0 || selectedRowKeys.length !== 0}
-          onClick={()=> setFreezerBox(pre=>({...pre,modal:true}))}>
+          onClick={()=> setFreezerBox(pre=>({...pre,modal:true,spinner:true}))}>
               Freezer Box <BsBox2 size={13}/></Button>
             <Button
               disabled={editingKeys.length !== 0 || selectedRowKeys.length === 0}
@@ -1564,7 +1596,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         <span>FREEZER BOX</span>
         <Button className='absolute right-7 -top-1' onClick={()=>{setFreezerBox(pre =>({...pre,frommodal:true})); freezerform.resetFields()}} type='primary'>Add</Button>
        </div>}
-       footer={<></>}
+      //  footer={<></>}
        centered={true}
        width={800} 
        open={freezerBox.modal} 
@@ -1572,15 +1604,19 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               >
               <Spin spinning={freezerBox.spinner}>
               {/* <span>Hi</span> */}
+           <Form className="scrollable-container">
             <Table 
             // truncateString
             pagination={false} 
             dataSource={freezerBox.tabledata} 
             className='mt-4 freezerbox-table' 
             columns={freezerboxcolumns}
-            scroll={{x:200,y: 400 }}
+            scroll={{x:false, y: 400}}
             // virtual 
             />
+
+           
+            </Form>
             </Spin>
       </Modal>
     </div>

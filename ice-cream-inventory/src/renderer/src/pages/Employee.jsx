@@ -912,7 +912,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
                 { type: 'number', message: false }
               ]}
             >
-              <InputNumber className="w-full" type="number" placeholder="Enter the Mobile Number" />
+              <InputNumber  className="w-full" type="number" placeholder="Enter the Mobile Number" />
             </Form.Item>
 
             <Form.Item

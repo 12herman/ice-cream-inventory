@@ -49,7 +49,7 @@ import { formatName } from '../js-files/letter-or-name';
 import { getRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { truncateString } from '../js-files/letter-length-sorting';
 import { fetchPayDetailsForDelivery, updatePaydetailsChild } from '../firebase/data-tables/delivery';
-
+import './css/SupplierList.css'
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
   // states
@@ -1371,15 +1371,20 @@ setSupplierTbLoading(false)
               <Input placeholder="Enter the Location" />
             </Form.Item>
 
-            <Form.Item label="Material" className="mb-0">
+           
+           <Form.Item label="Material" className="mb-0">
+           
               <Form.List name="material">
                 {(fields, { add, remove }) => (
-                  <>
+               
+                  <div className={`w-full overflow-y-scroll h-[200px] custom-scroll pr-4`}>
                     {fields.map(({ key, name, ...restField }) => (
-                      <span key={key} className="flex items-center gap-x-2 relative">
+                      
+                      <span key={key} className="flex items-center gap-x-2 relative ">
+                      <span className='text-[0.8rem] w-[20px]'>{key +1}.</span>
                         {/* Input field for Material Name */}
                         <Form.Item
-                          className="w-[70%] mb-[0.4rem]"
+                          className="w-[63%] mb-[0.4rem]"
                           {...restField}
                           name={[name, 'materialname']}
                           rules={[
@@ -1422,20 +1427,28 @@ setSupplierTbLoading(false)
                           className="absolute top-[40%] right-1 -translate-y-1/2"
                           onClick={() => remove(name)}
                         />
+                        
                       </span>
                     ))}
-                    <Form.Item>
+                    
+                    <Form.Item className='absolute w-full -bottom-16'>
+                   
                       <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                         Add Material
                       </Button>
+                      
                     </Form.Item>
-                  </>
+                    </div>
                 )}
+               
               </Form.List>
+            
+             
             </Form.Item>
+          
 
             <Form.Item
-              className="mb-2 w-full"
+              className="mb-2 w-full mt-14"
               name="mobilenumber"
               label="Mobile Number"
               rules={[

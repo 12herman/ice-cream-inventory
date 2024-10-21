@@ -678,9 +678,9 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
               loading={{
                 spinning: productTbLoading,
                 // productTbLoading,
-                indicator: (
-                  <Spin indicator={<img className="opacity-80" src={loadingGif} alt="loading" />} />
-                )
+                // indicator: (
+                //   <Spin indicator={<img className="opacity-80" src={loadingGif} alt="loading" />} />
+                // )
               }}
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}

@@ -26,8 +26,8 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  min-width: 100%; /* Ensures the container takes up full width */
-  min-height: 150px; /* Ensures vertical centering */
+  min-width: 100%; 
+  min-height: 150px; 
 }
 
 .center-buttons-modal .ant-modal-footer {
@@ -42,3 +42,4 @@
 .ant-timeline-item-last >.ant-timeline-item-content{
   min-height: 0px !important;
 }
+
