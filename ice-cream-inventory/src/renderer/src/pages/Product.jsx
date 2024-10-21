@@ -24,7 +24,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import { createproduct, updateproduct } from '../firebase/data-tables/products'
 import { TimestampJs } from '../js-files/time-stamp'
 import jsonToExcel from '../js-files/json-to-excel'
-import { createStorage } from '../firebase/data-tables/storage'
+import { createStorage, updateStorage } from '../firebase/data-tables/storage'
 import { formatToRupee } from '../js-files/formate-to-rupee'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { DatestampJs } from '../js-files/date-stamp'
@@ -72,19 +72,33 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   
     
     try {
-      const productExists = datas.product.find(
-        (storageItem) =>
-          storageItem.productname === values.productname  || storageItem.productname === formatName(values.productname)
-          // && storageItem.flavour === values.flavour &&
-          // storageItem.quantity === values.quantity
-);
+      const productExists = datas.product.some((product) => (product.productname === values.productname  || product.productname === formatName(values.productname)) && product.isdeleted === false
+          // && product.flavour === values.flavour &&
+          // product.quantity === values.quantity
+          );
+
+      // const storageExists = datas.storage.filter(prfound => datas.product.filter(pr => pr.id === prfound.productid && pr.productname === formatName(values.productname)));
+      const storageExists = datas.storage.some(prfound => datas.product.some(pr =>  (pr.id === prfound.productid) && (pr.productname === formatName(values.productname)) && (prfound.isdeleted === false) && (pr.isdeleted === false)));
+      
 
 
-
-  if(productExists !== undefined){
+  if(productExists){
     return message.open({content:'This name was already exsits',type:'info'})
   }
   else{
+    console.log({
+      ...values,
+      productname: formatName(values.productname),
+      // flavour: formatName(values.flavour),
+      flavour: '',
+      unit:'',
+      quantity:'',
+      createddate: TimestampJs(),
+      updateddate: '',
+      isdeleted: false
+    });
+    console.log(storageExists);
+    
     setIsProductLoading(true)
     const productRef = await createproduct({
       ...values,
@@ -100,7 +114,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     const productId = productRef.res.id
     console.log(productId, productRef)
     
-    if (!productExists) {
+    if (storageExists === false ) {
       await createStorage({
         // productname: formatName(values.productname),
         // flavour: formatName(values.flavour),
@@ -111,7 +125,8 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
         alertcount: 0,
         numberofpacks: 0,
         category: 'Product List',
-        createddate: TimestampJs()
+        createddate: TimestampJs(),
+        isdeleted:false
       })
       storageUpdateMt()
     }
@@ -120,7 +135,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     await setIsProductLoading(false)
      await setIsModalOpen(false)
      await setProductOnchangeValue('')
-  }
+ }
     } catch (e) {
       console.log(e)
     } 
@@ -347,26 +362,29 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     try {
       const row = await form.validateFields()
       const newData = [...data]
-      const index = newData.findIndex((item) => key.id === item.key);
+      // const index = newData.findIndex((item) => key.id === item.key);
       // const checkName = data.some(data => data.productname === key.productname);
       // console.log(checkName);
       if (
-        index != null &&
+        // index != null &&
         // row.flavour === key.flavour &&
         row.productname === key.productname &&
         // row.quantity === key.quantity &&
         row.productperpack === key.productperpack &&
-        row.price === key.price || (key.productname === formatName(row.productname))
+        row.price === key.price 
+        // && (key.productname === formatName(row.productname))
         // && row.unit === key.unit
       ) {
         message.open({ type: 'info', content: 'No changes made' })
         setEditingKeys([]);
       } 
       else {
+        setProductTbLoading(true)
         setEditingKeys([]);
         await updateproduct(key.id, { ...row,productname:formatName(row.productname), updateddate: TimestampJs() });
         productUpdateMt();
         message.open({ type: 'success', content: 'Updated Successfully' });
+        setProductTbLoading(false)
       }
     } catch (errInfo) {
       console.log('Validate Failed:', errInfo);
@@ -441,13 +459,17 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   // delete
   const deleteProduct = async (data) => {
     // await deleteproduct(data.id);
-    const { id, ...newData } = data
-    await updateproduct(id, {
-      isdeleted: true,
-      // deletedby: 'admin',
+    const { id, ...newData } = data;
+   
+    let storageProduct = datas.storage.find(pr => pr.productid === id);
+   
+    await updateproduct(id, {isdeleted: true, // deletedby: 'admin', 
       deleteddate: TimestampJs()
-    })
-    productUpdateMt()
+    });
+    await updateStorage(storageProduct.id,{isdeleted:true,updateddate: TimestampJs()})
+    
+   await storageUpdateMt()
+   await productUpdateMt()
     message.open({ type: 'success', content: 'Deleted Successfully' })
   };
 
