@@ -935,12 +935,12 @@ export default function BalanceSheet({ datas }) {
               renderItem={(item) => (
                 <List.Item>
                   <div>{item.date}</div>
-                  <div>MRP: {item.total}</div>
-                  <div>Bill: {item.billamount}</div>
+                  <div>MRP: <Tag color="blue">{item.total}</Tag></div>
+                  <div>Bill: <Tag color="green">{item.billamount}</Tag></div>
                   <div>
                     {item.paymentstatus === 'Partial' ? (
                       <span>
-                        {item.paymentstatus}: {item.partialamount}
+                        {item.paymentstatus}: <Tag color="orange">{item.partialamount}</Tag>
                       </span>
                     ) : (
                       <span>{item.paymentstatus}</span>
@@ -977,10 +977,15 @@ export default function BalanceSheet({ datas }) {
                 <List.Item>
                   <div>{item.date}</div>
                   <div>
-                    {item.type === 'Balance' ? `Balance: ${item.amount}` :
-                     item.type === 'Spend' ? `Spend: ${item.amount}` :
-                     item.type === 'Advance' ? `Advance: ${item.amount}` : 
-                     `Amount: ${item.amount}`}
+                  {item.type === 'Balance' ? (
+                      <span>Balance: <Tag color="blue">{item.amount}</Tag></span>
+                    ) : item.type === 'Spend' ? (
+                      <span>Spend: <Tag color="red">{item.amount}</Tag></span>
+                    ) : item.type === 'Advance' ? (
+                      <span>Advance: <Tag color="green">{item.amount}</Tag></span>
+                    ) : (
+                      <span>Amount: <Tag color="purple">{item.amount}</Tag></span>
+                    )}
                   </div>
                   <div>{item.description}</div>
                 </List.Item>
