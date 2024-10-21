@@ -228,17 +228,17 @@ export default function Storage({ datas, storageUpdateMt }) {
     //   }
     // },
     {
-      title: 'Box',
+      title: 'Packs',
       dataIndex: 'quantity',
       key: 'quantity',
       render: (_, record) => {
         const quotient = Math.floor(record.numberofpacks / record.productperpack)
         const remainder = record.numberofpacks % record.productperpack
-        return `${quotient} Box , ${remainder} Piece`
+        return `${quotient} Pack , ${remainder} Piece`
       }
     },
     {
-      title: 'Packs',
+      title: 'Piece',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks',
       sorter: (a, b) => (Number(a.numberofpacks) || 0) - (Number(b.numberofpacks) || 0),

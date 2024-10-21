@@ -471,7 +471,15 @@ export default function Employee({ datas, employeeUpdateMt }) {
   // export
   const exportExcel = async () => {
     const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Employee-List-${TimestampJs()}`)
+    const excelDatas = exportDatas.map((pr, i) => ({
+      No: i + 1,
+      Employee: pr.employeename,
+      Gender: pr.gender,
+      Mobile: pr.mobilenumber,
+      Location: pr.location,
+      Position: pr.position
+    }))
+    jsonToExcel(excelDatas, `Employee-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
   };

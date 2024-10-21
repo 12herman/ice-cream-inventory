@@ -817,7 +817,7 @@ export default function Home({ datas }) {
     { key: 'totalGeneralSpending', title: 'General Spending', value: totalGeneralSpending, prefix: <FaRupeeSign /> },
     { key: 'totalPaid', title: 'Total Paid', value: totalPaid, prefix: <FaRupeeSign /> },
     { key: 'totalUnpaid', title: 'Total Unpaid', value: totalUnpaid, prefix: <FaRupeeSign /> },
-    { key: 'totalProfit', title: 'Total Profit', value: totalProfit, prefix: <FaRupeeSign /> },
+    { key: 'totalProfit', title: 'Total Profit/Loss', value: totalProfit, prefix: <FaRupeeSign /> },
     { key: 'totalBooking', title: 'Total Booking', value: totalBooking, prefix: <IoPerson /> }
   ]
 

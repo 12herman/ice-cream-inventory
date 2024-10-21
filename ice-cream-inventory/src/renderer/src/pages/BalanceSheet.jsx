@@ -273,7 +273,7 @@ export default function BalanceSheet({ datas }) {
           setIsPayDisabled(isOpenOrClose.description === 'Close')
           setIsModalVisible(false)
           payForm.setFieldsValue({
-            description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
+            description: isOpenOrClose.description === 'Open' ? 'Pay' : 'Open'
           })
         } else {
           setIsOpenDisabled(false)

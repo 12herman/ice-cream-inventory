@@ -868,7 +868,16 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
   // export
   const exportExcel = async () => {
     const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Customer-List-${TimestampJs()}`)
+    const excelDatas = exportDatas.map((pr, i) => ({
+      No: i + 1,
+      Customer: pr.customername,
+      Mobile: pr.mobilenumber,
+      GSTIN: pr.gstin || '',
+      Location: pr.location,
+      Transport: pr.transport,
+      Vehicle: pr.vehicleorfreezerno || ''
+    }))
+    jsonToExcel(excelDatas, `Customer-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
   }
