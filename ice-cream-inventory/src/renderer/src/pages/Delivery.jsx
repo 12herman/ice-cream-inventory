@@ -2871,7 +2871,11 @@ console.log(filterdata);
                 </span>
 
                 <Form.Item
-                  className={`mb-1 ${returnDelivery.state ? 'hidden' : 'block'}`}
+                  className={`mb-1 
+                  
+                  `
+                  // ${returnDelivery.state ? 'hidden' : 'block'}
+                  }
                   name="boxnumber"
                   label="Box Number"
                   // rules={[{ required: true, message: false }]}

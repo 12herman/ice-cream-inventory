@@ -348,7 +348,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         ) : record.type === 'order' ? (
           <span className='flex'><Tag color="green">Order</Tag> <Tag className={`${record.boxnumber === '' ? 'hidden': 'inline-block'}`}>{record.boxnumber}</Tag> </span>
         ) : record.type === 'return' ? (
-          <Tag color="red">Return</Tag>
+           <span className='flex'><Tag color="red">Return</Tag><Tag className={`${record.boxnumber === '' ? 'hidden': 'inline-block'}`}>{record.boxnumber}</Tag></span>
         ) : (
           <></>
         )
