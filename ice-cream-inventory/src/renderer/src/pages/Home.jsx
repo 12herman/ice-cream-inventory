@@ -584,9 +584,10 @@ export default function Home({ datas }) {
               (data) =>
                 !data.isdeleted &&
                 isWithinRange(data.date) &&
-                (data.collectiontype === 'delivery' ||
-                  data.collectiontype === 'customer' ||
-                  data.collectiontype === 'firstpartial')
+                (((data.collectiontype === 'delivery' ||
+                  data.collectiontype === 'customer') && data.type === 'Payment') ||
+                  (data.collectiontype === 'firstpartial' && data.type === 'firstpartial') ||
+                  (data.collectiontype === 'employee' && data.type === 'Return'))
             )
             .map(async (data) => {
               let name = ''
@@ -600,6 +601,12 @@ export default function Home({ datas }) {
                 const result = await getDeliveryById(data.deliveryid)
                 if (result.status) {
                   name = result.delivery.customername
+                }
+              }
+              if (data.employeeid) {
+                const result = await getEmployeeById(data.employeeid)
+                if (result.status) {
+                  name = result.employee.employeename
                 }
               }
               return {
@@ -619,10 +626,7 @@ export default function Home({ datas }) {
 
         let totalAmount = filterData.reduce((total, data) => {
           const amount = Number(data.amount) || 0
-          if (data.type === 'Payment' || data.type === 'firstpartial') {
             return total + amount
-          }
-          return total
         }, 0)
 
         setTotalPayAmount(totalAmount)
@@ -633,7 +637,7 @@ export default function Home({ datas }) {
             .filter(
               (data) =>
                 isWithinRange(data.date) &&
-                (data.collectiontype === 'supplier' || data.collectiontype === 'employee')
+                (((data.collectiontype === 'supplier' || data.collectiontype === 'employee') && data.type === 'Payment') || (data.collectiontype === 'customer' && (data.type === 'Advance' || data.type === 'Spend')))
             )
             .map(async (data) => {
               let name = ''
@@ -652,6 +656,13 @@ export default function Home({ datas }) {
                 }
               }
 
+              if (data.customerid) {
+                const result = await getCustomerById(data.customerid)
+                if (result.status) {
+                  name = result.customer.customername
+                }
+              }
+
               return {
                 ...data,
                 name: name
@@ -660,14 +671,8 @@ export default function Home({ datas }) {
         )
 
         let spendAmount = spendData.reduce((total, data) => {
-          // console.log(data);
-          const amount = Number(data.amount) || 0
-          if (data.type === 'Payment') {
-            return total + amount
-          } else if (data.type === 'Return') {
-            return total - amount
-          }
-          return total
+          const amount = Number(data.amount) || 0;
+            return total + amount;
         }, 0)
         setTotalSpendAmount(spendAmount)
 
@@ -872,7 +877,6 @@ export default function Home({ datas }) {
             (product.paymentstatus === 'Paid' || product.paymentstatus === 'Partial')
         )
         const filterPayment = filteredPayments
-          .filter((data) => data.type === 'Payment')
           .map((pay) => ({
             ...pay,
             customername: pay.name,
@@ -904,8 +908,7 @@ export default function Home({ datas }) {
       .filter(
         (pay) =>
           pay.paymentmode === paymentMode &&
-          pay.collectiontype !== 'firstpartial' &&
-          pay.type === 'Payment'
+          pay.collectiontype !== 'firstpartial'
       )
       .map((pay) => ({
         ...pay,
@@ -1337,7 +1340,12 @@ export default function Home({ datas }) {
               {' '}
               {text} <Tag color="purple">Employee</Tag>
             </>
-          ) : (
+          ) : record.collectiontype === 'customer' ? (
+            <>
+              {' '}
+              {text} <Tag color="volcano">Customer</Tag>
+            </>
+          ): (
             text
           )
         } else if (activeCard === 'totalPaid' || activeTabKey2 === 'total') {
@@ -1349,6 +1357,11 @@ export default function Home({ datas }) {
             <>
               {' '}
               {text} <Tag color="purple">Delivery</Tag>
+            </>
+          ) : record.collectiontype === 'employee' ? (
+            <>
+              {' '}
+              {text} <Tag color="volcano">Employee</Tag>
             </>
           ) : (
             text
@@ -1903,7 +1916,7 @@ export default function Home({ datas }) {
 
   const calculateCombinedAmount = (paymentMode) => {
     const paymentAmount = filteredPayments
-      .filter((payment) => payment.paymentmode === paymentMode && payment.type === 'Payment')
+      .filter((payment) => payment.paymentmode === paymentMode)
       .reduce((total, payment) => total + (Number(payment.amount) || 0), 0)
     const deliveryAmount = filteredDelivery.reduce((total, product) => {
       if (

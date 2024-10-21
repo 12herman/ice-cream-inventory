@@ -359,6 +359,7 @@ export default function Storage({ datas, storageUpdateMt }) {
             updateddate: TimestampJs()
           })
           storageUpdateMt()
+          message.open({ type: 'success', content: 'Updated successfully' })
           setEditingKeys([])
           setTableLoading(false)
         }
@@ -379,6 +380,7 @@ export default function Storage({ datas, storageUpdateMt }) {
             updateddate: TimestampJs()
           })
           storageUpdateMt()
+          message.open({ type: 'success', content: 'Updated successfully' })
           setEditingKeys([])
           setTableLoading(false)
         }

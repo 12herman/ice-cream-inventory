@@ -15,6 +15,7 @@ import {
   InputNumber
 } from 'antd'
 import { getCustomerById, getCustomerPayDetailsById } from '../firebase/data-tables/customer'
+import { getFreezerboxById } from '../firebase/data-tables/freezerbox'
 import { LuFileCog } from 'react-icons/lu'
 import { PiExport } from 'react-icons/pi'
 import { TimestampJs } from '../js-files/time-stamp'
@@ -478,9 +479,16 @@ export default function BalanceSheet({ datas }) {
 
         setPayDetailsList(filteredPayDetails)
 
-        const deliveries = deliveryData.filter(
+        const deliveries = await Promise.all(deliveryData.filter(
           (delivery) => delivery.customerid === customerId && !delivery.isdeleted
-        )
+        ).map(async (delivery) => {
+          const {freezerbox, status} = await getFreezerboxById(delivery.boxid);
+          return {
+            ...delivery,
+            boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber, 
+          };
+        }))
+        console.log(deliveries)
 
         let filteredDeliveries = []
 
@@ -654,9 +662,16 @@ export default function BalanceSheet({ datas }) {
 
       setPayDetailsList(filteredPayDetails)
 
-      const deliveries = deliveryData.filter(
+      const deliveries = await Promise.all(deliveryData.filter(
         (delivery) => delivery.customerid === selectedCustomer && !delivery.isdeleted
-      )
+      ).map(async (delivery) => {
+        const {freezerbox, status} = await getFreezerboxById(delivery.boxid);
+        return {
+          ...delivery,
+          boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber, 
+        };
+      }))
+      console.log(deliveries)
 
       let filteredDeliveries = []
 
@@ -931,7 +946,7 @@ export default function BalanceSheet({ datas }) {
                       <span>{item.paymentstatus}</span>
                     )}
                   </div>
-                  <div>{item.type}</div>
+                  <div>{item.type}{item.boxnumber ? `-${item.boxnumber}` : ''}</div>
                 </List.Item>
               )}
               style={{
