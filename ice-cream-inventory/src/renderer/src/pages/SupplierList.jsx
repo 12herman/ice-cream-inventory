@@ -1120,7 +1120,14 @@ setSupplierTbLoading(false)
   // export
   const exportExcel = async () => {
     const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
-    jsonToExcel(exportDatas, `Supplier-List-${TimestampJs()}`)
+    const excelDatas = exportDatas.map((pr, i) => ({
+      No: i + 1,
+      Supplier: pr.suppliername,
+      Gender: pr.gender,
+      Mobile: pr.mobilenumber,
+      Location: pr.location
+    }))
+    jsonToExcel(excelDatas, `Supplier-List-${TimestampJs()}`)
     setSelectedRowKeys([])
     setEditingKeys('')
   }
