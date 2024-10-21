@@ -919,11 +919,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     const productOp = datas.product
       .filter(
         (item, i, s) =>
-          item.isdeleted === false &&
-          s.findIndex((item2) => item2.productname === item.productname) === i
+          item.isdeleted === false 
+        // && s.findIndex((item2) => item2.productname === item.productname) === i
       )
       .map((data) => ({ label: data.productname, value: data.productname }))
     setOption((pre) => ({ ...pre, product: productOp }))
+
     const optionscustomers = datas.customers
       .filter((item) => item.isdeleted === false)
       .map((item) => ({ label: item.customername, value: item.id }))
@@ -950,13 +951,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   })
 
   const [lastOrderBtnState, setlastOrderBtnState] = useState(true)
+  const [freezerBoxState,setFreezerBoxState] = useState(false);
 
   const customerOnchange = debounce(async (value, i) => {
 
     let filterBoxs = datas.freezerbox.filter(data => data.customerid === value).map(box =>({label:box.boxnumber,value:box.id}));
     setOption(pre=>({...pre,freezerboxs:filterBoxs}));
-console.log(filterBoxs);
 
+  setFreezerBoxState(filterBoxs.length === 0 ? true : false)
     if (returnDelivery.state === false) {
       setlastOrderBtnState(true)
       // get last order data
@@ -1164,7 +1166,8 @@ console.log(filterBoxs);
       datas.product
         .filter(
           (pr) =>
-            temp.productname === pr.productname 
+            temp.productname === pr.productname && 
+            pr.isdeleted === false 
             // && temp.flavour === pr.flavour &&
             // pr.quantity == temp.quantity.split(' ')[0] &&
             // pr.unit === temp.quantity.split(' ')[1]
@@ -2632,6 +2635,7 @@ console.log(filterdata);
               onClick={() => {
                 setIsModalOpen(true)
                 setReturnDelivery((pre) => ({ ...pre, state: false }))
+                setFreezerBoxState(true)
                 form4.resetFields(['partialamount'])
                 form.resetFields()
               }}
@@ -2874,7 +2878,7 @@ console.log(filterdata);
                 >
                   <Select
                     allowClear
-                    disabled={option.customerstatus}
+                    disabled={freezerBoxState}
                     showSearch
                     placeholder="Select the Box"
                     optionFilterProp="label"

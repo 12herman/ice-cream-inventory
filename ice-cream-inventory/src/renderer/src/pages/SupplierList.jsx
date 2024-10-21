@@ -401,12 +401,15 @@ const [supplierName,setSupplierName] = useState('');
       render: (_, __, index) => index + 1,
       filteredValue: [searchText],
       onFilter: (value, record) => {
+
         return (
           String(record.suppliername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.gender).toLowerCase().includes(value.toLowerCase())
+          String(record.gender).toLowerCase().includes(value.toLowerCase()) ||
+          record.item.some(data => String(data.materialname).toLowerCase().includes(value.toLowerCase()))
+
         )
       }
     },
@@ -466,7 +469,7 @@ const [supplierName,setSupplierName] = useState('');
             <Popover
               content={<div>
               {
-                record.item.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> : record.item.map((data,i)=>{
+                record.item.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> : record.item.sort((a,b)=> a.materialname.localeCompare(b.materialname)).map((data,i)=>{
                 return <span>{i+1}.{data.materialname} {'-'} {data.unit}<br/> </span>
               })
              }
@@ -1381,10 +1384,10 @@ setSupplierTbLoading(false)
                     {fields.map(({ key, name, ...restField }) => (
                       
                       <span key={key} className="flex items-center gap-x-2 relative ">
-                      <span className='text-[0.8rem] w-[20px]'>{key +1}.</span>
+                      {/* <span className='text-[0.8rem] w-[20px]'>{key +1}.</span> */}
                         {/* Input field for Material Name */}
                         <Form.Item
-                          className="w-[63%] mb-[0.4rem]"
+                          className="w-[69%] mb-[0.4rem]"
                           {...restField}
                           name={[name, 'materialname']}
                           rules={[

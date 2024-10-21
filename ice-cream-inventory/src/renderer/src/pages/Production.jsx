@@ -383,7 +383,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       width: 120
     },
     {
-      title: 'Action',
+      title: <span className="text-[0.7rem]">Action</span>,
       dataIndex: 'operation',
       fixed: 'right',
       width: 80,
@@ -640,7 +640,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         
         // let quantityNumber = Number(quantity.split(' ')[0])
         
-        const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname 
+        const existingProductList = datas.product.find((productItem) => productItem.productname === newProduction.productname && productItem.isdeleted === false
         // && productItem.flavour === newProduction.flavour &&  productItem.quantity === quantityNumber 
       )
         

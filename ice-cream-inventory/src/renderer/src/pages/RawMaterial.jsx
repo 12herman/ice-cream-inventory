@@ -1791,7 +1791,7 @@ const materialBillColumn = [
                     .toLowerCase()
                     .localeCompare((optionB?.label ?? '').toLowerCase())
                 }
-                options={datas.suppliers.map(sp =>({value:sp.id,label:sp.suppliername}))}
+                options={datas.suppliers.filter(data=>data.isdeleted === false).map(sp =>({value:sp.id,label:sp.suppliername}))}
                 onChange={(value,i) => supplierOnchange(value,i)}
               />
             </Form.Item>

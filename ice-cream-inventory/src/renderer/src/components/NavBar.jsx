@@ -203,6 +203,9 @@ export default function NavBar({
       .filter((item) => item.isdeleted === false)
       .map((item) => ({ label: item.customername, value: item.customername }))
     setIsQuickSale((pre) => ({ ...pre, proption: productData, customeroption: customersData }))
+
+    console.log(customersData);
+    
   }, [isQuickSale.dataloading])
 
   const productOnchange = async (value) => {
@@ -1537,11 +1540,14 @@ export default function NavBar({
                 showSearch
                 placeholder="Select the Customer"
                 options={isSpendingModalOpen.employeeoption}
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? '')
-                    .toLowerCase()
-                    .localeCompare((optionB?.label ?? '').toLowerCase())
-                }
+                // filterSort={(optionA, optionB) =>
+                //   (optionA?.label ?? '')
+                //     .toLowerCase()
+                //     .localeCompare((optionB?.label ?? '').toLowerCase())
+                // }
+                filterOption={(input, option) =>
+    option?.label.toLowerCase().includes(input.toLowerCase())
+  }
               />
             </Form.Item>
             )}

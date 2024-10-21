@@ -62,8 +62,10 @@ export default function Storage({ datas, storageUpdateMt }) {
           return a.materialname.localeCompare(b.materialname);
         });
       }
+
+      let filterSortedData = sortedData.length > 0 ? sortedData.filter(data => data.isdeleted === false) : sortedData;
   
-      setData(sortedData);
+      setData(filterSortedData);
       setTableLoading(false);
     };
   

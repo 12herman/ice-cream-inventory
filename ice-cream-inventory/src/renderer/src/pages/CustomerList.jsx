@@ -1596,7 +1596,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         <span>FREEZER BOX</span>
         <Button className='absolute right-7 -top-1' onClick={()=>{setFreezerBox(pre =>({...pre,frommodal:true})); freezerform.resetFields()}} type='primary'>Add</Button>
        </div>}
-      //  footer={<></>}
+       footer={<></>}
        centered={true}
        width={800} 
        open={freezerBox.modal} 
