@@ -16,10 +16,11 @@ import {
   Tag,
   Segmented,
   Spin,
-  Timeline
+  Timeline,
+  Badge
 } from 'antd'
 import { RiHistoryLine } from 'react-icons/ri'
-import { PiWarningCircleFill } from 'react-icons/pi'
+import { PiGarageBold, PiWarningCircleFill } from 'react-icons/pi'
 import { MdOutlinePayments } from 'react-icons/md'
 import { PiExport } from 'react-icons/pi'
 import { TbReportAnalytics } from "react-icons/tb";
@@ -62,6 +63,7 @@ import { latestFirstSort, oldestFirstSort } from '../js-files/sort-time-date-sec
 import '../pages/css/Delivery.css'
 import { getFreezerbox, getFreezerboxById } from '../firebase/data-tables/freezerbox'
 import TableHeight from '../components/TableHeight'
+import { ClockCircleOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input
 export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, customerUpdateMt }) {
@@ -107,15 +109,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           .map(async (item, index) => {
 
             const result = await getCustomerById(item.customerid);
+            
+            const freezerboxResult = item.boxid === '' ? item.boxid : await getFreezerboxById(item.boxid)
 
-            const customerName =
-              result.status === 200 ? result.customer.customername : item.customername
-            const mobileNumber =
-              result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
-              const gstNumber =
-              result.status === 200 ? result.customer.gstin : item.gstin
-              const address = result.status === 200 ? result.customer.location : item.location
-
+            const customerName = result.status === 200 ? result.customer.customername : item.customername
+            const mobileNumber = result.status === 200 ? result.customer.mobilenumber : item.mobilenumber
+            const gstNumber = result.status === 200 ? result.customer.gstin : item.gstin
+            const address = result.status === 200 ? result.customer.location : item.location
+            const boxnumber = freezerboxResult.status === 200 && freezerboxResult !== '' ? freezerboxResult.freezerbox.boxnumber : '';
             return {
               ...item,
               sno: index + 1,
@@ -124,6 +125,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               mobilenumber: mobileNumber,
               gstin:gstNumber,
               location: address,
+              boxnumber:boxnumber
             }
           }));
 
@@ -173,7 +175,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           String(record.customername).toLowerCase().includes(value.toLowerCase()) ||
           String(record.billamount).toLowerCase().includes(value.toLowerCase()) ||
           String(record.type).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.paymentstatus).toLowerCase().includes(value.toLowerCase())
+          String(record.paymentstatus).toLowerCase().includes(value.toLowerCase()) ||
+          String(record.boxnumber).toLowerCase().includes(value.toLowerCase())
         )
       }
     },
@@ -223,7 +226,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       showSorterTooltip: { target: 'sorter-icon' },
       render: (text,record) =>
         text === 'return' ? (
-          <Tag color="red">Return</Tag>
+          <span className='flex'><Tag color="red">Return</Tag><Tag color='blue' className={`${record.boxnumber === '' ? 'hidden': 'block'}`}>{record.boxnumber}</Tag></span>
         ) : text === 'quick' ? (
           <Tag color="blue">Quick Sale</Tag>
         ) : text === 'booking' ? (
@@ -236,8 +239,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         }
           </span>
         ) : (
-          <Tag color="green">Order</Tag>
-        )
+          <span className='flex'><Tag color="green">Order</Tag> <Tag color='blue' className={`${record.boxnumber === '' ? 'hidden': 'block'}`}>{record.boxnumber}</Tag></span>
+        ),
     },
     {
       title: 'Payment Status',
@@ -916,6 +919,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
   //product initial value
   useEffect(() => {
+
     const productOp = datas.product
       .filter(
         (item, i, s) =>
@@ -1011,29 +1015,30 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     }
   }, 300)
 
+  const[productCount,setProductCount] = useState(0);
   //product onchange value
   const productOnchange = debounce((value, i) => {
-    form2.resetFields(['flavour'])
-    form2.resetFields(['quantity'])
+    // form2.resetFields(['flavour'])
+    // form2.resetFields(['quantity'])
     // form2.resetFields(['numberofpacks'])
-    form5.resetFields(['marginvalue'])
-    setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    const flavourOp = Array.from(
-      new Set(
-        datas.product
-          .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour)
-      )
-    ).map((flavour) => ({ label: flavour, value: flavour }))
-
-    setOption((pre) => ({
-      ...pre,
-      flavourstatus: false,
-      flavour: flavourOp,
-      productvalue: value,
-      quantitystatus: true
-    }))
-  }, 300)
+    form5.resetFields(['marginvalue']);
+   
+    let productid = datas.product.find(data => (data.productname === value) && (data.isdeleted === false)).id;
+    let numberofpackCount = datas.storage.find(data => (data.productid === productid) && data.isdeleted === false ).numberofpacks;
+    setProductCount(numberofpackCount);
+    
+    // setMarginValue({ amount: 0, discount: 0, percentage: 0 })
+    // const flavourOp = Array.from(
+    //   new Set(datas.product.filter((item) => item.isdeleted === false && item.productname === value)
+    //       .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
+    // setOption((pre) => ({
+    //   ...pre,
+    //   flavourstatus: false,
+    //   // flavour: flavourOp,
+    //   productvalue: value,
+    //   quantitystatus: true
+    // }))
+  }, 200)
 
   //flavour onchange value
   const flavourOnchange = debounce(async (value, i) => {
@@ -2638,6 +2643,7 @@ console.log(filterdata);
                 setFreezerBoxState(true)
                 form4.resetFields(['partialamount'])
                 form.resetFields()
+                setProductCount(0)
               }}
             >
               Place Order <IoMdAdd />
@@ -2812,6 +2818,7 @@ console.log(filterdata);
           <div className="grid grid-cols-4 gap-x-3">
             <span className="col-span-1">
               <Form
+              className='relative'
                 onFinish={createTemDeliveryMt}
                 form={form2}
                 layout="vertical"
@@ -2896,6 +2903,8 @@ console.log(filterdata);
                   />
                 </Form.Item>
 
+               <span className={`${returnDelivery.state === true ? 'hidden': 'inline-block'} absolute left-1/2 top-1/2 translate-x-2 translate-y-12`}>  <Tag className='w-full flex gap-x-0 justify-between items-center' color={`${productCount <= 0 ? 'red' : 'green'}`}  ><PiGarageBold size={16} /> {productCount <= 0 ? 0 : productCount} </Tag></span>
+                
                 <Form.Item
                   className="mb-1"
                   name="productname"
@@ -2903,6 +2912,7 @@ console.log(filterdata);
                   rules={[{ required: true, message: false }]}
                 >
                   <Select
+                  
                     disabled={option.customerstatus}
                     showSearch
                     placeholder="Select the Product"
@@ -2915,6 +2925,7 @@ console.log(filterdata);
                     options={option.product}
                     onChange={(value, i) => productOnchange(value, i)}
                   />
+
                 </Form.Item>
 
                 {/* <Form.Item

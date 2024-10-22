@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import IceCreamLogo from '../assets/img/hiddenlogo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
-import { Row, Col } from 'antd';
+import { Row, Col, Badge } from 'antd';
 import {
   Modal,
   Button,
@@ -32,7 +32,7 @@ import { db } from '../firebase/firebase'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
-import { PiWarningCircleFill } from 'react-icons/pi'
+import { PiGarageBold, PiWarningCircleFill } from 'react-icons/pi'
 import { debounce } from 'lodash'
 import { createSpending } from '../firebase/data-tables/spending'
 import { updateStorage } from '../firebase/data-tables/storage'
@@ -194,8 +194,8 @@ export default function NavBar({
     const productData = datas.product
       .filter(
         (item, i, s) =>
-          item.isdeleted === false &&
-          s.findIndex((item2) => item2.productname === item.productname) === i
+          item.isdeleted === false 
+        // &&  s.findIndex((item2) => item2.productname === item.productname) === i
       )
       .map((data) => ({ lable: data.productname, value: data.productname }))
 
@@ -208,13 +208,17 @@ export default function NavBar({
     
   }, [isQuickSale.dataloading])
 
+  const[productCount,setProductCount] = useState(0);
   const productOnchange = async (value) => {
-    const flavourData = await Array.from( new Set( datas.product
-          .filter((item) => item.isdeleted === false && item.productname === value)
-          .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
+    // const flavourData = await Array.from( new Set( datas.product
+    //       .filter((item) => item.isdeleted === false && item.productname === value)
+    //       .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
+    let productid = datas.product.find(data => (data.productname === value) && (data.isdeleted === false)).id;
+    let numberofpackCount = datas.storage.find(data => (data.productid === productid) && data.isdeleted === false ).numberofpacks;
+    setProductCount(numberofpackCount);
     setIsQuickSale((pre) => ({
       ...pre,
-      flaveroption: flavourData,
+      // flaveroption: flavourData,
       flavervalue: value,
       flavourinputstatus: false,
       quantityinputstatus: true
@@ -1029,6 +1033,7 @@ export default function NavBar({
       <Button
         className="flex justify-center items-center gap-x-2 bg-[#f26723] text-white p-1 w-[95%] rounded-md absolute bottom-16 left-1/2 -translate-x-1/2 cursor-pointer hover:bg-[#f26723]"
         onClick={() => {
+          setProductCount(0)
           setIsQuickSale((pre) => ({
             ...pre,
             model: true,
@@ -1274,14 +1279,14 @@ export default function NavBar({
             <div className="grid grid-cols-4 gap-x-2">
               <div>
               <Form
-                className="col-span-1"
+                className="col-span-1 relative"
                 form={quickSaleForm}
                 layout="vertical"
                 onFinish={QuickSaleTemAdd}
                 initialValues={{ date: dayjs(), type: 'quick' }}
               >
                 <Form.Item
-                  className="mb-3 absolute top-[-2.7rem]"
+                  className="mb-3 absolute top-[-3.45rem]"
                   name="date"
                   label=""
                   rules={[{ required: true, message: false }]}
@@ -1313,6 +1318,8 @@ export default function NavBar({
                     </Radio.Button>
                   </Radio.Group>
                 </Form.Item>
+                
+                
                 <Form.Item
                   className="mb-1 mt-4"
                   name="productname"
@@ -1356,7 +1363,7 @@ export default function NavBar({
                     options={isQuickSale.quntityoption}
                   />
                 </Form.Item> */}
-
+                <span className='absolute left-1/2 top-1/2 -translate-x-2 translate-y-[6px]'><Tag className='w-full flex justify-between items-center' size='small' color={productCount <= 0 ? 'red' : 'green'}  ><PiGarageBold size={16} /> {productCount <= 0 ? 0 : productCount} </Tag></span>
                 <Form.Item
                   className="mb-3"
                   name="numberofpacks"

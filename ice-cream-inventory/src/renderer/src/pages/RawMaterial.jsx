@@ -13,10 +13,11 @@ import {
   DatePicker,
   Radio,
   Tag,
-  Spin
+  Spin,
+  Badge
 } from 'antd'
 import { debounce } from 'lodash'
-import { PiExport } from 'react-icons/pi'
+import { PiExport, PiGarageBold } from 'react-icons/pi'
 import { IoMdAdd } from 'react-icons/io'
 import { LuSave } from 'react-icons/lu'
 import { TiCancel } from 'react-icons/ti'
@@ -25,7 +26,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createRawmaterial, fetchMaterials, updateRawmaterial } from '../firebase/data-tables/rawmaterial'
 import { TimestampJs } from '../js-files/time-stamp'
-import { updateStorage } from '../firebase/data-tables/storage'
+import { getStorage, updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs'
 import { getAllMaterialDetailsFromAllSuppliers, getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
@@ -1570,6 +1571,10 @@ const materialBillColumn = [
 
   const materialUsedTable = TableHeight(200,455);
   const addMaterialTable = TableHeight(200,400);
+
+  const[productCount,setProductCount] = useState(0);
+  console.log(productCount);
+  
   return (
     <div>
       <ul>
@@ -1591,6 +1596,7 @@ const materialBillColumn = [
               onClick={() => {
                 usedmaterialform.resetFields();
                 setUsedMaterialModal(true)
+                setProductCount(0)
                 console.log(usedmaterialform.getFieldValue().type)
               }}
               type="primary"
@@ -1770,7 +1776,7 @@ const materialBillColumn = [
           <div className='w-full grid grid-cols-7 gap-x-2'>
           <span className='col-span-2'>
           <Form
-           className='flex flex-col gap-y-2'
+           className='flex flex-col gap-y-2 relative'
             onFinish={AddTemMaterial}
             form={addmaterialaddform}
             layout="vertical"
@@ -1804,6 +1810,8 @@ const materialBillColumn = [
             >
               <DatePicker className="w-[8.5rem]" format={'DD/MM/YYYY'} />
             </Form.Item>
+
+            
 
             <Form.Item
               className="mb-0"
@@ -1922,6 +1930,7 @@ const materialBillColumn = [
           <div className="grid grid-cols-4 gap-x-3">
             <span className="col-span-1 ">
               <Form
+              className='relative'
                 onFinish={createUsedMaterial}
                 form={usedmaterialform}
                 layout="vertical"
@@ -1942,7 +1951,7 @@ const materialBillColumn = [
                   <Radio.Group
                     buttonStyle="solid"
                     style={{ width: '100%', textAlign: 'center', fontWeight: '600' }}
-                    // onChange={(e)=>{setMaterialType(e.target.value)}}
+                    onChange={(e)=>{setMaterialType(e.target.value)}}
                   >
                     <Radio.Button value="Used" style={{ width: '50%' }}>
                       USED
@@ -1952,7 +1961,7 @@ const materialBillColumn = [
                     </Radio.Button>
                   </Radio.Group>
                 </Form.Item>
-
+                
                 <Form.Item
                   // className="mb-2"
                   name="materialname"
@@ -1969,10 +1978,18 @@ const materialBillColumn = [
                         .localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     options={mtOption.material}
-                    onChange={(_,value)=>setUnitOnchange(value.unit)}
+                    onChange={async (_,value)=> {
+                      let {storage,status} = await getStorage();
+                      let material = status === 200 ? await storage.filter(data => (data.category === 'Material List') && (data.isdeleted === false) &&  (data.materialname === value.label)) : []
+                      setProductCount(material.length > 0 ? material[0].quantity : 0);
+
+                      setUnitOnchange(value.unit)
+                    }}
                   />
                 </Form.Item>
-
+                <span 
+            className={` absolute left-[72px]  ${materialType === 'Return' ? 'hidden': 'inline-block'} `}
+            ><Tag className='w-full flex justify-between items-center' color={`${productCount <= 0 ? 'red' : 'green'}`}><PiGarageBold size={16} /> {productCount} </Tag></span>
                 <span className="flex gap-x-2 ">
                   <Form.Item
                     className=" w-full"
