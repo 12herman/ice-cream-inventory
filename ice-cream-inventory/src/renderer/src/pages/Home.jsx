@@ -703,6 +703,7 @@ export default function Home({ datas }) {
 
   const showModal = async (record) => {
     
+    setSelectedRecord(null);
     let itemsWithProductNames = []
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
@@ -1842,7 +1843,7 @@ export default function Home({ datas }) {
       // render: (text, record) => `${record.productname} - ${record.unit}`
     },
     {
-      title: 'Packs',
+      title: 'Number of pieces',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks'
     }
@@ -3162,7 +3163,8 @@ Authorised Signature
         centered={true}
         open={isModalVisible}
         onCancel={() => {
-          setIsModalVisible(false)
+          setIsModalVisible(false);
+          setSelectedRecord(null);
         }}
         width={800}
         footer={null}
@@ -3186,7 +3188,7 @@ Authorised Signature
                 dataSource={selectedRecord.items}
                 columns={itemColumns}
                 pagination={false}
-                rowKey="id"
+                rowKey={(item) => item.id + '-' + item.sno}
                 // virtual
                 scroll={{y:450}}
               />
@@ -3389,7 +3391,7 @@ Authorised Signature
                 <Form.Item
                   // className="mb-3 mt-0"
                   name="numberofpacks"
-                  label="Number of Packs"
+                  label="Number of Pieces"
                   rules={[{ required: true, message: false }]}
                 >
                   <InputNumber

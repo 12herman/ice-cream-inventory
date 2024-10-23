@@ -249,7 +249,7 @@ const App = () => {
                     Close All
                   </Button>
                 ),
-                description: `${product.productname} has less number of packs ${record.numberofpacks} than the alert count ${record.alertcount}!`
+                description: `${product.productname} has less number of pieces ${record.numberofpacks} than the alert count ${record.alertcount}!`
               })
             }
           } catch (error) {
@@ -265,7 +265,7 @@ const App = () => {
                   Close All
                 </Button>
               ),
-              description: `${record.materialname} has less number of packs ${record.quantity} than the alert count ${record.alertcount}!`
+              description: `${record.materialname} has less number of pieces ${record.quantity} than the alert count ${record.alertcount}!`
             })
           }
         }

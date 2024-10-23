@@ -932,7 +932,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
                 <Form.Item
                   className="mt-7"
                   name="numberofpacks"
-                  label="Number of Packs"
+                  label="Number of Pieces"
                   rules={[{ required: true, message: false }]}
                 >
                   <InputNumber
