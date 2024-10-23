@@ -702,6 +702,7 @@ export default function Home({ datas }) {
   }
 
   const showModal = async (record) => {
+    setSelectedRecord(null);
     let itemsWithProductNames = []
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
@@ -3156,7 +3157,8 @@ Authorised Signature
         centered={true}
         open={isModalVisible}
         onCancel={() => {
-          setIsModalVisible(false)
+          setIsModalVisible(false);
+          setSelectedRecord(null);
         }}
         width={800}
         footer={null}
@@ -3180,7 +3182,7 @@ Authorised Signature
                 dataSource={selectedRecord.items}
                 columns={itemColumns}
                 pagination={false}
-                rowKey="id"
+                rowKey={(item) => item.id + '-' + item.sno}
                 // virtual
                 scroll={{y:450}}
               />
