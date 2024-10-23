@@ -1836,7 +1836,7 @@ export default function Home({ datas }) {
       // render: (text, record) => `${record.productname} - ${record.unit}`
     },
     {
-      title: 'Packs',
+      title: 'Number of pieces',
       dataIndex: 'numberofpacks',
       key: 'numberofpacks'
     }

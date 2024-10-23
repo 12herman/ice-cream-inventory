@@ -1200,7 +1200,7 @@ export default function BalanceSheet({ datas }) {
                       <span>{item.paymentstatus}</span>
                     )}
                   </div>
-                  <div>{item.type}{item.boxnumber ? `-${item.boxnumber}` : ''}</div>
+                  <div>{item.type}{item.boxnumber ? <Tag>{item.boxnumber}</Tag> : ''}</div>
                 </List.Item>
               )}
               style={{
