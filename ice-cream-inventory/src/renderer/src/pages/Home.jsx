@@ -3383,7 +3383,7 @@ Authorised Signature
                 <Form.Item
                   // className="mb-3 mt-0"
                   name="numberofpacks"
-                  label="Number of Packs"
+                  label="Number of Pieces"
                   rules={[{ required: true, message: false }]}
                 >
                   <InputNumber

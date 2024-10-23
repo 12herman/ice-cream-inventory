@@ -1,4 +1,4 @@
-import { addDoc, collection, updateDoc,doc,deleteDoc, getDocs,getDoc } from "firebase/firestore";
+import { addDoc, collection, query, where, updateDoc,doc,deleteDoc, getDocs,getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Get all Freezerbox
@@ -27,10 +27,33 @@ export const getFreezerboxById = async (boxId) => {
     if (docSnapshot.exists()) {
       return { freezerbox: { id: docSnapshot.id, ...docSnapshot.data() }, status: 200 };
     } else {
-      return { status: 404, message: 'Product not found' };
+      return { status: 404, message: 'Box not found' };
     }
   } catch (err) {
     console.error("Error fetching document: ", err);
+    return { status: 500, message: err.message };
+  }
+};
+
+// Get Freezerbox IDs by Customer ID
+export const getFreezerboxByCustomerId = async (customerId) => {
+  try {
+    const freezerboxRef = collection(db, "freezerbox");
+    const q = query(freezerboxRef, where("customerid", "==", customerId));
+    const querySnapshot = await getDocs(q);
+    
+    const boxIds = [];
+    querySnapshot.forEach((doc) => {
+      boxIds.push({ id: doc.id, ...doc.data() });
+    });
+
+    if (boxIds.length > 0) {
+      return { boxIds, status: 200 };
+    } else {
+      return { status: 404, message: 'No freezer boxes found for this customer' };
+    }
+  } catch (err) {
+    console.error("Error fetching freezer boxes: ", err);
     return { status: 500, message: err.message };
   }
 };

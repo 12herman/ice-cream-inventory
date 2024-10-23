@@ -2991,7 +2991,7 @@ console.log(filterdata);
                 <Form.Item
                   className="mb-3"
                   name="numberofpacks"
-                  label="Number of Packs"
+                  label="Number of Pieces"
                   rules={[{ required: true, message: false }]}
                 >
                   <InputNumber
