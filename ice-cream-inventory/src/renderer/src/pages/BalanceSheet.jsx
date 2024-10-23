@@ -523,7 +523,6 @@ export default function BalanceSheet({ datas }) {
             boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber, 
           };
         }))
-        console.log(deliveries)
 
         let filteredDeliveries = []
 
@@ -727,7 +726,6 @@ export default function BalanceSheet({ datas }) {
             boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber, 
           };
         }))
-        console.log(deliveries)
 
         let filteredDeliveries = []
 
@@ -902,15 +900,18 @@ export default function BalanceSheet({ datas }) {
       setPayDetailsList(filteredPayDetails)
 
       const deliveries = await Promise.all(deliveryData.filter(
-        (delivery) => delivery.customerid === selectedCustomer && !delivery.isdeleted
+        (delivery) => {
+          const isMatchingCustomer = delivery.customerid === selectedCustomer && !delivery.isdeleted;
+          const isMatchingBox = !selectedBoxId || delivery.boxid === selectedBoxId;
+          return isMatchingCustomer && isMatchingBox;
+        }
       ).map(async (delivery) => {
-        const {freezerbox, status} = await getFreezerboxById(delivery.boxid);
+        const {freezerbox} = await getFreezerboxById(delivery.boxid);
         return {
           ...delivery,
           boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber, 
         };
       }))
-      console.log(deliveries)
 
       let filteredDeliveries = []
 
