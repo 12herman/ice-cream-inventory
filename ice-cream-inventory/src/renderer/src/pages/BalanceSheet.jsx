@@ -316,6 +316,7 @@ export default function BalanceSheet({ datas }) {
       reloadTable()
     } catch (e) {
       console.log(e)
+      message.open({ type: 'error', content: `${e} Book Status Added Unsuccessfully` })
     } finally {
       payForm.resetFields()
       fetchCustomerData(customerPayId)

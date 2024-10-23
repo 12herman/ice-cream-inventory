@@ -702,20 +702,20 @@ export default function Home({ datas }) {
   }
 
   const showModal = async (record) => {
+    
     let itemsWithProductNames = []
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
       if (status === 200) {
-        itemsWithProductNames = items.map((item) => {
-          const product = datas.product.find((product) => product.id === item.id)
+        itemsWithProductNames = await items.map((item) => {
+          const product = datas.product.find((product) => product.id === item.id && product.isdeleted === false);
           return {
             ...item,
             productname: product ? product.productname : ''
             // flavour: product ? product.flavour : '',
             // quantity: product ? product.quantity : ''
           }
-        })
-      }
+        })};
     } else if (record.supplierid) {
       const { materialitem, status } = await fetchMaterials(record.id)
       if (status === 200) {
@@ -723,9 +723,7 @@ export default function Home({ datas }) {
           materialitem.map(async (item, i) => {
             let { material, status } = await getOneMaterialDetailsById(
               record.supplierid,
-              item.materialid
-            )
-
+              item.materialid)
             return {
               sno: materialitem[i].sno, //add on sno(10/10/24, 5.52 pm)
               productname: material.materialname || '',
@@ -740,8 +738,7 @@ export default function Home({ datas }) {
       const { items, status } = await fetchItemsForDelivery(record.id)
       if (status === 200) {
         itemsWithProductNames = items.map((item) => {
-          const product = datas.product.find((product) => product.id === item.id)
-
+          const product = datas.product.find((product) => product.id === item.id && product.isdeleted === false)
           return {
             ...item,
             productname: product ? product.productname : ''
@@ -1140,12 +1137,13 @@ export default function Home({ datas }) {
   }
 
   const handleQuotationDownload = async () => {
-    await setGstBillPdf(true)
+    try{
+      await setGstBillPdf(true)
 
-    await setHasPdf(true)
+      await setHasPdf(true)
 
     // data
-    let { date } = quotationft.tempproduct[0]
+    let { date } = quotationft.tempproduct[0];
     // customer details
     let cusotmerData = {
       customername:
@@ -1162,7 +1160,7 @@ export default function Home({ datas }) {
       billamount: quotationft.totalamount,
       location: '',
       partialamount: 0
-    }
+    };
     // product items
     let items = quotationft.tempproduct.map((data, i) => ({
       sno: i + 1,
@@ -1174,15 +1172,14 @@ export default function Home({ datas }) {
       producttotalamount: data.mrp,
       margin: data.margin,
       price: data.price
-    }))
+    }));
 
     await setInvoiceDatas((pre) => ({
       ...pre,
       data: items,
       isGenerate: true,
       customerdetails: cusotmerData
-    }))
-
+    }));
     // console.log(items);
     // await setInvoiceDatas({
     //   data: items,
@@ -1194,8 +1191,13 @@ export default function Home({ datas }) {
     //   ...pre,
     //   data: prItems,
     // }))
-    // message.open({ type: 'success', content: 'Quotation Created' })
-  }
+    message.open({ type: 'success', content: 'Quotation PDF Download Successfully' })
+    }
+    catch(e){
+      console.log(e);
+      message.open({ type: 'error', content: `${e} Quotation PDF Download Unsuccessfully` });
+    }
+  };
 
   useEffect(() => {
     if (isPrinting && promiseResolveRef.current) {
@@ -1389,21 +1391,22 @@ export default function Home({ datas }) {
       dataIndex: 'paymentstatus',
       key: 'paymentstatus',
       render: (text, record) => {
+        
         const { partialamount, bookingstatus } = record
         if (text === 'Paid') {
           return (
             <>
-              <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
-              <Tag color="green">{text}</Tag>
-              <Tag color="cyan">{record.paymentmode}</Tag>
+              <Tag className={`${record.type === undefined || record.type === '' || record.type ===null ? 'hidden': 'inline-block'}`} color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag className={`${record.bookingstatus === undefined || record.bookingstatus === '' ? 'hidden':'inline-block'}`} color="geekblue">{bookingstatus}</Tag>}
+              <Tag className={`${text === undefined || text === '' || text ===null ? 'hidden': 'inline-block'}`} color="green">{text}</Tag>
+              <Tag className={`${record.paymentmode === undefined || record.paymentmode === '' || record.paymentmode ===null ? 'hidden': 'inline-block'}`} color="cyan">{record.paymentmode}</Tag>
             </>
           )
         } else if (text === 'Partial') {
           return (
             <>
-              <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
+              <Tag className={`${record.type === undefined || record.type === '' || record.type ===null ? 'hidden': 'inline-block'}`} color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag className={`${record.bookingstatus === undefined || record.bookingstatus === '' ? 'hidden':'inline-block'}`} color="geekblue">{bookingstatus}</Tag>}
               <Tag color="yellow">
                 {text} - {partialamount}
               </Tag>
@@ -1413,16 +1416,16 @@ export default function Home({ datas }) {
         } else if (text === 'Return') {
           return (
             <>
-              <Tag color="red">{record.type === 'return' ? 'Returned' : record.type}</Tag>
+              <Tag className={`${record.type === undefined || record.type === '' || record.type ===null ? 'hidden': 'inline-block'}`} color="red">{record.type === 'return' ? 'Returned' : record.type}</Tag>
               <Tag color="red">{text}</Tag>
             </>
           )
         } else {
           return (
             <>
-              <Tag color="blue">{record.type}</Tag>
-              {bookingstatus && <Tag color="geekblue">{bookingstatus}</Tag>}
-              <Tag className={`${text === undefined ? 'hidden' : ''}`} color="red">
+              <Tag className={`${record.type === undefined || record.type === '' || record.type ===null ? 'hidden': 'inline-block'}`} color="blue">{record.type}</Tag>
+              {bookingstatus && <Tag className={`${record.bookingstatus === undefined || record.bookingstatus === '' ? 'hidden':'inline-block'}`} color="geekblue">{bookingstatus}</Tag>}
+              <Tag className={`${text === undefined || text === '' ? 'hidden' : ''}`} color="red">
                 {text}
               </Tag>
               <Tag className={record.paymentmode ? '' : 'hidden'} color="cyan">
@@ -1832,7 +1835,10 @@ export default function Home({ datas }) {
     {
       title: 'Item Name',
       dataIndex: 'productname',
-      key: 'productname'
+      key: 'productname',
+      // render:(text)=>{
+      //   console.log(text);
+      // }
       // render: (text, record) => `${record.productname} - ${record.unit}`
     },
     {

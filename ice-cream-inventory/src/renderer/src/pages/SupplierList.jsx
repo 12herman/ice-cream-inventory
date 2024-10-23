@@ -207,6 +207,7 @@ if(duplicateNames.length > 0){
       message.open({ type: 'success', content: 'Supplier Added Successfully' })
     } catch (e) {
       console.log(e)
+      message.open({ type: 'error', content: `${e} Supplier Added Unsuccessfully` })
     } finally {
       setSupplierOnchangeValue('')
       setSupplierModalLoading(false)
@@ -572,122 +573,127 @@ const [supplierName,setSupplierName] = useState('');
   
   const updateSupllierMt = async()=>{
 
-    let {id,...olddata} = editBtnData;
-    let supplerId = id
-    let {material,...newdata} = form.getFieldValue();
-    let oldmaterial = olddata.item.filter(data => data.isdeleted === false);
+ try{
+  let {id,...olddata} = editBtnData;
+  let supplerId = id
+  let {material,...newdata} = form.getFieldValue();
+  let oldmaterial = olddata.item.filter(data => data.isdeleted === false);
 
-    let missingIds = await getMissingIds(olddata.item,material)
-    // let missingIds = await material.filter(aObj => !olddata.item.some(bObj => aObj.id === bObj.id));
-    let newMaterialItems = material.filter(item => !item.hasOwnProperty('id')).map(data => ({...data,materialname:formatName(data.materialname)}));
-    let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
-    let compareArrObj = await areArraysEqual(updatedMaterialItems,olddata.item)
-   
-    // check same material
-   let sameItem = oldmaterial.filter(old => newMaterialItems.find(newdata => newdata.materialname === old.materialname));
-   if(sameItem.length > 0) { return message.open({type:'warning',content:`Not allow same material ${sameItem.map(data=> { return data.materialname})}`})}
-   
+  let missingIds = await getMissingIds(olddata.item,material)
+  // let missingIds = await material.filter(aObj => !olddata.item.some(bObj => aObj.id === bObj.id));
+  let newMaterialItems = material.filter(item => !item.hasOwnProperty('id')).map(data => ({...data,materialname:formatName(data.materialname)}));
+  let updatedMaterialItems = material.filter(item => item.hasOwnProperty('id'));
+  let compareArrObj = await areArraysEqual(updatedMaterialItems,olddata.item)
+ 
+  // check same material
+ let sameItem = oldmaterial.filter(old => newMaterialItems.find(newdata => newdata.materialname === old.materialname));
+ 
+ if(sameItem.length > 0) { return message.open({type:'warning',content:`Not allow same material ${sameItem.map(data=> { return data.materialname})}`})}
+  
+  if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
+    message.open({content:'No changes found', type:'info'})
+  }
+  else{
     
-    if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
-      message.open({content:'No changes found', type:'info'})
-    }
-    else{
-      
-      setSupplierModalLoading(true);
-      // update supplier
-      await updateSupplier(supplerId,{...newdata,updateddate:TimestampJs()});
+    setSupplierModalLoading(true);
+    // update supplier
+    await updateSupplier(supplerId,{...newdata,updateddate:TimestampJs()});
 
-      // update items
-      if(compareArrObj === false){
-        for(const items of updatedMaterialItems){
-          const {id,createddate,isdeleted,...newupdateddata} = items;
-          const itemId = id;
-          await updateMaterialItsms(supplerId,itemId,{...newupdateddata,updateddate:TimestampJs()})
-          
-          console.log("Checking for material:", items.materialname, items.unit);
-          console.log("Storage data:", datas.storage);
+    // update items
+    if(compareArrObj === false){
+      for(const items of updatedMaterialItems){
+        const {id,createddate,isdeleted,...newupdateddata} = items;
+        const itemId = id;
+        await updateMaterialItsms(supplerId,itemId,{...newupdateddata,updateddate:TimestampJs()})
+        
+        console.log("Checking for material:", items.materialname, items.unit);
+        console.log("Storage data:", datas.storage);
 
-          const materialExists = datas.storage.find(
-            (storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === items.materialname?.trim().toLowerCase() && storageItem.unit?.trim().toLowerCase() === items.unit?.trim().toLowerCase()
-          )
-          if (!materialExists) {
-            await createStorage({
-              materialname: items.materialname,
-              unit: items.unit,
-              alertcount: 0,
-              quantity: 0,
-              isdeleted: false,
-              category: 'Material List',
-              createddate: TimestampJs()
-            })
-            await storageUpdateMt()
-          }
-        }
-      };
-
-      // add new items 
-      if(newMaterialItems.length > 0){
-        for(const items of newMaterialItems){
-          const {id,createddate,isdeleted,...newupdateddata} = items;
-          await addNewMaterialItem(supplerId,{...newupdateddata,updateddate:TimestampJs(),isdeleted:false})
-          const materialExists = datas.storage.find((storageItem) => storageItem.materialname === newupdateddata.materialname && storageItem.category === 'Material List' && storageItem.unit === newupdateddata.unit)
-          if (!materialExists) {
-            await createStorage({
-              materialname: newupdateddata.materialname,
-              unit: newupdateddata.unit,
-              alertcount: 0,
-              quantity: 0,
-              isdeleted: false,
-              category: 'Material List',
-              createddate: TimestampJs()
-            })
-          }
-        }
-        await storageUpdateMt()
-      };
-      
-      // delete the items
-      if(missingIds.length > 0){
-        missingIds.map(async id=>{
-          await updateMaterialItsms(supplerId,id,{isdeleted:true,updateddate:TimestampJs()})
-        })
-      }
-
-      for (const oldItem of olddata.item) {
-        const newItem = material.find(
-          (mItem) => mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
-        );
-        const { materials: allMaterials, status } = await getAllMaterialDetailsFromAllSuppliers();
-        const isMaterialInSupplierList = allMaterials.find(
-          (mItem) =>
-            mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
-        );
-        if (!newItem && !isMaterialInSupplierList) {
-          const oldMaterialExists = datas.storage.find(
-            (storageItem) =>
-              storageItem.materialname === oldItem.materialname &&
-              storageItem.category === 'Material List' &&
-              storageItem.unit === oldItem.unit
-          );
-          console.log(oldMaterialExists,newItem,isMaterialInSupplierList,allMaterials)
-          if (oldMaterialExists) {
-            await deleteStorage(oldMaterialExists.id);
-            await storageUpdateMt();
-          }
+        const materialExists = datas.storage.find(
+          (storageItem) => storageItem.category === 'Material List' && storageItem.materialname?.trim().toLowerCase() === items.materialname?.trim().toLowerCase() && storageItem.unit?.trim().toLowerCase() === items.unit?.trim().toLowerCase()
+        )
+        if (!materialExists) {
+          await createStorage({
+            materialname: items.materialname,
+            unit: items.unit,
+            alertcount: 0,
+            quantity: 0,
+            isdeleted: false,
+            category: 'Material List',
+            createddate: TimestampJs()
+          })
+          await storageUpdateMt()
         }
       }
+    };
 
-      await supplierUpdateMt()
-      setIsCloseWarning(false)
-      setIsModalOpen(false)
-      form.resetFields()
-      setSupplierOnchangeValue('')
-      setIsPayModelOpen(false)
-      setIsCloseWarning(false)
-      setAmountOnchangeValue('')
-      await setSupplierModalLoading(false)
-      await message.open({content:'Updated successfully', type:'success'})
+    // add new items 
+    if(newMaterialItems.length > 0){
+      for(const items of newMaterialItems){
+        const {id,createddate,isdeleted,...newupdateddata} = items;
+        await addNewMaterialItem(supplerId,{...newupdateddata,updateddate:TimestampJs(),isdeleted:false})
+        const materialExists = datas.storage.find((storageItem) => storageItem.materialname === newupdateddata.materialname && storageItem.category === 'Material List' && storageItem.unit === newupdateddata.unit)
+        if (!materialExists) {
+          await createStorage({
+            materialname: newupdateddata.materialname,
+            unit: newupdateddata.unit,
+            alertcount: 0,
+            quantity: 0,
+            isdeleted: false,
+            category: 'Material List',
+            createddate: TimestampJs()
+          })
+        }
+      }
+      await storageUpdateMt()
+    };
+    
+    // delete the items
+    if(missingIds.length > 0){
+      missingIds.map(async id=>{
+        await updateMaterialItsms(supplerId,id,{isdeleted:true,updateddate:TimestampJs()})
+      })
     }
+
+    for (const oldItem of olddata.item) {
+      const newItem = material.find(
+        (mItem) => mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
+      );
+      const { materials: allMaterials, status } = await getAllMaterialDetailsFromAllSuppliers();
+      const isMaterialInSupplierList = allMaterials.find(
+        (mItem) =>
+          mItem.materialname === oldItem.materialname && mItem.unit === oldItem.unit
+      );
+      if (!newItem && !isMaterialInSupplierList) {
+        const oldMaterialExists = datas.storage.find(
+          (storageItem) =>
+            storageItem.materialname === oldItem.materialname &&
+            storageItem.category === 'Material List' &&
+            storageItem.unit === oldItem.unit
+        );
+        console.log(oldMaterialExists,newItem,isMaterialInSupplierList,allMaterials)
+        if (oldMaterialExists) {
+          await deleteStorage(oldMaterialExists.id);
+          await storageUpdateMt();
+        }
+      }
+    }
+
+    await supplierUpdateMt()
+    setIsCloseWarning(false)
+    setIsModalOpen(false)
+    form.resetFields()
+    setSupplierOnchangeValue('')
+    setIsPayModelOpen(false)
+    setIsCloseWarning(false)
+    setAmountOnchangeValue('')
+    await setSupplierModalLoading(false)
+    await message.open({content:'Updated successfully', type:'success'})
+  }
+ }catch(e){
+  console.log(e);
+  message.open({content:`${e} Updated Unsuccessfully`, type:'error'})
+ }
    
   
   };

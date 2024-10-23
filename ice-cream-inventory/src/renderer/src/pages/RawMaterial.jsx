@@ -26,7 +26,7 @@ import { AiOutlineDelete } from 'react-icons/ai'
 import jsonToExcel from '../js-files/json-to-excel'
 import { createRawmaterial, fetchMaterials, updateRawmaterial } from '../firebase/data-tables/rawmaterial'
 import { TimestampJs } from '../js-files/time-stamp'
-import { getStorage, updateStorage } from '../firebase/data-tables/storage'
+import { createStorage, getStorage, updateStorage } from '../firebase/data-tables/storage'
 import dayjs from 'dayjs'
 import { getAllMaterialDetailsFromAllSuppliers, getMaterialDetailsById, getOneMaterialDetailsById, getSupplierById } from '../firebase/data-tables/supplier'
 const { Search } = Input
@@ -1254,10 +1254,11 @@ const addNewTemMaterial = async () => {
     await rawmaterialUpdateMt();
     await storageUpdateMt();
     setMtOption(pre => ({ ...pre, tempproduct: [], count: 0 }));
-    message.open({ type: 'success', content: 'Added Successfully' });
+    message.open({ type: 'success', content: `${materialType === 'Used' ? 'Material Used Successfully' : 'Material Return Successfully'}` });
     setUsedMaterialModal(false);
-  } catch (error) {
-    console.log(error);
+  } catch (e) {
+    message.open({ type: 'error', content: `${e} ${materialType === 'Used' ? ' Material Used Unsuccessfully' : 'Material Return Unsuccessfully'}` });
+    console.log(e);
   } finally {
     setIsLoadMaterialUsedModal(false);
     setUnitOnchange('');
@@ -1341,6 +1342,26 @@ const addNewTemMaterial = async () => {
         // console.log(existingMaterial.id,{ quantity: existingMaterial.quantity + newmaterial.quantity});
         await updateStorage(existingMaterial.id,{ quantity: existingMaterial.quantity + newmaterial.quantity});
       }
+      else{
+        
+        console.log(newmaterial,{alertcount:0,
+          category:"Material List",
+          createddate:TimestampJs(),
+          isdeleted:false,
+          materialname:newmaterial.materialname,
+          quantity:newmaterial.quantity,
+          unit:newmaterial.unit,
+         });
+        
+        // await createStorage({alertcount:0,
+        //                      category:"Material List",
+        //                      createddate:TimestampJs(),
+        //                      isdeleted:false,
+        //                      materialname:newmaterial.materialname,
+        //                      quantity:newmaterial.quantity,
+        //                      unit:newmaterial.unit,
+        //                     })
+      }
      });
      await Promise.all(materialPromises);
       await rawmaterialUpdateMt();
@@ -1377,6 +1398,7 @@ const addNewTemMaterial = async () => {
        */ 
     }
     catch(e){
+      message.open({type:'error',content:`${e} Material Added Unsuccessfully`});
       console.log(e);
       await setIsLoadingModal(false);
       setIsModalOpen(false)
@@ -1571,9 +1593,8 @@ const materialBillColumn = [
 
   const materialUsedTable = TableHeight(200,455);
   const addMaterialTable = TableHeight(200,400);
-
   const[productCount,setProductCount] = useState(0);
-  console.log(productCount);
+
   
   return (
     <div>
@@ -2052,7 +2073,7 @@ const materialBillColumn = [
           columns={materialBillColumn}
           pagination={false}
         />
-        <span className='absolute -top-9 -translate-x-1/2 left-1/2 flex '> <span className='font-semibold inline-block pr-2'> {materialbill.supplierdetails.type === 'Return' ? 'RETRUN ON' : materialbill.supplierdetails.type === 'Used'? 'USED ON' : 'RECEIVED ON' }  {materialbill.supplierdetails.date}</span>  
+        <span className='absolute -top-9 -translate-x-1/2 left-1/2 flex '> <span className='font-semibold inline-block pr-2'> {materialbill.supplierdetails.type === 'Return' ? 'RETURN ON' : materialbill.supplierdetails.type === 'Used'? 'USED ON' : 'RECEIVED ON' }  {materialbill.supplierdetails.date}</span>  
         <Tag  className={`${materialbill.supplierdetails.paymentstatus === '' ? 'hidden':''}`} color={`${materialbill.supplierdetails.paymentstatus === 'Partial'?'yellow' : materialbill.supplierdetails.paymentstatus=== 'Paid'? 'green': materialbill.supplierdetails.paymentstatus === 'Unpaid'?'red': ''}`}>{materialbill.supplierdetails.paymentstatus}</Tag> 
         <Tag className={`${materialbill.supplierdetails.paymentstatus === 'Unpaid' || materialbill.supplierdetails.paymentstatus === ''  ? 'hidden' : 'inline-block'}`} color='blue' >{materialbill.supplierdetails.paymentmode}  </Tag> </span>
 

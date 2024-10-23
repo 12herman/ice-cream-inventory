@@ -1259,9 +1259,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       await deliveryUpdateMt()
       await customerUpdateMt()
       await storageUpdateMt()
-    } catch (error) {
-      console.error('Error adding delivery: ', error)
-      message.open({ type: 'error', content: 'Error adding production' })
+    } catch (e) {
+      console.error('Error adding delivery: ', e)
+      message.open({ type: 'error', content: `${e} Error ${returnDelivery.state === true ? 'return' : 'adding' }  delivery` })
     } finally {
       setTotalAmount(0)
       setMarginValue((pre) => ({ ...pre, amount: 0 }))

@@ -119,7 +119,6 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
       let customerid = result.status ===200 ? result.res.id : undefined;
 
-      
       if(boxnumbers.length > 0 && boxnumbers){
       boxnumbers.forEach(async box => {
         await updateFreezerbox(box,{
@@ -135,8 +134,9 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       await customerUpdateMt();
 
       message.open({ type: 'success', content: 'Customer Added Successfully' })
-    } catch (error) {
-      message.open({ type: 'error', content: 'Failed to add customer' })
+    } catch (e) {
+      console.log(e);
+      message.open({ type: 'error', content: `${e} Customer Added Unsuccessfully` })
     } finally {
       form.resetFields()
       setIsModalOpen(false)
@@ -940,7 +940,8 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
   // create freezer box
   const CreateNewFreezerBox = async()=>{
-  let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
+  try{
+    let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
   if(checkExsistingBox){
   return message.open({type:'warning',content:'The box name is already exsist'});
   }
@@ -956,6 +957,10 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     await freezerboxUpdateMt();
     setFreezerBox(pre =>({...pre,frommodal:false})); 
     setFreezerBox(pre=>({...pre,spinner:false})) 
+  }
+  }catch(e){
+    console.log(e);
+    message.open({type:'error',content:`${e} create freezerbox successfully`});
   }
 };
 
@@ -996,8 +1001,8 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
   
         // Update state with processed data
         setFreezerBox(pre => ({ ...pre, tabledata: processTabledata }));
-      } catch (error) {
-        console.error('Error loading freezer box data:', error);
+      } catch (e) {
+        console.error('Error loading freezer box data:', e);
       } finally {
         // Stop spinner
         setFreezerBox(pre => ({ ...pre, spinner: false }));
@@ -1134,17 +1139,18 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         // Add try-catch to handle any errors in freezerboxUpdateMt
         await freezerboxUpdateMt();
       }
-    } catch (error) {
-      console.error('Error updating freezer box:', error);
-      message.open({ type: 'error', content: 'Failed to update freezer box' });
+    } catch (e) {
+      console.error('Error updating freezer box:', e);
+      message.open({ type: 'error', content: `${e} Updated Unsuccessfully` });
     }
   };
   
 
   const [updateCustomerDetails,setUpdateCustomerDetails] = useState({isclick:false,data:{}});
+  
   const updateCustomerData = async ()=>{
-    
-    let {boxnumbers,customername,gstin,location,mobilenumber,transport,vehicleorfreezerno} = form.getFieldsValue();
+    try{
+      let {boxnumbers,customername,gstin,location,mobilenumber,transport,vehicleorfreezerno} = form.getFieldsValue();
     boxnumbers = boxnumbers === undefined ? [] : boxnumbers
     let selectBoxConvertor = boxnumbers.some(data => data.value === undefined) ? boxnumbers :  boxnumbers.map(data => data.value);
     let oldboxes = updateCustomerDetails.data.freezerbox.map(data => data.id);
@@ -1154,9 +1160,6 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
 
     //new data
     let newBoxes = selectBoxConvertor.filter(item => !oldboxes.includes(item));
-
-   
-    
     
     if(updateCustomerDetails.data.customername === customername &&
       compareArrays(selectBoxConvertor,oldboxes) &&
@@ -1204,6 +1207,10 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       setIsNewCustomerLoading(false);
       setIsModalOpen(false)
       message.open({type:'success',content:'Update Successfully'})
+    }}
+    catch(e){
+      message.open({type:'error',content:`${e} Update Unsuccessfully`})
+      console.log(e);
     }
   };
 

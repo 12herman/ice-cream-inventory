@@ -675,8 +675,9 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
         quantitystatus: true
       }))
       setCount(0)
-    } catch (error) {
-      console.error('An error occurred while adding new production:', error)
+    } catch (e) {
+      message.open({type:'error',content: `${e} An error occurred while adding new production`})
+      console.error('An error occurred while adding new production:', e)
     } finally {
      await setIsAddProductModal(false);
     }

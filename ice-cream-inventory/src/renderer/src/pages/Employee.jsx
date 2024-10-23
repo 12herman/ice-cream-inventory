@@ -75,7 +75,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
 
   const [isNewEployeeLoading, setIsNewEmployeeLoading] = useState(false)
   // create new project
-  const createNewProject = async (values) => {
+  const createNewEmployee = async (values) => {
     setIsNewEmployeeLoading(true)
     try {
       await createEmployee({
@@ -88,7 +88,8 @@ export default function Employee({ datas, employeeUpdateMt }) {
       employeeUpdateMt()
       message.open({ type: 'success', content: 'Created Successfully' })
     } catch (e) {
-      console.log(e)
+      console.log(e);
+      message.open({ type: 'error', content: `${e} Created Unsuccessfully` })
     } finally {
       setIsModalOpen(false)
       setIsNewEmployeeLoading(false)
@@ -870,7 +871,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
         <Spin spinning={isNewEployeeLoading}>
           <Form
             initialValues={{ gender: 'Male', position: 'Worker' }}
-            onFinish={createNewProject}
+            onFinish={createNewEmployee}
             form={form}
             layout="vertical"
           >

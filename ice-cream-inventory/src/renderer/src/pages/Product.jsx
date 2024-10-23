@@ -135,9 +135,11 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
     await setIsProductLoading(false)
      await setIsModalOpen(false)
      await setProductOnchangeValue('')
+     message.open({content:'Product Create Successfully',type:'success'})
  }
     } catch (e) {
       console.log(e)
+      message.open({content:'Product Create Unsuccessfully',type:'error'})
     } 
   }
 
