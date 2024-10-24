@@ -100,6 +100,20 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     }
   }
 
+  const [searchTextModal, setSearchTextModal] = useState('');
+  const [tempSearchText, setTempSearchText] = useState('');
+
+  const onPayDetailsSearchChange = (e) => {
+    setTempSearchText(e.target.value);
+    if (e.target.value === '') {
+      setSearchTextModal('')
+    }
+  }
+  const handlePayDetailsSearch = (value) => {
+    console.log(payDetailsData)
+    setSearchTextModal(value.trim());
+  }
+
   const [isNewCustomerLoading, setIsNewCustomerLoading] = useState(false)
   // create new project
   const createNewProject = async (values) => {
@@ -213,7 +227,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       const addFreezerboxNumber = await Promise.all(
         sortedData.map(async data => {
           const { freezerbox, status } = await getFreezerboxById(data.boxid);
-          return { ...data, boxnumber: freezerbox === undefined ? '' : freezerbox.boxnumber };
+          return { ...data, boxnumber: freezerbox ? freezerbox.boxnumber : ''};
         })
       );
 
@@ -364,8 +378,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         
         return record.paymentstatus === undefined ? (
           <>
-            {record.type === 'Balance' ? <Tag color='orange'>Book</Tag> : <Tag color="cyan">{record.paymentmode}</Tag>} 
-            <span>-</span>
+            {record.type === 'Balance' ? <Tag color='orange'>Book</Tag> : <Tag color="cyan">{record.paymentmode}</Tag>}
           </>
         ) : record.paymentstatus === 'Paid' ? (
           <span className="flex items-center">
@@ -393,7 +406,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       dataIndex: 'description',
       key: 'description',
       render: (_, record) => {
-        return record.description === undefined ? <span>-</span> : record.description
+        return record.description ? record.description : ''
       }
     }
   ]
@@ -1533,22 +1546,55 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       </Modal>
 
       <Modal
-        title={<div>
-        <Tag className='absolute left-12' color='blue'>{customerName}</Tag>
-          <span className="text-center w-full block pb-1">PAY DETAILS</span>
+        title={<div className="flex items-center justify-start"> 
+        <Search 
+        placeholder="Search..." 
+        allowClear
+        className="w-[20%]"
+        onChange={onPayDetailsSearchChange}
+        onSearch={handlePayDetailsSearch} 
+        enterButton
+        style={{ height: '32px' }}
+        value={tempSearchText}
+        />
+          <span className="text-center w-full block pb-1">PAY DETAILS <Tag color='blue'>{customerName}</Tag></span>
         </div>}
         open={isPayDetailsModelOpen}
         footer={null}
         width={1000}
         onCancel={() => {
           setIsPayDetailsModelOpen(false)
+          setSearchTextModal('');
+          setTempSearchText('');
         }}
       >
         <Table
           virtual
           pagination={false}
           columns={payDetailsColumns}
-          dataSource={payDetailsData}
+          dataSource={payDetailsData.filter(item => {
+            const date = item.date ? item.date.toString() : ''; 
+            const total = item.total ? item.total.toString() : ''; 
+            const billAmount = item.billamount ? item.billamount.toString() : item.amount.toString();
+            const paymentMode = item.paymentmode ? item.paymentmode.toString() : '';
+            const boxNumber = item.boxnumber ? item.boxnumber.toString() : '';
+            const paymentStatus = item.paymentstatus ? item.paymentstatus.toString() : '';
+            const partialAmount = item.partialamount ? item.partialamount.toString() : '';
+            const type = item.type ? item.type.toString() : '';
+            const description = item.description ? item.description.toString() : '';
+            const searchValue = searchTextModal.toLowerCase();
+            return (
+              date.toLowerCase().includes(searchValue) ||
+              total.toLowerCase().includes(searchValue) ||
+              billAmount.toLowerCase().includes(searchValue) ||
+              paymentMode.toLowerCase().includes(searchValue) ||
+              boxNumber.toLowerCase().includes(searchValue) ||
+              paymentStatus.toLowerCase().includes(searchValue) ||
+              partialAmount.toLowerCase().includes(searchValue) ||
+              description.toLowerCase().includes(searchValue) ||
+              type.toLowerCase().includes(searchValue)
+            );
+          })}
           rowKey="id"
           scroll={{ y: historyHeight }}
         />
