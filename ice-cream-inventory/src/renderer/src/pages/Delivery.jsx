@@ -1253,8 +1253,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         type: 'success',
         content:
           returnDelivery.state === true
-            ? 'Production return successfully'
-            : 'Production added successfully'
+            ? 'Product returned successfully'
+            : 'Product delivered successfully'
       })
       await deliveryUpdateMt()
       await customerUpdateMt()

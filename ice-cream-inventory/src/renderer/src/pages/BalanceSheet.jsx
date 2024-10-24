@@ -1331,7 +1331,7 @@ export default function BalanceSheet({ datas }) {
         ref={printRef}
         className="absolute w-full top-[-200rem]"
       >
-        <section className="w-[80%] mx-auto mt-1">
+        <section className="w-full max-w-[800px] mx-auto mt-1">
           <ul className="flex justify-center items-center gap-x-5">
             <li>
               <img className="w-[68px]" src={companyLogo} alt="comapanylogo" />{' '}
