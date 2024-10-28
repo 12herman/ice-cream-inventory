@@ -2353,143 +2353,108 @@ Authorised Signature
       <div
         ref={GstBillRef}
         className="absolute top-[-200rem] w-full"
-        // className=" absolute top-34 left-0 w-full z-[9999]"
-        style={{ padding: '20px', backgroundColor: '#ffff' }}
+        style={{ padding: '20px', backgroundColor: '#ffff'}}
       >
         <span
           style={{
             fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
           }}
-          className="w-full block text-center my-2 font-medium"
+          className="w-full block text-center font-bold"
         >
           TAX INVOICE
         </span>
         <div ref={GstComponentRef} className="w-full flex justify-center items-center">
-          <section className="w-[90%] border  ">
-            <ul className="flex justify-center items-center gap-x-2">
-              {/* <li>
-                {' '}
-                <img className="w-[3rem]" src={companyLogo} alt="comapanylogo" />{' '}
-              </li> */}
-              <li className="text-center mt-1">
-                <h1
-                  style={{
-                    fontSize: `${hasPdf === true ? GstBillStylePdf.heading : GstBillStylePrint.heading}`
-                  }}
-                  className={`${hasPdf === true ? 'text-[2rem]' : 'text-[1rem]'} font-bold`}
-                >
-                  NEW SARANYA ICE COMPANY
-                </h1>{' '}
-                <p
-                  style={{
-                    fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
-                  }}
-                >
-                  PILAVILAI, AZHAGANPARAI P.O.
-                </p>{' '}
-                <p
-                  style={{
-                    fontSize: `${hasPdf === true ? GstBillStylePdf.subheading : GstBillStylePrint.subheading}`
-                  }}
-                >
-                  K.K.DIST
-                </p>{' '}
-              </li>
-            </ul>
-
+          <section className="w-[90%] border mt-4">
             <ul
               style={{
                 fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
               }}
-              className={`px-2 mt-1 flex justify-between `}
+              className={`px-2 flex justify-between `}
             >
               {/* phone number */}
               <li className="text-start flex flex-col ">
+                    <span>
+                      <span className="font-medium">Date &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; :</span>{' '}
+                      <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.createddate
+                          : null}
+                      </span>
+                    </span>
                 <span>
-                  <span className="font-medium">Phone NO &#160;&#160;&#160;&#160; :</span>{' '}
+                  <span className="font-medium">Phone No &#160;&#160;&#160; :</span>{' '}
                   7373674757, 9487369569
                 </span>
+                <span>
                 <span className="font-medium">
-                  Cin NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; :
+                  Invoice No &#160;&#160; :
+                </span>{' '}
+                    <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.id
+                          : null}
+                      </span>
                 </span>
               </li>
 
               <li>
-                <span className="font-bold">Email ID &#160; :</span>{' '}
+                <span className="font-medium">Email ID &#160; :</span>{' '}
                 <span className="font-normal">saranya@gmail.com</span>
-                {/* <div>
-                  <span className=" font-bold">Date :</span>{' '}
-                  <span>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.date
-                      : null}
-                  </span>{' '}
-                </div>
-
-                <div className={`${quotationft.type === 'withoutGST' ? 'hidden' : 'inline-block'}`}>
-                  <span className="font-bold">GSTIN :</span> 33AAIFN6367K1ZV
-                </div>
-
-                <div
-
-                // className={`${invoiceDatas.customerdetails.customername === 'Quick Sale' || invoiceDatas.customerdetails.customername === undefined || gstin === false ? 'hidden' : 'block'}`}
-                >
-                  <span className="font-bold">Customer Name :</span>{' '}
-                  <span>
-                    {Object.keys(invoiceDatas.customerdetails).length !== 0
-                      ? invoiceDatas.customerdetails.customername
-                      : null}
-                  </span>
-                </div>
-
-                <div
-                  className={`${invoiceDatas.customerdetails.mobilenumber === '' || invoiceDatas.customerdetails.mobilenumber === undefined ? 'hidden' : 'block'}`}
-                >
-                  <span className="font-bold">Mobile Number : </span>{' '}
-                  <span>{invoiceDatas.customerdetails.mobilenumber}</span>
-                </div>
-
-                <div className={`${gstin === true ? 'block' : 'hidden'}`}>
-                  <div
-                    className={` ${invoiceDatas.customerdetails.gstin !== '' ? 'block' : 'hidden'}`}
-                  >
-                    <span className="font-bold">Customer GSTIN :</span>{' '}
-                    <span>
-                      {invoiceDatas.customerdetails.gstin
-                        ? invoiceDatas.customerdetails.gstin
-                        : 'N/A'}
-                    </span>
-                  </div>
-                  <div
-                    className={` ${invoiceDatas.customerdetails.location !== '' ? 'block' : 'hidden'}`}
-                  >
-                    <span className="font-bold">Customer Address :</span>{' '}
-                    <span>
-                      {invoiceDatas.customerdetails.location
-                        ? invoiceDatas.customerdetails.location
-                        : 'N/A'}
-                    </span>
-                  </div>
-                </div> */}
               </li>
             </ul>
 
-            <table className="gsttable w-full mt-2">
+            <ul className="flex justify-center items-center gap-x-2 border-b">
+              <li className="text-center">
+                <p
+                  className="font-semibold text-[12px]"
+                >
+                  NEW SARANYA ICE COMPANY
+                </p>{' '}
+              </li>
+            </ul>
+
+            {/* grid -2 */}
+            <ul className={`${hasPdf === true ? 'pb-2' : ''} px-2`}>
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+              >
+                <span className="text-center block ">
+                Factory Address : TC48/285, Pilavilai, Azhaganparai, Kanyakumari Dist, Pincode-629501
+                </span>
+              </li>
+            </ul>
+
+            <ul className={`${hasPdf === true ? 'pb-2' : ''} px-2 border-t`}>
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+              >
+                <span className="text-center block ">
+                Regd Office : 28/3030,Pilavilai,Azhaganparai,K.K.Dist-629501
+                </span>
+              </li>
+            </ul>
+
+
+            <table className="gsttable w-full">
               <thead>
                 <tr>
                   <th
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                     }}
-                    className={`pl-2 py-2 font-bold`}
+                    className={`${hasPdf === true ? 'pb-2' : ''} pl-2 font-medium`}
                   >
-                    <span className=" text-left block ">
-                      Gst No
+                    <span className="text-left block ">
+                      GSTIN
                       &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
                       33AAIFN6367K1ZV
                     </span>
-                    <span className=" text-left block ">
-                      PAN No &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                    <span className="text-left block ">
+                      PAN No &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
                       <span className="font-medium">33AAIFN6367K1ZV</span>
                     </span>
                   </th>
@@ -2498,9 +2463,9 @@ Authorised Signature
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                     }}
-                    className={` font-bold`}
+                    className={`${hasPdf === true ? 'pb-2' : ''} font-medium`}
                   >
-                    <span className="block">E-Way Bill NO.</span>
+                    <span className="block">FSSAI No</span>
                     33AAIFN6367K1ZV
                   </th>
 
@@ -2508,14 +2473,14 @@ Authorised Signature
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                     }}
-                    className={` font-bold`}
+                    className={`${hasPdf === true ? 'pb-2' : ''} font-medium`}
                   >
                     <span className="text-left block pl-2">
-                      No &#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      No &#160;&#160;&#160;&#160;&#160;&#160;:{' '}
                       {invoiceDatas.customerdetails.id}
                     </span>
                     <span className="text-left block pl-2">
-                      Date &#160;&#160;&#160;:
+                      Date &#160;&#160;&#160;:{' '}
                       <span>
                         {Object.keys(invoiceDatas.customerdetails).length !== 0
                           ? invoiceDatas.customerdetails.date
@@ -2527,37 +2492,17 @@ Authorised Signature
               </thead>
             </table>
 
-            {/* grid -2 */}
-            <ul className="px-2 py-2">
-              <li
-                style={{
-                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
-                }}
-              >
-                <span className="text-left block ">
-                  Ack NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV
-                </span>
-                <span className="text-left flex justify-between ">
-                  IRN
-                  &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
-                  {Object.keys(invoiceDatas.customerdetails).length !== 0
-                    ? invoiceDatas.customerdetails.date
-                    : null}{' '}
-                  <span>Ack Date: </span>{' '}
-                </span>
-              </li>
-            </ul>
 
             {/* grid-3 */}
             <ul className="border-t grid grid-cols-2 ">
               {/* billed address */}
-              <li className={`border-r `}>
-                <div className="px-2 py-2">
+              <li className={`${hasPdf === true ? 'pb-2' : ''} border-r`}>
+                <div className="px-2">
                   <span
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                     }}
-                    className="text-left block font-bold"
+                    className="text-left block font-semibold"
                   >
                     Billed To{' '}
                   </span>
@@ -2567,7 +2512,7 @@ Authorised Signature
                     }}
                     className={`not-italic  `}
                   >
-                    <span className={`font-bold pl-2`}>New Saranya Ice Company</span> <br />
+                    <span className={`font-semibold pl-2`}>New Saranya Ice Company</span> <br />
                     <span className={`font-medium block pl-4`}>
                       2-61/3 Pillavillai Azhaganparal Post <br />
                       Nagarcoil <br />
@@ -2583,10 +2528,10 @@ Authorised Signature
                     }}
                     className={` font-medium mt-3 block`}
                   >
-                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
+                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
                     Batch Code &#160;&#160;:
                     <br />
-                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
                     <br />
                   </span>
                 </div>
@@ -2596,27 +2541,23 @@ Authorised Signature
                 style={{
                   fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                 }}
+                className={`${hasPdf === true ? 'pb-2' : ''}`}
               >
-                <div className="px-2 py-2 flex flex-col justify-between">
-                  <span className="text-left block font-bold">Shipped To </span>
+                <div className="px-2 flex flex-col justify-between">
+                  <span className="text-left block font-semibold">Shipped To </span>
                   <address
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                     }}
                     className={`not-italic  `}
                   >
-                    <span className={`font-bold pl-2`}>
+                    <span className={`font-semibold pl-2`}>
                       {Object.keys(invoiceDatas.customerdetails).length !== 0
                         ? invoiceDatas.customerdetails.customername
                         : null}
                     </span>{' '}
                     <br />
                     <span className={`font-medium block pl-4`}>
-                      {/* 2-61/3 Pillavillai Azhaganparal Post <br />
-                    Nagarcoil <br />
-                    Kanyamukari Dist
-                    <br />
-                    Pincode: 628217. */}
                       {Object.keys(invoiceDatas.customerdetails).length !== 0
                         ? invoiceDatas.customerdetails.location
                         : null}{' '}
@@ -2629,61 +2570,23 @@ Authorised Signature
                     }}
                     className={` font-medium  block`}
                   >
-                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                    Batch Code &#160;&#160;:
-                    <br />
-                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
-                    <br />
-                  </span>
-                </div>
-              </li>
-
-              {/* order detail */}
-              <li className={`py-2 border-t border-r `}>
-                <div className="px-2">
-                  <span
-                    style={{
-                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
-                    }}
-                    className={`font-medium  block`}
-                  >
-                    Order NO &#160;&#160;&#160;&#160;&#160;: <br />
-                    P.O NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
-                    <br />
-                    Distination &#160;&#160;: <span className="font-bold">Nagarcovil</span>
-                    <br />
-                  </span>
-                </div>
-              </li>
-              <li className={`py-2 w-full border-t `}>
-                <div className="px-2">
-                  <span
-                    style={{
-                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
-                    }}
-                    className={` font-medium  block`}
-                  >
-                    Transport &#160;&#160;&#160;&#160;&#160;&#160;: <br />
-                    <span>
-                      LR.No
-                      &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
-                      <span className="">Dr :</span>
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                    <span className={`font-medium`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.gstin
+                        : null}{' '}
                     </span>
-                    <br />
-                    Vehecile No &#160;&#160;: <span className="font-bold">TN 92 3564</span>
-                    <br />
-                    Doc.Thiru &#160;&#160;&#160;&#160;&#160;&#160;: <br />
                   </span>
                 </div>
               </li>
             </ul>
 
-            <section>
+            <section className={`${hasPdf ? "h-[42rem]" : "h-[26rem]"}`}>
               <table
                 style={{
                   fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                 }}
-                className={` gstitemtable  min-w-full border-collapse mt-1`}
+                className={`gstitemtable min-w-full border-collapse ${hasPdf ? "pdf-padding" : ""}`}
               >
                 <thead>
                   <tr>
@@ -2691,7 +2594,7 @@ Authorised Signature
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1 w-[2rem]`}
+                      className={`${hasPdf === true ? 'pb-2' : ''} border-r w-[2rem]`}
                     >
                       S.No
                     </th>
@@ -2699,25 +2602,15 @@ Authorised Signature
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
                       Product
                     </th>
-                    {/* <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
-                  >
-                    Flavour
-                  </th>
-                  <th
-                    className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b text-left pb-1`}
-                  >
-                    Size
-                  </th> */}
                     <th
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
                       Rate
                     </th>
@@ -2725,7 +2618,7 @@ Authorised Signature
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
                       Qty
                     </th>
@@ -2733,7 +2626,7 @@ Authorised Signature
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
                       MRP
                     </th>
@@ -2741,15 +2634,15 @@ Authorised Signature
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
-                      Margin
+                      Discount
                     </th>
                     <th
                       style={{
                         fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                       }}
-                      className={` border-b text-left pb-1`}
+                      className={` border-b`}
                     >
                       Amount
                     </th>
@@ -2763,15 +2656,15 @@ Authorised Signature
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
-                          >
+                            className={`${hasPdf === true ? 'pb-2' : ''} border-b text-center`}
+                          > 
                             {i + 1}
                           </td>
                           <td
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b px-1`}
                           >
                             {item.productname}{' '}
                             {invoiceDatas.customerdetails.type === 'return' &&
@@ -2779,21 +2672,11 @@ Authorised Signature
                               ? `(${item.returntype})`
                               : ''}
                           </td>
-                          {/* <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
-                        >
-                          {item.flavour}
-                        </td>
-                        <td
-                          className={`${hasPdf === true ? 'text-[0.9rem]' : 'text-[0.5rem]'} border-b pb-1`}
-                        >
-                          {item.quantity}
-                        </td> */}
                           <td
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b text-center`}
                           >
                             {item.pieceamount}
                           </td>
@@ -2801,7 +2684,7 @@ Authorised Signature
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b text-center`}
                           >
                             {item.numberofpacks}
                           </td>
@@ -2809,7 +2692,7 @@ Authorised Signature
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b text-center`}
                           >
                             {item.producttotalamount}
                           </td>
@@ -2817,7 +2700,7 @@ Authorised Signature
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b text-center`}
                           >
                             {toDigit(item.margin)}%
                           </td>
@@ -2825,7 +2708,7 @@ Authorised Signature
                             style={{
                               fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                             }}
-                            className={` border-b pb-1`}
+                            className={` border-b text-center`}
                           >
                             {customRound(
                               item.numberofpacks * item.pieceamount -
@@ -2836,66 +2719,36 @@ Authorised Signature
                       ))
                     : 'No Data'}
 
-                  {/* <tr
-                  className={`${invoiceDatas.data.length < 5 && gstBillPdf === false ? 'h-[25vh]' : invoiceDatas.data.length < 8 && gstBillPdf === true ? 'h-[55vh]' : 'hidden'}`}
-                ></tr> */}
-
-                  <tr>
+                  <tr className='px-1'>
                     <td></td>
-                    <td>Total</td>
+                    <td className='px-1'>Total</td>
                     <td></td>
                     <td></td>
-                    <td></td>
-                    {/* <td></td> 
-                  <td></td>*/}
-                    <td>
+                    <td className='px-1 text-center'>
+                      <span className="font-bold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total)
+                          : null}
+                      </span>
+                    </td>
+                  <td></td>
+                    <td className='px-1 text-center'>
                       <span className=" font-bold">
                         {Object.keys(invoiceDatas.customerdetails).length !== 0
                           ? formatToRupee(invoiceDatas.customerdetails.billamount)
                           : null}
                       </span>
                     </td>
-                    <td></td>
                   </tr>
                 </tbody>
               </table>
             </section>
 
-            <ul
-              style={{
-                fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
-              }}
-              className={`px-2 py-2 border-r border-l grid grid-cols-2 font-bold`}
-            >
-              <li>
-                Amount in Work <br />
-                INR <br />
-                No of Bundles :
-              </li>
-              <li>
-                <div className="flex w-full justify-between">
-                  Assessible Value <span>39903</span>
-                </div>
-                <div className="flex w-full justify-between">
-                  CGST Collected & Paid <span>39903</span>
-                </div>
-                <div className="flex w-full justify-between">
-                  SGST Collected & Paid <span>39903</span>
-                </div>
-                <div className="flex w-full justify-between">
-                  ROUND OFF <span>39903</span>
-                </div>
-                <div className="flex w-full justify-between ">
-                  <span className="font-medium">Net Amount</span> <span>39903</span>
-                </div>
-              </li>
-            </ul>
-
             <table
               style={{
                 fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
               }}
-              className={`gsttaxtable w-full `}
+              className={`gsttaxtable w-full ${hasPdf ? "pdf-padding" : ""}`}
             >
               <thead>
                 <tr>
@@ -2920,24 +2773,47 @@ Authorised Signature
                 style={{
                   fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                 }}
-                className={`gsttaxtable w-full `}
+                className={`gsttaxtable w-full text-center`}
               >
                 <tr>
                   <td>19053453</td>
-                  <td>26000</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span></td>
                   <td>9%</td>
-                  <td>26000</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
                   <td>9%</td>
-                  <td>4687</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
                 </tr>
-                <tr className="font-bold">
+                <tr className="font-semibold">
                   <td></td>
                   <td>Total</td>
                   <td></td>
-                  <td>73443</td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
                   <td></td>
-                  <td>2345</td>
-                  <td>4687</td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}</span></td>
                 </tr>
               </tbody>
             </table>
@@ -2949,24 +2825,89 @@ Authorised Signature
               }}
               className={` border-b w-full border-x grid grid-cols-2  `}
             >
-              <li className="px-2 py-2">
+
+
+                <li className={`${hasPdf === true ? 'pb-2' : ''} border-t border-r`}>
+                <div className="px-2">
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={`font-medium block`}
+                  >
+                    Distination &#160;&#160;: <span className={`font-semibold`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.location
+                        : null}{' '}
+                    </span>
+                    <br />
+                    Transport &#160;&#160;&#160;&#160;: 
+                    <span className={`font-semibold`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.vehicleorfreezerno
+                        : null}{' '}
+                    </span>
+                    <br />
+                  </span>
+                </div>
+              </li>
+              <li className={`w-full border-t text-right`}>
+                <div className="px-2">
+                  <span
+                    style={{
+                      fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                    }}
+                    className={` font-medium  block`}
+                  >
+                    Total Sale Value : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total)
+                          : null}
+                      </span><br />
+                    <span>
+                      Bulk Discount :{' '}<span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total - invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    </span>
+                    <br />
+                    Total : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    <br />
+                    GST @ 18% : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}
+                      </span><br />
+                  </span>
+                </div>
+              </li> 
+
+              <li className={`${hasPdf === true ? 'pb-2' : ''} px-2 border-t`}>
                 <h2
                   style={{
                     fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                   }}
-                  className={` w-full `}
+                  className="w-full font-semibold"
                 >
                   Company's Bank Details
                 </h2>
                 Bank Name
                 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
-                <span className="font-bold">State Bank of India CC A/c</span> <br />
+                <span className="font-medium">State Bank of India CC A/c</span> <br />
                 A/c No
-                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
-                <span className="font-bold">0000039765825810</span>
+                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-medium">0000039765825810</span>
                 <br />
                 Branch & IFS Code &#160;:{' '}
-                <span className="font-bold">Srialsi SME Branch & SBIN003316</span>
+                <span className="font-medium">Srialsi SME Branch & SBIN003316</span>
+                <br />
+                UPI ID &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-medium">saranya@sbi</span>
                 <br />
               </li>
 
@@ -2974,74 +2915,40 @@ Authorised Signature
                 style={{
                   fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
                 }}
-                className={`px-2 py-2 row-span-2  border-l w-full `}
+                className={`px-2 border-l`}
               >
-                Prepared by For
-                <span className="block font-bold text-right pt-5"> Graphic Color Pack</span>
-                Checked by
+                <span className="block font-semibold text-right pt-5"> Grand Total : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount + invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}
+                      </span></span>
+              </li>
+              
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+                className={`${hasPdf === true ? 'pb-2' : ''} px-2 border-t w-full`}
+              >
+                <p className={`font-semibold ${hasPdf === true ? 'text-[12px]' : 'text-[10px]'}`}>Declaration & Terms Of Delivery</p>
+                <p className='text-[7px]'>1 Billing Is Ex-Works.Claims for Shortage and Defective Goods Will Not Be Entertained After Delivery.</p>
+                <p className='text-[7px]'>2 All Transportation Via Buyer Vehicle Is Cost to Buyers Accounts.All Damages/risks After Delivery at Factory Premises to Buyers Accounts</p>
+                <p className='text-[7px]'>3 All Taxes/levis/penalites/compounding Fees Etc Imposed Post Delivery to the Buyers Accounts.</p>
+                <p className='text-[7px]'>4 Name of the Commodity- IC = Medium fat Ice cream,FD = Medium fat frozen dessert,LG=High fat ice cream,IL=Ice lolly,IN=ice candy</p>
+                <p className='text-[7px]'>5 We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+              </li>
+
+              <li
+                style={{
+                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
+                }}
+                className={`${hasPdf === true ? 'pb-2' : ''} px-2  border-l border-t`}
+              >
+                Checked by <span className='font-semibold'>NEW SARANYA ICE COMPANY</span>
                 <span className="block text-right pt-10"> Authorised Signature </span>
               </li>
 
-              <li
-                style={{
-                  fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
-                }}
-                className={`px-2 py-2 border-t w-full `}
-              >
-                1.CERTIFIED that the particulars given above are true and correct2. The amount
-                indicated above represents the price actually charged and there is no flow of
-                additionalconsideration directly or indirectly from the buyer3. Interest @ 24% per
-                annum whill be charged on bills if not paid within 15 days, 4. Subject to sivakasi
-                Jurisdiction only.
-              </li>
             </ul>
-
-            {/* <p className={`text-end mt-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}>
-              Total Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.total)
-                  : null}
-              </span>{' '}
-            </p>
-            <p className={`text-end ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}>
-              Bill Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                  : null}
-              </span>
-            </p>
-            <p
-              className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 || invoiceDatas.customerdetails.paymentstatus === 'Paid' ? 'block text-end' : 'hidden'}`}
-            >
-              Paid Amount:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? invoiceDatas.customerdetails.paymentstatus === 'Paid'
-                    ? formatToRupee(invoiceDatas.customerdetails.billamount)
-                    : formatToRupee(invoiceDatas.customerdetails.partialamount)
-                  : null}
-              </span>
-            </p>
-            <p
-              className={`${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'} ${invoiceDatas.customerdetails.partialamount !== 0 ? 'block text-end' : 'hidden'}`}
-            >
-              Balance:{' '}
-              <span className=" font-bold">
-                {Object.keys(invoiceDatas.customerdetails).length !== 0
-                  ? formatToRupee(
-                      invoiceDatas.customerdetails.billamount -
-                        invoiceDatas.customerdetails.partialamount
-                    )
-                  : null}
-              </span>
-            </p>
-            <p
-              className={`text-end mt-10 p-2 ${hasPdf === true ? 'text-[0.8rem]' : 'text-[0.5rem]'}`}
-            >
-              Authorised Signature
-            </p> */}
           </section>
         </div>
       </div>
