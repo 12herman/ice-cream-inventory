@@ -1471,12 +1471,12 @@ export default function Home({ datas }) {
                       className="text-[0.7rem]"
                       type="primary"
                       onClick={async () => {
-                        await setGstBillPdf(true)
-                        await setGstBill(true)
-                        await setHasPdf(true)
-                        await setLoadingGstin(true)
+                        setGstBillPdf(true)
+                        setGstBill(true)
+                        setHasPdf(true)
+                        setLoadingGstin(true)
                         setGstin(true)
-                        handleDownloadPdf(record)
+                        await handleDownloadPdf(record)
                       }}
                     >
                       GST
@@ -1487,12 +1487,12 @@ export default function Home({ datas }) {
                       className="text-[0.7rem]"
                       type="dashed"
                       onClick={async () => {
-                        await setGstBillPdf(true)
-                        await setGstBill(false)
-                        await setHasPdf(true)
+                        setGstBillPdf(true)
+                        setGstBill(false)
+                        setHasPdf(true)
                         setLoadingWithoutGstin(true)
                         setGstin(false)
-                        handleDownloadPdf(record)
+                        await handleDownloadPdf(record)
                       }}
                     >
                       Without GST
@@ -2521,7 +2521,6 @@ Authorised Signature
                       Pincode: 628217.
                     </span>
                   </address>
-
                   <span
                     style={{
                       fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
@@ -2581,7 +2580,14 @@ Authorised Signature
               </li>
             </ul>
 
-            <section className={`${hasPdf ? "h-[42rem]" : "h-[26rem]"}`}>
+            <section 
+            style={{
+              minHeight: hasPdf ? '42rem' : '26rem',
+              overflowY: 'auto',
+              pageBreakInside: 'avoid'
+            }}
+            //className={`${hasPdf ? "h-[42rem]" : "h-[26rem]"}`}
+            >
               <table
                 style={{
                   fontSize: `${hasPdf === true ? GstBillStylePdf.para : GstBillStylePrint.para}`
@@ -2750,15 +2756,15 @@ Authorised Signature
               }}
               className={`gsttaxtable w-full ${hasPdf ? "pdf-padding" : ""}`}
             >
-              <thead>
-                <tr>
+              <thead className="font-semibold">
+                <tr className="font-semibold">
                   <th>HSN/SAC</th>
                   <th>Taxable Value</th>
                   <th colSpan="2">Central Tax</th>
                   <th colSpan="2">State Tax</th>
                   <th>Total Tax</th>
                 </tr>
-                <tr>
+                <tr className="font-medium">
                   <th></th>
                   <th></th>
                   <th>Rate</th>
@@ -2917,7 +2923,7 @@ Authorised Signature
                 }}
                 className={`px-2 border-l`}
               >
-                <span className="block font-semibold text-right pt-5"> Grand Total : <span>
+                <span className="block font-bold text-right pt-5"> Grand Total : <span>
                         {Object.keys(invoiceDatas.customerdetails).length !== 0
                           ? formatToRupee(invoiceDatas.customerdetails.billamount + invoiceDatas.customerdetails.billamount * 0.18)
                           : null}
@@ -2945,7 +2951,7 @@ Authorised Signature
                 className={`${hasPdf === true ? 'pb-2' : ''} px-2  border-l border-t`}
               >
                 Checked by <span className='font-semibold'>NEW SARANYA ICE COMPANY</span>
-                <span className="block text-right pt-10"> Authorised Signature </span>
+                <span className="block text-right pt-14"> Authorised Signature </span>
               </li>
 
             </ul>

@@ -78,6 +78,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   const [data, setData] = useState([])
   const [tableLoading, setTableLoading] = useState(true)
   const partialAmountRef = useRef(null)
+  const GstBillRef = useRef()
 
   const [deliveryBill, setDeliveryBill] = useState({
     model: false,
@@ -2077,10 +2078,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   useEffect(() => {
     const generatePDF = async () => {
       if (invoiceDatas.isGenerate) {
-        const element = await printRef.current
+        const element = gstin === true ? GstBillRef.current : printRef.current
         const canvas = await html2canvas(element)
-        const data = await canvas.toDataURL('image/png')
-        const pdf = await new jsPDF()
+        const data = canvas.toDataURL('image/png')
+        const pdf = new jsPDF()
         const imgWidth = 210
         const pageHeight = 297
         const imgHeight = (canvas.height * imgWidth) / canvas.width
@@ -2095,7 +2096,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           heightLeft -= pageHeight
         }
         pdf.save(
-          `${invoiceDatas.customerdetails.customername + '-' + invoiceDatas.customerdetails.date}.pdf`
+          `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}-${TimestampJs().split(' ')[1]}.pdf`
         )
         await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
         await setGstin(false);
@@ -3388,6 +3389,497 @@ console.log(filterdata);
           <Timeline mode="left" items={historyBtn.data} />
         </Spin>
       </Modal>
+
+      {/* new start */}
+      <div
+        ref={GstBillRef}
+        className="absolute top-[-200rem] w-full"
+        style={{ padding: '20px', backgroundColor: '#ffff', fontSize: '16px'}}
+      >
+        <span
+          className="w-full block text-center font-bold text-[20px]"
+        >
+          TAX INVOICE
+        </span>
+        <div className="w-full flex justify-center items-center">
+          <section className="w-[90%] border mt-4">
+            <ul
+              className={`px-2 flex justify-between text-[16px]`}
+            >
+              {/* phone number */}
+              <li className="text-start flex flex-col ">
+                    <span>
+                      <span className="font-medium">Date &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; :</span>{' '}
+                      <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.createddate
+                          : null}
+                      </span>
+                    </span>
+                <span>
+                  <span className="font-medium">Phone No &#160;&#160;&#160; :</span>{' '}
+                  7373674757, 9487369569
+                </span>
+                <span>
+                <span className="font-medium">
+                  Invoice No &#160;&#160; :
+                </span>{' '}
+                    <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.id
+                          : null}
+                      </span>
+                </span>
+              </li>
+
+              <li>
+                <span className="font-medium">Email ID &#160; :</span>{' '}
+                <span className="font-normal">saranya@gmail.com</span>
+              </li>
+            </ul>
+
+            <ul className="flex justify-center items-center gap-x-2 border-b">
+              <li className="text-center pb-2">
+                <p
+                  className="font-bold text-[14px]"
+                >
+                  NEW SARANYA ICE COMPANY
+                </p>{' '}
+              </li>
+            </ul>
+
+            {/* grid -2 */}
+            <ul className={`px-2 pb-2`}>
+              <li className='text-[16px]'>
+                <span className="text-center block ">
+                Factory Address : TC48/285, Pilavilai, Azhaganparai, Kanyakumari Dist, Pincode-629501
+                </span>
+              </li>
+            </ul>
+
+            <ul className={`px-2 border-t pb-2`}>
+              <li className='text-[16px]'>
+                <span className="text-center block ">
+                Regd Office : 28/3030,Pilavilai,Azhaganparai,K.K.Dist-629501
+                </span>
+              </li>
+            </ul>
+
+            <table className="gsttable w-full">
+              <thead>
+                <tr>
+                  <th
+                    className={`pl-2 font-medium text-[16px] pb-2`}
+                  >
+                    <span className="text-left block ">
+                      GSTIN
+                      &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:
+                      33AAIFN6367K1ZV
+                    </span>
+                    <span className="text-left block ">
+                      PAN No &#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      <span className="font-medium">33AAIFN6367K1ZV</span>
+                    </span>
+                  </th>
+
+                  <th
+                    className={`font-medium text-[16px] pb-2`}
+                  >
+                    <span className="block">FSSAI No</span>
+                    33AAIFN6367K1ZV
+                  </th>
+
+                  <th
+                    className={`font-medium text-[16px] pb-2`}
+                  >
+                    <span className="text-left block pl-2">
+                      No &#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                      {invoiceDatas.customerdetails.id}
+                    </span>
+                    <span className="text-left block pl-2">
+                      Date &#160;&#160;&#160;:{' '}
+                      <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? invoiceDatas.customerdetails.date
+                          : null}
+                      </span>
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+            </table>
+
+
+            {/* grid-3 */}
+            <ul className="border-t grid grid-cols-2 ">
+              {/* billed address */}
+              <li className={`border-r pb-2`}>
+                <div className="px-2">
+                  <span
+                    className="text-left block font-semibold text-[16px]"
+                  >
+                    Billed To{' '}
+                  </span>
+                  <address
+                    className={`not-italic text-[16px]`}
+                  >
+                    <span className={`font-semibold pl-2`}>New Saranya Ice Company</span> <br />
+                    <span className={`font-medium block pl-4`}>
+                      2-61/3 Pillavillai Azhaganparal Post <br />
+                      Nagarcoil <br />
+                      Kanyamukari Dist
+                      <br />
+                      Pincode: 628217.
+                    </span>
+                  </address>
+                  <span
+                    className={` font-medium mt-3 block text-[16px]`}
+                  >
+                    PAN NO &#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV<br />
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;: 33AAIFN6367K1ZV
+                    <br />
+                  </span>
+                </div>
+              </li>
+              {/* shipped address */}
+              <li className='text-[16px] pb-2'>
+                <div className="px-2 flex flex-col justify-between">
+                  <span className="text-left block font-semibold">Shipped To </span>
+                  <address
+                    className={`not-italic text-[16px]`}
+                  >
+                    <span className={`font-semibold pl-2`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.customername
+                        : null}
+                    </span>{' '}
+                    <br />
+                    <span className={`font-medium block pl-4`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.location
+                        : null}{' '}
+                    </span>
+                  </address>
+
+                  <span
+                    className={` font-medium  block text-[16px]`}
+                  >
+                    GSTIN &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                    <span className={`font-medium`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.gstin
+                        : null}{' '}
+                    </span>
+                  </span>
+                </div>
+              </li>
+            </ul>
+
+            <section
+            style={{
+              minHeight: '46rem',
+              overflowY: 'auto',
+              pageBreakInside: 'avoid'
+            }}
+            >
+              <table
+                className={`gstitemtable min-w-full border-collapse text-[16px]`}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      className={`border-r w-[2rem] text-[16px] pb-2`}
+                    >
+                      S.No
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      Product
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      Rate
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      Qty
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      MRP
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      Discount
+                    </th>
+                    <th
+                      className={` border-b text-[16px] pb-2`}
+                    >
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceDatas.data.length > 0
+                    ? invoiceDatas.data.map((item, i) => (
+                        <tr key={i}>
+                          <td
+                            className={`border-b text-center text-[16px] pb-2`}
+                          > 
+                            {i + 1}
+                          </td>
+                          <td
+                            className={` border-b px-1 text-[16px]`}
+                          >
+                            {item.productname}{' '}
+                            {invoiceDatas.customerdetails.type === 'return' &&
+                            (item.returntype !== undefined || item.returntype !== null)
+                              ? `(${item.returntype})`
+                              : ''}
+                          </td>
+                          <td
+                            className={` border-b text-center text-[16px]`}
+                          >
+                            {item.pieceamount}
+                          </td>
+                          <td
+                            className={` border-b text-center text-[16px]`}
+                          >
+                            {item.numberofpacks}
+                          </td>
+                          <td
+                            className={` border-b text-center text-[16px]`}
+                          >
+                            {item.producttotalamount}
+                          </td>
+                          <td
+                            className={` border-b text-center text-[16px]`}
+                          >
+                            {toDigit(item.margin)}%
+                          </td>
+                          <td
+                            className={` border-b text-center text-[16px]`}
+                          >
+                            {customRound(
+                              item.numberofpacks * item.pieceamount -
+                                (item.numberofpacks * item.pieceamount * item.margin) / 100
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    : 'No Data'}
+
+                  <tr className='px-1 pdf-padding'>
+                    <td></td>
+                    <td className='px-1'>Total</td>
+                    <td></td>
+                    <td></td>
+                    <td className='px-1 text-center'>
+                      <span className="font-bold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total)
+                          : null}
+                      </span>
+                    </td>
+                  <td></td>
+                    <td className='px-1 text-center'>
+                      <span className=" font-bold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <table
+              className={`gsttaxtable w-full text-[16px] pdf-padding`}
+            >
+              <thead className="font-semibold">
+                <tr className="font-semibold">
+                  <th>HSN/SAC</th>
+                  <th>Taxable Value</th>
+                  <th colSpan="2">Central Tax</th>
+                  <th colSpan="2">State Tax</th>
+                  <th>Total Tax</th>
+                </tr>
+                <tr className="font-medium">
+                  <th></th>
+                  <th></th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                  <th>Tax Amount</th>
+                </tr>
+              </thead>
+
+              <tbody
+                className={`gsttaxtable w-full text-center text-[16px]`}
+              >
+                <tr>
+                  <td>19053453</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span></td>
+                  <td>9%</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
+                  <td>9%</td>
+                  <td><span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
+                </tr>
+                <tr className="font-semibold">
+                  <td></td>
+                  <td>Total</td>
+                  <td></td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
+                  <td></td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.09)
+                          : null}
+                      </span></td>
+                  <td><span className=" font-semibold">
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* company bank detials */}
+            <ul
+              className={`text-[16px] border-b w-full border-x grid grid-cols-2  `}
+            >
+                <li className={`border-t border-r pb-2`}>
+                <div className="px-2">
+                  <span
+                    className={`font-medium block text-[16px]`}
+                  >
+                    Distination &#160;&#160;: <span className={`font-semibold`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.location
+                        : null}{' '}
+                    </span>
+                    <br />
+                    Transport &#160;&#160;&#160;&#160;: 
+                    <span className={`font-semibold`}>
+                      {Object.keys(invoiceDatas.customerdetails).length !== 0
+                        ? invoiceDatas.customerdetails.vehicleorfreezerno
+                        : null}{' '}
+                    </span>
+                    <br />
+                  </span>
+                </div>
+              </li>
+              <li className={`w-full border-t text-right`}>
+                <div className="px-2">
+                  <span
+                    className={` font-medium  block text-[16px]`}
+                  >
+                    Total Sale Value : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total)
+                          : null}
+                      </span><br />
+                    <span>
+                      Discount :{' '}<span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.total - invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    </span>
+                    <br />
+                   
+                  </span>
+                </div>
+              </li> 
+
+              <li className={`px-2 border-t pb-2`}>
+                <h2
+                  className="w-full font-semibold text-[16px]"
+                >
+                  Company's Bank Details
+                </h2>
+                Bank Name
+                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-medium">State Bank of India CC A/c</span> <br />
+                A/c No
+                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-medium">0000039765825810</span>
+                <br />
+                Branch & IFS Code &#160;:{' '}
+                <span className="font-medium">Srialsi SME Branch & SBIN003316</span>
+                <br />
+                UPI ID &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:{' '}
+                <span className="font-medium">saranya@sbi</span>
+                <br />
+              </li>
+
+              <li
+                className={`px-2 border-l font-medium text-[16px] text-right`}
+              >
+                 Total : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount)
+                          : null}
+                      </span>
+                    <br />
+                    GST @ 18% : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}
+                      </span><br />
+                <span className="block font-bold pt-5"> Grand Total : <span>
+                        {Object.keys(invoiceDatas.customerdetails).length !== 0
+                          ? formatToRupee(invoiceDatas.customerdetails.billamount + invoiceDatas.customerdetails.billamount * 0.18)
+                          : null}
+                      </span></span>
+              </li>
+              
+              <li
+                className={`px-2 border-t w-full text-[16px] pb-2`}
+              >
+                <p className={`font-semibold text-[14px]`}>Declaration & Terms Of Delivery</p>
+                <p className='text-[8px]'>1 Billing Is Ex-Works.Claims for Shortage and Defective Goods Will Not Be Entertained After Delivery.</p>
+                <p className='text-[8px]'>2 All Transportation Via Buyer Vehicle Is Cost to Buyers Accounts.All Damages/risks After Delivery at Factory Premises to Buyers Accounts</p>
+                <p className='text-[8px]'>3 All Taxes/levis/penalites/compounding Fees Etc Imposed Post Delivery to the Buyers Accounts.</p>
+                <p className='text-[8px]'>4 Name of the Commodity- IC = Medium fat Ice cream,FD = Medium fat frozen dessert,LG=High fat ice cream,IL=Ice lolly,IN=ice candy</p>
+                <p className='text-[8px]'>5 We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+              </li>
+
+              <li
+                className={`px-2  border-l border-t text-[16px] pb-2`}
+              >
+                Checked by <span className='font-semibold'>NEW SARANYA ICE COMPANY</span>
+                <span className="block text-right pt-14"> Authorised Signature </span>
+              </li>
+
+            </ul>
+          </section>
+        </div>
+      </div>
+      {/* new end */}
     </div>
   )
 }
