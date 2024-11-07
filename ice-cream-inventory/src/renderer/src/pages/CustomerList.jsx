@@ -465,7 +465,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       }
     },
     {
-      title: 'Location',
+      title: 'Address',
       dataIndex: 'location',
       key: 'location',
       editable: true,
@@ -1351,7 +1351,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
             <Form.Item
               className="mb-2"
               name="customername"
-              label="Customer Name"
+              label="Name"
               rules={[{ required: true, message: false }]}
             >
               <Input
@@ -1443,7 +1443,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <TextArea rows={4} placeholder="Enter the Address / Location" />
+              <TextArea rows={4} placeholder="Enter the Address" />
             </Form.Item>
           </Form>
         </Spin>

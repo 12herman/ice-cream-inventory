@@ -432,7 +432,7 @@ const [supplierName,setSupplierName] = useState('');
     //   showSorterTooltip: { target: 'sorter-icon' }
     // },
     {
-      title: 'Location',
+      title: 'Address',
       dataIndex: 'location',
       key: 'location',
       editable: true,
@@ -1372,7 +1372,7 @@ setSupplierTbLoading(false)
             <Form.Item
               className="mb-2"
               name="suppliername"
-              label="Supplier Name"
+              label="Name"
               rules={[{ required: true, message: false }]}
             >
               <Input className="w-full" placeholder="Enter the Supplier Name" />
@@ -1381,10 +1381,10 @@ setSupplierTbLoading(false)
             <Form.Item
               className="mb-2"
               name="location"
-              label="Location"
+              label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <Input placeholder="Enter the Location" />
+              <Input placeholder="Enter the Address" />
             </Form.Item>
 
            

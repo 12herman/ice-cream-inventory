@@ -745,7 +745,7 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
             <Form.Item
               className="mb-2"
               name="productname"
-              label="Product Name"
+              label="Name"
               rules={[{ required: true, message: false }]}
             >
               <Input

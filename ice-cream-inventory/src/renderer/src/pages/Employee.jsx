@@ -127,7 +127,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       defaultSortOrder: 'ascend'
     },
     {
-      title: 'Position',
+      title: 'Role',
       dataIndex: 'position',
       key: 'position',
       editable: true,
@@ -136,7 +136,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
       width: 143
     },
     {
-      title: 'Location',
+      title: 'Address',
       dataIndex: 'location',
       key: 'location',
       editable: true,
@@ -878,7 +878,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <Form.Item
               className="mb-2"
               name="employeename"
-              label="Employee Name"
+              label="Name"
               rules={[{ required: true, message: false }]}
             >
               <Input
@@ -902,7 +902,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <Form.Item
               className="mb-2"
               name="position"
-              label="Position"
+              label="Role"
               rules={[{ required: true, message: false }]}
             >
               <Radio.Group>
@@ -927,10 +927,10 @@ export default function Employee({ datas, employeeUpdateMt }) {
             <Form.Item
               className="mb-2"
               name="location"
-              label="Location"
+              label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <Input placeholder="Enter the Location" />
+              <Input placeholder="Enter the Address" />
             </Form.Item>
           </Form>
         </Spin>
