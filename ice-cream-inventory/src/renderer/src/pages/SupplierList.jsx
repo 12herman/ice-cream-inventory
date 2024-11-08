@@ -408,7 +408,7 @@ const [supplierName,setSupplierName] = useState('');
           String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
           String(record.location).toLowerCase().includes(value.toLowerCase()) ||
           String(record.mobilenumber).toLowerCase().includes(value.toLowerCase()) ||
-          String(record.gender).toLowerCase().includes(value.toLowerCase()) ||
+          // String(record.gender).toLowerCase().includes(value.toLowerCase()) ||
           record.item.some(data => String(data.materialname).toLowerCase().includes(value.toLowerCase()))
 
         )
@@ -449,13 +449,13 @@ const [supplierName,setSupplierName] = useState('');
       editable: true,
       width: 136
     },
-    {
-      title: 'Gender',
-      dataIndex: 'gender',
-      key: 'gender',
-      editable: true,
-      width: 83
-    },
+    // {
+    //   title: 'Gender',
+    //   dataIndex: 'gender',
+    //   key: 'gender',
+    //   editable: true,
+    //   width: 83
+    // },
     {
       title: "Material",
       dataIndex: 'material',
@@ -560,7 +560,7 @@ const [supplierName,setSupplierName] = useState('');
     // Set the form fields with the correct values from the record
     await form.setFieldsValue({
       suppliername: record.suppliername,
-      gender: record.gender,
+      // gender: record.gender,
       location: record.location,
       mobilenumber: record.mobilenumber,
       material: record.item
@@ -590,7 +590,7 @@ const [supplierName,setSupplierName] = useState('');
  
  if(sameItem.length > 0) { return message.open({type:'warning',content:`Not allow same material ${sameItem.map(data=> { return data.materialname})}`})}
   
-  if(olddata.gender === newdata.gender && olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
+  if(olddata.location === newdata.location && olddata.mobilenumber === newdata.mobilenumber && olddata.suppliername === newdata.suppliername && material.length === olddata.item.length && compareArrObj){
     message.open({content:'No changes found', type:'info'})
   }
   else{
@@ -803,8 +803,8 @@ const [supplierName,setSupplierName] = useState('');
         row.suppliername === key.suppliername &&
         // row.materialname === key.materialname &&
         row.location === key.location &&
-        row.mobilenumber === key.mobilenumber &&
-        row.gender === key.gender
+        row.mobilenumber === key.mobilenumber
+        // row.gender === key.gender
       ) {
         message.open({ type: 'info', content: 'No changes made' })
         setEditingKeys([])
@@ -1132,7 +1132,7 @@ setSupplierTbLoading(false)
     const excelDatas = exportDatas.map((pr, i) => ({
       No: i + 1,
       Supplier: pr.suppliername,
-      Gender: pr.gender,
+      // Gender: pr.gender,
       Mobile: pr.mobilenumber,
       Location: pr.location
     }))
@@ -1275,7 +1275,7 @@ setSupplierTbLoading(false)
                 setEditSupplierModal(false)
                 setIsModalOpen(true)
                 form.resetFields()
-                form.setFieldsValue({ gender: 'Male' });
+                // form.setFieldsValue({ gender: 'Male' });
                 form.setFieldsValue({
   material: [
     {
@@ -1364,7 +1364,6 @@ setSupplierTbLoading(false)
       >
         <Spin spinning={supplierModalLoading}>
           <Form
-            initialValues={{ gender: 'Male' }}
             onFinish={editSupplierModal ? updateSupllierMt : createNewSupplier}
             form={form}
             layout="vertical"
@@ -1379,17 +1378,32 @@ setSupplierTbLoading(false)
             </Form.Item>
 
             <Form.Item
+              className="mb-2 w-full"
+              name="mobilenumber"
+              label="Mobile Number"
+              rules={[
+                { required: true, message: false },
+                { type: 'number', message: false }
+              ]}
+            >
+              <InputNumber
+                type="number"
+                className="w-full"
+                min={0}
+                placeholder="Enter the Mobile Number"
+              />
+            </Form.Item>
+
+            <Form.Item
               className="mb-2"
               name="location"
               label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <Input placeholder="Enter the Address" />
+              <TextArea rows={2} placeholder="Enter the Address" />
             </Form.Item>
 
-           
-           <Form.Item label="Material" className="mb-0">
-           
+           <Form.Item label="Material" className="mb-14">
               <Form.List name="material">
                 {(fields, { add, remove }) => (
                
@@ -1446,41 +1460,17 @@ setSupplierTbLoading(false)
                         
                       </span>
                     ))}
-                    
                     <Form.Item className='absolute w-full -bottom-16'>
-                   
                       <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                         Add Material
                       </Button>
-                      
                     </Form.Item>
                     </div>
                 )}
-               
               </Form.List>
-            
-             
             </Form.Item>
           
-
-            <Form.Item
-              className="mb-2 w-full mt-14"
-              name="mobilenumber"
-              label="Mobile Number"
-              rules={[
-                { required: true, message: false },
-                { type: 'number', message: false }
-              ]}
-            >
-              <InputNumber
-                type="number"
-                className="w-full"
-                min={0}
-                placeholder="Enter the Mobile Number"
-              />
-            </Form.Item>
-
-            <Form.Item
+            {/* <Form.Item
               className="mb-2"
               name="gender"
               label="Gender"
@@ -1490,7 +1480,7 @@ setSupplierTbLoading(false)
                 <Radio value={'Male'}>Male</Radio>
                 <Radio value={'Female'}>Female</Radio>
               </Radio.Group>
-            </Form.Item>
+            </Form.Item> */}
           </Form>
         </Spin>
       </Modal>

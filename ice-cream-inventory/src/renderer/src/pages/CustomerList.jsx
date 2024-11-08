@@ -1443,7 +1443,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <TextArea rows={4} placeholder="Enter the Address" />
+              <TextArea rows={2} placeholder="Enter the Address" />
             </Form.Item>
           </Form>
         </Spin>
