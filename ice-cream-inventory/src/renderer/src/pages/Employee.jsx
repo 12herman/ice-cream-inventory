@@ -930,7 +930,7 @@ export default function Employee({ datas, employeeUpdateMt }) {
               label="Address"
               rules={[{ required: true, message: false }]}
             >
-              <Input placeholder="Enter the Address" />
+              <TextArea rows={2} placeholder="Enter the Address" />
             </Form.Item>
           </Form>
         </Spin>
