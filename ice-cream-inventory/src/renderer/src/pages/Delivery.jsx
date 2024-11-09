@@ -130,10 +130,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
             }
           }));
 
-      let sortedData = await latestFirstSort(filteredData);
-          console.log(sortedData);
-          
-      await setData(sortedData)
+      let sortedData = await latestFirstSort(filteredData);          
+      setData(sortedData)
       setTableLoading(false)
     }
     fetchData()
@@ -770,7 +768,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       // margin
       if (row.margin !== data.margin && TableEdiable.margin) {
         let mrp = data.numberofpacks * data.productprice
-        updatedTempproduct = await oldtemDatas.map((product) =>
+        updatedTempproduct = oldtemDatas.map((product) =>
           product.key === data.key
             ? {
                 ...product,
@@ -796,7 +794,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       }
       // piece price
       else if (row.productprice !== data.productprice && TableEdiable.pieceprice) {
-        updatedTempproduct = await oldtemDatas.map((product) => {
+        updatedTempproduct = oldtemDatas.map((product) => {
           let mrpNormal = data.numberofpacks * data.productprice
           let mrpData = row.productprice * data.numberofpacks
 
@@ -828,7 +826,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       }
       // packs
       else if (row.numberofpacks !== data.numberofpacks && TableEdiable.packs) {
-        updatedTempproduct = await oldtemDatas.map((product) => {
+        updatedTempproduct = oldtemDatas.map((product) => {
           let mrpData = row.numberofpacks * data.productprice
           let price = mrpData - mrpData * (data.margin / 100)
           if (product.key === data.key) {
@@ -857,7 +855,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       }
       // price
       else if (row.price !== data.price && TableEdiable.price) {
-        updatedTempproduct = await oldtemDatas.map((product) => {
+        updatedTempproduct = oldtemDatas.map((product) => {
           let mrpData = data.numberofpacks * data.productprice
           let price = row.price
           if (product.key === data.key) {
@@ -1047,7 +1045,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     form2.resetFields(['numberofpacks'])
     form5.resetFields(['marginvalue'])
     setMarginValue({ amount: 0, discount: 0, percentage: 0 })
-    const quantityOp = await Array.from(
+    const quantityOp = Array.from(
       new Set(
         datas.product.filter(
           (item) =>
@@ -1057,7 +1055,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         )
       )
     ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
-    await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
+    setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
   }, 300)
 
   // create add tem product
@@ -1224,7 +1222,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       const deliveryCollectionRef = collection(db, 'delivery')
       const deliveryDocRef = await addDoc(deliveryCollectionRef, newDelivery)
       const itemsCollectionRef = collection(deliveryDocRef, 'items')
-      await setOption((prev) => ({ ...prev, tempproduct: [] }))
+      setOption((prev) => ({ ...prev, tempproduct: [] }))
       // console.log(productItems)
       for (const item of productItems) {
         // console.log(item,productItems)
@@ -1270,8 +1268,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       form4.resetFields(['partialamount'])
       // await setIsDeliverySpiner(true)
       warningModalOk()
-      await setIsDeliverySpiner(false)
-      await setTableLoading(false)
+      setIsDeliverySpiner(false)
+      setTableLoading(false)
     }
     
   }
@@ -1399,9 +1397,9 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         });
         setTimeout(resolve, 300);
       })
-        const element = await printRef.current;
+        const element = printRef.current;
         const canvas = await html2canvas(element);
-        const data = await canvas.toDataURL('image/png');
+        const data = canvas.toDataURL('image/png');
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         pdf.addImage(data, 'PNG', 0, 0, imgWidth, imgHeight);
         let heightLeft = imgHeight - pageHeight;
@@ -1671,7 +1669,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   useEffect(() => {
     const getItems = async () => {
       if (deliveryBill.prdata.id !== '') {
-        await setDeliveryBill((pre) => ({ ...pre, loading: true }))
+        setDeliveryBill((pre) => ({ ...pre, loading: true }))
 
         const { items, status } = await fetchItemsForDelivery(deliveryBill.prdata.id)
         const { paymenthistory } = await fetchPayDetailsForDelivery(deliveryBill.prdata.id)
@@ -1701,7 +1699,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
           console.log(deliveryBill);
 
-          await setDeliveryBill((pre) => ({
+          setDeliveryBill((pre) => ({
             ...pre,
             data: {
               items: prItems,
@@ -1712,7 +1710,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           }))
         }
 
-        await setDeliveryBill((pre) => ({ ...pre, loading: false }))
+        setDeliveryBill((pre) => ({ ...pre, loading: false }))
       }
     }
     getItems()
@@ -2061,7 +2059,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       });
 
       prItems.sort((a, b) => a.sno - b.sno);
-      await setInvoiceDatas((pre) => ({
+      setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
         isGenerate: true,
@@ -2098,8 +2096,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         pdf.save(
           `${invoiceDatas.customerdetails.customername}-${invoiceDatas.customerdetails.date}-${TimestampJs().split(' ')[1]}.pdf`
         )
-        await setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
-        await setGstin(false);
+        setInvoiceDatas((pre) => ({ ...pre, isGenerate: false }));
+        setGstin(false);
       }
     }
     generatePDF()
@@ -2140,10 +2138,10 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
 
     console.log(lastOrderData.products);
     
-    let mrpValue = await lastOrderData.products
+    let mrpValue = lastOrderData.products
       .map((data, i) => data.numberofpacks * data.price)
       .reduce((a, b) => a + b, 0)
-    let netValue = await lastOrderData.products
+    let netValue = lastOrderData.products
       .map(
         (data, i) =>
           data.numberofpacks * data.price - (data.numberofpacks * data.price * data.margin) / 100
@@ -2231,12 +2229,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       console.log(e)
     } finally {
       // Ensure the delivery update finishes
-      await setTimeout(async () => {
+      setTimeout(async () => {
         let { delivery, status } = await getDeliveryById(deliveryBill.prdata.id)
         // console.log(delivery);
 
         if (status) {
-          await setDeliveryBill((pre) => ({
+          setDeliveryBill((pre) => ({
             ...pre,
             update: !deliveryBill.update,
             prdata: delivery,
@@ -2245,7 +2243,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         }
       }, 2000)
       // Wait for the reset of fields and modal closure
-      await quicksalepayForm.resetFields()
+      quicksalepayForm.resetFields()
       //  await setQuickSalePay((pre) => ({ ...pre, modal: false, loading: false }));
       await message.open({ type: 'success', content: `Payment pay successfully` })
       setPopupModal((pre) => ({ ...pre, quicksaleform: false }))
@@ -2281,12 +2279,12 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   // History buttton
   const historyBtnMt = async () => {
     //spiner
-    await setLoadingSpin((pre) => ({ ...pre, payhistory: true }))
+    setLoadingSpin((pre) => ({ ...pre, payhistory: true }))
     //modal
-    await setPopupModal((pre) => ({ ...pre, payhistory: true }))
+    setPopupModal((pre) => ({ ...pre, payhistory: true }))
     // get data
     const { paymenthistory } = await fetchPayDetailsForDelivery(deliveryBill.prdata.id);
-    let filterdata =await paymenthistory.filter(data => data.isdeleted === false)
+    let filterdata = paymenthistory.filter(data => data.isdeleted === false)
 console.log(filterdata);
 
     const sortedHistory = await oldestFirstSort(filterdata)
@@ -2321,7 +2319,7 @@ console.log(filterdata);
 
     // paid
     if (deliveryBill.prdata.paymentstatus === 'Paid') {
-      await setHistoryBtn((pre) => ({
+      setHistoryBtn((pre) => ({
         ...pre,
         data: [
           ...paydetails,
@@ -2335,7 +2333,7 @@ console.log(filterdata);
     }
     // unpaid
     else if (deliveryBill.prdata.paymentstatus === 'Unpaid') {
-      await setHistoryBtn((pre) => ({
+      setHistoryBtn((pre) => ({
         ...pre,
         data: [
           ...paydetails,
@@ -2356,10 +2354,10 @@ console.log(filterdata);
               label: 'Partial',
               children: ` ${deliveryBill.data.partialamount === 0 ? '' : formatToRupee(deliveryBill.data.partialamount)}`
             }
-      await setHistoryBtn((pre) => ({ ...pre, data: [...paydetails, isPartial] }))
+      setHistoryBtn((pre) => ({ ...pre, data: [...paydetails, isPartial] }))
     }
 
-    await setLoadingSpin((pre) => ({ ...pre, payhistory: false }))
+    setLoadingSpin((pre) => ({ ...pre, payhistory: false }))
   }
 
   const updateQuickSalePayMt = async () => {
@@ -3103,7 +3101,7 @@ console.log(filterdata);
                 title="Are you sure?"
                 onConfirm={async () => {
                   try {
-                    await setDeliveryBill((pre) => ({ ...pre, loading: true }))
+                    setDeliveryBill((pre) => ({ ...pre, loading: true }))
                     await updateDelivery(deliveryBill.data.id, { bookingstatus: 'Delivered' })
 
                     let { items, status } = await fetchItemsForDelivery(deliveryBill.data.id)
@@ -3124,12 +3122,12 @@ console.log(filterdata);
                   } catch (e) {
                     console.log(e)
                   } finally {
-                    await setTimeout(async () => {
+                    setTimeout(async () => {
                       let { delivery, status } = await getDeliveryById(deliveryBill.data.id)
                       // console.log(delivery);
 
                       if (status) {
-                        await setDeliveryBill((pre) => ({
+                        setDeliveryBill((pre) => ({
                           ...pre,
                           update: !deliveryBill.update,
                           prdata: delivery,
@@ -3154,19 +3152,19 @@ console.log(filterdata);
                 title="Are you sure?"
                 onConfirm={async () => {
                   try {
-                    await setDeliveryBill((pre) => ({ ...pre, loading: true }))
+                    setDeliveryBill((pre) => ({ ...pre, loading: true }))
                     await updateDelivery(deliveryBill.data.id, { bookingstatus: 'Cancelled' })
                     // await setDeliveryBill(pre=>({...pre,loading:false}));
                     await deliveryUpdateMt()
                   } catch (e) {
                     console.log(e)
                   } finally {
-                    await setTimeout(async () => {
+                    setTimeout(async () => {
                       let { delivery, status } = await getDeliveryById(deliveryBill.data.id)
                       // console.log(delivery);
 
                       if (status) {
-                        await setDeliveryBill((pre) => ({
+                        setDeliveryBill((pre) => ({
                           ...pre,
                           update: !deliveryBill.update,
                           prdata: delivery,

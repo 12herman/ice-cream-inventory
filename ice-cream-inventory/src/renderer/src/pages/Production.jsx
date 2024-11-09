@@ -553,7 +553,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
     //       .filter((item) => item.isdeleted === false && item.productname === value)
     //       .map((data) => data.flavour))).map((flavour) => ({ label: flavour, value: flavour }));
    
-          await setOption((pre) => ({
+          setOption((pre) => ({
       ...pre,
       flavourstatus: false,
       // flavour: flavourOp,
@@ -566,7 +566,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   const flavourOnchange = async (value, i) => {
     form2.resetFields(['quantity'])
     form2.resetFields(['numberofpacks'])
-    const quantityOp = await Array.from(
+    const quantityOp = Array.from(
       new Set(
         datas.product.filter(
           (item) =>
@@ -574,7 +574,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             item.flavour === value &&
             item.productname === option.productvalue
         ))).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
-    await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
+    setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
   }
 
   // create add tem product
@@ -633,7 +633,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   // add new production
   const addNewProduction = async () => {
   
-   await setIsAddProductModal(true)
+   setIsAddProductModal(true)
     try {
       for (const item of option.tempproduct) {
         let { key, quantity, ...newProduction } = item
@@ -679,7 +679,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       message.open({type:'error',content: `${e} An error occurred while adding new production`})
       console.error('An error occurred while adding new production:', e)
     } finally {
-     await setIsAddProductModal(false);
+     setIsAddProductModal(false);
     }
   }
 

@@ -14,9 +14,6 @@ import {
   DatePicker,
   Tag,
   Spin,
-  Card,
-  List,
-  Space,
   Popover,
   Empty,
   Tooltip
@@ -32,10 +29,10 @@ import { TiCancel } from 'react-icons/ti'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { MdOutlinePayments } from 'react-icons/md'
 import { TimestampJs } from '../js-files/time-stamp'
-import { addNewMaterialItem, getOneMaterialDetailsById, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById ,getAllMaterialDetailsFromAllSuppliers, updatePaydetailsChildSupplier } from '../firebase/data-tables/supplier'
-import { createStorage, updateStorage, deleteStorage } from '../firebase/data-tables/storage'
+import { addNewMaterialItem, getMaterialDetailsById, updateMaterialItsms, updateSupplier, getSupplierPayDetailsById ,getAllMaterialDetailsFromAllSuppliers, updatePaydetailsChildSupplier } from '../firebase/data-tables/supplier'
+import { createStorage, deleteStorage } from '../firebase/data-tables/storage'
 import jsonToExcel from '../js-files/json-to-excel'
-import { addDoc, collection, doc, getDocs } from 'firebase/firestore'
+import { addDoc, collection, doc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import dayjs from 'dayjs'
 import { formatToRupee } from '../js-files/formate-to-rupee'
@@ -48,7 +45,6 @@ import { latestFirstSort } from '../js-files/sort-time-date-sec';
 import { formatName } from '../js-files/letter-or-name';
 import { getRawmaterial } from '../firebase/data-tables/rawmaterial';
 import { truncateString } from '../js-files/letter-length-sorting';
-import { fetchPayDetailsForDelivery, updatePaydetailsChild } from '../firebase/data-tables/delivery';
 import './css/SupplierList.css'
 
 export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt }) {
@@ -83,7 +79,7 @@ export default function SupplierList({ datas, supplierUpdateMt, storageUpdateMt 
       return ({...data,item:materials.filter(data=> data.isdeleted === false)})
     }))
     setData(getAlldatas);
-    await setSupplierTbLoading(false)
+    setSupplierTbLoading(false)
    }
     fetchMaterialItems()
     
@@ -167,7 +163,7 @@ if(duplicateNames.length > 0){
     try {
       const supplierCollectionRef = collection(db, 'supplier')
       const supplierDocRef = await addDoc(supplierCollectionRef, supplierDatas)
-      const materialCollectionRef = await collection(supplierDocRef, 'materialdetails')
+      const materialCollectionRef = collection(supplierDocRef, 'materialdetails')
       for (const materialItem of correctMaterialName) {
         await addDoc(materialCollectionRef, {...materialItem,isdeleted:false,createddate:TimestampJs()});
         // const materialExists = datas.storage.find(
@@ -203,7 +199,7 @@ if(duplicateNames.length > 0){
      
       await supplierUpdateMt()
       await storageUpdateMt()
-      await form.resetFields()
+      form.resetFields()
       message.open({ type: 'success', content: 'Supplier Added Successfully' })
     } catch (e) {
       console.log(e)
@@ -558,7 +554,7 @@ const [supplierName,setSupplierName] = useState('');
     setEditBtnData(record);
     setEditSupplierModal(true)
     // Set the form fields with the correct values from the record
-    await form.setFieldsValue({
+    form.setFieldsValue({
       suppliername: record.suppliername,
       // gender: record.gender,
       location: record.location,
@@ -568,7 +564,7 @@ const [supplierName,setSupplierName] = useState('');
     });
   
     // Open the modal after setting the form values
-    await setIsModalOpen(true);
+    setIsModalOpen(true);
   };
   
   const updateSupllierMt = async()=>{
@@ -687,7 +683,7 @@ const [supplierName,setSupplierName] = useState('');
     setIsPayModelOpen(false)
     setIsCloseWarning(false)
     setAmountOnchangeValue('')
-    await setSupplierModalLoading(false)
+    setSupplierModalLoading(false)
     await message.open({content:'Updated successfully', type:'success'})
   }
  }catch(e){

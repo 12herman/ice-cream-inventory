@@ -308,7 +308,7 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
     
       const removeTemProduct = async (data) => {
-        const newTempProduct = await addMaterialMethod.temperorarydata.filter((item) => item.id !== data.id)
+        const newTempProduct = addMaterialMethod.temperorarydata.filter((item) => item.id !== data.id)
         setAddMaterialMethod(pre=>({...pre,temperorarydata:newTempProduct}))
 
         const newTotal = newTempProduct.reduce((total, item) => total + Number(item.price), 0);
@@ -428,16 +428,10 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
       render: (_, __, index) => index + 1,
       filteredValue: [searchText], 
       onFilter: (value, record) => {
-        // let addMaterialName = record.material !== undefined ? record.material.materialname : '-';
         let supplierName = record.supplier !== undefined ? record.supplier.suppliername : undefined
-        // let quantityWithUnit = record.material !== undefined ? record.quantity+ record.material.unit : undefined;
         return (
           String(record.date).toLowerCase().includes(value.toLowerCase()) ||
           String(supplierName).toLowerCase().includes(value.toLowerCase()) ||
-          // String(record.materialname).toLowerCase().includes(value.toLowerCase()) ||
-          // String(addMaterialName).toLowerCase().includes(value.toLowerCase()) ||
-          // String(quantityWithUnit).toLowerCase().includes(value.toLowerCase()) ||
-          // String(record.quantity).toLowerCase().includes(value.toLowerCase()) ||
           String(record.billamount === undefined ? '-' : record.billamount ).toLowerCase().includes(value.toLowerCase()) ||
           String(record.partialamount === undefined ? '-' : record.partialamount ).toLowerCase().includes(value.toLowerCase()) ||
           String(record.paymentmode === undefined ? '-' : record.paymentmode ).toLowerCase().includes(value.toLowerCase()) ||
@@ -774,7 +768,6 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
 
   // delete
   const deleteProduct = async (data) => {
-    //await deleteProjects(data.id);
     const { id, ...newData } = data
     await updateRawmaterial(id, { isdeleted: true, deletedby: 'admin', deleteddate: TimestampJs() })
     rawmaterialUpdateMt()
@@ -1298,8 +1291,8 @@ const addNewTemMaterial = async () => {
 
   // supplier onchange
   const supplierOnchange = debounce(async (value,i)=>{
-   await setAddMaterialMethod({temperorarydata:[], editingKeys:[]});
-   await setSelectedSupplierName(value);
+   setAddMaterialMethod({temperorarydata:[], editingKeys:[]});
+   setSelectedSupplierName(value);
   },300);
 
 
@@ -1317,7 +1310,7 @@ const addNewTemMaterial = async () => {
     }
    
     try{
-     await setIsLoadingModal(true);
+     setIsLoadingModal(true);
     // DB Ref
     const supplierDbRef = collection(db,'rawmaterial');
     // New Supplier
@@ -1365,13 +1358,13 @@ const addNewTemMaterial = async () => {
      });
      await Promise.all(materialPromises);
       await rawmaterialUpdateMt();
-      await setIsModalOpen(false);
+      setIsModalOpen(false);
       await storageUpdateMt();
       setRadioBtn({ status: true, value: '' })
       form.resetFields()
       setSelectedSupplierName(null)
       message.open({type:'success',content:"Material Added Successfully"})
-      await setIsLoadingModal(false);
+      setIsLoadingModal(false);
       
       /*
       // DB Ref
@@ -1400,7 +1393,7 @@ const addNewTemMaterial = async () => {
     catch(e){
       message.open({type:'error',content:`${e} Material Added Unsuccessfully`});
       console.log(e);
-      await setIsLoadingModal(false);
+      setIsLoadingModal(false);
       setIsModalOpen(false)
       setRadioBtn({ status: true, value: '' })
       form.resetFields()
@@ -1525,7 +1518,7 @@ const addNewTemMaterial = async () => {
           date:record.date
         },
       });
-      await setMaterialBillState(pre=>({...pre,loading:false}));
+      setMaterialBillState(pre=>({...pre,loading:false}));
     }
   };
   
@@ -2001,7 +1994,7 @@ const materialBillColumn = [
                     options={mtOption.material}
                     onChange={async (_,value)=> {
                       let {storage,status} = await getStorage();
-                      let material = status === 200 ? await storage.filter(data => (data.category === 'Material List') && (data.isdeleted === false) &&  (data.materialname === value.label)) : []
+                      let material = status === 200 ? storage.filter(data => (data.category === 'Material List') && (data.isdeleted === false) &&  (data.materialname === value.label)) : []
                       setProductCount(material.length > 0 ? material[0].quantity : 0);
 
                       setUnitOnchange(value.unit)

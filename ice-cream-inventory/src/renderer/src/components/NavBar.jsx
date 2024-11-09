@@ -203,9 +203,6 @@ export default function NavBar({
       .filter((item) => item.isdeleted === false)
       .map((item) => ({ label: item.customername, value: item.customername }))
     setIsQuickSale((pre) => ({ ...pre, proption: productData, customeroption: customersData }))
-
-    console.log(customersData);
-    
   }, [isQuickSale.dataloading])
 
   const[productCount,setProductCount] = useState(0);
@@ -229,7 +226,7 @@ export default function NavBar({
   };
 
   const flavourOnchange = async (value) => {
-    const quantityData = await Array.from(
+    const quantityData = Array.from(
       new Set(
         datas.product.filter(
           (item) =>
@@ -399,7 +396,7 @@ export default function NavBar({
     } else {
       setIsSpinners(true)
       // setIsQuickSale(pre => ({...pre}))
-      const productItems = await isQuickSale.temdata.map((data, index) => ({
+      const productItems = isQuickSale.temdata.map((data, index) => ({
         id: data.id,
         numberofpacks: data.numberofpacks,
         margin: data.margin,
@@ -410,7 +407,7 @@ export default function NavBar({
       
       if (isQuickSale.type === 'quick') {
        
-        await productItems.map(async (data) => {
+        productItems.map(async (data) => {
           const existingProduct = datas.storage.find(
             (storageItem) =>
               storageItem.productid === data.id && storageItem.category === 'Product List'
@@ -490,7 +487,7 @@ export default function NavBar({
           type: 'quick'
         }))
         quickSaleForm.resetFields()
-       await setIsSpinners(false)
+        setIsSpinners(false)
       } catch (error) {
         console.log(error)
         setIsSpinners(false)
@@ -764,7 +761,7 @@ export default function NavBar({
       }
       else if( qucikSaleTableEdiable.margin)
       {
-          updatedTempproduct = await tempdata.map((item) => {
+          updatedTempproduct = tempdata.map((item) => {
           if (item.key === data.key) {
             let mrpData = data.productprice * data.numberofpacks
             let price = mrpData - mrpData * (row.margin / 100)
@@ -793,7 +790,7 @@ export default function NavBar({
       }
       else if( qucikSaleTableEdiable.packs)
       {
-        updatedTempproduct = await tempdata.map((item) => {
+        updatedTempproduct = tempdata.map((item) => {
           if (item.key === data.key) {
             let mrpData = data.productprice * row.numberofpacks
             let price = mrpData - mrpData * (data.margin / 100)
@@ -817,7 +814,7 @@ export default function NavBar({
       }
       else if (qucikSaleTableEdiable.price)
       {
-        updatedTempproduct = await tempdata.map((item) => {
+        updatedTempproduct = tempdata.map((item) => {
           if (item.key === data.key) {
             let mrpData = data.productprice * data.numberofpacks
             let price = row.price
@@ -842,7 +839,7 @@ export default function NavBar({
       }
       else if (qucikSaleTableEdiable.pieceprice)
       {
-        updatedTempproduct = await tempdata.map((item) => {
+        updatedTempproduct = tempdata.map((item) => {
           if (item.key === data.key) {
             let mrpNormal = data.productprice * data.numberofpacks
             let mrpData = row.productprice * data.numberofpacks
@@ -1067,7 +1064,7 @@ export default function NavBar({
         <span>Spending</span>
       </Button>
       <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-normal">
-        Version : 1.0
+        Version : 1.5
       </span>
       {/* quick sale */}
       <Modal

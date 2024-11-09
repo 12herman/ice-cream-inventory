@@ -131,10 +131,10 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
       storageUpdateMt()
     }
     form.resetFields()
-   await productUpdateMt()
-    await setIsProductLoading(false)
-     await setIsModalOpen(false)
-     await setProductOnchangeValue('')
+    await productUpdateMt()
+    setIsProductLoading(false)
+     setIsModalOpen(false)
+     setProductOnchangeValue('')
      message.open({content:'Product Created Successfully',type:'success'})
  }
     } catch (e) {
@@ -523,10 +523,10 @@ export default function Product({ datas, productUpdateMt, storageUpdateMt }) {
   ]
   const menu = <Menu items={items} />
   const exportPdf = async () => {
-    const exportDatas = await data.filter((item) => selectedRowKeys.includes(item.key))
-    await setPdf((pre) => ({ ...pre, data: exportDatas, isGenerate: true }))
+    const exportDatas = data.filter((item) => selectedRowKeys.includes(item.key))
+    setPdf((pre) => ({ ...pre, data: exportDatas, isGenerate: true }))
     await generatPDF(pdfRef, pdf.name)
-    await setSelectedRowKeys([])
+    setSelectedRowKeys([])
   }
 
   // useEffect( ()=>{

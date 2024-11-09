@@ -1074,10 +1074,10 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               // className={`${editingKeys.length !== 0 || selectedRowKeys.length !== 0 ? 'cursor-not-allowed' : 'cursor-pointer'} `}
               title="Sure to delete?"
               onConfirm={async () => {
-                await setFreezerBox(pre =>({...pre,spinner:true}));
+                setFreezerBox(pre =>({...pre,spinner:true}));
                 await updateFreezerbox(record.id,{isdeleted:true,updateddate:TimestampJs()});
                 await message.open({type:'success',content:'Deleted successfully'});
-                await setFreezerBox(pre =>({...pre,spinner:false,update:!freezerBox.modal}));
+                setFreezerBox(pre =>({...pre,spinner:false,update:!freezerBox.modal}));
                 await freezerboxUpdateMt();
                 }}>
               <AiOutlineDelete
@@ -1136,10 +1136,10 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       if (check) {
         return message.open({ type: 'info', content: 'No changes found' });
       } else {
-        await setFreezerBox((pre) => ({ ...pre, spinner: true }));
+        setFreezerBox((pre) => ({ ...pre, spinner: true }));
         await updateFreezerbox(freezerBox.editid, updateData);
         await message.open({ type: 'success', content: 'Updated successfully' });
-        await setFreezerBox((pre) => ({
+        setFreezerBox((pre) => ({
           ...pre,
           frommodal: false,
           editclick: false,

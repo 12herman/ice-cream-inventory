@@ -708,7 +708,7 @@ export default function Home({ datas }) {
     if (record.customerid) {
       const { items, status } = await fetchItemsForDelivery(record.id)
       if (status === 200) {
-        itemsWithProductNames = await items.map((item) => {
+        itemsWithProductNames = items.map((item) => {
           const product = datas.product.find((product) => product.id === item.id && product.isdeleted === false);
           return {
             ...item,
@@ -979,7 +979,7 @@ export default function Home({ datas }) {
         }))
       })
       prItems.sort((a, b) => a.sno - b.sno)
-      await setInvoiceDatas((pre) => ({
+      setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
         isGenerate: true,
@@ -1068,7 +1068,7 @@ export default function Home({ datas }) {
       })
 
       prItems.sort((a, b) => a.sno - b.sno)
-      await setInvoiceDatas((pre) => ({
+      setInvoiceDatas((pre) => ({
         ...pre,
         data: prItems,
         isGenerate: false,
@@ -1119,7 +1119,7 @@ export default function Home({ datas }) {
     }))
 
     // console.log(items);
-    await setInvoiceDatas((pre) => ({
+    setInvoiceDatas((pre) => ({
       ...pre,
       data: items,
       isGenerate: false,
@@ -1139,9 +1139,9 @@ export default function Home({ datas }) {
 
   const handleQuotationDownload = async () => {
     try{
-      await setGstBillPdf(true)
+      setGstBillPdf(true)
 
-      await setHasPdf(true)
+      setHasPdf(true)
 
     // data
     let { date } = quotationft.tempproduct[0];
@@ -1175,7 +1175,7 @@ export default function Home({ datas }) {
       price: data.price
     }));
 
-    await setInvoiceDatas((pre) => ({
+    setInvoiceDatas((pre) => ({
       ...pre,
       data: items,
       isGenerate: true,
@@ -1306,7 +1306,7 @@ export default function Home({ datas }) {
         )
 
         // Reset the state after generating the PDF
-        await setInvoiceDatas((prev) => ({ ...prev, isGenerate: false }))
+        setInvoiceDatas((prev) => ({ ...prev, isGenerate: false }))
       }
     }
 
@@ -1555,10 +1555,10 @@ export default function Home({ datas }) {
                       className="text-[0.7rem]"
                       type="primary"
                       onClick={async () => {
-                        await setGstBillPdf(false)
-                        await setGstBill(true)
-                        await setHasPdf(false)
-                        await setIsPrinting(true)
+                        setGstBillPdf(false)
+                        setGstBill(true)
+                        setHasPdf(false)
+                        setIsPrinting(true)
                         setLoadingGstin(true)
                         setGstin(true)
                         await handlePrint(record).then(() => {
@@ -1578,10 +1578,10 @@ export default function Home({ datas }) {
                       className="text-[0.7rem]"
                       type="dashed"
                       onClick={async () => {
-                        await setGstBillPdf(false)
-                        await setGstBill(false)
-                        await setHasPdf(false)
-                        await setIsPrinting(true)
+                        setGstBillPdf(false)
+                        setGstBill(false)
+                        setHasPdf(false)
+                        setIsPrinting(true)
                         setLoadingWithoutGstin(true)
                         setGstin(false)
                         await handlePrint(record).then(() => {
@@ -1732,14 +1732,14 @@ export default function Home({ datas }) {
     form.resetFields(['flavour'])
     form.resetFields(['quantity'])
     // form.resetFields(['numberofpacks'])
-    const flavourOp = await Array.from(
+    const flavourOp = Array.from(
       new Set(
         datas.product
           .filter((item) => item.isdeleted === false && item.productname === value)
           .map((data) => data.flavour)
       )
     ).map((flavour) => ({ label: flavour, value: flavour }))
-    await setOption((pre) => ({
+    setOption((pre) => ({
       ...pre,
       flavourstatus: false,
       flavour: flavourOp,
@@ -1752,7 +1752,7 @@ export default function Home({ datas }) {
   const flavourOnchange = async (value, i) => {
     form.resetFields(['quantity'])
     form.resetFields(['numberofpacks'])
-    const quantityOp = await Array.from(
+    const quantityOp = Array.from(
       new Set(
         datas.product.filter(
           (item) =>
@@ -1762,7 +1762,7 @@ export default function Home({ datas }) {
         )
       )
     ).map((q) => ({ label: q.quantity + ' ' + q.unit, value: q.quantity + ' ' + q.unit }))
-    await setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
+    setOption((pre) => ({ ...pre, quantitystatus: false, quantity: quantityOp }))
   }
 
   // (Add to List) btn
@@ -3169,9 +3169,9 @@ Authorised Signature
                     </Button>
                   )}
                   onBeforeGetContent={async () => {
-                    await setGstBillPdf(false)
+                    setGstBillPdf(false)
 
-                    await setHasPdf(false)
+                    setHasPdf(false)
 
                     return new Promise((resolve) => {
                       promiseResolveRef.current = resolve
