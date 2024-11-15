@@ -58,53 +58,32 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
   const [usedMaterialModal, setUsedMaterialModal] = useState(false)
   const [isMaterialTbLoading, setIsMaterialTbLoading] = useState(true)
   const [totalFormAmount, setTotalFormAmount] = useState(0)
-
   const [isLoadMaterialUsedModal, setIsLoadMaterialUsedModal] = useState(false)
+  const [offset, setOffset] = useState(0);
+  const chunkSize = 25;
+
   // side effect
   useEffect(() => {
     const fetchData = async () => {
       setIsMaterialTbLoading(true);
-      let rawTableDtas = await Promise.all(datas.rawmaterials.map(async data => 
+      let rawTableDtas = await Promise.all(datas.rawmaterials.slice(offset, offset + chunkSize).map(async data => 
                   ({...data,
                    ...(data.supplierid ? await getSupplierById(data.supplierid) :  '-'),
                    ...(data.supplierid && data.materialid ? await getOneMaterialDetailsById(data.supplierid,data.materialid): '-') 
                   })));
 
-      // const filteredMaterials = await Promise.all(
-      //   datas.rawmaterials
-      //     .filter((data) => !data.isdeleted && isWithinRange(data.date))
-      //     .map(async (item, index) => {
-      //       let suppliername = '-'
-      //       let materialname = item.materialname || '-'
-      //       let materiallist = '-'
-            
-      //       if (item.type === 'Added') {
-      //         const result = await getSupplierById(item.supplierid)
-      //         console.log(result.supplier.materialid);
-      //         suppliername = result.supplier.suppliername
-      //         materialname = result.supplier.materialname
-      //         materiallist = await getMaterialDetailsById(result.supplier.materialname)
-      //       }
-      //       return {
-      //         ...item,
-      //         sno: index + 1,
-      //         key: item.id || index,
-      //         suppliername: suppliername,
-      //         materialname: materialname,
-      //         materiallist:materiallist
-      //       }
-      //     })
-      // );
-
       const filteredMaterials = await Promise.all(rawTableDtas.filter((data) => !data.isdeleted && isWithinRange(data.date)).map((item,index) => ({ ...item, key:item.id || index,}) ));
-      
-      const sortLatest = await latestFirstSort(filteredMaterials)
 
-      setData(sortLatest);
+      setData((prevData) =>  (offset === 0 ? filteredMaterials : [...prevData, ...filteredMaterials]));
       setIsMaterialTbLoading(false);
     }
     fetchData();
-  }, [datas.rawmaterials, dateRange]);
+  }, [datas.rawmaterials, dateRange, offset]);
+
+  useEffect(() => {
+    setOffset(0);
+    setData([]);
+  }, [datas.rawmaterials,dateRange]);
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -159,8 +138,15 @@ export default function RawMaterial({ datas, rawmaterialUpdateMt, storageUpdateM
     }
   }
 
-  const [isLoadingModal, setIsLoadingModal] = useState(false)
+  const handleTableScroll = debounce((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
 
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setOffset((prevOffset) => prevOffset + chunkSize);
+    }
+  }, 200);
+
+  const [isLoadingModal, setIsLoadingModal] = useState(false)
 
   const addNewMaterialTempColoumn = [
     {
@@ -1652,6 +1638,7 @@ const materialBillColumn = [
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
+              onScroll={handleTableScroll}
             />
           </Form>
         </li>

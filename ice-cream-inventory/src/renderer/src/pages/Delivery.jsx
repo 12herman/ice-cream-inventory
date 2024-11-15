@@ -79,7 +79,8 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
   const [tableLoading, setTableLoading] = useState(true)
   const partialAmountRef = useRef(null)
   const GstBillRef = useRef()
-
+  const [offset, setOffset] = useState(0);
+  const chunkSize = 25;
   const [deliveryBill, setDeliveryBill] = useState({
     model: false,
     loading: false,
@@ -99,14 +100,13 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
     boxnumber:''
   })
 
-  // console.log(deliveryBill);
-
   useEffect(() => {
     const fetchData = async () => {
       setTableLoading(true)
       const filteredData = await Promise.all(
         datas.delivery
           .filter((data) => !data.isdeleted && isWithinRange(data.date))
+          .slice(offset, offset + chunkSize)
           .map(async (item, index) => {
 
             const result = await getCustomerById(item.customerid);
@@ -129,13 +129,17 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
               boxnumber:boxnumber
             }
           }));
-
-      let sortedData = await latestFirstSort(filteredData);          
-      setData(sortedData)
-      setTableLoading(false)
+        
+      setData((prevData) => (offset === 0 ? filteredData : [...prevData, ...filteredData]));
+      setTableLoading(false);
     }
     fetchData()
-  }, [datas, dateRange])
+  }, [datas.delivery, dateRange, offset])
+
+  useEffect(() => {
+    setOffset(0);
+    setData([]);
+  }, [datas.delivery,dateRange]);
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -159,6 +163,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
       setSearchText('')
     }
   }
+
+  const handleTableScroll = debounce((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setOffset((prevOffset) => prevOffset + chunkSize);
+    }
+  }, 200);
 
   const columns = [
     {
@@ -2665,6 +2677,7 @@ console.log(filterdata);
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
+              onScroll={handleTableScroll}
             />
           </Form>
         </li>

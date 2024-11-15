@@ -29,7 +29,7 @@ import { getProductById } from '../firebase/data-tables/products'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { latestFirstSort } from '../js-files/sort-time-date-sec'
 import { MdOutlineModeEditOutline } from 'react-icons/md'
-import { debounce } from 'lodash'
+import { chunk, debounce } from 'lodash'
 export default function Production({ datas, productionUpdateMt, storageUpdateMt }) {
   const [form] = Form.useForm()
   const [form2] = Form.useForm()
@@ -39,6 +39,8 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
   const [data, setData] = useState([])
   const [dateRange, setDateRange] = useState([null, null])
   const [isProductionTbLoading, setIsProductionTbLoading] = useState(true)
+  const [offset, setOffset] = useState(0);
+  const chunkSize = 25;
 
   // side effect
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       const filteredProductions = await Promise.all(
         datas.productions
           .filter((data) => !data.isdeleted && isWithinRange(data.date))
+          .slice(offset, offset + chunkSize)
           .map(async (item, index) => {
             const result = await getProductById(item.productid)
             const productname = result.status === 200 ? result.product.productname : 'a'
@@ -54,7 +57,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             const quantity = result.status === 200 ? result.product.quantity : 'a'
             return {
               ...item,
-              sno: index + 1,
+              sno: offset + index + 1,
               key: item.id || index,
               productname: productname,
               flavour: flavour,
@@ -62,12 +65,16 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
             }
           })
       )
-      const sortLatest = await latestFirstSort(filteredProductions)
-      setData(sortLatest)
+      setData((prevData) => (offset === 0 ? filteredProductions : [...prevData, ...filteredProductions]))
       setIsProductionTbLoading(false)
     }
     fetchData()
-  }, [datas.productions, dateRange])
+  }, [datas.productions, dateRange,offset])
+
+  useEffect(() => {
+    setOffset(0);
+    setData([]);
+  }, [datas.productions,dateRange]);
 
   const isWithinRange = (date) => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
@@ -91,6 +98,14 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       setSearchText('')
     }
   }
+
+  const handleTableScroll = debounce((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setOffset((prevOffset) => prevOffset + chunkSize);
+    }
+  }, 200);
 
   const columns = [
     {
@@ -619,7 +634,6 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
       return
     } else {
       setOption((pre) => ({ ...pre, tempproduct: [...pre.tempproduct, newProduct] }))
-      productionUpdateMt()
     }
   }
 
@@ -820,6 +834,7 @@ export default function Production({ datas, productionUpdateMt, storageUpdateMt 
               rowClassName="editable-row"
               scroll={{ x: 900, y: tableHeight }}
               rowSelection={rowSelection}
+              onScroll={handleTableScroll}
             />
           </Form>
         </li>

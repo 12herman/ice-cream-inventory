@@ -25,6 +25,7 @@ import { getSpending } from './firebase/data-tables/spending'
 import dayjs from 'dayjs'
 import { getBalanceSheet } from './firebase/data-tables/balancesheet'
 import { getFreezerbox } from './firebase/data-tables/freezerbox'
+import { latestFirstSort } from './js-files/sort-time-date-sec'
 
 const App = () => {
   const [navPages, setNavPages] = useState({
@@ -79,8 +80,8 @@ const App = () => {
     balancesheetstatus: false,
     spending: [],
     spendingupdatestatus: false,
-    freezerbox:[],
-    freezerboxstatus:false
+    freezerbox: [],
+    freezerboxstatus: false
   })
 
   const productUpdateMt = () =>
@@ -123,7 +124,9 @@ const App = () => {
     const fetchData = async () => {
       const { supplier, status } = await getSupplier()
       if (status) {
-        let supplierWithItems = await Promise.all(supplier.map(async data=>({...data,...(await getMaterialDetailsById(data.id))})));
+        let supplierWithItems = await Promise.all(
+          supplier.map(async (data) => ({ ...data, ...(await getMaterialDetailsById(data.id)) }))
+        )
         setDatas((pre) => ({ ...pre, suppliers: supplierWithItems }))
       }
     }
@@ -146,18 +149,32 @@ const App = () => {
     const fetchData = async () => {
       const { status, rawmaterial } = await getRawmaterial()
       if (status) {
-        setDatas((pre) => ({ ...pre, rawmaterials: rawmaterial }))
+        const sortedRawmaterial = await latestFirstSort(rawmaterial)
+        setDatas((pre) => ({ ...pre, rawmaterials: sortedRawmaterial }))
       }
     }
     fetchData()
   }, [datas.rawmaterialupdatestaus])
+
+  // get table datas 'production list'
+  useEffect(() => {
+    const fetchData = async () => {
+      const { status, production } = await getProduction()
+      if (status) {
+        const sortedProduction = await latestFirstSort(production)
+        setDatas((pre) => ({ ...pre, productions: sortedProduction }))
+      }
+    }
+    fetchData()
+  }, [datas.productionupdatestaus])
 
   // get table datas 'delivery list'
   useEffect(() => {
     const fetchData = async () => {
       const { status, delivery } = await getDelivery()
       if (status) {
-        setDatas((pre) => ({ ...pre, delivery: delivery })) 
+        const sortedDelivery = await latestFirstSort(delivery)
+        setDatas((pre) => ({ ...pre, delivery: sortedDelivery }))
       }
     }
     fetchData()
@@ -173,17 +190,6 @@ const App = () => {
     }
     fetchData()
   }, [datas.employeeupdatestaus])
-
-  // get table datas 'production list'
-  useEffect(() => {
-    const fetchData = async () => {
-      const { status, production } = await getProduction()
-      if (status) {
-        setDatas((pre) => ({ ...pre, productions: production }))
-      }
-    }
-    fetchData()
-  }, [datas.productionupdatestaus])
 
   // get table datas 'storage list'
   useEffect(() => {
@@ -216,7 +222,7 @@ const App = () => {
       }
     }
     fetchData()
-  }, [datas.freezerboxstatus]);
+  }, [datas.freezerboxstatus])
 
   // get table datas 'Spending'
   useEffect(() => {
@@ -234,8 +240,8 @@ const App = () => {
   useEffect(() => {
     const storageAlert = async () => {
       const closeAllNotifications = () => {
-        notification.destroy();
-      };
+        notification.destroy()
+      }
       for (const record of datas.storage) {
         if (record.category === 'Product List') {
           try {
@@ -245,7 +251,12 @@ const App = () => {
                 message: 'Alert',
                 duration: 0,
                 btn: (
-                  <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+                  <Button
+                    style={{ color: '#f26723' }}
+                    type="link"
+                    size="small"
+                    onClick={closeAllNotifications}
+                  >
                     Close All
                   </Button>
                 ),
@@ -261,7 +272,12 @@ const App = () => {
               message: 'Alert',
               duration: 0,
               btn: (
-                <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+                <Button
+                  style={{ color: '#f26723' }}
+                  type="link"
+                  size="small"
+                  onClick={closeAllNotifications}
+                >
                   Close All
                 </Button>
               ),
@@ -279,21 +295,30 @@ const App = () => {
     const tomorrow = dayjs().add(1, 'day').format('DD/MM/YYYY')
     const dayAfterTomorrow = dayjs().add(2, 'day').format('DD/MM/YYYY')
     const closeAllNotifications = () => {
-      notification.destroy();
-    };
+      notification.destroy()
+    }
     datas.delivery.forEach((record) => {
       if (record.type === 'booking' && !record.isdeleted && !record.bookingstatus) {
-        if (record.deliverydate === today || record.deliverydate === tomorrow || record.deliverydate === dayAfterTomorrow) {
+        if (
+          record.deliverydate === today ||
+          record.deliverydate === tomorrow ||
+          record.deliverydate === dayAfterTomorrow
+        ) {
           notification.info({
             message: 'Alert',
             icon: <FaBoxesPacking style={{ color: '#f26723' }} />,
             duration: 0,
             description: `${record.customername} have a booking on ${record.deliverydate} ${record.time}!`,
             btn: (
-              <Button style={{color: '#f26723'}} type="link" size="small" onClick={closeAllNotifications}>
+              <Button
+                style={{ color: '#f26723' }}
+                type="link"
+                size="small"
+                onClick={closeAllNotifications}
+              >
                 Close All
               </Button>
-            ),
+            )
           })
         }
       }

@@ -1,7 +1,7 @@
 // src/components/NavBar.js
 import React, { useEffect, useState, useRef } from 'react'
-// import IceCreamLogo from '../assets/img/logo.jpg'
-import IceCreamLogo from '../assets/img/hiddenlogo.jpg'
+import IceCreamLogo from '../assets/img/logo.jpg'
+// import IceCreamLogo from '../assets/img/hiddenlogo.jpg'
 import { LiaHandHoldingUsdSolid } from 'react-icons/lia'
 import { TbIceCream } from 'react-icons/tb'
 import { Row, Col, Badge } from 'antd';
