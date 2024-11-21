@@ -1064,7 +1064,7 @@ export default function NavBar({
         <span>Spending</span>
       </Button>
       <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-normal">
-        Version : 1.5
+        Version : 1.6
       </span>
       {/* quick sale */}
       <Modal

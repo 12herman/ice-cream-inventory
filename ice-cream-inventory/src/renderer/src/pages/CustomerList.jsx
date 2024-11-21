@@ -1013,7 +1013,24 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
         );
   
         // Update state with processed data
-        setFreezerBox(pre => ({ ...pre, tabledata: processTabledata }));
+        setFreezerBox(pre => ({ ...pre, tabledata: processTabledata.sort((a, b) => {
+          const extractParts = (str) => {
+            const regex = /^(\d+)?(.*)$/; // Extract numeric part (if any) and remaining text
+            const [, numPart, textPart] = str.match(regex) || [null, '', ''];
+            return [parseInt(numPart || 0, 10), textPart.trim()];
+          };
+      
+          const [numA, textA] = extractParts(a.boxnumber);
+          const [numB, textB] = extractParts(b.boxnumber);
+      
+          // Compare numeric parts
+          const numComparison = numA - numB;
+          if (numComparison !== 0) return numComparison;
+      
+          // Compare text parts lexicographically
+          return textA.localeCompare(textB, undefined, { sensitivity: 'base' });
+        }),
+         }));
       } catch (e) {
         console.error('Error loading freezer box data:', e);
       } finally {
@@ -1389,7 +1406,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               className="mb-2"
               name="vehicleorfreezerno"
               label="Vehicle Number "
-              rules={[{ required: transportOnchange === 'Company' ? true :false, message: false }]}
+              rules={[{ required: false, message: false }]}
             >
               <Input
                 className="w-full"
@@ -1403,7 +1420,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               className="mb-2"
               name="boxnumbers"
               label="Freezer Number"
-              rules={[{ required: transportOnchange === 'Freezer Box' ? true : false, message: false }]}
+              rules={[{ required: false, message: false }]}
             >
               <Select
               mode="multiple"

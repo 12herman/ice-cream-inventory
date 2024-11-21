@@ -26,6 +26,7 @@ import { addDoc, collection, doc, getDocs, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import companyLogo from '../assets/img/companylogo.png'
 import dayjs from 'dayjs'
+import './css/BalanceSheet.css'
 const { Search } = Input
 
 export default function BalanceSheet({ datas }) {
@@ -280,7 +281,7 @@ export default function BalanceSheet({ datas }) {
           setIsPayDisabled(isOpenOrClose.description === 'Close')
           setIsModalVisible(false)
           payForm.setFieldsValue({
-            description: isOpenOrClose.description === 'Open' ? 'Pay' : 'Open'
+            description: isOpenOrClose.description === 'Open' ? 'Close' : 'Open'
           })
         } else {
           setIsOpenDisabled(false)
@@ -327,6 +328,7 @@ export default function BalanceSheet({ datas }) {
       payForm.resetFields()
       fetchCustomerData(customerPayId)
       setCustomerPayId(null)
+      setActiveCard(null)
       setIsModalVisible(false)
     }
   }
@@ -348,7 +350,6 @@ export default function BalanceSheet({ datas }) {
     setSelectedCustomer(record.id)
     setCurrentEntryIndex(0)
     if(record.transport === "Freezer Box"){
-      setIsFreezerBoxCustomer(true)
       const result = await getFreezerboxByCustomerId(record.id)
       if (result.status === 200) {
         const options = result.boxIds.map(box => ({
@@ -356,8 +357,10 @@ export default function BalanceSheet({ datas }) {
             label: box.boxnumber
         }));
         setFreezerBoxOptions(options);
+        setIsFreezerBoxCustomer(true);
     } else {
         setFreezerBoxOptions([]);
+        setIsFreezerBoxCustomer(false);
         console.error(result.message);
     }
     }else {
@@ -370,7 +373,7 @@ export default function BalanceSheet({ datas }) {
     console.log(selectedCustomer , value)
     setSelectedBoxId(value);
     if(!value){
-      await fetchCustomerData(selectedCustomer);
+      await fetchCustomerDataByBoxID(selectedCustomer,'');
     }else{
     await fetchCustomerDataByBoxID(selectedCustomer,value);
     }
@@ -416,49 +419,29 @@ export default function BalanceSheet({ datas }) {
         if (opencloseEntries.length > 3 && opencloseEntries[opencloseEntries.length - 1].description === 'Close') {
           totalPairs = totalPairs - 1;
         }
-        setCurrentEntryIndex(totalPairs)
+        // setCurrentEntryIndex(totalPairs)
         setTotalBookIndex(totalPairs)
 
-        if (opencloseEntries.length > 0) {
-          if (opencloseEntries[opencloseEntries.length - 1].description === 'Open') {
-            if (opencloseEntries.length > 1) {
-              setPrevBookExists(true)
-              setNextBookExists(false)
-            } else {
-              setPrevBookExists(false)
-              setNextBookExists(false)
-            }
-          } else {
-            if (opencloseEntries.length > 2) {
-              setPrevBookExists(true)
-              setNextBookExists(false)
-            } else {
-              setPrevBookExists(false)
-              setNextBookExists(false)
-            }
-          }
-        } else {
-          setPrevBookExists(false)
-          setNextBookExists(false)
-        }
+        setPrevBookExists(currentEntryIndex > 0);
+        setNextBookExists(currentEntryIndex < totalPairs);
 
         const openEntry =
           payDetails
             .filter((payDetail) => payDetail.description === 'Open')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
-            )[0] || null
+            )[currentEntryIndex] || null
 
         const closeEntry =
           payDetails
             .filter((payDetail) => payDetail.description === 'Close')
             .sort((a, b) =>
-              dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
-                dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss')
+              dayjs(a.createddate, 'DD/MM/YYYY HH:mm:ss').diff(
+                dayjs(b.createddate, 'DD/MM/YYYY HH:mm:ss')
               )
-            )[0] || null
+            )[currentEntryIndex] || null
 
         let filteredPayDetails = []
 
@@ -516,7 +499,11 @@ export default function BalanceSheet({ datas }) {
         setPayDetailsList(filteredPayDetails)
 
         const deliveries = await Promise.all(deliveryData.filter(
-          (delivery) => delivery.customerid === customerId && !delivery.isdeleted && delivery.boxid === boxid
+          (delivery) => {
+            const matchesCustomer = delivery.customerid === customerId;
+            const matchesBox = boxid ? delivery.boxid === boxid : true;
+            return matchesCustomer && !delivery.isdeleted && matchesBox;
+          }
         ).map(async (delivery) => {
           const {freezerbox, status} = await getFreezerboxById(delivery.boxid);
           return {
@@ -1077,12 +1064,18 @@ export default function BalanceSheet({ datas }) {
           <div className="flex gap-x-2">
 
           <Select
+          className="box-select"
           showSearch
           allowClear
           disabled={!isFreezerBoxCustomer}
-    placeholder = "Select Box"
+    placeholder = {<span
+      style={{
+        color: isFreezerBoxCustomer ? '#f26723' : '',
+      }}
+    >Select Box</span>}
     style={{
       width: 120,
+      color: '#f26723',
     }}
     value={selectedBoxId}
     onChange={handleBoxChange}
