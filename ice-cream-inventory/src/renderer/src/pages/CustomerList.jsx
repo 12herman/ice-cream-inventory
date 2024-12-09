@@ -954,9 +954,9 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
   // create freezer box
   const CreateNewFreezerBox = async()=>{
   try{
-    let checkExsistingBox = datas.freezerbox.some(box => box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
+    let checkExsistingBox = datas.freezerbox.some(box => box.isdeleted === false && box.boxnumber.trim() === freezerform.getFieldsValue().boxnumber.trim());
   if(checkExsistingBox){
-  return message.open({type:'warning',content:'The box name is already exsist'});
+  return message.open({type:'warning',content:'The box name is already exists'});
   }
   else{
     setFreezerBox(pre=>({...pre,spinner:true}))
@@ -972,8 +972,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
     setFreezerBox(pre=>({...pre,spinner:false})) 
   }
   }catch(e){
-    console.log(e);
-    message.open({type:'error',content:`${e} create freezerbox successfully`});
+    message.open({type:'error',content:`${e} create freezerbox failed`});
   }
 };
 
@@ -1147,7 +1146,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
       console.log(updateData);
   
       let check = datas.freezerbox.some(
-        (name) => name.boxnumber.trim() === boxnumber.trim() && customerid === freezerBox.customername
+        (name) => name.isdeleted === false && name.boxnumber.trim() === boxnumber.trim() && customerid === freezerBox.customername
       );
   
       if (check) {
@@ -1425,11 +1424,13 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
               <Select
               mode="multiple"
               allowClear
+              showSearch
               className="w-full"
               // disabled={isVehicleNoDisabled}
               disabled={transportOnchange === 'Freezer Box' ? false : true}
               placeholder="Select the Box Number"
               options={datas.freezerbox.filter(f => f.isdeleted === false && (f.customerid === '' || f.customerid === undefined)).map(box=>({label:box.boxnumber,value:box.id}))}
+              filterOption={(input,option) => option?.label?.toLowerCase().includes(input.toLowerCase())}
               />
             </Form.Item>
 
@@ -1663,6 +1664,7 @@ export default function CustomerList({ datas, customerUpdateMt, freezerboxUpdate
             width: '100%',
           }}
           options={datas.customers.filter(cs => cs.isdeleted === false && cs.transport === "Freezer Box").map(item => ({label:item.customername,value:item.id}))}
+          filterOption={(input, option) => option?.label.toLowerCase().includes(input.toLowerCase())}
         />
               </Form.Item> : ''
             }

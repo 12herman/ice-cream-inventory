@@ -1325,8 +1325,8 @@ export default function Home({ datas }) {
         const dateA = dayjs(a.date, format)
         const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
-      }
-      // defaultSortOrder: 'descend'
+      },
+      defaultSortOrder: activeCard === 'totalBooking' ? 'descend' : 'ascend',
     },
     {
       title: 'Name',

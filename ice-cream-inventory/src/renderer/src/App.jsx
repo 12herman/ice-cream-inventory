@@ -288,7 +288,7 @@ const App = () => {
       }
     }
     storageAlert()
-  }, [datas.storage])
+  }, [datas.balancesheet])
 
   useEffect(() => {
     const today = dayjs().format('DD/MM/YYYY')
@@ -297,7 +297,8 @@ const App = () => {
     const closeAllNotifications = () => {
       notification.destroy()
     }
-    datas.delivery.forEach((record) => {
+    const deliveryAlert = () => {
+      datas.delivery.forEach((record) => {
       if (record.type === 'booking' && !record.isdeleted && !record.bookingstatus) {
         if (
           record.deliverydate === today ||
@@ -323,7 +324,9 @@ const App = () => {
         }
       }
     })
-  }, [datas.delivery])
+  }
+  deliveryAlert()
+  }, [datas.balancesheet])
 
   return (
     <main className="grid grid-cols-8 lg:grid-cols-12 w-full h-screen">
