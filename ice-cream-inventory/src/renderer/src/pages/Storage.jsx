@@ -158,7 +158,9 @@ export default function Storage({ datas, storageUpdateMt }) {
       fixed: 'right',
       width: 110,
       render: (_, record) => {
-        const editable = isEditing(record)
+        const editable = isEditing(record);
+        const isLowQuantity = record.quantity < record.alertcount;
+
         return editable ? (
           <span className="flex gap-x-1 items-center">
             <Typography.Link onClick={() => storageSave(record)} style={{ marginRight: 8 }}>
@@ -170,7 +172,7 @@ export default function Storage({ datas, storageUpdateMt }) {
           </span>
         ) : (
           <span className="flex gap-x-3 items-center">
-            <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)}>
+            <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)} style={{ color: isLowQuantity ? 'red' : 'auto' }}>
               <MdOutlineModeEditOutline size={19} />
             </Typography.Link>
           </span>
@@ -257,7 +259,8 @@ export default function Storage({ datas, storageUpdateMt }) {
       fixed: 'right',
       width: 110,
       render: (_, record) => {
-        const editable = isEditing(record)
+        const editable = isEditing(record);
+        const isLowQuantity = record.numberofpacks < record.alertcount;
         return editable ? (
           <span className="flex gap-x-1 items-center">
             <Typography.Link onClick={() => storageSave(record)} style={{ marginRight: 8 }}>
@@ -269,7 +272,7 @@ export default function Storage({ datas, storageUpdateMt }) {
           </span>
         ) : (
           <span className="flex gap-x-3 items-center">
-            <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)}>
+            <Typography.Link disabled={editingKeys.length !== 0} onClick={() => edit(record)} style={{ color: isLowQuantity ? 'red' : 'auto' }}>
               <MdOutlineModeEditOutline size={19} />
             </Typography.Link>
           </span>
