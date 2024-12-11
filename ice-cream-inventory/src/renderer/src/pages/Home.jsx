@@ -50,7 +50,7 @@ import { customRound } from '../js-files/round-amount'
 import WarningModal from '../components/WarningModal'
 import { toDigit } from '../js-files/tow-digit'
 import { getFreezerboxById } from '../firebase/data-tables/freezerbox'
-import { latestFirstSort } from '../js-files/sort-time-date-sec'
+import { latestFirstSort, recentDateFirstSort } from '../js-files/sort-time-date-sec'
 import './css/Home.css'
 import TableHeight from '../components/TableHeight'
 
@@ -895,7 +895,7 @@ export default function Home({ datas }) {
     let filterLatestData = await latestFirstSort(newSelectedTableData)
    
     if(type === 'totalBooking'){
-      filterLatestData = filterLatestData.reverse();
+      filterLatestData = await recentDateFirstSort(newSelectedTableData);
     }
 
     setSelectedTableData(filterLatestData)

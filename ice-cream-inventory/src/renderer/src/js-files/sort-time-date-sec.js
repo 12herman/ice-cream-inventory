@@ -41,3 +41,23 @@ export const oldestFirstSort = async (data) => {
 
   return sorting;
 };
+
+export const recentDateFirstSort = async (data) => {
+  let sorting = data.sort((a, b) => {
+    let parseDate = (dateStr) => {
+      let dateParts = dateStr.split(' ');
+      let [day, month, year] = dateParts[0].split('/');
+      let timePart = dateParts[1] ? dateParts[1] : '00:00';
+      let formattedDate = `${year}-${month}-${day}T${timePart}:00`;
+      return new Date(formattedDate);
+    };
+
+    let dateA = parseDate(a.date);
+    let dateB = parseDate(b.date);
+
+    // Sort in ascending order
+    return dateA - dateB;
+  });
+
+  return sorting;
+};
