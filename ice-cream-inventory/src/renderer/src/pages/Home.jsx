@@ -486,7 +486,8 @@ export default function Home({ datas }) {
           })
       )
 
-      setSelectedTableData(initialData)
+      const sortedData = await latestFirstSort(initialData)
+      setSelectedTableData(sortedData)
       setTableLoading(false)
 
       const initialDeliveryData = await Promise.all(
@@ -892,6 +893,11 @@ export default function Home({ datas }) {
         newSelectedTableData = filteredDelivery
     }
     let filterLatestData = await latestFirstSort(newSelectedTableData)
+   
+    if(type === 'totalBooking'){
+      filterLatestData = filterLatestData.reverse();
+    }
+
     setSelectedTableData(filterLatestData)
   }
 
@@ -967,14 +973,14 @@ export default function Home({ datas }) {
         return matchingItems.map((matchingData) => ({
           sno: matchingData.sno,
           ...pr,
-          pieceamount: pr.price,
+          pieceamount: matchingData.productprice,
           quantity: `${pr.quantity} ${pr.unit}`,
           margin: matchingData.margin,
           price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            matchingData.numberofpacks * matchingData.productprice -
+            matchingData.numberofpacks * matchingData.productprice * (matchingData.margin / 100),
           numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
+          producttotalamount: matchingData.numberofpacks * matchingData.productprice,
           returntype: matchingData.returntype
         }))
       })
@@ -1055,14 +1061,14 @@ export default function Home({ datas }) {
         return matchingItems.map((matchingData) => ({
           sno: matchingData.sno,
           ...pr,
-          pieceamount: pr.price,
+          pieceamount: matchingData.productprice,
           quantity: `${pr.quantity} ${pr.unit}`,
           margin: matchingData.margin,
           price:
-            matchingData.numberofpacks * pr.price -
-            matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+            matchingData.numberofpacks * matchingData.productprice -
+            matchingData.numberofpacks * matchingData.productprice * (matchingData.margin / 100),
           numberofpacks: matchingData.numberofpacks,
-          producttotalamount: matchingData.numberofpacks * pr.price,
+          producttotalamount: matchingData.numberofpacks * matchingData.productprice,
           returntype: matchingData.returntype
         }))
       })
@@ -1321,12 +1327,12 @@ export default function Home({ datas }) {
       key: 'date',
       width: 150,
       sorter: (a, b) => {
-        const format = 'DD/MM/YYYY'
+        const format = activeCard === 'totalBooking' ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY'
         const dateA = dayjs(a.date, format)
         const dateB = dayjs(b.date, format)
         return dateB.isAfter(dateA) ? -1 : 1
       },
-      defaultSortOrder: activeCard === 'totalBooking' ? 'descend' : 'ascend',
+      // defaultSortOrder: activeCard === 'totalBooking' ? 'descend' : 'ascend',
     },
     {
       title: 'Name',

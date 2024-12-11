@@ -810,15 +810,16 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
           let mrpNormal = data.numberofpacks * data.productprice
           let mrpData = row.productprice * data.numberofpacks
 
-          let marginvalue = ((data.productprice - row.productprice) / data.productprice) * 100
-          let price = mrpData - mrpData * (0 / 100)
+          // let marginvalue = ((data.productprice - row.productprice) / data.productprice) * 100
+          let price = mrpData - mrpData * (data.margin / 100)
           if (product.key === data.key) {
             return {
               ...product,
               numberofpacks: data.numberofpacks,
-              margin: marginvalue,
+              productprice: row.productprice,
+              // margin: marginvalue,
               price: customRound(price),
-              mrp: mrpNormal,
+              mrp: mrpData,
               returntype: row.returntype === undefined ? 'normal' : row.returntype
             }
           }
@@ -1191,6 +1192,7 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         .map((pr) => ({
           numberofpacks: temp.numberofpacks,
           id: pr.id,
+          productprice: temp.productprice === '' ? pr.price : temp.productprice,
           returntype: temp.returntype,
           margin: temp.margin === '' ? 0 : temp.margin,
           sno: tempIndex + 1
@@ -1377,14 +1379,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         return matchingItems.map((matchingData) => ({
             sno: matchingData.sno,
             ...pr,
-            pieceamount: pr.price,
+            pieceamount: matchingData.productprice,
             quantity: `${pr.quantity} ${pr.unit}`,
             margin: matchingData.margin,
             price:
-                matchingData.numberofpacks * pr.price -
-                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+                matchingData.numberofpacks * matchingData.productprice -
+                matchingData.numberofpacks * matchingData.productprice * (matchingData.margin / 100),
             numberofpacks: matchingData.numberofpacks,
-            producttotalamount: matchingData.numberofpacks * pr.price,
+            producttotalamount: matchingData.numberofpacks * matchingData.productprice,
             returntype: matchingData.returntype,
         }));
       });
@@ -1696,15 +1698,15 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
                   sno: item2.sno,
                   ...item,
                   returntype: item2.returntype,
-                  pieceamount: item.price,
+                  pieceamount: item2.productprice,
                   quantity: `${item.quantity} ${item.unit}`,
                   margin: item2.margin,
                   price: customRound(
-                    item2.numberofpacks * item.price -
-                      item2.numberofpacks * item.price * (item2.margin / 100)
+                    item2.numberofpacks * item2.productprice -
+                      item2.numberofpacks * item2.productprice * (item2.margin / 100)
                   ),
                   numberofpacks: item2.numberofpacks,
-                  producttotalamount: item2.numberofpacks * item.price
+                  producttotalamount: item2.numberofpacks * item2.productprice
                 }
               })
           )
@@ -2058,14 +2060,14 @@ export default function Delivery({ datas, deliveryUpdateMt, storageUpdateMt, cus
         return matchingItems.map((matchingData) => ({
             sno: matchingData.sno,
             ...pr,
-            pieceamount: pr.price,
+            pieceamount: matchingData.productprice,
             quantity: `${pr.quantity} ${pr.unit}`,
             margin: matchingData.margin,
             price:
-                matchingData.numberofpacks * pr.price -
-                matchingData.numberofpacks * pr.price * (matchingData.margin / 100),
+                matchingData.numberofpacks * matchingData.productprice -
+                matchingData.numberofpacks * matchingData.productprice * (matchingData.margin / 100),
             numberofpacks: matchingData.numberofpacks,
-            producttotalamount: matchingData.numberofpacks * pr.price,
+            producttotalamount: matchingData.numberofpacks * matchingData.productprice,
             returntype: matchingData.returntype,
         }));
       });

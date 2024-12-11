@@ -281,7 +281,7 @@ export default function NavBar({
         sno: isQuickSale.count,
         mrp: values.numberofpacks * data.price,
         margin: 0,
-        productprice: data.price,
+        productprice:data.price,
         price: values.numberofpacks * data.price,
         key: isQuickSale.count}));
 
@@ -439,8 +439,8 @@ export default function NavBar({
         isdeleted: false,
         paymentmode: qickSaleForm3Value.paymentstatus === 'Unpaid' ? '' : isQuickSale.paymentmode,
         createddate: TimestampJs(),
-        date: dayjs().format('DD/MM/YYYY'),
-        deliverydate: dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY'),
+        date: quickSaleForm.getFieldsValue().date ? dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY') : dayjs().format('DD/MM/YYYY'),
+        deliverydate: isQuickSale.type === "booking" ? dayjs(quickSaleForm.getFieldsValue().date).format('DD/MM/YYYY') : null,
         location: qickSaleForm3Value.location || ''
       }
       
@@ -472,7 +472,7 @@ export default function NavBar({
         for (const item of productItems) {
           await addDoc(itemsCollectionRef, item)
         }
-        message.open({ type: 'success', content: 'Production added successfully' })
+        message.open({ type: 'success', content: 'Delivery added successfully' })
         await deliveryUpdateMt()
         setIsQuickSale((pre) => ({
           ...pre,
@@ -844,17 +844,17 @@ export default function NavBar({
             let mrpNormal = data.productprice * data.numberofpacks
             let mrpData = row.productprice * data.numberofpacks
             
-            let marginvalue = ((data.productprice -  row.productprice) / data.productprice) * 100
-            let price = mrpData - mrpData * (0 / 100)
+            // let marginvalue = ((data.productprice -  row.productprice) / data.productprice) * 100
+            let price = mrpData - mrpData * (data.margin / 100)
             // console.log(mrpData - mrpData  * (0 / 100));
             
             return {
               ...item,
               // productprice: data.productprice,
-              productprice: data.productprice,
+              productprice: row.productprice,
               numberofpacks: data.numberofpacks,
-              margin: marginvalue,
-              mrp: mrpNormal,
+              // margin: marginvalue,
+              mrp: mrpData,
               price: price,
               quickproductprice:row.productprice
             }
@@ -1064,7 +1064,7 @@ export default function NavBar({
         <span>Spending</span>
       </Button>
       <span className="flex justify-center items-center gap-x-2 text-gray-500 absolute bottom-1 w-[100%] text-[10px] font-normal">
-        Version : 1.6
+        Version : 1.7
       </span>
       {/* quick sale */}
       <Modal
